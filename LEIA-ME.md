@@ -83,6 +83,26 @@ fechada), `Oswald` (condensada com minúsculas de verdade) e
 Se quiser a PP Neue Montreal original, compre em pangrampangram.com, coloque os
 arquivos em `/fontes` e declare um `@font-face` no topo do `style.css`.
 
+## O carrossel de logos da Vinci Society
+
+Cada marca é desenhada como **máscara**, não como imagem. A forma vem do canal
+alfa do arquivo e a cor vem do `background-color`. É isso que permite pintar
+SVG e PNG de origens diferentes com a mesma cor e trocar essa cor no hover,
+coisa que uma `<img>` comum não faz.
+
+Cor de repouso: violeta `#8052ff`. No hover: âmbar `#ffb829`. Para mudar, procure
+`.marca` no `style.css`.
+
+Para adicionar ou remover uma marca, edite **os dois blocos** `logos__set` do
+`index.html`. Eles são idênticos de propósito: o carrossel anda exatamente a
+largura de um bloco, então a emenda cai no ponto igual e o laço parece infinito.
+Mexer em só um dos blocos quebra a continuidade.
+
+Requisito do arquivo do logo: **fundo transparente**. Logo sobre fundo branco
+chapado vira um retângulo sólido, porque a máscara usa o canal alfa. Foi o caso
+do Salvy, que veio sem alfa e por isso tem uma versão `02-salvy-alpha.png`
+gerada a partir da luminância do original.
+
 ## O cérebro do hero
 
 Não é imagem nem vídeo. É gerado no canvas em três passos, dentro do `script.js`:

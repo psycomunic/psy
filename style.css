@@ -456,6 +456,66 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 }
 .destaque .lead{ margin-top:var(--s-36); }
 
+/* -------------------------- VINCI SOCIETY -------------------------- */
+.label--centro{ text-align:center; margin-bottom:var(--s-36); }
+
+.vinci__foto{ margin-top:var(--s-120); }
+.vinci__foto img{
+  width:100%;
+  border-radius:var(--radius);   /* mesmo raio dos retratos do sistema */
+}
+.vinci__foto .micro{ margin-top:var(--s-18); }
+
+/* Carrossel de logos.
+   Cada marca e desenhada como MASCARA, nao como imagem: a forma vem do
+   canal alfa do arquivo e a cor vem do background-color. Por isso da
+   para pintar SVG e PNG de fontes diferentes com a mesma cor da
+   identidade, e trocar essa cor no hover, coisa que <img> nao permite. */
+.logos{
+  margin-top:var(--s-60);
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);
+}
+.logos__track{
+  display:flex;
+  width:max-content;
+  animation:desfila 46s linear infinite;
+}
+/* Cada bloco leva um espaco de sobra na direita igual ao vao interno.
+   Assim os dois blocos tem exatamente a mesma largura e translateX(-50%)
+   cai no pixel certo. Sem esse espaco, o laco pula meio vao a cada volta. */
+.logos__set{
+  display:flex; align-items:center;
+  gap:var(--vao);
+  padding-right:var(--vao);
+}
+.logos{ --vao:clamp(48px,6vw,96px); }
+@keyframes desfila{ to{ transform:translateX(-50%); } }
+.logos:hover .logos__track{ animation-play-state:paused; }
+
+.marca{
+  flex:none;
+  display:block;
+  width:clamp(96px,10vw,150px);
+  height:clamp(34px,3.4vw,48px);
+  background-color:var(--electric-iris);
+  -webkit-mask-image:var(--logo);
+          mask-image:var(--logo);
+  -webkit-mask-size:contain;      mask-size:contain;
+  -webkit-mask-repeat:no-repeat;  mask-repeat:no-repeat;
+  -webkit-mask-position:center;   mask-position:center;
+  transition:background-color .35s ease, transform .35s ease;
+}
+.marca:hover{
+  background-color:var(--saffron-spark);
+  transform:translateY(-4px);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .logos__track{ animation:none; }
+}
+
 /* ------------------------------ LISTA ------------------------------ */
 .list{ display:flex; flex-direction:column; gap:var(--s-24); }
 .list li{
