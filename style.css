@@ -379,13 +379,17 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   object-position:55% 18%;
   pointer-events:none;
 
+  /* As quatro bordas precisam dissolver. Qualquer uma que termine opaca
+     vira uma linha reta sobre o void, porque o fundo da foto e azul
+     escuro e nao preto puro. A direita fecha em faixa larga (85% a 100%)
+     para o corte sumir sem comer o ombro. */
   -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0,0,0,.28) 24%, #000 56%),
-    linear-gradient(to bottom, transparent 0%, #000 9%, #000 80%, transparent 100%);
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,.28) 24%, #000 54%, #000 85%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 9%, #000 78%, transparent 100%);
   -webkit-mask-composite:source-in;
   mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0,0,0,.28) 24%, #000 56%),
-    linear-gradient(to bottom, transparent 0%, #000 9%, #000 80%, transparent 100%);
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,.28) 24%, #000 54%, #000 85%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 9%, #000 78%, transparent 100%);
   mask-composite:intersect;
   -webkit-mask-repeat:no-repeat;
           mask-repeat:no-repeat;
