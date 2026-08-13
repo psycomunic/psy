@@ -157,13 +157,6 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   letter-spacing:-.02em;
 }
 
-/* ---- Bebas Neue: a linha de títulos ----
-   Vem depois das regras acima de propósito, para sobrescrever o tracking.
-   Condensada em caixa alta pede espacejamento neutro, nunca negativo:
-   -0.04em serve para grotesca em caixa mista e aqui grudaria as letras.
-   Entrelinha bem fechada para o efeito de cartaz empilhado.
-   Fora daqui, de propósito: pergunta de FAQ e depoimento continuam na
-   Switzer, porque caixa alta em bloco de leitura cansa a vista.        */
 /* ---- MADE Tommy: a linha de títulos ----
    Vem depois das regras acima de propósito, para sobrescrever peso e
    tracking. Geométrica de largura normal, então a escala do sistema
@@ -171,7 +164,7 @@ body > *:not(#ambient){ position:relative; z-index:1; }
    Fora daqui, de propósito: pergunta de FAQ e depoimento continuam na
    Switzer, para não pesar o bloco de leitura.                        */
 .display, .h-lg, .h-xs, .h-2xs, .declaracao,
-.proof__num, .proof__nome, .preco strong,
+.proof__num, .preco strong,
 .work h3, .mobilemenu__links a{
   font-family:var(--font-display);
 }
@@ -182,12 +175,12 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   font-weight:700;
   letter-spacing:-.03em;
 }
-.h-xs, .h-2xs, .work h3, .proof__nome{
+.h-xs, .h-2xs, .work h3{
   font-weight:500;
   letter-spacing:-.015em;
 }
 .display, .h-lg, .declaracao{ line-height:.96; }
-.h-xs, .h-2xs, .work h3, .proof__nome{ line-height:1.15; }
+.h-xs, .h-2xs, .work h3{ line-height:1.15; }
 .proof__num, .preco strong, .mobilemenu__links a{ line-height:1.05; }
 
 .label{
@@ -422,39 +415,41 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 }
 
 /* ----------------------------- PROVA ----------------------------- */
+/* Quatro colunas com a MESMA anatomia: rótulo, número, apoio.
+   Antes a terceira era rótulo + nome, sem número, então a linha não
+   tinha base comum e a coluna lia como outro componente. */
 .proof{
-  display:grid; grid-template-columns:repeat(3,1fr);
-  gap:var(--s-36) clamp(40px,6vw,96px);
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:var(--s-60) clamp(30px,4vw,72px);
 }
 .proof__item{ display:flex; flex-direction:column; }
+.proof__item .papel{ margin-bottom:var(--s-18); }
 .proof__num{
-  font-size:var(--text-h-sm);
-  font-weight:var(--w-regular);
-  line-height:1.2;
-  letter-spacing:-.04em;
+  font-size:clamp(46px,5.6vw,72px);
+  line-height:1;
   color:var(--bone-white);
 }
-.proof__num::after{ content:'+'; color:var(--electric-iris); }
-.proof__role{
-  font-size:var(--text-caption);
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--electric-iris);
-}
-.proof__nome{
-  font-size:var(--text-h-2xs);
-  font-weight:var(--w-regular);
-  line-height:1.25;
-  letter-spacing:-.02em;
-  color:var(--bone-white);
-}
+/* Só onde o número é aproximado. 10 dias e 24h são exatos. */
+.proof__num--mais::after{ content:'+'; color:var(--electric-iris); }
 .proof__txt{
-  margin-top:var(--s-12);
-  font-size:var(--text-caption);
+  margin-top:var(--s-18);
+  font-size:14px;
   font-weight:var(--w-extralight);
   line-height:1.5;
   color:var(--ash-gray);
-  max-width:32ch;
+  max-width:26ch;
+}
+
+/* Selo de autoridade. Sai da grade dos números de propósito: é
+   qualitativo, não numérico, e competia com eles quando dividia coluna. */
+.selo{
+  margin-top:var(--s-96);
+  max-width:60ch;
+  font-size:var(--text-h-2xs);
+  font-weight:var(--w-extralight);
+  line-height:1.35;
+  letter-spacing:-.01em;
+  color:var(--bone-white);
 }
 
 /* ---------------------------- DESTAQUE ---------------------------- */
@@ -797,7 +792,11 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   .trio, .works, .quotes{ margin-top:var(--s-60); }
 }
 @media (max-width:640px){
-  .proof, .trio, .trio--quatro, .quotes, .works{ grid-template-columns:1fr; }
+  .trio, .trio--quatro, .quotes, .works{ grid-template-columns:1fr; }
+  /* Números seguem em duas colunas: empilhados em uma, viram uma lista
+     longa e perdem a leitura de "barra de prova" batida de uma vez. */
+  .proof{ grid-template-columns:repeat(2,1fr); gap:var(--s-36) var(--s-24); }
+  .proof__num{ font-size:clamp(38px,11vw,52px); }
   .hero__actions{ gap:var(--s-24); }
   .footer__inner{ grid-template-columns:1fr; }
 }
