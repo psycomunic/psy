@@ -51,8 +51,20 @@ Duas fontes, as duas da Fontshare, uso comercial livre.
 
 | Fonte | Onde | Por quê |
 |---|---|---|
-| **Clash Display** | todos os títulos, de 24px a 113px, e os números grandes | desenhada só para tamanho grande. Aberturas fechadas, terminais retos, `a`, `g` e `y` com desenho próprio. É o que dá originalidade ao topo da página |
-| **Switzer** | corpo, nav, labels e botões | equivalente livre da PP Neue Montreal, a fonte real da referência do `DESIGN.md` |
+| **Bebas Neue** | títulos, números da prova social, preços, nomes de projeto e links do menu | condensada, caixa alta, peso único. Cara de cartaz. Ela converte minúsculas em maiúsculas sozinha, então o HTML segue escrito em caixa mista e você não precisa digitar gritando |
+| **Switzer** | corpo, nav, labels, botões, perguntas do FAQ e depoimentos | equivalente livre da PP Neue Montreal, a fonte real da referência do `DESIGN.md` |
+
+FAQ e depoimentos ficaram de fora da Bebas de propósito: caixa alta em bloco
+de leitura cansa a vista e derruba a compreensão justamente onde o visitante
+está resolvendo a última objeção.
+
+Dois ajustes que a condensada exigiu, e que valem manter se você trocar de fonte:
+
+- **Espacejamento neutro** (`0.005em`) em vez do `-0.04em` do sistema. Tracking
+  negativo serve para grotesca em caixa mista. Em condensada de caixa alta ele
+  gruda as letras.
+- **Corpo maior** nos títulos. Condensada ocupa menos largura, então precisa de
+  tamanho maior para ter a mesma presença que a escala do sistema previa.
 
 Pesos em uso, como o sistema pede:
 
@@ -62,10 +74,11 @@ Pesos em uso, como o sistema pede:
 | 400 | todos os títulos. Nunca bold, a hierarquia vem da escala |
 | 600 | nav, labels e botões, em caixa alta |
 
-Para trocar a fonte dos títulos, mude dois pontos: o `<link>` da Fontshare no
+Para trocar a fonte dos títulos, mude dois pontos: o `<link>` do Google Fonts no
 `<head>` do `index.html` e a variável `--font-display` no topo do `style.css`.
-Deixei três alternativas comentadas ali, todas testadas no mesmo lugar:
-`Cabinet Grotesk`, `Bespoke Serif` e `Zodiak`.
+Deixei três alternativas condensadas comentadas ali: `Anton` (mais pesada e
+fechada), `Oswald` (condensada com minúsculas de verdade) e
+`Big Shoulders Display` (condensada extrema, mais técnica).
 
 Se quiser a PP Neue Montreal original, compre em pangrampangram.com, coloque os
 arquivos em `/fontes` e declare um `@font-face` no topo do `style.css`.
