@@ -561,6 +561,9 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   margin-top:var(--s-120);
 }
 .trio--quatro{ grid-template-columns:repeat(4,1fr); }
+/* Sem bloco de título acima, o respiro já vem do padding da seção.
+   Manter os 120px aqui abriria um vazio no meio da página. */
+.trio--semTopo{ margin-top:0; }
 .trio h3{ margin-bottom:var(--s-18); }
 .trio .apoio{ max-width:38ch; }
 
