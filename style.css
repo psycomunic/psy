@@ -12,6 +12,25 @@
    . Raio 24px. Pill apenas nos elementos pequenos
    ================================================================= */
 
+/* ---------------------------------------------------------------------
+   MADE Tommy, da MadeType.
+
+   ATENCAO DE LICENCA: os arquivos em /fontes sao a versao PERSONAL USE.
+   O EULA que veio no pacote diz, literalmente, "FOR PERSONAL USE".
+   Este site vende servico, o que e uso comercial e nao esta coberto.
+   Licenca comercial: https://pixelsurplus.com/products/made-tommy
+   --------------------------------------------------------------------- */
+@font-face{
+  font-family:'MADE Tommy';
+  src:url('fontes/MADE-Tommy-Medium.otf') format('opentype');
+  font-weight:500; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'MADE Tommy';
+  src:url('fontes/MADE-Tommy-Bold.otf') format('opentype');
+  font-weight:700; font-style:normal; font-display:swap;
+}
+
 :root{
   /* Cores */
   --void:          #000000;
@@ -24,20 +43,13 @@
 
   /* Duas fontes, ambas da Fontshare, uso comercial livre.
 
-     --font-display  Bebas Neue. Só títulos. Condensada, caixa alta,
-                     peso único 400, que casa com a regra de nunca usar
-                     bold. Ela converte minúsculas em maiúsculas sozinha,
-                     então o HTML continua escrito em caixa mista.
+     --font-display  MADE Tommy. Só títulos. Geométrica, bojos redondos,
+                     terminais retos. Volta a caixa mista, ao contrário
+                     da Bebas, que forçava tudo em maiúscula.
 
      --font          Switzer. Corpo, nav, labels e botões. Equivalente
-                     livre da PP Neue Montreal, a fonte da referência.
-
-     Para trocar o display, mude esta linha e o <link> do <head>.
-     Outras condensadas que encaixam no mesmo lugar, todas no Google:
-       'Anton'                 mais pesada e fechada, grita mais alto
-       'Oswald'                condensada com minúsculas de verdade
-       'Big Shoulders Display' condensada extrema, mais técnica        */
-  --font-display: 'Bebas Neue', 'Oswald', 'Arial Narrow', ui-sans-serif, sans-serif;
+                     livre da PP Neue Montreal, a fonte da referência.  */
+  --font-display: 'MADE Tommy', 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --font: 'Switzer', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --w-extralight: 200;
@@ -152,30 +164,31 @@ body > *:not(#ambient){ position:relative; z-index:1; }
    Entrelinha bem fechada para o efeito de cartaz empilhado.
    Fora daqui, de propósito: pergunta de FAQ e depoimento continuam na
    Switzer, porque caixa alta em bloco de leitura cansa a vista.        */
+/* ---- MADE Tommy: a linha de títulos ----
+   Vem depois das regras acima de propósito, para sobrescrever peso e
+   tracking. Geométrica de largura normal, então a escala do sistema
+   volta a valer: sem a compensação de tamanho que a condensada exigia.
+   Fora daqui, de propósito: pergunta de FAQ e depoimento continuam na
+   Switzer, para não pesar o bloco de leitura.                        */
 .display, .h-lg, .h-xs, .h-2xs, .declaracao,
 .proof__num, .proof__nome, .preco strong,
 .work h3, .mobilemenu__links a{
   font-family:var(--font-display);
-  font-weight:var(--w-regular);
-  letter-spacing:.005em;
 }
-.display, .h-lg, .declaracao{ line-height:.88; }
-.h-xs, .h-2xs, .work h3, .proof__nome{ line-height:1.05; }
-.proof__num, .preco strong, .mobilemenu__links a{ line-height:1; }
-
-/* Condensada ocupa menos largura, então precisa de corpo maior para ter
-   a mesma presença óptica que a escala do sistema previa. Os tamanhos
-   do sistema seguem valendo para tudo que continua na Switzer. */
-.display{   font-size:clamp(56px, 10.6vw, 148px); }
-.h-lg,
-.declaracao{ font-size:clamp(44px, 7.8vw, 100px); }
-.h-xs{      font-size:clamp(25px, 2.4vw, 33px); }
-.h-2xs,
-.work h3,
-.proof__nome{ font-size:clamp(22px, 2vw, 29px); }
-.proof__num,
-.preco strong{ font-size:clamp(38px, 4.4vw, 56px); }
-.mobilemenu__links a{ font-size:clamp(38px, 10vw, 60px); }
+/* Bojo redondo e haste grossa fecham os contra-formas se o tracking
+   for muito negativo. -0.03em segura o ar entre as letras. */
+.display, .h-lg, .declaracao,
+.proof__num, .preco strong, .mobilemenu__links a{
+  font-weight:700;
+  letter-spacing:-.03em;
+}
+.h-xs, .h-2xs, .work h3, .proof__nome{
+  font-weight:500;
+  letter-spacing:-.015em;
+}
+.display, .h-lg, .declaracao{ line-height:.96; }
+.h-xs, .h-2xs, .work h3, .proof__nome{ line-height:1.15; }
+.proof__num, .preco strong, .mobilemenu__links a{ line-height:1.05; }
 
 .label{
   font-size:var(--text-nav-label);
@@ -457,11 +470,14 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 .destaque .lead{ margin-top:var(--s-36); }
 
 /* -------------------------- VINCI SOCIETY -------------------------- */
-.label--centro{ text-align:center; margin-bottom:var(--s-36); }
+.label--centro{ text-align:center; margin-top:var(--s-96); margin-bottom:var(--s-36); }
 
 .vinci__foto{ margin-top:var(--s-120); }
 .vinci__foto img{
   width:100%;
+  /* height:auto é obrigatório: sem ele o atributo height="1200" do HTML
+     entra como altura em CSS e a foto renderiza deformada. */
+  height:auto;
   border-radius:var(--radius);   /* mesmo raio dos retratos do sistema */
 }
 .vinci__foto .micro{ margin-top:var(--s-18); }

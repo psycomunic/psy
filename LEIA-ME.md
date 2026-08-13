@@ -51,8 +51,21 @@ Duas fontes, as duas da Fontshare, uso comercial livre.
 
 | Fonte | Onde | Por quê |
 |---|---|---|
-| **Bebas Neue** | títulos, números da prova social, preços, nomes de projeto e links do menu | condensada, caixa alta, peso único. Cara de cartaz. Ela converte minúsculas em maiúsculas sozinha, então o HTML segue escrito em caixa mista e você não precisa digitar gritando |
+| **MADE Tommy** | títulos, números da prova social, preços, nomes de projeto e links do menu | geométrica, bojos redondos, terminais retos. Servida da pasta `/fontes`, em Bold para os títulos grandes e Medium para os pequenos |
 | **Switzer** | corpo, nav, labels, botões, perguntas do FAQ e depoimentos | equivalente livre da PP Neue Montreal, a fonte real da referência do `DESIGN.md` |
+
+> ### ⚠️ Licença da MADE Tommy
+> Os arquivos em `/fontes` são a versão **PERSONAL USE**. O EULA que veio no
+> pacote diz, literalmente, *"FOR PERSONAL USE"*. Este site vende serviço, o que
+> é uso comercial e **não está coberto**. Some-se a isso que o repositório é
+> público, então os arquivos da fonte estão sendo redistribuídos.
+>
+> Licença comercial: https://pixelsurplus.com/products/made-tommy
+>
+> Enquanto não comprar, as alternativas são: trocar por uma fonte livre de
+> desenho parecido (`Poppins`, `Outfit` ou `Figtree`, todas no Google Fonts,
+> geométricas como a Tommy), ou tornar o repositório privado e comprar a licença
+> antes de publicar.
 
 FAQ e depoimentos ficaram de fora da Bebas de propósito: caixa alta em bloco
 de leitura cansa a vista e derruba a compreensão justamente onde o visitante
@@ -89,6 +102,12 @@ Cada marca é desenhada como **máscara**, não como imagem. A forma vem do cana
 alfa do arquivo e a cor vem do `background-color`. É isso que permite pintar
 SVG e PNG de origens diferentes com a mesma cor e trocar essa cor no hover,
 coisa que uma `<img>` comum não faz.
+
+Os arquivos ficam embutidos como data URI em `logos-vinci.css`, e não como
+`url()` apontando para a pasta. Motivo: `mask-image` com arquivo externo é
+**bloqueada quando a página roda em `file://`**, e máscara que não carrega
+esconde o elemento inteiro. Sem isso o carrossel some quando você abre o
+`index.html` com dois cliques, embora funcione no site publicado.
 
 Cor de repouso: violeta `#8052ff`. No hover: âmbar `#ffb829`. Para mudar, procure
 `.marca` no `style.css`.
