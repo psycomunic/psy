@@ -96,6 +96,36 @@ fechada), `Oswald` (condensada com minúsculas de verdade) e
 Se quiser a PP Neue Montreal original, compre em pangrampangram.com, coloque os
 arquivos em `/fontes` e declare um `@font-face` no topo do `style.css`.
 
+## Os dois carrosséis
+
+A página tem dois, com técnicas diferentes de propósito.
+
+| | Onde | Técnica | Cor |
+|---|---|---|---|
+| **Cases** | logo abaixo da hero | `<img>` de silhuetas brancas | branco a 55%, sobe a 100% no hover |
+| **Vinci Society** | dentro da seção de autoridade | `mask-image` embutida em data URI | violeta, vira âmbar no hover |
+
+Por que técnicas diferentes: são 28 marcas nos cases. Como máscara, elas
+precisariam virar data URI para funcionar em `file://`, o que somaria uns
+200 KB ao CSS. Como já são silhuetas brancas de fundo transparente, `<img>`
+resolve sem custo, carrega sob demanda e fica em cache separado.
+
+### Trocar ou adicionar um logo nos cases
+
+1. Salve a arte em `imagens/LOGO CASES/PNG`
+2. Gere a silhueta: fundo transparente, desenho em branco, recortada rente
+3. Salve em `imagens/cases`
+4. Adicione o `<img class="caso">` **nos dois blocos** `logos__set`
+
+Os originais que você mandou vieram como logo preto dentro de uma pílula
+branca. A silhueta foi extraída convertendo luminância em canal alfa: o
+branco da pílula vira transparente e o desenho preto vira opaco.
+
+Sete dos SVGs da pasta (`BELLA CAÇADOS`, `CARMELITTA`, `DIARA`, `NATIVAS`,
+`SHOP VIAGEM`, `USEVANGLORY` e `VOZZ CANVAS`) estão vazios: são exports do
+CorelDRAW que apontam para um arquivo raster externo que não veio junto.
+Por isso o carrossel usa o conjunto PNG, que está completo.
+
 ## O carrossel de logos da Vinci Society
 
 Cada marca é desenhada como **máscara**, não como imagem. A forma vem do canal

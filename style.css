@@ -471,6 +471,32 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 
 /* -------------------------- VINCI SOCIETY -------------------------- */
 .label--centro{ text-align:center; margin-top:var(--s-96); margin-bottom:var(--s-36); }
+.label--semTopo{ margin-top:0; }
+
+/* --------------------- CARROSSEL DE CASES ---------------------
+   Aqui os logos são <img>, não máscara como no carrossel da Vinci.
+   Motivo: são 28 marcas. Como máscara elas teriam que virar data URI
+   para funcionar em file://, e isso somaria uns 200 KB ao CSS. Como
+   já são silhuetas brancas de fundo transparente, <img> resolve sem
+   custo, carrega sob demanda e fica em cache separado.
+
+   Repouso a 45% de opacidade, que é o cinza de apoio do sistema.
+   No hover vai a branco pleno: mesma gramática de "recua e acende"
+   do carrossel da Vinci, só que na paleta neutra, porque aqui são
+   marcas suas e lá é autoridade emprestada.                       */
+.logos--cases .logos__track{ animation-duration:78s; }
+/* As silhuetas foram recortadas rente ao desenho, então as proporções
+   variam muito (de 1,4:1 a 6,3:1). object-fit:contain numa caixa fixa
+   é o que mantém todas dentro do mesmo ritmo sem distorcer nenhuma. */
+.caso{
+  flex:none;
+  width:clamp(104px,10.5vw,158px);
+  height:clamp(38px,3.9vw,54px);
+  object-fit:contain;
+  opacity:.55;
+  transition:opacity .35s ease, transform .35s ease;
+}
+.caso:hover{ opacity:1; transform:translateY(-4px); }
 
 .vinci__foto{ margin-top:var(--s-120); }
 .vinci__foto img{
