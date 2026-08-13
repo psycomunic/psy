@@ -359,8 +359,22 @@ body > *:not(#ambient){ position:relative; z-index:1; }
    baixo, que senão cortariam a foto em retângulo duro sobre o void.
    As duas se combinam por interseção. */
 .hero__foto{
-  position:absolute; inset:0; z-index:3;
-  width:100%; height:100%;
+  /* ---- AFINE A FOTO POR AQUI ----
+     --foto-x     negativo puxa para a esquerda, para perto do texto
+     --foto-y     negativo sobe a foto
+     --foto-zoom  100% e o tamanho da caixa. Acima disso, amplia.
+     Mantenha zoom maior que x e y somados, senao abre um vazio na
+     direita ou embaixo, onde a foto deixaria de cobrir a caixa.      */
+  --foto-x:0%;
+  --foto-y:0%;
+  --foto-zoom:100%;
+
+  position:absolute; z-index:3;
+  inset:auto;
+  top:var(--foto-y);
+  left:var(--foto-x);
+  width:var(--foto-zoom);
+  height:var(--foto-zoom);
   object-fit:cover;
   object-position:55% 18%;
   pointer-events:none;
@@ -375,6 +389,16 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   mask-composite:intersect;
   -webkit-mask-repeat:no-repeat;
           mask-repeat:no-repeat;
+}
+
+/* No desktop a foto sobe e encosta no titulo. A caixa continua no lugar,
+   entao o cerebro de particulas nao se mexe: so a foto anda por cima. */
+@media (min-width:1024px){
+  .hero__foto{
+    --foto-x:-17%;
+    --foto-y:-14%;
+    --foto-zoom:118%;
+  }
 }
 @media (min-width:1180px){
   .hero__visual{ margin-right:calc(var(--gutter) * -2); transform:scale(1.12); }
