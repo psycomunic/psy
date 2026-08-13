@@ -1,0 +1,26 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Dependências e build (caso o projeto cresça)
+node_modules/
+dist/
+.vercel/
+.netlify/
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Arquivos de trabalho do design
+*.psd
+*.ai
+*.fig
+*.sketch

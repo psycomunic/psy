@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angelo Garcia. Sites de alta conversão para agências nichadas.</title>
+<meta name="description" content="Criamos sites e landing pages de alta conversão para a sua agência nichada. Mais de 17 anos de design, estratégia e copy. Mentorado Vincy Society, com Tay Dantas.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Angelo Garcia. Sites de alta conversão para agências nichadas.">
+<meta property="og:description" content="Sites e landing pages de alta conversão para a sua agência nichada. Mais de 17 anos de mercado. Mentorado Vincy Society.">
+<meta property="og:image" content="imagens/og-capa.jpg">
+<meta property="og:locale" content="pt_BR">
+<meta name="theme-color" content="#000000">
+
+<!-- Clash Display nos títulos. Switzer no corpo, nav e botões. -->
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@200,400,500,600&f[]=clash-display@400,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Campo de partículas ambiente -->
+<canvas id="ambient" aria-hidden="true"></canvas>
+
+<!-- ============================ NAV ============================ -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a href="#topo" class="logo" aria-label="Angelo Garcia, início">
+      <svg class="logo__mark" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#8052ff"/>
+            <stop offset="100%" stop-color="#15846e"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 2 L22 21 H2 Z" fill="url(#lg)"/>
+      </svg>
+      <span class="logo__word">Angelo Garcia</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Navegação principal">
+      <a href="#trabalhos">Trabalhos</a>
+      <a href="#metodo">Método</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#investimento">Investimento</a>
+    </nav>
+
+    <a class="btn nav__cta" data-wpp href="#contato">Falar com Angelo</a>
+
+    <button class="nav__burger" id="burger" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="mobilemenu" id="mobilemenu" hidden>
+  <nav class="mobilemenu__links" aria-label="Navegação">
+    <a href="#trabalhos"><i>01</i>Trabalhos</a>
+    <a href="#metodo"><i>02</i>Método</a>
+    <a href="#sobre"><i>03</i>Sobre</a>
+    <a href="#investimento"><i>04</i>Investimento</a>
+  </nav>
+  <div class="mobilemenu__foot">
+    <a class="btn" data-wpp href="#contato">Falar com Angelo</a>
+    <p class="micro">Diagnóstico gratuito de 20 minutos. Resposta em até 24h.</p>
+  </div>
+</div>
+
+<main id="topo">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="container hero__grid">
+    <div class="hero__copy reveal">
+      <p class="label">Sites e landing pages de alta conversão<br>para a sua <em>agência nichada</em></p>
+
+      <h1 class="display">
+        Design que<br>cobra caro<br><em>por você.</em>
+      </h1>
+
+      <p class="lead">
+        Há 17 anos eu desenho a diferença entre "quanto custa?" e "onde eu assino?".
+        Sua agência já domina um nicho. Falta a página que prova isso em 3 segundos.
+        Não entrego site bonito. Entrego estrutura de conversão.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn" data-wpp href="#contato">Quero meu site que vende</a>
+        <a class="ghost" href="#trabalhos">Ver trabalhos</a>
+      </div>
+      <p class="micro">Diagnóstico gratuito de 20 minutos. Resposta em até 24h.</p>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <canvas id="constellation"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== PROVA / CREDIBILIDADE ====================== -->
+<section class="section section--tight">
+  <div class="container proof reveal">
+    <div class="proof__item">
+      <span class="proof__num" data-count="17">17</span>
+      <span class="proof__txt">anos de mercado em design gráfico e web, do impresso ao digital</span>
+    </div>
+    <!-- EDITAR: confirme o número real de projetos entregues -->
+    <div class="proof__item">
+      <span class="proof__num" data-count="200">200</span>
+      <span class="proof__txt">projetos entregues para marcas, serviços e infoprodutores</span>
+    </div>
+    <div class="proof__item">
+      <span class="proof__role">Mentoria</span>
+      <span class="proof__nome">Vincy Society</span>
+      <span class="proof__txt">com Tay Dantas, uma das maiores especialistas em marketing do Brasil</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESTAQUE / NICHO ======================= -->
+<section class="section">
+  <div class="container destaque reveal">
+    <p class="label">Feito para agência de nicho</p>
+    <p class="declaracao">
+      Criamos <em>sites e landing pages de alta conversão</em> para a sua agência nichada.
+    </p>
+    <p class="lead">
+      Agência generalista compete por preço. Agência nichada compete por autoridade,
+      e autoridade precisa estar visível na primeira dobra. É exatamente isso que eu construo:
+      a página que faz o seu nicho reconhecer você como a escolha óbvia, antes da primeira reunião.
+    </p>
+  </div>
+</section>
+
+<!-- ============================ DOR ============================ -->
+<section class="section" id="problema">
+  <div class="container split reveal">
+    <div>
+      <p class="label">O diagnóstico</p>
+      <h2 class="h-lg">Todo mundo elogia.<br><em>Ninguém compra.</em></h2>
+    </div>
+    <div class="split__right">
+      <p class="lead">
+        Você já viu esse filme. O site fica lindo, você posta nos stories, chove elogio
+        e o WhatsApp continua mudo. O problema quase nunca é gosto. É estrutura.
+      </p>
+      <ul class="list">
+        <li><strong>Falta hierarquia.</strong> Em 3 segundos o visitante não entende o que você faz nem por que deveria confiar em você.</li>
+        <li><strong>Falta prova.</strong> Sem autoridade visível, seu preço vira objeção antes da conversa começar.</li>
+        <li><strong>Falta caminho.</strong> Não existe rota clara do primeiro scroll até a ação. Sobra saída e falta direção.</li>
+      </ul>
+      <p class="lead lead--forte">
+        Design sem estratégia é decoração cara. O que vende é <em>estrutura</em>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SOLUÇÃO ============================ -->
+<section class="section" id="solucao">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="label">O que eu entrego</p>
+        <h2 class="h-lg">Eu não vendo site.<br>Vendo o que ele faz<br>com o seu <em>preço</em>.</h2>
+      </div>
+      <div class="split__right">
+        <p class="lead">
+          Todo projeto começa pela mesma pergunta: qual decisão essa página precisa provocar?
+          Tipografia, cor, ritmo e copy existem só para servir a essa resposta, nunca ao contrário.
+          Vale para a página da sua agência e para as que você entrega ao seu cliente.
+        </p>
+      </div>
+    </div>
+
+    <div class="trio reveal">
+      <article>
+        <span class="idx">01</span>
+        <h3 class="h-xs">Landing page de conversão</h3>
+        <p class="apoio">Copy estruturada, prova social, quebra de objeção e um único caminho até o checkout. Para captação, lançamento e serviço de ticket alto.</p>
+      </article>
+      <article>
+        <span class="idx">02</span>
+        <h3 class="h-xs">Site de autoridade</h3>
+        <p class="apoio">O ativo que sustenta o preço da sua agência. Institucional, cases e rotas de contato. O lead chega na reunião já convencido do seu nicho.</p>
+      </article>
+      <article>
+        <span class="idx">03</span>
+        <h3 class="h-xs">Identidade visual</h3>
+        <p class="apoio">Marca, sistema e aplicação. Consistência é o que separa mais um prestador de uma empresa que cobra o que merece.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TRABALHOS ============================ -->
+<!-- ================================================================
+     COMO ADICIONAR SUAS IMAGENS
+     1. Salve os prints na pasta /imagens
+     2. Nomeie projeto-01.jpg, projeto-02.jpg e assim por diante (4:3)
+     3. Troque o alt, o título e a tag de cada bloco abaixo
+     Se a imagem não existir, aparece um slot vazio no lugar.
+     ================================================================ -->
+<section class="section" id="trabalhos">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="label">Trabalhos selecionados</p>
+        <h2 class="h-lg">Resultado tem cara.<br><em>Essa é a cara.</em></h2>
+      </div>
+      <div class="split__right">
+        <p class="lead">
+          Uma seleção dos sites e páginas que projetei nos últimos anos. Cada um resolveu
+          um problema de negócio específico, não um gosto pessoal.
+        </p>
+      </div>
+    </div>
+
+    <div class="works">
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-01.jpg" alt="Projeto 01, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-01.jpg</span>
+        </div>
+        <h3>Nome do projeto 01</h3>
+        <span class="tag">Página de vendas</span>
+      </a>
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-02.jpg" alt="Projeto 02, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-02.jpg</span>
+        </div>
+        <h3>Nome do projeto 02</h3>
+        <span class="tag">Site de autoridade</span>
+      </a>
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-03.jpg" alt="Projeto 03, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-03.jpg</span>
+        </div>
+        <h3>Nome do projeto 03</h3>
+        <span class="tag">Landing page</span>
+      </a>
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-04.jpg" alt="Projeto 04, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-04.jpg</span>
+        </div>
+        <h3>Nome do projeto 04</h3>
+        <span class="tag">Identidade visual</span>
+      </a>
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-05.jpg" alt="Projeto 05, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-05.jpg</span>
+        </div>
+        <h3>Nome do projeto 05</h3>
+        <span class="tag">E-commerce</span>
+      </a>
+
+      <a class="work reveal" href="#contato" data-wpp>
+        <div class="work__shot">
+          <img src="imagens/projeto-06.jpg" alt="Projeto 06, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
+          <span class="work__slot">imagens/projeto-06.jpg</span>
+        </div>
+        <h3>Nome do projeto 06</h3>
+        <span class="tag">Página de captura</span>
+      </a>
+
+    </div>
+
+    <div class="center reveal">
+      <a class="btn" data-wpp href="#contato">Quero um projeto assim</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SOBRE ============================ -->
+<section class="section" id="sobre">
+  <div class="container about reveal">
+    <div class="about__photo">
+      <!-- EDITAR: salve sua foto em imagens/angelo.jpg (vertical, 3:4) -->
+      <img src="imagens/angelo.jpg" alt="Angelo Garcia, designer gráfico e web designer" loading="lazy" onerror="this.remove()">
+      <span class="work__slot">imagens/angelo.jpg</span>
+    </div>
+
+    <div class="about__copy">
+      <p class="papel">Designer gráfico e web designer</p>
+      <h2 class="h-lg">Angelo Garcia</h2>
+      <p class="lead">
+        Trabalho com design há mais de 17 anos. Comecei no impresso, atravessei a virada
+        digital inteira e hoje faço uma coisa só: transformar negócio em página que vende.
+      </p>
+      <p class="lead">
+        Sou mentorado da Vincy Society, mentoria de Tay Dantas, uma das maiores especialistas
+        em marketing do Brasil. Foi ali que meu design deixou de ser estética e virou máquina:
+        oferta, copy, estrutura de página e leitura de número.
+      </p>
+      <ul class="list list--curta">
+        <li>Mais de 17 anos de estrada, do papel ao digital</li>
+        <li>Mentorado Vincy Society, com Tay Dantas</li>
+        <li>Design, copy e estratégia no mesmo projeto</li>
+        <li>Atendimento direto comigo, sem intermediário</li>
+      </ul>
+      <a class="btn" data-wpp href="#contato">Conversar com Angelo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ MÉTODO ============================ -->
+<section class="section" id="metodo">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="label">Como funciona</p>
+        <h2 class="h-lg">Um método.<br><em>Zero achismo.</em></h2>
+      </div>
+      <div class="split__right">
+        <p class="lead">
+          Você não precisa saber explicar design. Precisa saber o que quer vender.
+          O resto é comigo, em quatro etapas, com prazo escrito e você aprovando cada uma.
+        </p>
+      </div>
+    </div>
+
+    <ol class="trio trio--quatro reveal">
+      <li>
+        <span class="idx">01</span>
+        <h3 class="h-2xs">Diagnóstico</h3>
+        <p class="apoio">Call de 20 a 40 minutos. Entendo produto, público, ticket e qual objeção mais trava a sua venda hoje.</p>
+      </li>
+      <li>
+        <span class="idx">02</span>
+        <h3 class="h-2xs">Estratégia e copy</h3>
+        <p class="apoio">Defino promessa, ordem dos blocos e argumentos. A página é escrita antes de ser desenhada, e aprovada por você.</p>
+      </li>
+      <li>
+        <span class="idx">03</span>
+        <h3 class="h-2xs">Design e build</h3>
+        <p class="apoio">Layout, protótipo e desenvolvimento responsivo. Leve no celular, impecável no desktop.</p>
+      </li>
+      <li>
+        <span class="idx">04</span>
+        <h3 class="h-2xs">Publicação e ajuste</h3>
+        <p class="apoio">Publico, instalo os pixels e acompanho os primeiros números para ajustar o que precisar.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ========================= DEPOIMENTOS ========================= -->
+<!-- EDITAR: substitua pelos depoimentos REAIS dos seus clientes -->
+<section class="section" id="depoimentos">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="label">Prova</p>
+        <h2 class="h-lg">Não sou eu<br><em>quem diz.</em></h2>
+      </div>
+    </div>
+
+    <div class="quotes reveal">
+      <figure>
+        <blockquote>[Cole aqui o depoimento real do cliente. Prefira frases com número, como "a página converteu 12% na primeira semana".]</blockquote>
+        <figcaption><span class="papel">Empresa ou nicho</span><strong>Nome do cliente</strong></figcaption>
+      </figure>
+      <figure>
+        <blockquote>[Cole aqui o segundo depoimento. Depoimento com resultado concreto vale dez vezes mais que elogio genérico.]</blockquote>
+        <figcaption><span class="papel">Empresa ou nicho</span><strong>Nome do cliente</strong></figcaption>
+      </figure>
+      <figure>
+        <blockquote>[Cole aqui o terceiro depoimento. Se tiver print de WhatsApp, melhor ainda, dá para trocar o texto por imagem.]</blockquote>
+        <figcaption><span class="papel">Empresa ou nicho</span><strong>Nome do cliente</strong></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= INVESTIMENTO ========================= -->
+<section class="section" id="investimento">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <p class="label">Investimento</p>
+        <h2 class="h-lg">O que custa.<br>E o que <em>devolve</em>.</h2>
+      </div>
+      <div class="split__right">
+        <p class="lead">
+          O valor final depende de escopo, prazo e tamanho do projeto. Os pontos de partida
+          abaixo servem para você se situar antes da nossa conversa, sem surpresa depois.
+        </p>
+      </div>
+    </div>
+
+    <!-- EDITAR: ajuste os valores de partida para a sua realidade -->
+    <div class="trio planos reveal">
+      <article>
+        <span class="idx">Landing page</span>
+        <p class="preco">a partir de <strong>R$ 1.997</strong></p>
+        <ul class="list list--curta">
+          <li>Página única de alta conversão</li>
+          <li>Copy estruturada com você</li>
+          <li>Design exclusivo, sem template</li>
+          <li>Responsivo e otimizado</li>
+          <li>Entrega em até 10 dias úteis</li>
+        </ul>
+        <a class="ghost" data-wpp href="#contato">Pedir proposta</a>
+      </article>
+
+      <article>
+        <span class="idx idx--destaque">Site de autoridade. Mais escolhido</span>
+        <p class="preco">a partir de <strong>R$ 3.497</strong></p>
+        <ul class="list list--curta">
+          <li>Até 5 páginas institucionais</li>
+          <li>Estratégia de conteúdo e copy</li>
+          <li>Portfólio e provas sociais</li>
+          <li>SEO básico e integração de pixels</li>
+          <li>Blog opcional</li>
+          <li>30 dias de suporte pós-entrega</li>
+        </ul>
+        <a class="btn" data-wpp href="#contato">Pedir proposta</a>
+      </article>
+
+      <article>
+        <span class="idx">Ecossistema completo</span>
+        <p class="preco">sob <strong>consulta</strong></p>
+        <ul class="list list--curta">
+          <li>Identidade visual completa</li>
+          <li>Site e página de vendas</li>
+          <li>Criativos para tráfego pago</li>
+          <li>Materiais de apoio da marca</li>
+          <li>Acompanhamento contínuo</li>
+        </ul>
+        <a class="ghost" data-wpp href="#contato">Falar sobre o projeto</a>
+      </article>
+    </div>
+
+    <p class="apoio garantia reveal">
+      <em>Sem surpresa de escopo.</em> Antes de qualquer pagamento você recebe proposta escrita
+      com entregas, prazos e rodadas de ajuste. Nada começa sem os dois lados alinhados.
+    </p>
+  </div>
+</section>
+
+<!-- ============================= FAQ ============================= -->
+<section class="section" id="faq">
+  <div class="container split reveal">
+    <div>
+      <p class="label">Dúvidas frequentes</p>
+      <h2 class="h-lg">Antes de<br><em>você perguntar.</em></h2>
+    </div>
+
+    <div class="split__right faq">
+      <details>
+        <summary>Quanto tempo leva para ficar pronto?</summary>
+        <p>Uma landing page fica pronta em até 10 dias úteis. Um site de autoridade leva de 15 a 25 dias úteis, dependendo do volume de conteúdo e da velocidade das suas aprovações.</p>
+      </details>
+      <details>
+        <summary>Eu preciso ter o texto pronto?</summary>
+        <p>Não. A copy faz parte do processo. Você me passa as informações do negócio numa call e eu estruturo a argumentação de venda. Você aprova antes de eu desenhar qualquer coisa.</p>
+      </details>
+      <details>
+        <summary>Vocês cuidam do domínio e da hospedagem?</summary>
+        <p>Sim. Eu oriento a compra, configuro tudo e publico. Se você já tiver, trabalho com o que existe.</p>
+      </details>
+      <details>
+        <summary>Depois de entregue, consigo editar sozinho?</summary>
+        <p>Sim. Entrego em plataforma que permite edição, com um vídeo curto mostrando como trocar textos e imagens.</p>
+      </details>
+      <details>
+        <summary>E se eu não gostar do layout?</summary>
+        <p>O projeto inclui rodadas de ajuste previstas em contrato. Como copy e estrutura são aprovadas antes do design, a chance de surpresa é baixa, e o direcionamento é seu do começo ao fim.</p>
+      </details>
+      <details>
+        <summary>Você atende fora do Brasil?</summary>
+        <p>Atendo de qualquer lugar. O processo é 100% remoto, por call e WhatsApp.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== CTA FINAL ========================== -->
+<section class="section" id="contato">
+  <div class="container cta reveal">
+    <p class="label">Próximo passo</p>
+    <h2 class="display">
+      Seu concorrente<br>já está online.<br><em>Melhor que você.</em>
+    </h2>
+    <p class="lead">
+      Vamos conversar 20 minutos. Eu olho o que você tem hoje, aponto o que está travando
+      a conversão e digo, com honestidade, se vale a pena fazer um projeto comigo.
+      Sem compromisso e sem pressão.
+    </p>
+    <a class="btn" data-wpp href="#">Agendar meu diagnóstico gratuito</a>
+    <p class="micro">Resposta em até 24h. Vagas limitadas por mês para manter a qualidade.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="container footer__inner">
+    <div>
+      <a href="#topo" class="logo">
+        <svg class="logo__mark" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2 L22 21 H2 Z" fill="url(#lg)"/>
+        </svg>
+        <span class="logo__word">Angelo Garcia</span>
+      </a>
+      <p class="micro">Design de alta conversão. Mais de 17 anos.</p>
+    </div>
+
+    <nav class="footer__links" aria-label="Rodapé">
+      <a href="#trabalhos">Trabalhos</a>
+      <a href="#metodo">Método</a>
+      <a href="#investimento">Investimento</a>
+      <a href="#faq">Dúvidas</a>
+    </nav>
+
+    <div class="footer__links">
+      <!-- EDITAR: seus contatos reais -->
+      <a data-wpp href="#">WhatsApp</a>
+      <a href="mailto:contato@seudominio.com.br">E-mail</a>
+      <a href="https://instagram.com/seuusuario" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </div>
+  <div class="container">
+    <p class="micro">© <span id="ano"></span> Angelo Garcia. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<!-- Botão flutuante de WhatsApp -->
+<a class="float-wpp" data-wpp href="#contato" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2m0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23a8.2 8.2 0 0 1 8.23 8.24c0 4.54-3.7 8.23-8.24 8.23m4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.44.06-.67.31-.23.25-.87.86-.87 2.07 0 1.22.89 2.4 1.02 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.08.15-1.18-.06-.11-.23-.17-.48-.29"/></svg>
+</a>
+
+<script src="script.js"></script>
+</body>
+</html>
