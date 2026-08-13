@@ -24,3 +24,8 @@ dist/
 *.ai
 *.fig
 *.sketch
+
+# Originais pesados das fotos. O site usa as versões otimizadas ao lado.
+# Se quiser versionar os originais também, apague estas duas linhas.
+imagens/angelo-final.png
+imagens/vincy socyete.JPEG
