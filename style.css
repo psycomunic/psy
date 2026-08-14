@@ -109,7 +109,16 @@ strong{ font-weight:var(--w-regular); color:var(--bone-white); }
   width:100%; height:100%;
   z-index:0; pointer-events:none;
 }
-body > *:not(#ambient){ position:relative; z-index:1; }
+/* CUIDADO AO MEXER AQUI.
+   Esta regra existe só para levantar o conteúdo acima do canvas das
+   partículas. Ela ANTES aplicava position:relative em todo filho do
+   body, e por especificidade (um id dentro do :not) vencia .nav,
+   .mobilemenu e .float-wpp, que são position:fixed. Resultado: o menu
+   não grudava no topo e o botão flutuante não flutuava, ficava parado
+   no fim da página. Agora o relative vai só onde não há posicionamento
+   próprio; quem é fixed continua fixed e já tem z-index maior. */
+body > *:not(#ambient){ z-index:1; }
+main, footer{ position:relative; }
 
 /* ---------------------------- Estrutura ---------------------------- */
 .container{
