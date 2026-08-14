@@ -272,25 +272,20 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   padding:var(--s-18) var(--gutter);
   display:flex; align-items:center; gap:var(--s-30);
 }
-/* Lockup da marca.
-   O símbolo é um triângulo de Sierpinski: três triângulos com o centro
-   vazado. Não é enfeite, é o mesmo glifo das partículas do fundo, então
-   a marca e a atmosfera da página falam a mesma língua. Vazado no meio
-   para não virar uma mancha sólida em 22px.
-   A palavra usa duas vozes: "Psy" na display, pesada e apertada, e
-   "Comunic" em caixa alta espacejada e cinza. É o contraste que faz um
-   lockup parecer identidade, e não um nome digitado ao lado do ícone. */
-.logo{ display:inline-flex; align-items:center; gap:10px; }
-.logo__mark{ width:22px; height:22px; flex:none; }
+/* Marca só em tipografia, sem símbolo.
+   Duas vozes na mesma linha: "Psy" na display, pesada e apertada, e
+   "Comunic" em caixa alta espacejada e cinza. É o contraste entre as
+   duas que sustenta a marca sozinho, agora que não há ícone ao lado. */
+.logo{ display:inline-flex; align-items:center; }
 .logo__word{
-  display:inline-flex; align-items:baseline; gap:.42em;
+  display:inline-flex; align-items:baseline; gap:.44em;
   font-size:var(--text-nav-label);
   line-height:1;
 }
 .logo__word b{
   font-family:var(--font-display);
   font-weight:700;
-  font-size:1.24em;
+  font-size:1.34em;
   letter-spacing:-.03em;
   color:var(--bone-white);
 }
