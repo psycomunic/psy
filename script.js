@@ -8,8 +8,8 @@
      1. CONTATO. Troque aqui e vale para a página inteira
      --------------------------------------------------------------- */
   var CONTATO = {
-    whatsapp: '5511999999999',                       // EDITAR: DDI + DDD + número, só dígitos
-    mensagem: 'Olá Angelo! Vi seu site e quero falar sobre um projeto.'
+    whatsapp: '5547992406661',                       // DDI 55 + DDD 47 + número
+    mensagem: 'Olá Angelo! Vi o site da Psy Comunic e quero falar sobre um projeto.'
   };
 
   var linkWpp = 'https://wa.me/' + CONTATO.whatsapp +
@@ -108,7 +108,29 @@
   });
 
   /* ---------------------------------------------------------------
-     6. Posição do cursor, usada pelas partículas do cérebro
+     6. Cards de projeto: clique percorre a página do print
+
+     No desktop o percurso já acontece no hover, por CSS. No toque não
+     existe hover, então o clique liga a classe. Só um card percorre por
+     vez: doze páginas rolando juntas viram ruído.
+     --------------------------------------------------------------- */
+  var cards = document.querySelectorAll('.work');
+  cards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      var abrindo = !card.classList.contains('is-rolando');
+      cards.forEach(function (outro) {
+        outro.classList.remove('is-rolando');
+        outro.setAttribute('aria-expanded', 'false');
+      });
+      if (abrindo) {
+        card.classList.add('is-rolando');
+        card.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ---------------------------------------------------------------
+     7. Posição do cursor, usada pelas partículas do cérebro
      --------------------------------------------------------------- */
   var mouseX = -9999, mouseY = -9999;
   document.addEventListener('mousemove', function (e) {

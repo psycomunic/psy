@@ -540,11 +540,17 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);
           mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);
 }
+/* Duas faixas em sentidos opostos. Mostra o dobro de marcas na mesma
+   altura de tela e o movimento cruzado dá sensação de volume, que uma
+   faixa só não dá. A de volta usa a MESMA animação com direction
+   reverse: assim as duas correm exatamente na mesma velocidade. */
 .logos__track{
   display:flex;
   width:max-content;
   animation:desfila 46s linear infinite;
 }
+.logos__track + .logos__track{ margin-top:clamp(24px,3vw,44px); }
+.logos__track--volta{ animation-direction:reverse; }
 /* Cada bloco leva um espaco de sobra na direita igual ao vao interno.
    Assim os dois blocos tem exatamente a mesma largura e translateX(-50%)
    cai no pixel certo. Sem esse espaco, o laco pula meio vao a cada volta. */
@@ -660,13 +666,20 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   object-position:center top;
   transition:object-position var(--dur,9s) ease-in-out;
 }
+/* No desktop o percurso começa no hover. No toque, no clique, que liga
+   a classe is-rolando pelo script. O card é um <button> e não um link
+   justamente por isso: se fosse link, o toque abriria o WhatsApp em vez
+   de percorrer a página. */
 .work:hover .work__print,
-.work:focus-visible .work__print{ object-position:center bottom; }
+.work:focus-visible .work__print,
+.work.is-rolando .work__print{ object-position:center bottom; }
 
-/* Sem cursor não há hover, então a página fica na primeira dobra.
-   Animar sozinho em 12 cards ao mesmo tempo brigaria com a leitura. */
-@media (hover:none){
-  .work__print{ transition:none; }
+/* Reset de botão: o card precisa parecer conteúdo, não controle. */
+.work{
+  display:block; width:100%;
+  padding:0; border:0; background:none;
+  text-align:left; font:inherit; color:inherit;
+  cursor:pointer;
 }
 .work__slot{
   position:absolute; z-index:1;
@@ -716,6 +729,22 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 .about__copy > * + *{ margin-top:var(--s-36); }
 .about__copy .h-lg{ margin-top:0; }
 .about__copy .lead:first-of-type{ margin-top:var(--s-36); }
+
+/* Lista de clientes em texto. Prova social verificável: são os mesmos
+   nomes do carrossel de logos, mas legíveis e indexáveis por busca. */
+.label--semTopo{ margin-top:var(--s-96); }
+.roster{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--s-18) clamp(24px,3vw,60px);
+}
+.roster li{
+  font-size:var(--text-body);
+  font-weight:var(--w-extralight);
+  line-height:1.4;
+  color:var(--silver-mist);
+}
+@media (max-width:860px){ .roster{ grid-template-columns:repeat(2,1fr); } }
 
 /* --------------------------- DEPOIMENTOS --------------------------- */
 .quotes{
@@ -812,19 +841,37 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 
 /* ---------------------------- Responsivo ---------------------------- */
 @media (max-width:1024px){
-  .hero__grid{ grid-template-columns:1fr; }
-  .hero__visual{ order:-1; aspect-ratio:5/4; max-height:46vh; }
-  /* Em coluna única a foto fica acima do título, então o que precisa
-     dissolver é a base, não a esquerda. O fade lateral vira só um
-     respiro nas duas pontas. */
+  .hero{ padding-top:clamp(86px,11vh,150px); }
+  .hero__grid{ grid-template-columns:1fr; gap:var(--s-30); }
+  /* Proporção do próprio banner vertical (689x842), para ele aparecer
+     inteiro, sem corte. max-height em min() evita que domine telas
+     baixas e empurre o título para fora da primeira dobra. */
+  .hero__visual{
+    order:-1;
+    aspect-ratio:689/842;
+    max-height:min(52vh, 470px);
+    width:100%;
+    margin-inline:auto;
+  }
+  /* O banner já vem composto e centralizado, então não precisa de
+     deslocamento nem de máscara lateral. Só a base dissolve, para
+     emendar no preto antes do rótulo. */
   .hero__foto{
-    object-position:55% 14%;
+    --foto-zoom:100%;
+    --foto-x:0%;
+    --foto-y:0%;
+    object-fit:contain;
+    object-position:center;
+    /* O fundo do banner é verde-escuro, não preto puro, então a borda
+       marcaria como um retângulo. As quatro dissolvem. */
     -webkit-mask-image:
-      linear-gradient(to right, transparent 0%, #000 18%, #000 88%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 8%, #000 62%, transparent 100%);
+      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 7%, #000 74%, transparent 100%);
+    -webkit-mask-composite:source-in;
     mask-image:
-      linear-gradient(to right, transparent 0%, #000 18%, #000 88%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 8%, #000 62%, transparent 100%);
+      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 7%, #000 74%, transparent 100%);
+    mask-composite:intersect;
   }
   .proof, .trio, .trio--quatro, .quotes, .works{ grid-template-columns:repeat(2,1fr); }
   .about{ grid-template-columns:1fr; }
@@ -839,6 +886,9 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 }
 @media (max-width:640px){
   .trio, .trio--quatro, .quotes, .works{ grid-template-columns:1fr; }
+  /* No celular o card ocupa a largura toda, então vale mostrar mais
+     página: a janela passa de 4:3 para 3:4 e o print aparece bem mais. */
+  .work__janela{ aspect-ratio:3/4; }
   /* Números seguem em duas colunas: empilhados em uma, viram uma lista
      longa e perdem a leitura de "barra de prova" batida de uma vez. */
   .proof{ grid-template-columns:repeat(2,1fr); gap:var(--s-36) var(--s-24); }

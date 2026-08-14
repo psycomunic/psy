@@ -37,3 +37,7 @@ imagens/ipad-web.png
 # somam uns 75 MB. O site usa as versoes de /imagens/sites/web.
 imagens/sites/*.png
 imagens/sites/*.jpg
+
+# Originais dos banners. O site usa as versoes otimizadas ao lado.
+imagens/banner-seo.png
+imagens/bannerheromobile.png
