@@ -366,11 +366,14 @@
 
 <!-- ============================ TRABALHOS ============================ -->
 <!-- ================================================================
-     COMO ADICIONAR SUAS IMAGENS
-     1. Salve os prints na pasta /imagens
-     2. Nomeie projeto-01.jpg, projeto-02.jpg e assim por diante (4:3)
-     3. Troque o alt, o título e a tag de cada bloco abaixo
-     Se a imagem não existir, aparece um slot vazio no lugar.
+     COMO ADICIONAR UM PROJETO
+     1. Tire o print da página inteira, na largura de 1920px
+     2. Salve o original em /imagens/sites
+     3. Gere a versão web: 560px de largura, no máximo 4000px de altura,
+        JPEG. Salve em /imagens/sites/web
+     4. Copie um bloco <a class="work"> abaixo e troque src, alt e nome
+     5. Ajuste o --dur: quanto mais comprida a página, maior o valor.
+        A conta usada foi (altura / largura) x 1,35, entre 5s e 12s
      ================================================================ -->
 <section class="section" id="trabalhos">
   <div class="container">
@@ -381,68 +384,122 @@
       </div>
       <div class="split__right">
         <p class="lead">
-          Uma seleção dos sites e páginas que projetei nos últimos anos. Cada um resolveu
-          um problema de negócio específico, não um gosto pessoal.
+          Uma seleção dos sites que projetei nos últimos anos. Cada um resolveu um problema
+          de negócio específico, não um gosto pessoal.
         </p>
+        <p class="micro">Passe o cursor sobre um projeto para percorrer a página inteira.</p>
       </div>
     </div>
 
     <div class="works">
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-01.jpg" alt="Projeto 01, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-01.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:10s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/bloopi.jpg"
+               alt="Site Bloopi, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 01</h3>
-        <span class="tag">Página de vendas</span>
+        <h3>Bloopi</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-02.jpg" alt="Projeto 02, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-02.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:10s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/carmellita.jpg"
+               alt="Site Carmellita, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 02</h3>
-        <span class="tag">Site de autoridade</span>
+        <h3>Carmellita</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-03.jpg" alt="Projeto 03, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-03.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:6s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/casalinda.jpg"
+               alt="Site Casa Linda, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 03</h3>
-        <span class="tag">Landing page</span>
+        <h3>Casa Linda</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-04.jpg" alt="Projeto 04, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-04.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:5s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/doris-kids.jpg"
+               alt="Site Doris Kids, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 04</h3>
-        <span class="tag">Identidade visual</span>
+        <h3>Doris Kids</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-05.jpg" alt="Projeto 05, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-05.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:10s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/foodmetricas.jpg"
+               alt="Site Food Métricas, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 05</h3>
-        <span class="tag">E-commerce</span>
+        <h3>Food Métricas</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
-      <a class="work reveal" href="#contato" data-wpp>
-        <div class="work__shot">
-          <img src="imagens/projeto-06.jpg" alt="Projeto 06, site desenvolvido por Angelo Garcia" loading="lazy" onerror="this.remove()">
-          <span class="work__slot">imagens/projeto-06.jpg</span>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:6s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/grupo-disagua.jpg"
+               alt="Site Grupo Diságua, criado por Angelo Garcia" loading="lazy" decoding="async">
         </div>
-        <h3>Nome do projeto 06</h3>
-        <span class="tag">Página de captura</span>
+        <h3>Grupo Diságua</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
       </a>
-
+      <a class="work reveal" href="#contato" data-wpp style="--dur:6s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/lar-e-vida.jpg"
+               alt="Site Lar e Vida, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Lar e Vida</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:6s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/manalinda.jpg"
+               alt="Site Manalinda, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Manalinda</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:10s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/medi-marketing.jpg"
+               alt="Site Medi Marketing, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Medi Marketing</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:9s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/representantes.jpg"
+               alt="Site Representantes, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Representantes</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:10s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/torres-contabilidade.jpg"
+               alt="Site Torres Contabilidade, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Torres Contabilidade</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
+      <a class="work reveal" href="#contato" data-wpp style="--dur:6s">
+        <div class="work__janela">
+          <img class="work__print" src="imagens/sites/web/vettor28.jpg"
+               alt="Site Vettor 28, criado por Angelo Garcia" loading="lazy" decoding="async">
+        </div>
+        <h3>Vettor 28</h3>
+        <!-- EDITAR: troque a tag pelo tipo real do projeto -->
+        <span class="tag">Site</span>
+      </a>
     </div>
 
     <div class="center reveal">

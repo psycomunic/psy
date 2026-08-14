@@ -628,21 +628,36 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   gap:var(--s-96) clamp(30px,4vw,60px);
   margin-top:var(--s-120);
 }
-.work__shot{
+/* Janela do projeto.
+   Os prints são páginas inteiras, de 2.000 a 4.000px de altura. A janela
+   mostra só a primeira dobra; ao passar o cursor, a página percorre até
+   o fim. O percurso é feito com object-position e não com transform ou
+   margin: assim não é preciso saber a altura de cada print em pixel, o
+   navegador resolve sozinho de "topo" a "base", em qualquer tamanho de
+   tela. A duração vem do --dur de cada card, proporcional ao tamanho da
+   página, para todas percorrerem mais ou menos na mesma velocidade. */
+.work__janela{
   position:relative;
   aspect-ratio:4/3;
   border-radius:var(--radius);
   overflow:hidden;
   background:var(--void);
-  display:grid; place-items:center;
   margin-bottom:var(--s-24);
 }
-.work__shot img{
-  width:100%; height:100%; object-fit:cover;
-  position:relative; z-index:2;
-  transition:opacity .4s ease;
+.work__print{
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center top;
+  transition:object-position var(--dur,9s) ease-in-out;
 }
-.work:hover .work__shot img{ opacity:.72; }
+.work:hover .work__print,
+.work:focus-visible .work__print{ object-position:center bottom; }
+
+/* Sem cursor não há hover, então a página fica na primeira dobra.
+   Animar sozinho em 12 cards ao mesmo tempo brigaria com a leitura. */
+@media (hover:none){
+  .work__print{ transition:none; }
+}
 .work__slot{
   position:absolute; z-index:1;
   font-size:var(--text-caption);

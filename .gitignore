@@ -32,3 +32,8 @@ imagens/vincy socyete.JPEG
 imagens/imagefinal.png
 imagens/ipad.png
 imagens/ipad-web.png
+
+# Prints originais dos sites: 1920px de largura e ate 20.000px de altura,
+# somam uns 75 MB. O site usa as versoes de /imagens/sites/web.
+imagens/sites/*.png
+imagens/sites/*.jpg
