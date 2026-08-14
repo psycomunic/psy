@@ -697,7 +697,12 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   background:var(--void);
   display:grid; place-items:center;
 }
-.about__photo img{ width:100%; height:100%; object-fit:cover; position:relative; z-index:2; }
+.about__photo img{
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:58% 32%;   /* mantém o rosto no recorte 3:4 */
+  position:relative; z-index:2;
+}
 .about__copy > * + *{ margin-top:var(--s-36); }
 .about__copy .h-lg{ margin-top:0; }
 .about__copy .lead:first-of-type{ margin-top:var(--s-36); }
