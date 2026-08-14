@@ -454,15 +454,31 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 
 /* ---------------------------- DESTAQUE ---------------------------- */
 /* Bloco de declaração. Só tipografia grande sobre o void. */
+.destaque{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(36px,5vw,80px);
+  align-items:center;
+}
 .declaracao{
   font-size:var(--text-h-lg);
   font-weight:var(--w-regular);
   line-height:1.05;
   letter-spacing:-.04em;
   color:var(--bone-white);
-  max-width:16ch;
 }
 .destaque .lead{ margin-top:var(--s-36); }
+.destaque__mock{ margin:0; }
+/* height:auto para o atributo height do HTML não virar altura em CSS */
+.destaque__mock img{ width:100%; height:auto; }
+@media (min-width:1180px){
+  /* Deixa o mockup avançar até a borda, como o visual do hero faz */
+  .destaque__mock{ margin-right:calc(var(--gutter) * -1); }
+}
+@media (max-width:860px){
+  .destaque{ grid-template-columns:1fr; }
+  .destaque__mock{ max-width:420px; }
+}
 
 /* -------------------------- VINCI SOCIETY -------------------------- */
 .label--centro{ text-align:center; margin-top:var(--s-96); margin-bottom:var(--s-36); }
