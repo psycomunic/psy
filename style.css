@@ -415,29 +415,39 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 }
 
 /* ----------------------------- PROVA ----------------------------- */
-/* Quatro colunas com a MESMA anatomia: rótulo, número, apoio.
-   Antes a terceira era rótulo + nome, sem número, então a linha não
-   tinha base comum e a coluna lia como outro componente. */
+/* Tratamento editorial, não painel de indicadores.
+   O numeral leva a unidade ao lado, alinhada pela LINHA DE BASE e em
+   corpo pequeno. É o que separa um relatório bem feito de um banner:
+   o numeral domina, a unidade acompanha, nada fica pendurado nele.
+   Fora: o "+" violeta colado no numeral, que parecia selo, e o rótulo
+   colorido de cada coluna. Quatro violetas seguidos gastavam a cor que
+   o sistema reserva para ação. */
 .proof{
   display:grid; grid-template-columns:repeat(4,1fr);
   gap:var(--s-60) clamp(30px,4vw,72px);
+  margin-top:var(--s-60);
 }
-.proof__item{ display:flex; flex-direction:column; }
-.proof__item .papel{ margin-bottom:var(--s-18); }
 .proof__num{
-  font-size:clamp(46px,5.6vw,72px);
+  display:flex; align-items:baseline; gap:.2em;
+  font-size:clamp(48px,5.8vw,78px);
   line-height:1;
   color:var(--bone-white);
 }
-/* Só onde o número é aproximado. 10 dias e 24h são exatos. */
-.proof__num--mais::after{ content:'+'; color:var(--electric-iris); }
+.proof__num i{
+  font-family:var(--font);          /* a unidade volta para a Switzer */
+  font-style:normal;
+  font-size:.3em;
+  font-weight:var(--w-extralight);
+  letter-spacing:0;
+  color:var(--ash-gray);
+}
+/* Uma linha só. A copy foi encurtada para nenhuma quebrar torta. */
 .proof__txt{
   margin-top:var(--s-18);
   font-size:14px;
   font-weight:var(--w-extralight);
   line-height:1.5;
-  color:var(--ash-gray);
-  max-width:26ch;
+  color:var(--silver-mist);
 }
 
 /* Selo de autoridade. Sai da grade dos números de propósito: é
