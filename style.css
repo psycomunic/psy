@@ -110,15 +110,18 @@ strong{ font-weight:var(--w-regular); color:var(--bone-white); }
   z-index:0; pointer-events:none;
 }
 /* CUIDADO AO MEXER AQUI.
-   Esta regra existe só para levantar o conteúdo acima do canvas das
-   partículas. Ela ANTES aplicava position:relative em todo filho do
-   body, e por especificidade (um id dentro do :not) vencia .nav,
-   .mobilemenu e .float-wpp, que são position:fixed. Resultado: o menu
-   não grudava no topo e o botão flutuante não flutuava, ficava parado
-   no fim da página. Agora o relative vai só onde não há posicionamento
-   próprio; quem é fixed continua fixed e já tem z-index maior. */
-body > *:not(#ambient){ z-index:1; }
-main, footer{ position:relative; }
+   Aqui já moraram dois bugs, os dois pelo mesmo motivo: um seletor do
+   tipo body > *:not(#ambient). Um id dentro do :not conta como
+   especificidade de id, então aquilo valia (1,0,1) e atropelava .nav,
+   .mobilemenu e .float-wpp, que valem (0,1,0). Na primeira versão
+   roubava o position:fixed dos três; na segunda, roubava o z-index, e
+   a nav empatava em 1 com o main, que vem depois no HTML e cobria o
+   menu inteiro, deixando os links sem clique.
+
+   Por isso agora é explícito, elemento por elemento, sem coringa:
+   só main e footer precisam subir acima do canvas. Quem é fixed já
+   tem posicionamento e z-index próprios e fica fora daqui. */
+main, footer{ position:relative; z-index:1; }
 
 /* ---------------------------- Estrutura ---------------------------- */
 .container{
@@ -273,14 +276,33 @@ main, footer{ position:relative; }
 .ghost:hover{ color:var(--saffron-spark); }
 
 /* ------------------------------ NAV ------------------------------ */
-.nav{ position:fixed; top:0; left:0; right:0; z-index:100; }
-.nav.is-scrolled{ background:var(--void); }
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  transition:background-color .35s ease, backdrop-filter .35s ease,
+             box-shadow .35s ease;
+}
+/* Fundo de vidro: entra ao rolar e também quando o cursor está sobre a
+   barra, para o menu ganhar corpo na hora de ser usado. A saturação
+   junto do blur é o que faz o vidro parecer vidro e não névoa cinza:
+   ela recupera a cor do que está passando por trás.
+   Nota: o DESIGN.md pede nav sem blur. Desvio pedido em conversa. */
+.nav.is-scrolled,
+.nav:hover,
+.nav:focus-within{
+  background:rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+          backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,.08);
+}
 .nav__inner{
   max-width:var(--page-max);
   margin-inline:auto;
   padding:var(--s-18) var(--gutter);
   display:flex; align-items:center; gap:var(--s-30);
 }
+/* Alvo de toque decente: 44px é o mínimo confortável no celular. */
+.nav__links a{ display:inline-flex; align-items:center; min-height:44px; }
+.logo{ min-height:44px; }
 /* Marca só em tipografia, sem símbolo.
    Duas vozes na mesma linha: "Psy" na display, pesada e apertada, e
    "Comunic" em caixa alta espacejada e cinza. É o contraste entre as
@@ -318,7 +340,7 @@ main, footer{ position:relative; }
   transition:color .2s ease;
 }
 .nav__links a:hover{ color:var(--bone-white); }
-.nav__burger{ display:none; margin-left:auto; width:32px; height:32px; }
+.nav__burger{ display:none; margin-left:auto; width:44px; height:44px; }
 .nav__burger span{ display:block; height:1px; background:#fff; margin:5px 0; transition:transform .3s ease; }
 .nav__burger[aria-expanded="true"] span:first-child{ transform:translateY(3px) rotate(45deg); }
 .nav__burger[aria-expanded="true"] span:last-child{ transform:translateY(-3px) rotate(-45deg); }
