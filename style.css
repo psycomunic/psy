@@ -272,13 +272,38 @@ body > *:not(#ambient){ position:relative; z-index:1; }
   padding:var(--s-18) var(--gutter);
   display:flex; align-items:center; gap:var(--s-30);
 }
-.logo{ display:inline-flex; align-items:center; gap:var(--s-12); }
-.logo__mark{ width:20px; height:20px; }
+/* Lockup da marca.
+   O símbolo é um triângulo de Sierpinski: três triângulos com o centro
+   vazado. Não é enfeite, é o mesmo glifo das partículas do fundo, então
+   a marca e a atmosfera da página falam a mesma língua. Vazado no meio
+   para não virar uma mancha sólida em 22px.
+   A palavra usa duas vozes: "Psy" na display, pesada e apertada, e
+   "Comunic" em caixa alta espacejada e cinza. É o contraste que faz um
+   lockup parecer identidade, e não um nome digitado ao lado do ícone. */
+.logo{ display:inline-flex; align-items:center; gap:10px; }
+.logo__mark{ width:22px; height:22px; flex:none; }
 .logo__word{
+  display:inline-flex; align-items:baseline; gap:.42em;
   font-size:var(--text-nav-label);
-  font-weight:var(--w-regular);
-  letter-spacing:-.01em;
+  line-height:1;
 }
+.logo__word b{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:1.24em;
+  letter-spacing:-.03em;
+  color:var(--bone-white);
+}
+.logo__word i{
+  font-style:normal;
+  font-weight:var(--w-semibold);
+  font-size:.82em;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--ash-gray);
+  transition:color .25s ease;
+}
+.logo:hover .logo__word i{ color:var(--bone-white); }
 .nav__links{ display:flex; gap:var(--s-30); margin-left:auto; }
 .nav__links a{
   font-size:var(--text-nav-label);
@@ -822,14 +847,22 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 }
 .footer__links a:hover{ color:var(--bone-white); }
 
+/* CTA final com o ícone: o botão diz para onde leva antes de ser lido. */
+.btn--wpp{ gap:10px; padding:18px 26px; font-size:15px; }
+.btn--wpp svg{ width:20px; height:20px; flex:none; }
+
 /* --------------------------- WhatsApp float --------------------------- */
 .float-wpp{
-  position:fixed; right:24px; bottom:24px; z-index:90;
-  width:54px; height:54px; border-radius:var(--radius-full);
+  position:fixed; right:20px; bottom:20px; z-index:90;
+  width:58px; height:58px; border-radius:var(--radius-full);
   background:var(--electric-iris); color:#fff;
   display:grid; place-items:center;
   transform:translateY(80px); opacity:0;
   transition:transform .4s ease, opacity .4s ease;
+}
+@media (max-width:640px){
+  /* Acima do polegar e fora do caminho do CTA de rodapé. */
+  .float-wpp{ right:16px; bottom:16px; width:54px; height:54px; }
 }
 .float-wpp.is-visible{ transform:none; opacity:1; }
 .float-wpp:hover{ opacity:.82; }
@@ -841,17 +874,23 @@ body > *:not(#ambient){ position:relative; z-index:1; }
 
 /* ---------------------------- Responsivo ---------------------------- */
 @media (max-width:1024px){
-  .hero{ padding-top:clamp(86px,11vh,150px); }
+  /* Zero de topo: o banner sobe até embaixo do menu e a primeira dobra
+     vira imagem inteira. O menu é transparente e fica por cima, sobre a
+     área escura do banner, então continua legível. */
+  .hero{ padding-top:0; }
   .hero__grid{ grid-template-columns:1fr; gap:var(--s-30); }
   /* Proporção do próprio banner vertical (689x842), para ele aparecer
      inteiro, sem corte. max-height em min() evita que domine telas
      baixas e empurre o título para fora da primeira dobra. */
+  /* Sangra a largura toda da tela, saindo da margem do container, e usa
+     altura em vh em vez de proporção: assim o banner preenche a primeira
+     dobra em qualquer aparelho, em vez de ficar uma figura no meio. */
   .hero__visual{
     order:-1;
-    aspect-ratio:689/842;
-    max-height:min(52vh, 470px);
-    width:100%;
-    margin-inline:auto;
+    aspect-ratio:auto;
+    height:min(68vh, 640px);
+    width:100vw;
+    margin-left:calc(50% - 50vw);
   }
   /* O banner já vem composto e centralizado, então não precisa de
      deslocamento nem de máscara lateral. Só a base dissolve, para
@@ -860,18 +899,13 @@ body > *:not(#ambient){ position:relative; z-index:1; }
     --foto-zoom:100%;
     --foto-x:0%;
     --foto-y:0%;
-    object-fit:contain;
-    object-position:center;
-    /* O fundo do banner é verde-escuro, não preto puro, então a borda
-       marcaria como um retângulo. As quatro dissolvem. */
-    -webkit-mask-image:
-      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 7%, #000 74%, transparent 100%);
-    -webkit-mask-composite:source-in;
-    mask-image:
-      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 7%, #000 74%, transparent 100%);
-    mask-composite:intersect;
+    /* cover, não contain: preencher exige cortar as sobras */
+    object-fit:cover;
+    object-position:center 22%;
+    /* Sangrando de borda a borda, só topo e base precisam dissolver.
+       A base é a que importa: é a emenda com o título. */
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 9%, #000 66%, transparent 100%);
+            mask-image:linear-gradient(to bottom, transparent 0%, #000 9%, #000 66%, transparent 100%);
   }
   .proof, .trio, .trio--quatro, .quotes, .works{ grid-template-columns:repeat(2,1fr); }
   .about{ grid-template-columns:1fr; }

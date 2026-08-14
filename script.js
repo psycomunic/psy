@@ -40,7 +40,8 @@
   function aoRolar() {
     var y = window.scrollY;
     nav.classList.toggle('is-scrolled', y > 24);
-    if (float) float.classList.toggle('is-visible', y > 600);
+    // 280px: logo depois da primeira dobra, para o atalho existir cedo
+    if (float) float.classList.toggle('is-visible', y > 280);
   }
   window.addEventListener('scroll', aoRolar, { passive: true });
   aoRolar();
