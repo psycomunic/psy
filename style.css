@@ -92,7 +92,11 @@ body{
   line-height:1.5;
   font-feature-settings:"ss01" on;
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  /* clip, e NÃO hidden. overflow-x:hidden faz o overflow-y virar auto,
+     o body vira contêiner de rolagem e todo position:sticky de dentro
+     passa a grudar nele em vez de grudar na tela. Era isso que fazia o
+     astronauta sumir ao rolar. clip recorta igual e não cria contêiner. */
+  overflow-x:clip;
 }
 img{ max-width:100%; display:block; }
 a{ color:inherit; text-decoration:none; }
@@ -400,7 +404,9 @@ main, footer{ position:relative; z-index:1; }
    a copy e o carrossel de marcas, e os dois precisam empilhar. */
 .hero{
   position:relative;
-  overflow:hidden;
+  /* clip, e NÃO hidden, pelo mesmo motivo do body: hidden transformaria
+     a hero em contêiner de rolagem e mataria o sticky do vídeo. */
+  overflow:clip;
   min-height:100svh;
   padding-top:clamp(140px,20vh,220px);
   padding-bottom:clamp(56px,8vh,110px);
