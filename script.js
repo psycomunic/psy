@@ -534,20 +534,42 @@
   var timerOcio = null;
   var primeiroQuadro = true;
 
-  // O autoplay do HTML existe so para o navegador liberar a reproducao
-  // sem gesto. No primeiro quadro disponivel ja congelamos.
-  video.addEventListener('canplay', function () {
-    if (primeiroQuadro) { primeiroQuadro = false; video.pause(); }
-  });
+  /* Todo video com a classe .astro-v segue a mesma regra: parado ate a
+     pagina rolar. Hoje sao dois, o astronauta do topo e o iPad.
 
-  // Ha dois videos do astronauta: o da hero e o da secao de marcas.
-  // Os dois seguem a mesma regra, parados ate a pagina rolar.
-  var videos = document.querySelectorAll('.astro-v');
+     Cada um tem seu proprio observador e so toca enquanto esta na tela.
+     Sem isso o iPad ficaria decodificando quadros la embaixo enquanto a
+     pessoa ainda esta lendo o topo, gastando bateria a toa.
+
+     data-veloc multiplica a velocidade de reproducao. O iPad usa isso
+     porque a secao dele e curta: no pouco scroll que ela tem, em
+     velocidade normal o mockup nao terminaria de aparecer. */
+  var videos = Array.prototype.slice.call(document.querySelectorAll('.astro-v'));
+
+  videos.forEach(function (v) {
+    v.naTela = true;
+    var veloc = parseFloat(v.getAttribute('data-veloc')) || 1;
+
+    // O autoplay do HTML existe so para o navegador liberar a reproducao
+    // sem gesto do usuario. No primeiro quadro disponivel ja congelamos.
+    var congelado = false;
+    v.addEventListener('canplay', function () {
+      if (!congelado) { congelado = true; v.pause(); }
+      try { v.playbackRate = veloc; } catch (e) {}
+    });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (ents) {
+        v.naTela = ents[0].isIntersecting;
+        if (!v.naTela) v.pause();
+      }, { threshold: 0 }).observe(v);
+    }
+  });
 
   function acordarVideo() {
     if (reduzido) return;
     videos.forEach(function (v) {
-      if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+      if (v.naTela && v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     });
     clearTimeout(timerOcio);
     timerOcio = setTimeout(function () {
@@ -584,11 +606,14 @@
     requestAnimationFrame(quadro);
   }
 
-  /* ---------- 3. Fora da hero, nada roda ---------- */
+  /* ---------- 3. Fora da hero, o deslocamento para ----------
+     Só o parallax depende da hero. Quem pausa cada vídeo é o observador
+     próprio dele, lá em cima: antes este bloco pausava o vídeo da hero
+     mesmo quando a pessoa já estava lá embaixo, no iPad. */
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (ents) {
       visivel = ents[0].isIntersecting;
-      if (!visivel) { clearTimeout(timerOcio); video.pause(); } else { iniciar(); }
+      if (visivel) iniciar();
     }, { threshold: 0 }).observe(hero);
   }
 

@@ -642,7 +642,8 @@ main, footer{ position:relative; z-index:1; }
 .destaque .lead{ margin-top:var(--s-36); }
 .destaque__mock{ margin:0; }
 /* height:auto para o atributo height do HTML não virar altura em CSS */
-.destaque__mock img{ width:100%; height:auto; }
+.destaque__mock img,
+.destaque__mock video{ display:block; width:100%; height:auto; }
 @media (min-width:1180px){
   /* Deixa o mockup avançar até a borda, como o visual do hero faz */
   .destaque__mock{ margin-right:calc(var(--gutter) * -1); }

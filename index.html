@@ -250,14 +250,15 @@
       </p>
     </div>
 
-    <!-- Mockup achatado sobre preto e salvo em JPEG: o fundo da página é
-         #000 puro, então o resultado é idêntico ao PNG com transparência
-         e pesa 161 KB em vez de 1,5 MB. Se algum dia o fundo desta seção
-         deixar de ser preto, volte para imagens/ipad.png. -->
+    <!-- Mesma mecânica do vídeo do topo: parado até a página rolar.
+         data-veloc acelera a reprodução, porque esta seção é curta e o
+         iPad precisa terminar de aparecer no pouco scroll que ela tem. -->
     <figure class="destaque__mock">
-      <img src="imagens/ipad.jpg"
-           alt="Landing page de alta conversão criada por Angelo Garcia, exibida em um iPad"
-           width="1000" height="1325" loading="lazy" decoding="async">
+      <video class="astro-v" src="video-ipad.mp4" data-veloc="2.6"
+             width="1248" height="1664"
+             autoplay loop muted playsinline preload="metadata"
+             role="img"
+             aria-label="Landing page de alta conversão criada por Angelo Garcia, exibida em um iPad"></video>
     </figure>
   </div>
 </section>
