@@ -502,3 +502,67 @@
   }
 
 })();
+
+/* =================================================================
+   Parallax do video da hero: cursor e rolagem no mesmo transform.
+
+   A soma dos deslocamentos precisa caber na margem que o zoom cria:
+   limite = (ZOOM - 1) / 2 x altura da caixa. Com 1.15 numa caixa de
+   600px isso da 45px, por isso 14 + 26 = 40. Se aumentar qualquer
+   forca, aumente o ZOOM na mesma proporcao, senao o fundo aparece
+   nas bordas, que e justamente o que o zoom existe para evitar.
+   ================================================================= */
+(function () {
+  'use strict';
+
+  var video = document.getElementById('astronaut-video');
+  if (!video) return;
+
+  var ZOOM = 1.15;
+
+  // Quem pediu menos movimento recebe o video parado e centrado.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    video.style.transform = 'scale(' + ZOOM + ')';
+    video.removeAttribute('autoplay');
+    video.pause();
+    return;
+  }
+
+  var FORCA_MOUSE  = 14;    // px no eixo, em cada direcao
+  var FORCA_SCROLL = 0.06;  // fracao da rolagem aplicada em Y
+  var TETO_SCROLL  = 26;    // px, trava o deslocamento vertical
+  var SUAVIDADE    = 0.075; // quanto menor, mais preguicoso o movimento
+
+  var alvoX = 0, alvoY = 0, atualX = 0, atualY = 0;
+  var rolagem = 0, rodando = true;
+
+  window.addEventListener('mousemove', function (e) {
+    // Normaliza para -1..1 e inverte: o video anda ao contrario do cursor.
+    alvoX = -((e.clientX / window.innerWidth)  * 2 - 1) * FORCA_MOUSE;
+    alvoY = -((e.clientY / window.innerHeight) * 2 - 1) * FORCA_MOUSE;
+  }, { passive: true });
+
+  window.addEventListener('scroll', function () {
+    rolagem = Math.min(window.scrollY * FORCA_SCROLL, TETO_SCROLL);
+  }, { passive: true });
+
+  // Aba escondida nao precisa de quadro novo.
+  document.addEventListener('visibilitychange', function () {
+    rodando = !document.hidden;
+    if (rodando) requestAnimationFrame(quadro);
+  });
+
+  function quadro() {
+    // Interpolacao: o alvo e onde o cursor esta, o atual persegue ele.
+    atualX += (alvoX - atualX) * SUAVIDADE;
+    atualY += (alvoY - atualY) * SUAVIDADE;
+
+    video.style.transform =
+      'translate(' + atualX.toFixed(2) + 'px, ' +
+                     (atualY + rolagem).toFixed(2) + 'px) ' +
+      'scale(' + ZOOM + ')';
+
+    if (rodando) requestAnimationFrame(quadro);
+  }
+  requestAnimationFrame(quadro);
+})();

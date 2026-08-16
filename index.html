@@ -94,18 +94,11 @@
     </div>
 
     <div class="hero__visual">
-      <canvas id="constellation" aria-hidden="true"></canvas>
-      <!-- No celular entra um banner vertical já composto, com o Angelo
-           centralizado e as bordas escuras. No desktop segue a foto
-           quadrada, que é a que combina com a coluna larga. -->
-      <picture>
-        <source media="(max-width:1024px)" srcset="imagens/hero-mobile.jpg" width="900" height="1100">
-        <img class="hero__foto"
-             src="imagens/angelo-final.jpg"
-             alt="Angelo Garcia, designer gráfico e web designer, falando ao microfone"
-             width="1400" height="1400"
-             fetchpriority="high" decoding="async">
-      </picture>
+      <video id="astronaut-video"
+             src="video-topo.mp4"
+             autoplay loop muted playsinline
+             preload="auto"
+             aria-hidden="true"></video>
     </div>
   </div>
 </section>

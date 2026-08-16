@@ -405,8 +405,46 @@ main, footer{ position:relative; z-index:1; }
   display:flex; align-items:center; gap:var(--s-36);
   margin-top:var(--s-36); flex-wrap:wrap;
 }
-.hero__visual{ position:relative; aspect-ratio:1/1; }
+/* overflow:hidden não é opcional aqui. O vídeo vive em scale(1.15) e o
+   parallax ainda o desloca; sem recorte no pai, ele transborda 7,5% para
+   cada lado e invade a coluna do título. */
+.hero__visual{ position:relative; aspect-ratio:1/1; overflow:hidden; }
 #constellation{ position:absolute; inset:0; width:100%; height:100%; }
+
+/* ---------------------------- Vídeo da hero ---------------------------- */
+#astronaut-video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transform:scale(1.15);   /* estado inicial; o script assume a partir daqui */
+  will-change:transform;   /* promove a camada e evita repintura a cada quadro */
+  pointer-events:none;     /* não rouba clique de nada que passe por cima */
+  /* Mesmo tratamento que a foto tinha, e pelo mesmo motivo: o fundo do
+     vídeo não é #000 puro, então qualquer borda que termine opaca vira
+     uma linha reta sobre o void. A da esquerda é a crítica, porque
+     encosta na coluna do título. Duas camadas combinadas por interseção. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,.3) 16%, #000 46%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 7%, #000 88%, transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,.3) 16%, #000 46%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 7%, #000 88%, transparent 100%);
+  mask-composite:intersect;
+}
+
+/* No celular a hero sangra de borda a borda, então não existe emenda
+   lateral com texto nenhum: só topo e base precisam dissolver. */
+@media (max-width:1024px){
+  #astronaut-video{
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 8%, #000 74%, transparent 100%);
+            mask-image:linear-gradient(to bottom, transparent 0%, #000 8%, #000 74%, transparent 100%);
+    -webkit-mask-composite:source-over;
+    mask-composite:add;
+  }
+}
 
 /* Foto por cima do campo de partículas.
    O fade é feito com mask, não com um degradê preto sobreposto: assim a
