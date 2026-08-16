@@ -504,17 +504,21 @@
 })();
 
 
+
 /* =================================================================
-   Video da hero controlado pela rolagem.
+   Video da hero: parado, e em movimento enquanto a pagina rola.
 
-   O video nao toca sozinho: quem avanca o tempo dele e a rolagem. O
-   astronauta fica parado enquanto a pagina esta parada, e percorre o
-   clipe inteiro no exato trecho em que a hero sai de cena e a segunda
-   secao entra.
+   Por que NAO percorrer o video por currentTime:
+   buscar um ponto novo do arquivo a cada quadro so e fluido se o MP4
+   tiver keyframe em quase todo quadro. Num arquivo comum o
+   decodificador precisa voltar ao keyframe anterior e reconstruir ate
+   o ponto pedido, e o resultado engasga. Aqui a reproducao e normal,
+   que e o caminho que o navegador otimiza: comeca quando a rolagem
+   comeca e pausa quando ela para.
 
-   O tempo perseguido e interpolado em vez de aplicado direto. Buscar
-   um ponto novo do video a cada evento de rolagem trava; com
-   interpolacao o navegador recebe saltos pequenos e constantes.
+   Em paralelo, um deslocamento suave amarrado ao progresso dentro da
+   hero da a leitura de fundo mais lento que a pagina. Esse e um
+   transform de GPU, entao nao disputa com a decodificacao do video.
    ================================================================= */
 (function () {
   'use strict';
@@ -523,69 +527,67 @@
   var hero  = document.querySelector('.hero');
   if (!video || !hero) return;
 
-  // Quem pediu menos movimento ve o primeiro quadro, parado.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    video.addEventListener('loadedmetadata', function () { video.currentTime = 0; });
-    return;
-  }
+  var reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var SUAVIDADE = 0.12;   // quanto menor, mais o video "arrasta" atras da rolagem
-  var PASSO_MIN = 0.005;  // segundos: abaixo disso nao vale pagar uma busca nova
+  /* ---------- 1. Toca so enquanto rola ---------- */
+  var OCIO = 160;   // ms de rolagem parada ate pausar de novo
+  var timerOcio = null;
+  var primeiroQuadro = true;
 
-  var duracao = 0, alvo = 0, atual = 0, rodando = false, visivel = true;
-
-  video.addEventListener('loadedmetadata', function () {
-    duracao = video.duration || 0;
-    video.pause();
-    try { video.currentTime = 0; } catch (e) {}
-    if (duracao > 0) iniciar();
+  // O autoplay do HTML existe so para o navegador liberar a reproducao
+  // sem gesto. No primeiro quadro disponivel ja congelamos.
+  video.addEventListener('canplay', function () {
+    if (primeiroQuadro) { primeiroQuadro = false; video.pause(); }
   });
 
-  // A hero e o unico trecho onde o video importa: fora dela, nada roda.
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function (ents) {
-      visivel = ents[0].isIntersecting;
-      if (visivel) iniciar();
-    }, { threshold: 0 }).observe(hero);
+  function acordarVideo() {
+    if (reduzido) return;
+    if (video.paused) { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+    clearTimeout(timerOcio);
+    timerOcio = setTimeout(function () { video.pause(); }, OCIO);
   }
 
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) iniciar();
-  });
+  /* ---------- 2. Deslocamento amarrado ao progresso na hero ---------- */
+  var DESLOCA  = 40;     // px maximos, dentro da folga que o zoom de 1.12 cria
+  var SUAVIDADE = 0.09;
+  var ZOOM = 1.12;
 
-  function iniciar() {
-    if (rodando || !visivel || document.hidden || duracao <= 0) return;
-    rodando = true;
-    requestAnimationFrame(quadro);
-  }
+  var alvo = 0, atual = 0, rodando = false, visivel = true;
 
   function progresso() {
-    /* 0 no topo da pagina, 1 quando a hero terminou de sair. Usar a
-       altura da propria hero e o que amarra o fim do clipe a entrada
-       da segunda secao, em qualquer tamanho de tela. */
+    // 0 no topo, 1 quando a hero terminou de sair e a proxima secao entrou
     var altura = hero.offsetHeight || window.innerHeight;
     var p = window.scrollY / altura;
     return p < 0 ? 0 : (p > 1 ? 1 : p);
   }
 
-  function quadro() {
-    alvo = progresso() * duracao;
-    atual += (alvo - atual) * SUAVIDADE;
-
-    if (Math.abs(atual - video.currentTime) > PASSO_MIN) {
-      try { video.currentTime = atual; } catch (e) {}
-    }
-
-    // Encostou no alvo e a hero saiu de cena: para de gastar quadro.
-    if (!visivel || document.hidden ||
-        (Math.abs(alvo - atual) < PASSO_MIN && Math.abs(alvo - video.currentTime) < PASSO_MIN)) {
-      rodando = false;
-      return;
-    }
+  function iniciar() {
+    if (rodando || !visivel || document.hidden || reduzido) return;
+    rodando = true;
     requestAnimationFrame(quadro);
   }
 
-  // Rolar acorda o laco, que dorme de novo assim que alcanca o alvo.
-  window.addEventListener('scroll', iniciar, { passive: true });
+  function quadro() {
+    alvo = progresso() * DESLOCA;
+    atual += (alvo - atual) * SUAVIDADE;
+    video.style.transform = 'translate3d(0,' + atual.toFixed(2) + 'px,0) scale(' + ZOOM + ')';
+
+    if (!visivel || document.hidden || Math.abs(alvo - atual) < 0.15) { rodando = false; return; }
+    requestAnimationFrame(quadro);
+  }
+
+  /* ---------- 3. Fora da hero, nada roda ---------- */
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (ents) {
+      visivel = ents[0].isIntersecting;
+      if (!visivel) { clearTimeout(timerOcio); video.pause(); } else { iniciar(); }
+    }, { threshold: 0 }).observe(hero);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { clearTimeout(timerOcio); video.pause(); } else { iniciar(); }
+  });
+
+  window.addEventListener('scroll', function () { acordarVideo(); iniciar(); }, { passive: true });
   window.addEventListener('resize', iniciar, { passive: true });
 })();

@@ -76,11 +76,12 @@
        elimina o contorno: não existe caixa, existe cenário. O véu por
        cima dele vive no ::after do .hero__video. -->
   <div class="hero__video" aria-hidden="true">
-    <!-- Sem autoplay e sem loop de propósito: quem toca o vídeo é a
-         rolagem. O script controla o currentTime quadro a quadro. -->
+    <!-- autoplay entra só para o navegador liberar a reprodução sem
+         gesto do usuário. O script pausa no primeiro quadro e só volta
+         a tocar enquanto a página estiver rolando. -->
     <video id="astronaut-video"
            src="video-topo.mp4"
-           muted playsinline preload="auto"></video>
+           autoplay loop muted playsinline preload="auto"></video>
   </div>
 
   <div class="container hero__grid">
