@@ -467,16 +467,25 @@ main, footer{ position:relative; z-index:1; }
    No celular não se aplica: ali a tela é mais estreita que o próprio
    arquivo, então o vídeo já é REDUZIDO, e reduzir nunca borra.      */
 @media (min-width:1024px){
-  /* Painel maior, ao lado do título, ocupando a altura da copy. O corte
-     e o esticamento sobem um pouco (1,33x contra 0,92x do painel menor),
-     mas continua bem abaixo do 1,83x de quando cobria a tela toda.
-     Foi o meio-termo entre nitidez e presença. */
+  /* A COLUNA atravessa a hero inteira, do topo até o fim das marcas.
+     O VÍDEO dentro dela é sticky: gruda na tela e só solta quando a
+     coluna acaba. É isso que faz o astronauta acompanhar a rolagem e
+     continuar visível ao lado das logos, com um arquivo só.
+     Sticky funciona aqui porque a coluna é o bloco que o contém, e ela
+     tem a altura da hero para o vídeo percorrer. */
   .hero__video{
-    inset:auto 0 auto auto;
-    top:clamp(84px,11vh,150px);
-    width:min(54%, 860px);
-    height:clamp(520px, 64vh, 740px);
-    aspect-ratio:auto;
+    position:absolute;
+    inset:0 0 0 auto;
+    width:min(54%, 880px);
+    height:auto;
+  }
+  #astronaut-video{
+    position:sticky;
+    inset:auto;
+    top:clamp(88px,12vh,150px);
+    width:100%;
+    height:clamp(460px, 60vh, 700px);
+    display:block;
   }
   /* Largura da copy é um equilíbrio, não um número solto:
      com 46% ela invadia o painel em 51px; com 38% parava de invadir mas
@@ -650,10 +659,21 @@ main, footer{ position:relative; z-index:1; }
 .hero__marcas .label--centro{ margin-top:0; }
 
 @media (min-width:1024px){
-  /* Largura toda de propósito. Quando eu limitei este bloco a 58% para
-     abrir espaço ao astronauta, o vídeo ficou acima dele e sobrou uma
-     coluna vazia à direita das logos. Ocupando tudo, não sobra vão. */
+  /* Recua para a esquerda: agora o astronauta ESTÁ ao lado, grudado à
+     direita, então o espaço livre deixa de ser vão morto e passa a ser
+     o lugar dele. Foi por isso que antes eu tinha voltado para a largura
+     toda: sem o vídeo ali, sobrava vazio. */
+  /* 44% e não 52%: medido, com 52% o bloco terminava em 735 e a coluna
+     do vídeo começa em 650, ou seja, as logos passavam por baixo do
+     astronauta. */
+  .hero__marcas{ width:44%; }
   .hero__marcas .label--centro{ text-align:left; }
+  /* A ponta direita dissolve, para o último logo não bater de frente
+     com a borda do vídeo. */
+  .hero__marcas .logos{
+    -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 76%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 0%,#000 76%,transparent 100%);
+  }
 }
 
 /* -------------------------- VINCI SOCIETY -------------------------- */
