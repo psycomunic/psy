@@ -945,6 +945,82 @@ main, footer{ position:relative; z-index:1; }
 }
 @media (max-width:860px){ .roster{ grid-template-columns:repeat(2,1fr); } }
 
+/* ------------------- Depoimentos em vídeo, formato stories -------------------
+   Três colunas 9:16 na metade direita, esperando os arquivos do cliente.
+   Enquanto o vídeo não existe, o slot mostra o nome esperado: assim o
+   espaço já tem a forma final e você sabe exatamente o que salvar.     */
+.lead--depois{ margin-top:var(--s-36); }
+
+.stories{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:clamp(10px,1.2vw,18px);
+  align-content:start;
+}
+.story{
+  position:relative;
+  margin:0;
+  aspect-ratio:9/16;
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:#070707;
+  display:grid; place-items:center;
+}
+.story-v{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  z-index:1;
+}
+.story__slot{
+  font-size:11px;
+  font-weight:var(--w-extralight);
+  letter-spacing:.04em;
+  color:#4a4a4a;
+  text-align:center;
+  padding-inline:var(--s-12);
+}
+/* Botão de play. Só aparece quando há vídeo carregado: sem arquivo, o
+   card é apenas um espaço reservado e um play ali seria mentira. */
+.story__play{
+  position:absolute; inset:0;
+  z-index:2;
+  display:none;
+  place-items:center;
+  cursor:pointer;
+}
+.story.tem-video .story__play{ display:grid; }
+.story__play::before{
+  content:'';
+  width:clamp(38px,3.4vw,52px);
+  aspect-ratio:1;
+  border-radius:var(--radius-full);
+  background:var(--electric-iris);
+  /* triângulo de play recortado no próprio círculo */
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
+  -webkit-mask:radial-gradient(circle at 50% 50%, #000 99%, transparent 100%);
+          mask:radial-gradient(circle at 50% 50%, #000 99%, transparent 100%);
+  transition:transform .25s ease, opacity .25s ease;
+}
+.story__play::after{
+  content:'';
+  position:absolute;
+  width:0; height:0;
+  border-left:13px solid #fff;
+  border-top:9px solid transparent;
+  border-bottom:9px solid transparent;
+  margin-left:4px;
+  transition:opacity .25s ease;
+}
+.story__play:hover::before{ transform:scale(1.08); }
+/* Tocando: o botão some para não tapar o rosto de quem está falando. */
+.story.is-tocando .story__play::before,
+.story.is-tocando .story__play::after{ opacity:0; }
+
+@media (max-width:860px){
+  .stories{ margin-top:var(--s-60); }
+}
+
 /* --------------------------- DEPOIMENTOS --------------------------- */
 .quotes{
   display:grid; grid-template-columns:repeat(3,1fr);

@@ -255,7 +255,11 @@
          tela, corre até o fim e congela no último quadro, que é onde o
          iPad está grande. data-veloc acelera para ele chegar lá rápido. -->
     <figure class="destaque__mock">
-      <video class="mock-v" src="video-ipad.mp4" data-veloc="2.6"
+      <!-- data-parar: fração da duração onde congelar. No fim do clipe o
+           iPad cresce até estourar as bordas do quadro e o canto some.
+           Conferido quadro a quadro: em 75% ele cabe com folga, em 85%
+           encosta, em 95% já está cortado. 80% é o último ponto seguro. -->
+      <video class="mock-v" src="video-ipad.mp4" data-veloc="2.6" data-parar="0.80"
              width="1248" height="1664"
              autoplay muted playsinline preload="auto"
              role="img"
@@ -609,19 +613,44 @@
       <div>
         <p class="label">Prova</p>
         <h2 class="h-lg">Não sou eu<br><em>quem diz.</em></h2>
-      </div>
-    </div>
-    <div class="split reveal">
-      <div class="split__right">
-        <p class="lead lead--forte">
+        <p class="lead lead--forte lead--depois">
           Em 17 anos, mais de <em>30 marcas</em> colocaram a própria cara na minha mão.
           Loja, clínica, contabilidade, food service, moda, distribuidora. Nichos diferentes,
           o mesmo problema: precisavam parecer a escolha óbvia antes da primeira conversa.
         </p>
-        <p class="lead">
+        <p class="lead lead--depois">
           Doze desses sites você percorre inteiros aqui em cima, do topo ao rodapé.
           Não é mockup nem conceito: é o que está no ar, vendendo hoje.
         </p>
+      </div>
+
+      <!-- ================================================================
+           DEPOIMENTOS EM VÍDEO, formato stories (9:16).
+           Salve os arquivos na pasta /depoimentos com estes nomes:
+             depoimento-1.mp4, depoimento-2.mp4, depoimento-3.mp4
+           Enquanto não existirem, aparece o slot vazio com o nome.
+           Clique no card para tocar COM SOM. Só um toca por vez.
+           Para mais de três, copie um bloco <figure class="story">.
+           ================================================================ -->
+      <div class="stories">
+        <figure class="story">
+          <video class="story-v" src="depoimentos/depoimento-1.mp4"
+                 muted loop playsinline preload="metadata"></video>
+          <span class="story__slot">depoimento-1.mp4</span>
+          <button class="story__play" type="button" aria-label="Tocar o primeiro depoimento"></button>
+        </figure>
+        <figure class="story">
+          <video class="story-v" src="depoimentos/depoimento-2.mp4"
+                 muted loop playsinline preload="metadata"></video>
+          <span class="story__slot">depoimento-2.mp4</span>
+          <button class="story__play" type="button" aria-label="Tocar o segundo depoimento"></button>
+        </figure>
+        <figure class="story">
+          <video class="story-v" src="depoimentos/depoimento-3.mp4"
+                 muted loop playsinline preload="metadata"></video>
+          <span class="story__slot">depoimento-3.mp4</span>
+          <button class="story__play" type="button" aria-label="Tocar o terceiro depoimento"></button>
+        </figure>
       </div>
     </div>
 

@@ -674,13 +674,34 @@
     var alturaTexto = gatilho.getBoundingClientRect().height;
     var limite = (alturaTexto > window.innerHeight * 0.85) ? 0.55 : 0.92;
 
+    /* Ponto de parada. No fim do clipe do iPad o mockup cresce ate
+       estourar as bordas do quadro e os cantos somem, entao ele congela
+       antes disso. A vigilancia e por quadro, e nao pelo evento
+       timeupdate: timeupdate dispara umas 4 vezes por segundo, e a 2,6x
+       de velocidade isso passaria do ponto em mais de meio segundo de
+       video. */
+    var fracParar = parseFloat(v.getAttribute('data-parar'));
+    function vigiar() {
+      if (v.paused) return;
+      var limiteT = v.duration * fracParar;
+      if (v.currentTime >= limiteT) {
+        v.pause();
+        try { v.currentTime = limiteT; } catch (e) {}
+        return;
+      }
+      requestAnimationFrame(vigiar);
+    }
+
     var tocou = false;
     new IntersectionObserver(function (ents) {
       var e = ents[0];
       if (e.intersectionRatio >= limite && !tocou) {
         tocou = true;
         var p = v.play();
-        if (p && p.catch) p.catch(function () {});
+        if (p && p.then) p.then(function () {
+          if (fracParar > 0 && fracParar < 1) requestAnimationFrame(vigiar);
+        }).catch(function () {});
+        else if (fracParar > 0 && fracParar < 1) requestAnimationFrame(vigiar);
       } else if (e.intersectionRatio === 0 && tocou) {
         // saiu inteiro de cena: rebobina para tocar de novo na volta
         tocou = false;
@@ -689,4 +710,72 @@
       }
     }, { threshold: [0, 0.55, 0.92] }).observe(gatilho);
   });
+})();
+
+/* =================================================================
+   Depoimentos em video, formato stories.
+
+   Enquanto o arquivo nao existe, o card fica como espaco reservado e
+   nem botao de play aparece. Assim que o video carrega, o card ganha a
+   classe tem-video e passa a ser clicavel.
+
+   Clique toca COM SOM, porque depoimento sem audio nao prova nada.
+   So um toca por vez: dois clientes falando juntos viram ruido.
+   ================================================================= */
+(function () {
+  'use strict';
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.story'));
+  if (!cards.length) return;
+
+  var todos = [];
+
+  cards.forEach(function (card) {
+    var v = card.querySelector('.story-v');
+    var botao = card.querySelector('.story__play');
+    if (!v || !botao) return;
+    todos.push({ card: card, v: v });
+
+    // So libera o card quando ha arquivo de verdade.
+    v.addEventListener('loadeddata', function () { card.classList.add('tem-video'); });
+    v.addEventListener('error', function () { card.classList.remove('tem-video'); });
+
+    botao.addEventListener('click', function () {
+      var tocando = !v.paused;
+
+      // silencia e pausa todos antes de decidir
+      todos.forEach(function (o) {
+        o.v.pause();
+        o.v.muted = true;
+        o.card.classList.remove('is-tocando');
+      });
+
+      if (tocando) return;   // segundo clique no mesmo card apenas pausa
+
+      v.muted = false;
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {
+        // navegador barrou o som: toca mudo, melhor que nao tocar
+        v.muted = true;
+        v.play().catch(function () {});
+      });
+      card.classList.add('is-tocando');
+    });
+  });
+
+  // Sai da tela, para de tocar.
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (ents) {
+      ents.forEach(function (e) {
+        if (e.isIntersecting) return;
+        var alvo = todos.filter(function (o) { return o.card === e.target; })[0];
+        if (alvo) {
+          alvo.v.pause();
+          alvo.v.muted = true;
+          alvo.card.classList.remove('is-tocando');
+        }
+      });
+    }, { threshold: 0 });
+    cards.forEach(function (c) { obs.observe(c); });
+  }
 })();
