@@ -666,8 +666,14 @@ main, footer{ position:relative; z-index:1; }
   width:max-content;
   animation:desfila 46s linear infinite;
 }
-.logos__track + .logos__track{ margin-top:clamp(24px,3vw,44px); }
+.logos__track + .logos__track{ margin-top:clamp(20px,2.4vw,38px); }
 .logos__track--volta{ animation-direction:reverse; }
+/* Velocidade diferente por fileira. Sem isto, as duas que correm no
+   mesmo sentido ficam sincronizadas e a repetição fica evidente. */
+.logos__track:nth-child(1){ animation-duration:46s; }
+.logos__track:nth-child(2){ animation-duration:58s; }
+.logos__track:nth-child(3){ animation-duration:52s; }
+.logos__track:nth-child(4){ animation-duration:64s; }
 /* Cada bloco leva um espaco de sobra na direita igual ao vao interno.
    Assim os dois blocos tem exatamente a mesma largura e translateX(-50%)
    cai no pixel certo. Sem esse espaco, o laco pula meio vao a cada volta. */
