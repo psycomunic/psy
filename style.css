@@ -396,13 +396,13 @@ main, footer{ position:relative; z-index:1; }
 /* O vídeo virou o cenário da seção, não um elemento dentro dela. Por
    isso a hero ganha altura de tela e recorte próprio, e o conteúdo
    passa a flutuar por cima, em coluna única. */
+/* Bloco, e não flex centralizado: a hero agora carrega dois andares,
+   a copy e o carrossel de marcas, e os dois precisam empilhar. */
 .hero{
   position:relative;
   overflow:hidden;
   min-height:100svh;
-  display:flex;
-  align-items:center;
-  padding-top:clamp(110px,14vh,170px);
+  padding-top:clamp(140px,20vh,220px);
   padding-bottom:clamp(56px,8vh,110px);
 }
 .hero__grid{ position:relative; z-index:1; display:block; }
@@ -584,57 +584,26 @@ main, footer{ position:relative; z-index:1; }
   .destaque__mock{ max-width:420px; }
 }
 
-/* ------------------- Astronauta na seção de marcas -------------------
-   Faixa direita da seção, olhando para o carrossel que fica à esquerda.
-   Posicionamento absoluto dentro da própria seção, e nada além disso:
-   sticky e fixed foram tentados aqui e abriram um vão preto de uma tela
-   inteira. Absoluto dentro de um pai relativo não tem como falhar.
-   Só no desktop: no celular não existe lado livre.                    */
-.cases__astro{ display:none; }
+/* ------------------- Marcas dentro do cenário da hero -------------------
+   O carrossel mora dentro da .hero, e não numa seção própria. É o que
+   faz o astronauta continuar visível aqui embaixo com UM vídeo só, sem
+   duplicar o arquivo e sem sticky nem fixed, que já falharam aqui.
+   No desktop o bloco ocupa a esquerda e libera a direita para ele.    */
+.hero__marcas{
+  position:relative;
+  z-index:1;
+  margin-top:clamp(48px,7vh,100px);
+}
+.hero__marcas .label--centro{ margin-top:0; }
 
 @media (min-width:1024px){
-  #cases{
-    position:relative;
-    overflow:hidden;
-    min-height:clamp(420px,52vh,620px);
-  }
-  .cases__astro{
-    display:block;
-    position:absolute;
-    top:0; right:0; bottom:0;
-    width:56%;
-    z-index:0;
-    pointer-events:none;
-  }
-  .cases__astro video{
-    display:block;
-    width:100%; height:100%;
-    object-fit:cover;
-    object-position:center 28%;
-  }
-  /* Véu: dissolve a borda esquerda no preto, para o vídeo virar cenário
-     em vez de retângulo, e fecha topo e base para emendar nas seções
-     vizinhas sem linha de corte. */
-  .cases__astro::after{
-    content:'';
-    position:absolute; inset:0;
-    background:
-      linear-gradient(90deg, #000 0%, rgba(0,0,0,.8) 20%, rgba(0,0,0,.25) 55%, rgba(0,0,0,.4) 100%),
-      linear-gradient(to bottom, #000 0%, rgba(0,0,0,.3) 20%, rgba(0,0,0,.45) 66%, #000 100%);
-  }
-
-  /* Conteúdo recua para a esquerda, liberando a faixa do astronauta. */
-  #cases > .container,
-  #cases > .logos{ position:relative; z-index:1; }
-  /* O container mantém o alinhamento normal da página; quem encolhe é
-     só o texto do rótulo, para ele não invadir a faixa do astronauta.
-     Tentei encolher o container com margin-inline e ele foi parar do
-     lado errado, em cima do vídeo. */
-  #cases .label--centro{ text-align:left; max-width:48%; }
-  #cases > .logos{
-    width:min(50%, 700px);
-    -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
-            mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+  .hero__marcas{ width:58%; }
+  .hero__marcas .label--centro{ text-align:left; }
+  /* A faixa termina dissolvendo à direita, para o último logo não bater
+     de frente com o astronauta. */
+  .hero__marcas .logos{
+    -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 78%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 0%,#000 78%,transparent 100%);
   }
 }
 

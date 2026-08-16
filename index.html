@@ -105,24 +105,15 @@
       <p class="micro">Diagnóstico gratuito de 20 minutos. Resposta em até 24h.</p>
     </div>
   </div>
-</section>
 
 <!-- ===================== CASES: MARCAS ATENDIDAS =====================
-     Carrossel dos sites que o Angelo criou. As imagens sao silhuetas
-     brancas com fundo transparente, geradas a partir de /imagens/LOGO
-     CASES/PNG. Para trocar, gere a silhueta e salve em /imagens/cases.
-     Edite OS DOIS blocos logos__set: o laco anda a largura de um bloco.
+     Fica DENTRO da hero de propósito. É o que faz o astronauta continuar
+     visível aqui embaixo sem duplicar o vídeo nem recorrer a sticky:
+     as duas partes dividem o mesmo cenário, que já existe.
+     No desktop o bloco ocupa a esquerda, liberando a direita para ele.
+     Edite OS DOIS blocos logos__set: o laço anda a largura de um bloco.
      ================================================================== -->
-<section class="section section--tight" id="cases">
-  <!-- O astronauta ocupa a faixa direita desta seção, olhando para o
-       carrossel que fica à esquerda. É um vídeo próprio, posicionado
-       dentro da própria seção: nada de sticky ou fixed, que foi o que
-       falhou antes. Some no celular, onde não há lado livre. -->
-  <div class="cases__astro" aria-hidden="true">
-    <video class="astro-v" src="video-topo.mp4"
-           autoplay loop muted playsinline preload="metadata"></video>
-  </div>
-
+<div class="hero__marcas" id="cases">
   <div class="container">
     <p class="label label--centro label--semTopo">Algumas marcas que confiaram o site a mim</p>
   </div>
@@ -197,7 +188,9 @@
       </div>
     </div>
   </div>
-</section>
+</div><!-- fim do .hero__marcas -->
+</section><!-- fim da .hero -->
+
 <!-- ====================== PROVA / CREDIBILIDADE ====================== -->
 <section class="section section--tight" id="prova">
   <div class="container">
