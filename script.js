@@ -624,3 +624,69 @@
   window.addEventListener('scroll', function () { acordarVideo(); iniciar(); }, { passive: true });
   window.addEventListener('resize', iniciar, { passive: true });
 })();
+
+/* =================================================================
+   Mockups que tocam uma vez e congelam.
+
+   Diferente do astronauta, que acompanha a rolagem: aqui o video
+   dispara quando o bloco de texto ao lado aparece INTEIRO na tela,
+   corre ate o fim e para no ultimo quadro. Sem loop, de proposito:
+   o ultimo quadro e o enquadramento final que deve ficar valendo.
+
+   Se a pessoa rolar para longe e voltar, ele rebobina e toca de novo.
+   ================================================================= */
+(function () {
+  'use strict';
+
+  var mocks = document.querySelectorAll('.mock-v');
+  if (!mocks.length || !('IntersectionObserver' in window)) return;
+
+  var reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  mocks.forEach(function (v) {
+    var veloc = parseFloat(v.getAttribute('data-veloc')) || 1;
+
+    /* O gatilho e o texto ao lado, nao o proprio video: o pedido e que
+       o iPad so termine de aparecer quando a leitura da esquerda ja
+       estiver completa na tela. */
+    var seccao = v.closest('.destaque') || v.parentElement;
+    var gatilho = seccao.querySelector('.destaque__texto') || seccao;
+
+    // autoplay do HTML so serve para liberar a reproducao sem gesto.
+    var congelado = false;
+    v.addEventListener('canplay', function () {
+      if (!congelado) {
+        congelado = true;
+        v.pause();
+        try { v.currentTime = 0; } catch (e) {}
+      }
+      try { v.playbackRate = veloc; } catch (e) {}
+    });
+
+    if (reduzido) return;   // quem pediu menos movimento fica no 1o quadro
+
+    /* O gatilho ideal e "o texto inteiro na tela", 92% dele visivel.
+       Mas se o bloco for mais alto que a janela, esse valor NUNCA e
+       atingido e o video nunca tocaria. Nesse caso a exigencia cai para
+       55%, que e o mais perto de "ja da para ler tudo" que existe
+       quando o texto e maior que a tela. Acontece em notebook baixo e
+       no celular, onde o bloco empilha. */
+    var alturaTexto = gatilho.getBoundingClientRect().height;
+    var limite = (alturaTexto > window.innerHeight * 0.85) ? 0.55 : 0.92;
+
+    var tocou = false;
+    new IntersectionObserver(function (ents) {
+      var e = ents[0];
+      if (e.intersectionRatio >= limite && !tocou) {
+        tocou = true;
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      } else if (e.intersectionRatio === 0 && tocou) {
+        // saiu inteiro de cena: rebobina para tocar de novo na volta
+        tocou = false;
+        v.pause();
+        try { v.currentTime = 0; } catch (e2) {}
+      }
+    }, { threshold: [0, 0.55, 0.92] }).observe(gatilho);
+  });
+})();
