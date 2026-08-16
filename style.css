@@ -482,7 +482,7 @@ main, footer{ position:relative; z-index:1; }
   .hero__video{
     position:absolute;
     inset:0 0 0 auto;
-    width:min(60%, 1020px);
+    width:min(63%, 1080px);
     height:auto;
   }
   #astronaut-video{
@@ -490,19 +490,19 @@ main, footer{ position:relative; z-index:1; }
     inset:auto;
     top:clamp(84px,11vh,140px);
     width:100%;
-    height:clamp(540px, 70vh, 820px);
+    height:clamp(560px, 73vh, 860px);
     display:block;
   }
   /* Largura da copy é um equilíbrio, não um número solto:
      com 46% ela invadia o painel em 51px; com 38% parava de invadir mas
      o título quebrava em seis linhas em vez de três. 42% é o ponto em
      que "O site que" cabe numa linha e ainda sobra folga até o painel. */
-  .hero__copy{ max-width:38%; }
+  .hero__copy{ max-width:34%; }
   /* O título desce de 113px para 96px SÓ na hero. Com o painel de vídeo
      ao lado, 113px não cabia: "O site que" quebrava e o título virava
      seis linhas em vez de três. O CTA final, que ocupa a largura toda,
      continua na escala cheia do sistema. */
-  .hero .display{ font-size:clamp(44px, 5vw, 74px); }
+  .hero .display{ font-size:clamp(42px, 4.6vw, 68px); }
   /* O véu de tela cheia não faz mais sentido: o vídeo não passa mais
      por baixo do texto. Quem dissolve as bordas agora é a máscara. */
   .hero__video::after{ background:none; }
@@ -672,7 +672,7 @@ main, footer{ position:relative; z-index:1; }
   /* 44% e não 52%: medido, com 52% o bloco terminava em 735 e a coluna
      do vídeo começa em 650, ou seja, as logos passavam por baixo do
      astronauta. */
-  .hero__marcas{ width:38%; }
+  .hero__marcas{ width:34%; }
   .hero__marcas .label--centro{ text-align:left; }
   /* A ponta direita dissolve, para o último logo não bater de frente
      com a borda do vídeo. */
