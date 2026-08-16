@@ -467,13 +467,27 @@ main, footer{ position:relative; z-index:1; }
    No celular não se aplica: ali a tela é mais estreita que o próprio
    arquivo, então o vídeo já é REDUZIDO, e reduzir nunca borra.      */
 @media (min-width:1024px){
+  /* Painel maior, ao lado do título, ocupando a altura da copy. O corte
+     e o esticamento sobem um pouco (1,33x contra 0,92x do painel menor),
+     mas continua bem abaixo do 1,83x de quando cobria a tela toda.
+     Foi o meio-termo entre nitidez e presença. */
   .hero__video{
     inset:auto 0 auto auto;
-    top:clamp(96px,13vh,170px);
-    width:min(54%, 900px);
-    aspect-ratio:864 / 496;
-    height:auto;
+    top:clamp(84px,11vh,150px);
+    width:min(54%, 860px);
+    height:clamp(520px, 64vh, 740px);
+    aspect-ratio:auto;
   }
+  /* Largura da copy é um equilíbrio, não um número solto:
+     com 46% ela invadia o painel em 51px; com 38% parava de invadir mas
+     o título quebrava em seis linhas em vez de três. 42% é o ponto em
+     que "O site que" cabe numa linha e ainda sobra folga até o painel. */
+  .hero__copy{ max-width:44%; }
+  /* O título desce de 113px para 96px SÓ na hero. Com o painel de vídeo
+     ao lado, 113px não cabia: "O site que" quebrava e o título virava
+     seis linhas em vez de três. O CTA final, que ocupa a largura toda,
+     continua na escala cheia do sistema. */
+  .hero .display{ font-size:clamp(52px, 6.4vw, 96px); }
   /* O véu de tela cheia não faz mais sentido: o vídeo não passa mais
      por baixo do texto. Quem dissolve as bordas agora é a máscara. */
   .hero__video::after{ background:none; }
@@ -636,14 +650,10 @@ main, footer{ position:relative; z-index:1; }
 .hero__marcas .label--centro{ margin-top:0; }
 
 @media (min-width:1024px){
-  .hero__marcas{ width:58%; }
+  /* Largura toda de propósito. Quando eu limitei este bloco a 58% para
+     abrir espaço ao astronauta, o vídeo ficou acima dele e sobrou uma
+     coluna vazia à direita das logos. Ocupando tudo, não sobra vão. */
   .hero__marcas .label--centro{ text-align:left; }
-  /* A faixa termina dissolvendo à direita, para o último logo não bater
-     de frente com o astronauta. */
-  .hero__marcas .logos{
-    -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 78%,transparent 100%);
-            mask-image:linear-gradient(90deg,#000 0%,#000 78%,transparent 100%);
-  }
 }
 
 /* -------------------------- VINCI SOCIETY -------------------------- */
