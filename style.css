@@ -393,25 +393,33 @@ main, footer{ position:relative; z-index:1; }
 .mobilemenu.is-open .mobilemenu__foot{ opacity:1; }
 
 /* ------------------------------ HERO ------------------------------ */
-.hero{ padding-top:clamp(120px,16vh,180px); padding-bottom:var(--s-60); }
-.hero__grid{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:var(--s-60);
+/* O vídeo virou o cenário da seção, não um elemento dentro dela. Por
+   isso a hero ganha altura de tela e recorte próprio, e o conteúdo
+   passa a flutuar por cima, em coluna única. */
+.hero{
+  position:relative;
+  overflow:hidden;
+  min-height:100svh;
+  display:flex;
   align-items:center;
+  padding-top:clamp(110px,14vh,170px);
+  padding-bottom:clamp(56px,8vh,110px);
 }
-.hero__copy .lead{ margin-top:var(--s-36); max-width:480px; }
+.hero__grid{ position:relative; z-index:1; display:block; }
+.hero__copy .lead{ margin-top:var(--s-36); max-width:52ch; }
 .hero__actions{
   display:flex; align-items:center; gap:var(--s-36);
   margin-top:var(--s-36); flex-wrap:wrap;
 }
-/* overflow:hidden não é opcional aqui. O vídeo vive em scale(1.15) e o
-   parallax ainda o desloca; sem recorte no pai, ele transborda 7,5% para
-   cada lado e invade a coluna do título. */
-.hero__visual{ position:relative; aspect-ratio:1/1; overflow:hidden; }
-#constellation{ position:absolute; inset:0; width:100%; height:100%; }
 
-/* ---------------------------- Vídeo da hero ---------------------------- */
+/* ---------------------------- Vídeo da hero ----------------------------
+   Cobre a seção inteira, de borda a borda. É isso que faz o contorno
+   sumir: não há mais uma caixa retangular sobre o preto, há um fundo.  */
+.hero__video{
+  position:absolute; inset:0;
+  z-index:0;
+  pointer-events:none;
+}
 #astronaut-video{
   position:absolute;
   inset:0;
@@ -420,29 +428,23 @@ main, footer{ position:relative; z-index:1; }
   object-fit:cover;
   transform:scale(1.15);   /* estado inicial; o script assume a partir daqui */
   will-change:transform;   /* promove a camada e evita repintura a cada quadro */
-  pointer-events:none;     /* não rouba clique de nada que passe por cima */
-  /* Mesmo tratamento que a foto tinha, e pelo mesmo motivo: o fundo do
-     vídeo não é #000 puro, então qualquer borda que termine opaca vira
-     uma linha reta sobre o void. A da esquerda é a crítica, porque
-     encosta na coluna do título. Duas camadas combinadas por interseção. */
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0,0,0,.3) 16%, #000 46%, #000 92%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 7%, #000 88%, transparent 100%);
-  -webkit-mask-composite:source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0,0,0,.3) 16%, #000 46%, #000 92%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 7%, #000 88%, transparent 100%);
-  mask-composite:intersect;
 }
-
-/* No celular a hero sangra de borda a borda, então não existe emenda
-   lateral com texto nenhum: só topo e base precisam dissolver. */
-@media (max-width:1024px){
-  #astronaut-video{
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 8%, #000 74%, transparent 100%);
-            mask-image:linear-gradient(to bottom, transparent 0%, #000 8%, #000 74%, transparent 100%);
-    -webkit-mask-composite:source-over;
-    mask-composite:add;
+/* Véu por cima do vídeo. Faz duas coisas ao mesmo tempo:
+   segura a legibilidade do texto na metade esquerda e dissolve a base
+   no preto, para a seção emendar na próxima sem linha de corte. */
+.hero__video::after{
+  content:'';
+  position:absolute; inset:0;
+  background:
+    linear-gradient(90deg, #000 0%, rgba(0,0,0,.92) 26%, rgba(0,0,0,.55) 52%, rgba(0,0,0,.28) 78%, rgba(0,0,0,.5) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 26%, rgba(0,0,0,.2) 62%, #000 100%);
+}
+@media (max-width:860px){
+  /* Sem duas colunas, o texto fica sobre o vídeo inteiro: o véu precisa
+     escurecer de baixo para cima, não da esquerda para a direita. */
+  .hero__video::after{
+    background:linear-gradient(to bottom,
+      rgba(0,0,0,.62) 0%, rgba(0,0,0,.3) 18%, rgba(0,0,0,.72) 46%, rgba(0,0,0,.93) 76%, #000 100%);
   }
 }
 
@@ -938,39 +940,10 @@ main, footer{ position:relative; z-index:1; }
 
 /* ---------------------------- Responsivo ---------------------------- */
 @media (max-width:1024px){
-  /* Zero de topo: o banner sobe até embaixo do menu e a primeira dobra
-     vira imagem inteira. O menu é transparente e fica por cima, sobre a
-     área escura do banner, então continua legível. */
-  .hero{ padding-top:0; }
-  .hero__grid{ grid-template-columns:1fr; gap:var(--s-30); }
-  /* Proporção do próprio banner vertical (689x842), para ele aparecer
-     inteiro, sem corte. max-height em min() evita que domine telas
-     baixas e empurre o título para fora da primeira dobra. */
-  /* Sangra a largura toda da tela, saindo da margem do container, e usa
-     altura em vh em vez de proporção: assim o banner preenche a primeira
-     dobra em qualquer aparelho, em vez de ficar uma figura no meio. */
-  .hero__visual{
-    order:-1;
-    aspect-ratio:auto;
-    height:min(68vh, 640px);
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-  }
-  /* O banner já vem composto e centralizado, então não precisa de
-     deslocamento nem de máscara lateral. Só a base dissolve, para
-     emendar no preto antes do rótulo. */
-  .hero__foto{
-    --foto-zoom:100%;
-    --foto-x:0%;
-    --foto-y:0%;
-    /* cover, não contain: preencher exige cortar as sobras */
-    object-fit:cover;
-    object-position:center 22%;
-    /* Sangrando de borda a borda, só topo e base precisam dissolver.
-       A base é a que importa: é a emenda com o título. */
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 9%, #000 66%, transparent 100%);
-            mask-image:linear-gradient(to bottom, transparent 0%, #000 9%, #000 66%, transparent 100%);
-  }
+  /* A hero agora é cenário de tela cheia com o texto por cima, então
+     o que precisa de ajuste no celular é o respiro, não a moldura. */
+  .hero{ padding-top:clamp(96px,13vh,150px); padding-bottom:clamp(48px,7vh,90px); }
+  .hero__copy .lead{ max-width:none; }
   .proof, .trio, .trio--quatro, .quotes, .works{ grid-template-columns:repeat(2,1fr); }
   .about{ grid-template-columns:1fr; }
   .about__photo{ max-width:320px; aspect-ratio:1/1; }

@@ -528,9 +528,12 @@
     return;
   }
 
-  var FORCA_MOUSE  = 14;    // px no eixo, em cada direcao
-  var FORCA_SCROLL = 0.06;  // fracao da rolagem aplicada em Y
-  var TETO_SCROLL  = 26;    // px, trava o deslocamento vertical
+  /* A rolagem manda, o cursor so tempera. E isso que da a sensacao de
+     fundo parado com a pagina passando por cima: o video anda devagar,
+     no mesmo sentido da rolagem, em vez de subir junto com a secao. */
+  var FORCA_MOUSE  = 12;    // px no eixo, em cada direcao
+  var FORCA_SCROLL = 0.18;  // fracao da rolagem aplicada em Y
+  var TETO_SCROLL  = 45;    // px, trava o deslocamento vertical
   var SUAVIDADE    = 0.075; // quanto menor, mais preguicoso o movimento
 
   var alvoX = 0, alvoY = 0, atualX = 0, atualY = 0;

@@ -72,6 +72,15 @@
 
 <!-- ============================ HERO ============================ -->
 <section class="hero">
+  <!-- O vídeo é o fundo da seção inteira, de borda a borda. É isso que
+       elimina o contorno: não existe caixa, existe cenário. O véu por
+       cima dele vive no ::after do .hero__video. -->
+  <div class="hero__video" aria-hidden="true">
+    <video id="astronaut-video"
+           src="video-topo.mp4"
+           autoplay loop muted playsinline preload="auto"></video>
+  </div>
+
   <div class="container hero__grid">
     <div class="hero__copy reveal">
       <p class="label">Sites e landing pages de alta conversão<br>para a sua <em>agência nichada</em></p>
@@ -91,14 +100,6 @@
         <a class="ghost" href="#trabalhos">Ver trabalhos</a>
       </div>
       <p class="micro">Diagnóstico gratuito de 20 minutos. Resposta em até 24h.</p>
-    </div>
-
-    <div class="hero__visual">
-      <video id="astronaut-video"
-             src="video-topo.mp4"
-             autoplay loop muted playsinline
-             preload="auto"
-             aria-hidden="true"></video>
     </div>
   </div>
 </section>
