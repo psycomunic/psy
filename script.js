@@ -556,9 +556,9 @@
   }
 
   /* ---------- 2. Deslocamento amarrado ao progresso na hero ---------- */
-  var DESLOCA  = 40;     // px maximos, dentro da folga que o zoom de 1.12 cria
+  var DESLOCA  = 20;     // px maximos, dentro da folga que o zoom de 1.04 cria
   var SUAVIDADE = 0.09;
-  var ZOOM = 1.12;
+  var ZOOM = 1.04;   // menor zoom = menos ampliacao = mais nitidez
 
   var alvo = 0, atual = 0, rodando = false, visivel = true;
 

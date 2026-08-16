@@ -426,10 +426,14 @@ main, footer{ position:relative; z-index:1; }
   width:100%;
   height:100%;
   object-fit:cover;
-  /* O zoom é a margem que o deslocamento consome. Com 1.12 numa caixa
-     da altura da tela sobram uns 48px de folga, e o script desloca no
-     máximo 40. Mexer num sem mexer no outro faz o preto aparecer. */
-  transform:scale(1.12);
+  /* ZOOM E NITIDEZ ANDAM JUNTOS AQUI.
+     O arquivo tem 864x496. Cada ponto de zoom estica ainda mais um
+     vídeo que já é ampliado para caber na largura da tela, e é isso que
+     aparece como baixa qualidade. Por isso o zoom caiu de 1.12 para
+     1.04: é o mínimo que ainda dá margem para o deslocamento do
+     parallax, que foi reduzido junto, de 40px para 20.
+     Regra: deslocamento máximo = (zoom - 1) / 2 x altura da caixa. */
+  transform:scale(1.04);
   will-change:transform;
 }
 /* Véu por cima do vídeo. Faz duas coisas ao mesmo tempo:
@@ -448,6 +452,41 @@ main, footer{ position:relative; z-index:1; }
   .hero__video::after{
     background:linear-gradient(to bottom,
       rgba(0,0,0,.62) 0%, rgba(0,0,0,.3) 18%, rgba(0,0,0,.72) 46%, rgba(0,0,0,.93) 76%, #000 100%);
+  }
+}
+
+/* ---------------- NITIDEZ: o vídeo recua no desktop ----------------
+   O arquivo tem 864x496. Cobrindo a largura inteira de um monitor de
+   1414px, a ampliação mínima possível é 1,64x, e é a largura da tela
+   que impõe isso: não há ajuste de zoom que resolva.
+   A saída é o vídeo ocupar menos área. Num painel de até 900px ele
+   roda praticamente no tamanho nativo, 1,04x, e a diferença de
+   nitidez é visível.
+   O painel não vira retângulo porque as quatro bordas dissolvem por
+   máscara, combinadas por interseção.
+   No celular não se aplica: ali a tela é mais estreita que o próprio
+   arquivo, então o vídeo já é REDUZIDO, e reduzir nunca borra.      */
+@media (min-width:1024px){
+  .hero__video{
+    inset:auto 0 auto auto;
+    top:clamp(96px,13vh,170px);
+    width:min(54%, 900px);
+    aspect-ratio:864 / 496;
+    height:auto;
+  }
+  /* O véu de tela cheia não faz mais sentido: o vídeo não passa mais
+     por baixo do texto. Quem dissolve as bordas agora é a máscara. */
+  .hero__video::after{ background:none; }
+
+  #astronaut-video{
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 0%, #000 20%, #000 86%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 16%, #000 82%, transparent 100%);
+    -webkit-mask-composite:source-in;
+    mask-image:
+      linear-gradient(90deg, transparent 0%, #000 20%, #000 86%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 16%, #000 82%, transparent 100%);
+    mask-composite:intersect;
   }
 }
 
