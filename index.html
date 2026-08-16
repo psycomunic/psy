@@ -79,7 +79,7 @@
     <!-- autoplay entra só para o navegador liberar a reprodução sem
          gesto do usuário. O script pausa no primeiro quadro e só volta
          a tocar enquanto a página estiver rolando. -->
-    <video id="astronaut-video"
+    <video id="astronaut-video" class="astro-v"
            src="video-topo.mp4"
            autoplay loop muted playsinline preload="auto"></video>
   </div>
@@ -114,6 +114,15 @@
      Edite OS DOIS blocos logos__set: o laco anda a largura de um bloco.
      ================================================================== -->
 <section class="section section--tight" id="cases">
+  <!-- O astronauta ocupa a faixa direita desta seção, olhando para o
+       carrossel que fica à esquerda. É um vídeo próprio, posicionado
+       dentro da própria seção: nada de sticky ou fixed, que foi o que
+       falhou antes. Some no celular, onde não há lado livre. -->
+  <div class="cases__astro" aria-hidden="true">
+    <video class="astro-v" src="video-topo.mp4"
+           autoplay loop muted playsinline preload="metadata"></video>
+  </div>
+
   <div class="container">
     <p class="label label--centro label--semTopo">Algumas marcas que confiaram o site a mim</p>
   </div>

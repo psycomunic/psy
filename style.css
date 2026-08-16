@@ -584,6 +584,60 @@ main, footer{ position:relative; z-index:1; }
   .destaque__mock{ max-width:420px; }
 }
 
+/* ------------------- Astronauta na seção de marcas -------------------
+   Faixa direita da seção, olhando para o carrossel que fica à esquerda.
+   Posicionamento absoluto dentro da própria seção, e nada além disso:
+   sticky e fixed foram tentados aqui e abriram um vão preto de uma tela
+   inteira. Absoluto dentro de um pai relativo não tem como falhar.
+   Só no desktop: no celular não existe lado livre.                    */
+.cases__astro{ display:none; }
+
+@media (min-width:1024px){
+  #cases{
+    position:relative;
+    overflow:hidden;
+    min-height:clamp(420px,52vh,620px);
+  }
+  .cases__astro{
+    display:block;
+    position:absolute;
+    top:0; right:0; bottom:0;
+    width:56%;
+    z-index:0;
+    pointer-events:none;
+  }
+  .cases__astro video{
+    display:block;
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center 28%;
+  }
+  /* Véu: dissolve a borda esquerda no preto, para o vídeo virar cenário
+     em vez de retângulo, e fecha topo e base para emendar nas seções
+     vizinhas sem linha de corte. */
+  .cases__astro::after{
+    content:'';
+    position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, #000 0%, rgba(0,0,0,.8) 20%, rgba(0,0,0,.25) 55%, rgba(0,0,0,.4) 100%),
+      linear-gradient(to bottom, #000 0%, rgba(0,0,0,.3) 20%, rgba(0,0,0,.45) 66%, #000 100%);
+  }
+
+  /* Conteúdo recua para a esquerda, liberando a faixa do astronauta. */
+  #cases > .container,
+  #cases > .logos{ position:relative; z-index:1; }
+  /* O container mantém o alinhamento normal da página; quem encolhe é
+     só o texto do rótulo, para ele não invadir a faixa do astronauta.
+     Tentei encolher o container com margin-inline e ele foi parar do
+     lado errado, em cima do vídeo. */
+  #cases .label--centro{ text-align:left; max-width:48%; }
+  #cases > .logos{
+    width:min(50%, 700px);
+    -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+  }
+}
+
 /* -------------------------- VINCI SOCIETY -------------------------- */
 .label--centro{ text-align:center; margin-top:var(--s-96); margin-bottom:var(--s-36); }
 .label--semTopo{ margin-top:0; }

@@ -540,11 +540,19 @@
     if (primeiroQuadro) { primeiroQuadro = false; video.pause(); }
   });
 
+  // Ha dois videos do astronauta: o da hero e o da secao de marcas.
+  // Os dois seguem a mesma regra, parados ate a pagina rolar.
+  var videos = document.querySelectorAll('.astro-v');
+
   function acordarVideo() {
     if (reduzido) return;
-    if (video.paused) { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+    videos.forEach(function (v) {
+      if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+    });
     clearTimeout(timerOcio);
-    timerOcio = setTimeout(function () { video.pause(); }, OCIO);
+    timerOcio = setTimeout(function () {
+      videos.forEach(function (v) { v.pause(); });
+    }, OCIO);
   }
 
   /* ---------- 2. Deslocamento amarrado ao progresso na hero ---------- */
