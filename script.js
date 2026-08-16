@@ -503,69 +503,89 @@
 
 })();
 
-/* =================================================================
-   Parallax do video da hero: cursor e rolagem no mesmo transform.
 
-   A soma dos deslocamentos precisa caber na margem que o zoom cria:
-   limite = (ZOOM - 1) / 2 x altura da caixa. Com 1.15 numa caixa de
-   600px isso da 45px, por isso 14 + 26 = 40. Se aumentar qualquer
-   forca, aumente o ZOOM na mesma proporcao, senao o fundo aparece
-   nas bordas, que e justamente o que o zoom existe para evitar.
+/* =================================================================
+   Video da hero controlado pela rolagem.
+
+   O video nao toca sozinho: quem avanca o tempo dele e a rolagem. O
+   astronauta fica parado enquanto a pagina esta parada, e percorre o
+   clipe inteiro no exato trecho em que a hero sai de cena e a segunda
+   secao entra.
+
+   O tempo perseguido e interpolado em vez de aplicado direto. Buscar
+   um ponto novo do video a cada evento de rolagem trava; com
+   interpolacao o navegador recebe saltos pequenos e constantes.
    ================================================================= */
 (function () {
   'use strict';
 
   var video = document.getElementById('astronaut-video');
-  if (!video) return;
+  var hero  = document.querySelector('.hero');
+  if (!video || !hero) return;
 
-  var ZOOM = 1.15;
-
-  // Quem pediu menos movimento recebe o video parado e centrado.
+  // Quem pediu menos movimento ve o primeiro quadro, parado.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    video.style.transform = 'scale(' + ZOOM + ')';
-    video.removeAttribute('autoplay');
-    video.pause();
+    video.addEventListener('loadedmetadata', function () { video.currentTime = 0; });
     return;
   }
 
-  /* A rolagem manda, o cursor so tempera. E isso que da a sensacao de
-     fundo parado com a pagina passando por cima: o video anda devagar,
-     no mesmo sentido da rolagem, em vez de subir junto com a secao. */
-  var FORCA_MOUSE  = 12;    // px no eixo, em cada direcao
-  var FORCA_SCROLL = 0.18;  // fracao da rolagem aplicada em Y
-  var TETO_SCROLL  = 45;    // px, trava o deslocamento vertical
-  var SUAVIDADE    = 0.075; // quanto menor, mais preguicoso o movimento
+  var SUAVIDADE = 0.12;   // quanto menor, mais o video "arrasta" atras da rolagem
+  var PASSO_MIN = 0.005;  // segundos: abaixo disso nao vale pagar uma busca nova
 
-  var alvoX = 0, alvoY = 0, atualX = 0, atualY = 0;
-  var rolagem = 0, rodando = true;
+  var duracao = 0, alvo = 0, atual = 0, rodando = false, visivel = true;
 
-  window.addEventListener('mousemove', function (e) {
-    // Normaliza para -1..1 e inverte: o video anda ao contrario do cursor.
-    alvoX = -((e.clientX / window.innerWidth)  * 2 - 1) * FORCA_MOUSE;
-    alvoY = -((e.clientY / window.innerHeight) * 2 - 1) * FORCA_MOUSE;
-  }, { passive: true });
-
-  window.addEventListener('scroll', function () {
-    rolagem = Math.min(window.scrollY * FORCA_SCROLL, TETO_SCROLL);
-  }, { passive: true });
-
-  // Aba escondida nao precisa de quadro novo.
-  document.addEventListener('visibilitychange', function () {
-    rodando = !document.hidden;
-    if (rodando) requestAnimationFrame(quadro);
+  video.addEventListener('loadedmetadata', function () {
+    duracao = video.duration || 0;
+    video.pause();
+    try { video.currentTime = 0; } catch (e) {}
+    if (duracao > 0) iniciar();
   });
 
-  function quadro() {
-    // Interpolacao: o alvo e onde o cursor esta, o atual persegue ele.
-    atualX += (alvoX - atualX) * SUAVIDADE;
-    atualY += (alvoY - atualY) * SUAVIDADE;
-
-    video.style.transform =
-      'translate(' + atualX.toFixed(2) + 'px, ' +
-                     (atualY + rolagem).toFixed(2) + 'px) ' +
-      'scale(' + ZOOM + ')';
-
-    if (rodando) requestAnimationFrame(quadro);
+  // A hero e o unico trecho onde o video importa: fora dela, nada roda.
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (ents) {
+      visivel = ents[0].isIntersecting;
+      if (visivel) iniciar();
+    }, { threshold: 0 }).observe(hero);
   }
-  requestAnimationFrame(quadro);
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) iniciar();
+  });
+
+  function iniciar() {
+    if (rodando || !visivel || document.hidden || duracao <= 0) return;
+    rodando = true;
+    requestAnimationFrame(quadro);
+  }
+
+  function progresso() {
+    /* 0 no topo da pagina, 1 quando a hero terminou de sair. Usar a
+       altura da propria hero e o que amarra o fim do clipe a entrada
+       da segunda secao, em qualquer tamanho de tela. */
+    var altura = hero.offsetHeight || window.innerHeight;
+    var p = window.scrollY / altura;
+    return p < 0 ? 0 : (p > 1 ? 1 : p);
+  }
+
+  function quadro() {
+    alvo = progresso() * duracao;
+    atual += (alvo - atual) * SUAVIDADE;
+
+    if (Math.abs(atual - video.currentTime) > PASSO_MIN) {
+      try { video.currentTime = atual; } catch (e) {}
+    }
+
+    // Encostou no alvo e a hero saiu de cena: para de gastar quadro.
+    if (!visivel || document.hidden ||
+        (Math.abs(alvo - atual) < PASSO_MIN && Math.abs(alvo - video.currentTime) < PASSO_MIN)) {
+      rodando = false;
+      return;
+    }
+    requestAnimationFrame(quadro);
+  }
+
+  // Rolar acorda o laco, que dorme de novo assim que alcanca o alvo.
+  window.addEventListener('scroll', iniciar, { passive: true });
+  window.addEventListener('resize', iniciar, { passive: true });
 })();

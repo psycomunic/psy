@@ -426,8 +426,10 @@ main, footer{ position:relative; z-index:1; }
   width:100%;
   height:100%;
   object-fit:cover;
-  transform:scale(1.15);   /* estado inicial; o script assume a partir daqui */
-  will-change:transform;   /* promove a camada e evita repintura a cada quadro */
+  /* Sem parallax de deslocamento agora: quem se move é o próprio vídeo,
+     avançando no tempo conforme a rolagem. Um zoom leve só para apertar
+     o enquadramento, sem a margem de segurança que o translate exigia. */
+  transform:scale(1.06);
 }
 /* Véu por cima do vídeo. Faz duas coisas ao mesmo tempo:
    segura a legibilidade do texto na metade esquerda e dissolve a base
