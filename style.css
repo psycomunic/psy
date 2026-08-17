@@ -998,8 +998,8 @@ main, footer{ position:relative; z-index:1; }
   align-content:start;
 }
 .story{ margin:0; }
-/* Ritmo: o do meio desce, os das pontas sobem um pouco. */
-.story:nth-child(2){ transform:translateY(clamp(18px,2.6vw,42px)); }
+/* Alinhados. O escalonamento que existia aqui dava ritmo, mas com os
+   cartoes maiores ele so desalinhava a leitura das legendas. */
 
 .story__tela{
   position:relative;
@@ -1095,11 +1095,23 @@ main, footer{ position:relative; z-index:1; }
   color:var(--ash-gray);
 }
 
-/* Mais espaço para os cartões: a coluna de texto cede um pouco. */
+/* CARTOES MAIORES.
+   Duas fontes de largura, somadas:
+   1. a coluna de texto vira largura fixa em vez de metade da linha, e
+      todo o resto sobra para os cartoes
+   2. a faixa sangra ate a borda da tela, recuperando o vao que o
+      container centralizado deixava de fora. Em 1414px isso e 67px, em
+      1920px sao 180px, entao o ganho cresce junto com o monitor.
+   O titulo desta secao encolhe um pouco para caber na coluna estreita. */
 @media (min-width:861px){
   #depoimentos .split{
-    grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);
-    gap:var(--s-60) clamp(32px,4vw,72px);
+    grid-template-columns:minmax(0,420px) 1fr;
+    gap:var(--s-60) clamp(28px,3vw,52px);
+    align-items:center;
+  }
+  #depoimentos .h-lg{ font-size:clamp(32px,4.2vw,56px); }
+  #depoimentos .stories{
+    margin-right:calc(-1 * max(0px, (100vw - var(--page-max)) / 2));
   }
 }
 
