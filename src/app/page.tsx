@@ -325,70 +325,62 @@ export default function Home() {
               </h2>
             </div>
 
-            {/*
-              A foto é PAISAGEM, e por isso ela é uma faixa larga e não
-              uma coluna ao lado do texto.
+            <div className="mt-14 grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-14">
+              {/* --- Retrato quadrado, à esquerda --- */}
+              <figure className="revelar relative overflow-hidden rounded-[var(--raio)] border border-fio">
+                {/*
+                  O arquivo é 3:2 deitado, então um quadro 1:1 corta 480px
+                  de largura. ONDE cortar não é indiferente: a marca da
+                  Vinci Society está na parede à esquerda, e a foto vale
+                  justamente por ser a prova visual da terceira credencial.
 
-              Num quadro retrato o object-cover cortaria as laterais, que
-              é justamente onde está a marca da Vinci Society na parede.
-              A foto não é só um retrato: ela é a prova visual da terceira
-              credencial. Cortar a prova para caber num layout seria
-              perder o motivo de usar esta foto.
-            */}
-            <figure className="revelar relative mt-14 overflow-hidden rounded-[var(--raio)] border border-fio">
-              {/*
-                Proporção diferente por tamanho de tela. Numa faixa 22:10
-                de 350px de largura o assunto teria 159px de altura e
-                viraria um borrão: no celular ela abre para 4:3.
+                  Por isso o corte é deslocado para a esquerda, e não
+                  centrado. Em 38% ele começa em x=182 do original em vez
+                  de x=240, o que segura o "V" da Vinci inteiro dentro do
+                  quadro. O assunto fica em 56% da largura, quase no terço
+                  direito, que é onde o olho gosta de encontrar um rosto.
+                */}
+                <Image
+                  src="/imagens/angelo-vinci.jpg"
+                  alt="Angelo Garcia, fundador da Psy Comunic, em um encontro da Vinci Society"
+                  width={1440}
+                  height={960}
+                  sizes="(max-width: 1024px) 92vw, 560px"
+                  className="aspect-square w-full object-cover object-[38%_center] brightness-[1.2] contrast-[1.06]"
+                />
 
-                object-[center_12%] mantém a cabeça inteira dentro do
-                corte. Medido: com o centro padrão, o topo da cabeça saía
-                fora na proporção larga.
-              */}
-              <Image
-                src="/imagens/angelo-vinci.jpg"
-                alt="Angelo Garcia, fundador da Psy Comunic, em um encontro da Vinci Society"
-                width={1440}
-                height={960}
-                sizes="(max-width: 1320px) 100vw, 1240px"
-                priority={false}
-                className="aspect-[4/3] w-full object-cover object-[center_12%] brightness-[1.2] contrast-[1.06] md:aspect-[22/10]"
-              />
+                {/* Lavagem magenta de baixíssima opacidade, para a foto
+                    pertencer à paleta em vez de parecer colada sobre ela. */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-transparent mix-blend-soft-light"
+                />
 
-              {/* Lavagem magenta de baixíssima opacidade, para a foto
-                  pertencer à paleta em vez de parecer colada sobre ela. */}
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-transparent mix-blend-soft-light"
-              />
+                {/* Véu na base para a legenda pousar sobre a foto sem
+                    caixa opaca por cima dela. */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/70 to-transparent"
+                />
 
-              {/* Véu na base para a legenda pousar sobre a foto sem
-                  caixa opaca por cima dela. */}
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/65 to-transparent"
-              />
-
-              <figcaption className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 p-7 md:p-10">
-                <div>
-                  <p className="font-display text-2xl font-extrabold tracking-[-0.03em] md:text-3xl">
+                <figcaption className="absolute inset-x-0 bottom-0 p-7 md:p-8">
+                  <p className="font-display text-2xl font-extrabold tracking-[-0.03em]">
                     Angelo Garcia
                   </p>
                   <p className="mt-1.5 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
                     Fundador · Psy Comunic
                   </p>
-                </div>
-                <p className="rounded-full border border-fio bg-marinho-fundo/70 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-neve backdrop-blur-sm">
-                  Encontro da Vinci Society
-                </p>
-              </figcaption>
-            </figure>
+                  <p className="mt-4 inline-block rounded-full border border-fio bg-marinho-fundo/70 px-4 py-2 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-neve backdrop-blur-sm">
+                    Encontro da Vinci Society
+                  </p>
+                </figcaption>
+              </figure>
 
-            {/* --- Credenciais ---
-                Três colunas embaixo da faixa. Cada uma é um card próprio,
-                e não uma linha de lista empilhada: três blocos com peso
-                igual pesam mais do que três parágrafos separados por fio. */}
-            <dl className="mt-6 grid gap-6 md:grid-cols-3">
+              {/* --- Credenciais, à direita ---
+                  Empilhadas, e cada uma um card próprio: três blocos com
+                  peso igual pesam mais do que três parágrafos separados
+                  por fio. */}
+              <dl className="grid gap-5">
                   {[
                     {
                       i: '01',
@@ -422,8 +414,9 @@ export default function Home() {
                         </dd>
                       </div>
                     </div>
-              ))}
-            </dl>
+                ))}
+              </dl>
+            </div>
           </div>
         </section>
 
