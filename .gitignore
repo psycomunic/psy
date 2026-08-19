@@ -27,19 +27,30 @@ dist/
 
 # Originais pesados das fotos. O site usa as versões otimizadas ao lado.
 # Se quiser versionar os originais também, apague estas duas linhas.
-imagens/angelo-final.png
-imagens/vincy socyete.JPEG
-imagens/imagefinal.png
-imagens/ipad.png
-imagens/ipad-web.png
+public/paginas-que-vendem/imagens/angelo-final.png
+public/paginas-que-vendem/imagens/vincy socyete.JPEG
+public/paginas-que-vendem/imagens/imagefinal.png
+public/paginas-que-vendem/imagens/ipad.png
+public/paginas-que-vendem/imagens/ipad-web.png
 
 # Prints originais dos sites: 1920px de largura e ate 20.000px de altura,
 # somam uns 75 MB. O site usa as versoes de /imagens/sites/web.
-imagens/sites/*.png
-imagens/sites/*.jpg
+public/paginas-que-vendem/imagens/sites/*.png
+public/paginas-que-vendem/imagens/sites/*.jpg
 
 # Originais dos banners. O site usa as versoes otimizadas ao lado.
-imagens/banner-seo.png
-imagens/bannerheromobile.png
+public/paginas-que-vendem/imagens/banner-seo.png
+public/paginas-que-vendem/imagens/bannerheromobile.png
 
 # Original do video do iPad, caso precise reexportar
+
+# ---- Next.js ----
+/node_modules
+/.next/
+/out/
+/build
+.env*.local
+next-env.d.ts
+.vercel
+*.tsbuildinfo
+_t.html

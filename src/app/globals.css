@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* =================================================================
+   Tokens da marca Psy Comunic.
+
+   ATENÇÃO: os hex vieram do PDF da apresentação e são APROXIMAÇÕES.
+   Confirmar no manual de marca antes do go-live (pendência 1 da seção
+   17 do escopo). Trocar aqui propaga para o site inteiro.
+   ================================================================= */
+:root {
+  --marinho:        #101F3F;   /* fundo dominante */
+  --marinho-fundo:  #0B1730;   /* um degrau mais escuro, para camadas */
+  --marinho-alto:   #1A2E56;   /* superfície elevada, cards */
+  --magenta:        #E4155F;   /* CTA, destaque gráfico */
+  --magenta-forte:  #C2114F;   /* hover do CTA */
+
+  /* Magenta CLARO, exclusivo para TEXTO sobre o marinho.
+     O #E4155F sobre #101F3F dá contraste ~3.4:1 e reprova na WCAG 2.2
+     AA, que exige 4.5:1 para texto. Então o magenta original fica
+     restrito a fundo de botão e elemento gráfico, e o texto usa este.
+     Ver seção 13 do escopo. */
+  --magenta-texto:  #FF6B96;
+
+  --branco:         #FFFFFF;
+  --neve:           #E8ECF5;   /* texto secundário sobre o marinho */
+  --cinza:          #93A0BC;   /* texto terciário */
+}
+
+@theme inline {
+  --color-marinho:       var(--marinho);
+  --color-marinho-fundo: var(--marinho-fundo);
+  --color-marinho-alto:  var(--marinho-alto);
+  --color-magenta:       var(--magenta);
+  --color-magenta-forte: var(--magenta-forte);
+  --color-magenta-texto: var(--magenta-texto);
+  --color-branco:        var(--branco);
+  --color-neve:          var(--neve);
+  --color-cinza:         var(--cinza);
+  --font-sans:           var(--font-marca);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--marinho);
+  color: var(--branco);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível é requisito de acessibilidade, não enfeite. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--magenta-texto);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Toda animação do site respeita esta preferência. Seção 13 do escopo. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
