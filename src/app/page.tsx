@@ -98,7 +98,7 @@ export default function Home() {
             <dl className="revelar mt-20 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3">
               {[
                 { n: '17', u: 'anos', d: 'de mercado em design, tecnologia e performance' },
-                { n: 'Ex-sócio', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
+                { n: 'Na frente', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
                 /* Sem contagem de marcas: foram muitas, e um número
                    fechado aqui envelheceria e ainda venderia menos do
                    que a fita de nomes logo abaixo. As quatro frentes
