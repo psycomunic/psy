@@ -17,13 +17,34 @@
   /* Magenta CLARO, exclusivo para TEXTO sobre o marinho.
      O #E4155F sobre #101F3F dá contraste ~3.4:1 e reprova na WCAG 2.2
      AA, que exige 4.5:1 para texto. Então o magenta original fica
-     restrito a fundo de botão e elemento gráfico, e o texto usa este.
-     Ver seção 13 do escopo. */
+     restrito a fundo de botão e elemento gráfico, e o texto usa este. */
   --magenta-texto:  #FF6B96;
 
   --branco:         #FFFFFF;
   --neve:           #E8ECF5;   /* texto secundário sobre o marinho */
   --cinza:          #93A0BC;   /* texto terciário */
+
+  /* ---------------------------------------------------------------
+     Camadas de profundidade.
+
+     Marinho chapado em tela grande vira um vazio azul. Estas três
+     camadas dão material à superfície: um brilho quente que ancora o
+     olho, uma grade que dá escala, e um grão que tira o aspecto de
+     gradiente de software.
+     --------------------------------------------------------------- */
+  --fio:        color-mix(in oklab, var(--branco) 12%, transparent);
+  --fio-forte:  color-mix(in oklab, var(--branco) 24%, transparent);
+
+  /* Superfície de card: gradiente sutil no lugar de cor chapada. Um
+     card com a mesma cor em cima e embaixo não tem volume nenhum. */
+  --superficie: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--marinho-alto) 70%, transparent),
+    color-mix(in oklab, var(--marinho-fundo) 85%, transparent)
+  );
+
+  --raio:      1.75rem;
+  --raio-p:    1rem;
 }
 
 @theme inline {
@@ -36,7 +57,30 @@
   --color-branco:        var(--branco);
   --color-neve:          var(--neve);
   --color-cinza:         var(--cinza);
-  --font-sans:           var(--font-marca);
+  --color-fio:           var(--fio);
+
+  --font-sans:    var(--font-corpo);
+  --font-display: var(--font-display);
+  --font-mono:    var(--font-mono);
+
+  /* Escala fluida. Um h1 de 72px fixo é gigante no notebook e pequeno
+     no monitor de 27". clamp resolve os dois sem media query. */
+  /* A hero é de DUAS colunas: a display ocupa pouco mais da metade da
+     tela, não a largura toda. Escala calibrada para essa coluna.
+
+     O teto de 4rem não é estético, é geométrico: o container trava em
+     1320px, então a coluna do título para de crescer aí. Uma fonte que
+     continuasse subindo depois disso só ganharia linhas. Medido: com
+     teto de 4.5rem o h1 quebrava em 5 linhas em 1920 e em 4 linhas em
+     1440. Com 4rem são 4 linhas nos dois. */
+  --text-mostro:  clamp(2.25rem, 1rem + 3.6vw, 4rem);
+  --text-mostro--line-height: 0.96;
+  --text-titulo:  clamp(1.85rem, 1.05rem + 2.4vw, 3.25rem);
+  --text-titulo--line-height: 1.04;
+  --text-sub:     clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
+  --text-sub--line-height: 1.15;
+  --text-guia:    clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
+  --text-guia--line-height: 1.6;
 }
 
 html { scroll-behavior: smooth; }
@@ -45,6 +89,128 @@ body {
   background: var(--marinho);
   color: var(--branco);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /* NUNCA overflow-x:hidden. hidden cria contexto de rolagem e mata
+     position:sticky em toda a descendência. clip corta igual sem esse
+     efeito colateral. Ver CLAUDE.md. */
+  overflow-x: clip;
+}
+
+/* Números tabulares em tudo que é dado: sem isso, "17" e "26" têm
+   larguras diferentes e a coluna de estatísticas dança. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* =================================================================
+   Grão.
+
+   Aplicado como camada fixa sobre o fundo, nunca sobre o conteúdo.
+   É o que separa "azul escuro chapado" de "superfície". Gerado em SVG
+   inline: um PNG de ruído custaria uma requisição e vários KB.
+   ================================================================= */
+@utility grao-camada {
+  position: fixed;
+  inset: 0;
+  /* Acima de tudo, inclusive do cabeçalho fixo: grão que para no meio
+     do caminho denuncia a camada. pointer-events:none garante que ele
+     não intercepta um clique sequer. */
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.19;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23r)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* =================================================================
+   Utilitários de composição
+   ================================================================= */
+
+/* Brilho radial. Ancora o olho e dá temperatura ao marinho. */
+@utility brilho-magenta {
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    color-mix(in oklab, var(--magenta) 42%, transparent) 0%,
+    transparent 72%
+  );
+}
+@utility brilho-frio {
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    color-mix(in oklab, #2B6BFF 34%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* Grade técnica de fundo. Dá escala e vocabulário de operação, não de
+   folheto. Some nas bordas por máscara, senão vira gaiola. */
+@utility grade {
+  background-image:
+    linear-gradient(to right, var(--fio) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--fio) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(75% 60% at 50% 40%, #000 0%, transparent 100%);
+}
+
+/* Card com volume: gradiente + fio de contorno claro no topo. */
+@utility cartao {
+  background: var(--superficie);
+  border: 1px solid var(--fio);
+  border-radius: var(--raio);
+  position: relative;
+  isolation: isolate;
+}
+
+/* O fio de luz na aresta superior. É o detalhe que faz o card parecer
+   iluminado por cima em vez de recortado. */
+@utility aresta {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--branco) 45%, transparent),
+    transparent
+  );
+}
+
+/* Texto que precisa desaparecer nas pontas: carrossel de marcas. */
+@utility esmaece-lados {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* =================================================================
+   Carrossel de marcas
+   ================================================================= */
+@keyframes correr {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.fita {
+  display: flex;
+  width: max-content;
+  animation: correr var(--duracao, 60s) linear infinite;
+  will-change: transform;
+}
+.fita--volta { animation-direction: reverse; }
+/* Pausar no hover: quem quer ler o nome de uma marca consegue. */
+.fita-caixa:hover .fita { animation-play-state: paused; }
+
+/* =================================================================
+   Revelação ao rolar
+
+   O estado inicial mora aqui e não no JS. Se o script falhar ou o
+   JS estiver desligado, `.revelar` sem `.visivel` deixaria a página
+   inteira invisível: por isso o padrão é VISÍVEL, e o JS é quem
+   esconde antes de revelar. Conteúdo nunca depende de script.
+   ================================================================= */
+.revelar { opacity: 1; }
+[data-animar='sim'] .revelar {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1),
+              transform .7s cubic-bezier(.22,.61,.36,1);
+}
+[data-animar='sim'] .revelar.visivel {
+  opacity: 1;
+  transform: none;
 }
 
 /* Foco visível é requisito de acessibilidade, não enfeite. */
@@ -57,6 +223,8 @@ body {
 /* Toda animação do site respeita esta preferência. Seção 13 do escopo. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .fita { animation: none; }
+  [data-animar='sim'] .revelar { opacity: 1; transform: none; }
   *, *::before, *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
