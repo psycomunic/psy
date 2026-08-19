@@ -81,3 +81,8 @@ uma, mude a outra.
 - Hex das cores em `src/app/globals.css` foram lidos do PDF do manual. Confirmar
   com os valores oficiais.
 - Autorização escrita para usar logos e resultados de clientes.
+- Os 28 logos em `public/imagens/marcas/` são numerados e **não existe
+  mapeamento de qual arquivo é qual marca**, nem aqui nem na LP antiga, onde já
+  entravam com `alt` vazio. Por isso entram como decorativos e os nomes vão em
+  texto à parte. Com a correspondência número → marca, `logosMarcas` em
+  `src/conteudo/trabalhos.ts` vira uma lista de objetos com nome.

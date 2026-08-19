@@ -4,12 +4,14 @@ import { Cabecalho } from '@/componentes/Cabecalho';
 import { Rodape } from '@/componentes/Rodape';
 import { Botao } from '@/componentes/Botao';
 import { FitaMarcas } from '@/componentes/FitaMarcas';
+import { Vitrine } from '@/componentes/Vitrine';
 import { PainelDiagnostico } from '@/componentes/PainelDiagnostico';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
+import { trabalhos, logosMarcas } from '@/conteudo/trabalhos';
 import { planos, recursos, ctaPlano } from '@/conteudo/planos';
 
 const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
@@ -33,7 +35,7 @@ export default function Home() {
   /* As 7 primeiras linhas da matriz são as confirmadas com o comercial.
      As demais estão marcadas `confirmar` e não vão para a home. */
   const recursosHome = recursos.filter((r) => !r.confirmar).slice(0, 5);
-  const metade = Math.ceil(marcasAtendidas.length / 2);
+  const metadeLogos = Math.ceil(logosMarcas.length / 2);
 
   return (
     <>
@@ -90,9 +92,8 @@ export default function Home() {
             {/*
               Faixa de prova.
               EDITAR: confirmar os anos de mercado e a redação da linha de
-              sócio. É a única afirmação da página sem fonte pública.
-              A contagem de marcas sai do próprio arquivo de conteúdo,
-              então nunca fica desatualizada.
+              ex-sócio. São as únicas afirmações da página sem fonte
+              pública.
             */}
             <dl className="revelar mt-20 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3">
               {[
@@ -127,18 +128,31 @@ export default function Home() {
         {/* ==========================================================
             2. FITA DE MARCAS
             ========================================================== */}
-        <section aria-label="Marcas atendidas" className="border-y border-fio bg-marinho-fundo py-12">
+        <section aria-label="Marcas atendidas" className="border-y border-fio bg-marinho-fundo py-14">
           <div className={secao}>
-            <p className="mb-8 text-center font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
+            <p className="mb-10 text-center font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
               Algumas das muitas marcas que já confiaram a operação à Psy Comunic
             </p>
           </div>
+
           {/* Duas fitas em sentidos opostos: o contramovimento é o que
               faz o olho perceber as duas, em vez de uma esteira só. */}
-          <div className="space-y-3">
-            <FitaMarcas itens={marcasAtendidas.slice(0, metade)} duracao={64} />
-            <FitaMarcas itens={marcasAtendidas.slice(metade)} duracao={78} volta />
+          <div className="space-y-8 md:space-y-10">
+            <FitaMarcas logos={logosMarcas.slice(0, metadeLogos)} duracao={64} />
+            <FitaMarcas logos={logosMarcas.slice(metadeLogos)} duracao={78} volta />
           </div>
+
+          {/*
+            Os logos entram como decorativos porque não há mapeamento de
+            qual arquivo é qual marca. Os NOMES vivem aqui, em texto, para
+            quem usa leitor de tela não receber apenas silêncio no lugar
+            da prova social.
+          */}
+          <ul className="sr-only">
+            {marcasAtendidas.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
         </section>
 
         {/* ==========================================================
@@ -524,54 +538,44 @@ export default function Home() {
         {/* ==========================================================
             9. CASES
             ========================================================== */}
-        <section id="cases" className="scroll-mt-24 py-24 md:py-28">
+        <section id="cases" className="scroll-mt-24 relative overflow-hidden py-24 md:py-32">
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="brilho-frio absolute -right-[12%] top-1/4 h-[600px] w-[600px] opacity-20" />
+          </div>
+
           <div className={secao}>
-            <div className="revelar max-w-[46rem]">
-              <Rotulo>Cases</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[18ch]'}>
-                Resultado com número, período e nome.
-              </h2>
+            <div className="revelar flex flex-wrap items-end justify-between gap-8">
+              <div className="max-w-[42rem]">
+                <Rotulo>Trabalhos</Rotulo>
+                <h2 className={tituloSecao + ' max-w-[19ch]'}>
+                  Sites e lojas que a Psy Comunic construiu.
+                </h2>
+              </div>
+              <p className="max-w-[34ch] font-mono text-[0.68rem] uppercase leading-relaxed tracking-[0.16em] text-cinza">
+                {trabalhos.length} projetos · passe o cursor para percorrer a página inteira
+              </p>
+            </div>
+
+            {/*
+              Portfólio, e não estudo de caso. A diferença não é
+              semântica: aqui está o print da página que existe, com o
+              nome de quem encomendou, e NENHUM número. Métrica de
+              cliente exige autorização escrita e período de referência
+              declarado, e por isso `cases` continua vazio.
+            */}
+            <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {trabalhos.map((t) => (
+                <Vitrine key={t.arquivo} trabalho={t} />
+              ))}
             </div>
 
             {cases.length === 0 ? (
-              /*
-                Vazio de propósito. A regra de compliance do escopo proíbe
-                publicar métrica sem autorização escrita e sem período de
-                referência declarado. Quando os dados chegarem, entram em
-                src/conteudo/prova.ts e a seção se preenche sozinha.
-
-                O estado vazio é DESENHADO: três molduras com a forma do
-                case que virá. Um parágrafo pedindo desculpa faria a
-                seção parecer esquecida.
-              */
-              <>
-                <div className="mt-14 grid gap-6 md:grid-cols-3">
-                  {['Aquisição', 'Conversão', 'Retenção'].map((eixo) => (
-                    <div
-                      key={eixo}
-                      className="revelar cartao border-dashed p-8 opacity-70"
-                    >
-                      <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-cinza">
-                        {eixo}
-                      </p>
-                      <div aria-hidden className="mt-6 space-y-3">
-                        <div className="h-9 w-2/3 rounded-lg bg-white/[0.06]" />
-                        <div className="h-3 w-full rounded bg-white/[0.04]" />
-                        <div className="h-3 w-4/5 rounded bg-white/[0.04]" />
-                      </div>
-                      <p className="mt-7 text-sm leading-relaxed text-cinza">
-                        Métrica, período e base de comparação, com o nome do cliente.
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <p className="revelar mt-10 max-w-[62ch] leading-relaxed text-neve">
-                  Os estudos de caso entram aqui assim que as autorizações de uso de marca
-                  e de resultado estiverem assinadas. A Psy Comunic não publica número de
-                  cliente sem autorização escrita e sem período declarado. Enquanto isso,
-                  as marcas atendidas estão logo acima.
-                </p>
-              </>
+              <p className="revelar mt-12 max-w-[64ch] leading-relaxed text-neve">
+                Os estudos de caso, com métrica, período e base de comparação, entram aqui
+                assim que as autorizações de uso de resultado estiverem assinadas. A Psy
+                Comunic não publica número de cliente sem autorização escrita e sem
+                período declarado.
+              </p>
             ) : null}
           </div>
         </section>

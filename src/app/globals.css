@@ -194,6 +194,28 @@ body {
 .fita-caixa:hover .fita { animation-play-state: paused; }
 
 /* =================================================================
+   Vitrine de portfólio
+
+   A tira desliza dentro da janela para mostrar a página inteira.
+   translateY em porcentagem da própria imagem: -100% sobe a imagem toda
+   e somar a altura da janela devolve o último quadro, parando exatamente
+   no rodapé do site. Serve para qualquer altura, sem número mágico.
+
+   focus-within junto do hover: quem navega por teclado chega ao card e
+   vê a mesma coisa que o cursor mostra.
+   ================================================================= */
+.vitrine-tira {
+  height: auto;
+  transform: translateY(0);
+  transition: transform var(--dur, 8s) linear;
+}
+.cartao:hover > * .vitrine-tira,
+.cartao:focus-within > * .vitrine-tira,
+.vitrine-tira[data-aberto='sim'] {
+  transform: translateY(calc(-100% + var(--janela)));
+}
+
+/* =================================================================
    Revelação ao rolar
 
    O estado inicial mora aqui e não no JS. Se o script falhar ou o
