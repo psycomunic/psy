@@ -97,8 +97,12 @@ export default function Home() {
             <dl className="revelar mt-20 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3">
               {[
                 { n: '17', u: 'anos', d: 'de mercado em design, tecnologia e performance' },
-                { n: 'Sócio', u: null, d: 'de e-commerce com faturamento na casa dos milhões' },
-                { n: String(marcasAtendidas.length), u: 'marcas', d: 'atendidas em segmentos diferentes' },
+                { n: 'Ex-sócio', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
+                /* Sem contagem de marcas: foram muitas, e um número
+                   fechado aqui envelheceria e ainda venderia menos do
+                   que a fita de nomes logo abaixo. As quatro frentes
+                   são um número que a Psy Comunic controla. */
+                { n: '4', u: 'frentes', d: 'gestão, tecnologia, marketing e logística rodando junto' },
               ].map((item) => (
                 <div key={item.d} className="bg-marinho px-7 py-8 md:px-9 md:py-10">
                   <dt className="flex items-baseline gap-2.5">
@@ -126,7 +130,7 @@ export default function Home() {
         <section aria-label="Marcas atendidas" className="border-y border-fio bg-marinho-fundo py-12">
           <div className={secao}>
             <p className="mb-8 text-center font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
-              {marcasAtendidas.length} marcas já confiaram a operação à Psy Comunic
+              Algumas das muitas marcas que já confiaram a operação à Psy Comunic
             </p>
           </div>
           {/* Duas fitas em sentidos opostos: o contramovimento é o que
@@ -285,67 +289,115 @@ export default function Home() {
             ele. Ver CLAUDE.md.
             ========================================================== */}
         <section id="quem-somos" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="brilho-magenta absolute -left-[10%] top-1/3 h-[620px] w-[620px] opacity-25" />
+          </div>
+
           <div className={secao}>
-            <div className="grid items-center gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-              {/* Retrato */}
-              <div className="revelar relative mx-auto w-full max-w-sm lg:mx-0">
-                <div aria-hidden className="brilho-magenta absolute -inset-10 -z-10 opacity-40" />
-                <div className="relative overflow-hidden rounded-[var(--raio)] border border-fio">
+            {/*
+              Título em cima das DUAS colunas.
+
+              Antes ele morava na coluna da direita, junto das
+              credenciais. Como aquela coluna ficava muito mais alta que
+              a foto, o `items-center` centrava o retrato e abria um vão
+              morto acima dele: a foto boiava no meio do nada. Com o
+              título por cima, as duas colunas começam na mesma linha e
+              o vão some.
+            */}
+            <div className="revelar max-w-[42rem]">
+              <Rotulo>Quem está por trás</Rotulo>
+              <h2 className={tituloSecao + ' max-w-[19ch]'}>
+                A operação foi construída por quem já esteve do outro lado do balcão.
+              </h2>
+            </div>
+
+            <div className="mt-16 grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:gap-16">
+              {/* --- Retrato --- */}
+              <figure className="revelar relative mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
+                <div className="relative h-full overflow-hidden rounded-[var(--raio)] border border-fio">
+                  {/*
+                    A foto foi tirada em fundo escuro e chapava contra o
+                    marinho: o rosto sumia. `min-h` dá altura para a
+                    coluna acompanhar as credenciais ao lado, `object-top`
+                    mantém o rosto no terço superior mesmo no corte, e o
+                    ajuste de brilho e contraste separa o assunto do
+                    fundo.
+                  */}
                   <Image
                     src="/imagens/angelo.jpg"
                     alt="Angelo Garcia, fundador da Psy Comunic"
                     width={1400}
                     height={1400}
-                    sizes="(max-width: 1024px) 90vw, 380px"
-                    className="h-auto w-full object-cover"
+                    sizes="(max-width: 1024px) 90vw, 420px"
+                    className="h-full min-h-[26rem] w-full object-cover object-top brightness-[1.14] contrast-[1.08] saturate-[1.06]"
                   />
-                  {/* Véu na base para o nome pousar sobre a foto sem
+
+                  {/* Lavagem magenta de baixíssima opacidade, para o
+                      retrato pertencer à paleta em vez de parecer uma
+                      foto colada sobre ela. */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-gradient-to-tr from-magenta/25 via-transparent to-transparent mix-blend-soft-light"
+                  />
+
+                  {/* Véu na base para a legenda pousar sobre a foto sem
                       caixa opaca por cima dela. */}
-                  <div aria-hidden className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/70 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-7">
-                    <p className="font-display text-xl font-extrabold tracking-[-0.03em]">
+                  <div
+                    aria-hidden
+                    className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/80 to-transparent"
+                  />
+
+                  <figcaption className="absolute inset-x-0 bottom-0 p-7 md:p-8">
+                    <p className="font-display text-2xl font-extrabold tracking-[-0.03em]">
                       Angelo Garcia
                     </p>
-                    <p className="mt-1 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
+                    <p className="mt-1.5 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
                       Fundador · Psy Comunic
                     </p>
-                  </div>
+                  </figcaption>
                 </div>
-              </div>
+              </figure>
 
-              {/* Credenciais */}
-              <div className="revelar">
-                <Rotulo>Quem está por trás</Rotulo>
-                <h2 className={tituloSecao + ' max-w-[19ch]'}>
-                  A operação foi construída por quem já esteve do outro lado do balcão.
-                </h2>
-
-                <dl className="mt-12 space-y-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)]">
+              {/* --- Credenciais ---
+                  Cada uma vira um card próprio, e não uma linha de lista
+                  empilhada: três blocos com peso igual pesam mais do que
+                  três parágrafos separados por fio. */}
+              <dl className="grid gap-4 sm:gap-5">
                   {[
                     {
+                      i: '01',
                       t: '17+ anos em design e web',
                       d: 'Angelo Garcia trabalha com design gráfico e web desde antes de e-commerce virar assunto de todo mundo. É a base de por que a Psy Comunic trata a loja como produto, e não como suporte de anúncio.',
                     },
                     {
-                      t: 'Sócio de e-commerce de milhões',
-                      d: 'Ele foi sócio de um e-commerce com faturamento na casa dos milhões. Já viveu o estoque parado, o boleto que não é pago e a entrega que atrasa, do lado de quem responde por eles.',
+                      i: '02',
+                      t: 'Ex-sócio de e-commerces de milhões',
+                      d: 'Ele foi sócio de e-commerces com faturamento na casa dos milhões. Já viveu o estoque parado, o boleto que não é pago e a entrega que atrasa, do lado de quem responde por eles.',
                     },
                     {
+                      i: '03',
                       t: 'Mentorado na Vinci Society',
                       d: 'Mentoria com Tay Dantas, uma das maiores especialistas em marketing do Brasil. É de onde vem o método que a Psy Comunic aplica na aquisição.',
                     },
                   ].map((item) => (
-                    <div key={item.t} className="bg-marinho-fundo px-8 py-8 md:px-10">
-                      <dt className="font-display text-xl font-bold tracking-[-0.02em]">
-                        {item.t}
-                      </dt>
-                      <dd className="mt-3 max-w-[58ch] leading-relaxed text-cinza">
-                        {item.d}
-                      </dd>
+                    <div
+                      key={item.t}
+                      className="revelar cartao flex gap-6 p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9"
+                    >
+                      <span className="tabular shrink-0 font-mono text-xs text-magenta-texto">
+                        {item.i}
+                      </span>
+                      <div className="min-w-0">
+                        <dt className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
+                          {item.t}
+                        </dt>
+                        <dd className="mt-3 max-w-[56ch] leading-relaxed text-cinza">
+                          {item.d}
+                        </dd>
+                      </div>
                     </div>
                   ))}
-                </dl>
-              </div>
+              </dl>
             </div>
           </div>
         </section>
