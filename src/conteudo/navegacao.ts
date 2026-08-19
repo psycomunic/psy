@@ -1,10 +1,23 @@
-/** Sitemap da seção 8.1 do escopo. Alimenta o menu e o rodapé. */
+/**
+ * Sitemap navegável.
+ *
+ * REGRA: só entra aqui rota que responde 200.
+ *
+ * A versão anterior listava /blog, /carreiras, /materiais e
+ * /calculadora-roi, que não existem. Eram 18 links quebrados saindo da
+ * home. Link para o nada gasta o orçamento de rastreio do Google em
+ * página de erro, e para o visitante é pior ainda: ele clica, cai no
+ * 404 e vai embora.
+ *
+ * Quando essas páginas existirem, elas voltam para cá E para o
+ * src/app/sitemap.ts, que precisa continuar de acordo com esta lista.
+ */
 export const navPrincipal = [
   { href: '/servicos', rotulo: 'Serviços' },
   { href: '/como-trabalhamos', rotulo: 'Como trabalhamos' },
-  { href: '/cases', rotulo: 'Cases' },
+  { href: '/cases', rotulo: 'Trabalhos' },
   { href: '/planos', rotulo: 'Planos' },
-  { href: '/blog', rotulo: 'Blog' },
+  { href: '/sobre', rotulo: 'Sobre' },
 ];
 
 export const navRodape = [
@@ -22,16 +35,15 @@ export const navRodape = [
     itens: [
       { href: '/sobre', rotulo: 'Sobre' },
       { href: '/como-trabalhamos', rotulo: 'Como trabalhamos' },
-      { href: '/cases', rotulo: 'Cases' },
-      { href: '/carreiras', rotulo: 'Carreiras' },
+      { href: '/cases', rotulo: 'Trabalhos' },
+      { href: '/contato', rotulo: 'Contato' },
     ],
   },
   {
-    titulo: 'Ferramentas',
+    titulo: 'Comece aqui',
     itens: [
       { href: '/diagnostico', rotulo: 'Diagnóstico gratuito' },
-      { href: '/calculadora-roi', rotulo: 'Calculadora de ROI' },
-      { href: '/materiais', rotulo: 'Materiais' },
+      { href: '/planos', rotulo: 'Planos' },
       { href: '/paginas-que-vendem', rotulo: 'Páginas que vendem' },
     ],
   },
@@ -40,7 +52,6 @@ export const navRodape = [
     itens: [
       { href: '/politica-de-privacidade', rotulo: 'Política de privacidade' },
       { href: '/termos-de-uso', rotulo: 'Termos de uso' },
-      { href: '/cookies', rotulo: 'Cookies' },
     ],
   },
 ];
