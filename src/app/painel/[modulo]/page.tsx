@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Marca } from '@/componentes/Marca';
 import {
   MODULOS,
@@ -11,13 +11,10 @@ import {
   type Modulo,
   type Papel,
 } from '@/lib/papeis';
+import { bancoConfigurado } from '@/lib/supabase/ambiente';
+import { sessaoAtual } from '@/lib/supabase/servidor';
+import { Sair } from '../Sair';
 
-/*
-  Casca do painel. Navegação real por papel, DADOS NENHUM.
-
-  O seletor de papel existe só para conferir o que cada perfil enxerga.
-  Numa versão com autenticação, o papel vem da sessão, nunca da URL.
-*/
 export const metadata = {
   title: 'Painel',
   robots: { index: false, follow: false },
@@ -44,50 +41,82 @@ export default async function PainelModulo({
   searchParams: Promise<{ papel?: string }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelBruto } = await searchParams;
+  const { papel: papelDaUrl } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
 
-  const papel: Papel = PAPEIS.includes(papelBruto as Papel) ? (papelBruto as Papel) : 'admin';
-  const visiveis = modulosDoPapel(papel);
+  /*
+    De onde vem o papel.
 
-  /* Trava de papel. Com autenticação real esta checagem acontece no
-     servidor a partir da sessão, e não a partir da URL. */
+    Com banco: da sessão validada no servidor. A URL não influencia nada,
+    e é isso que faz a matriz valer alguma coisa. Papel que o visitante
+    escolhe na barra de endereço não é permissão.
+
+    Sem banco: da URL mesmo, porque aqui não existe sessão e a tela só
+    serve para pré-visualizar a navegação. Esta rota responde 404 em
+    produção enquanto for assim.
+  */
+  let papel: Papel;
+  let nome: string | null = null;
+
+  if (bancoConfigurado) {
+    const sessao = await sessaoAtual();
+    if (!sessao) redirect(`/entrar?destino=/painel/${moduloAtual}`);
+    papel = sessao.papel;
+    nome = sessao.nome;
+  } else {
+    papel = PAPEIS.includes(papelDaUrl as Papel) ? (papelDaUrl as Papel) : 'admin';
+  }
+
+  const visiveis = modulosDoPapel(papel);
   const permitido = visiveis.includes(moduloAtual);
   const acoes = permissoes[papel][moduloAtual] ?? [];
 
+  const comPapel = (rota: string) =>
+    bancoConfigurado ? rota : `${rota}?papel=${papel}`;
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Navegação lateral */}
       <aside className="border-b border-white/10 bg-marinho-fundo p-6 md:w-72 md:border-b-0 md:border-r">
         <Marca />
 
-        <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-magenta-texto">
-          Perfil em visualização
-        </p>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {PAPEIS.map((p) => (
-            <li key={p}>
-              <Link
-                href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
-                className={
-                  'inline-block rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ' +
-                  (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
-                }
-              >
-                {rotuloPapel[p]}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {bancoConfigurado ? (
+          <div className="mt-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-magenta-texto">
+              {rotuloPapel[papel]}
+            </p>
+            <p className="mt-1 text-sm text-neve">{nome}</p>
+          </div>
+        ) : (
+          <>
+            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-magenta-texto">
+              Perfil em visualização
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {PAPEIS.map((p) => (
+                <li key={p}>
+                  <Link
+                    href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
+                    className={
+                      'inline-block rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ' +
+                      (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
+                    }
+                  >
+                    {rotuloPapel[p]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
         <nav aria-label="Módulos" className="mt-8">
           <ul className="space-y-1">
             {visiveis.map((m) => (
               <li key={m}>
                 <Link
-                  href={`/painel/${m}?papel=${papel}`}
+                  href={comPapel(`/painel/${m}`)}
                   aria-current={m === moduloAtual ? 'page' : undefined}
                   className={
                     'block rounded-xl px-4 py-2.5 text-sm transition-colors ' +
@@ -103,23 +132,37 @@ export default async function PainelModulo({
 
         <p className="mt-8 text-xs leading-relaxed text-cinza">
           {papel === 'cliente'
-            ? 'O cliente enxerga apenas a própria conta. O filtro precisa acontecer no servidor.'
+            ? 'Você enxerga apenas os números da sua conta.'
             : `${rotuloPapel[papel]} enxerga ${visiveis.length} de ${MODULOS.length} módulos.`}
         </p>
 
-        <p className="mt-6 text-sm">
-          <Link href="/entrar" className="text-magenta-texto underline underline-offset-4">
-            Trocar de perfil
-          </Link>
+        <p className="mt-6">
+          {bancoConfigurado ? (
+            <Sair />
+          ) : (
+            <Link href="/entrar" className="text-sm text-magenta-texto underline underline-offset-4">
+              Trocar de perfil
+            </Link>
+          )}
         </p>
       </aside>
 
-      {/* Conteúdo */}
       <main id="conteudo" className="flex-1 p-8 md:p-12">
         <div className="rounded-2xl border border-magenta/40 bg-magenta/10 p-4">
           <p className="text-sm leading-relaxed text-neve">
-            <strong className="text-magenta-texto">Casca sem dados.</strong> Não há banco
-            nem autenticação por trás. Esta área está bloqueada em produção.
+            {bancoConfigurado ? (
+              <>
+                <strong className="text-magenta-texto">Módulos em construção.</strong> A
+                autenticação e as permissões já são reais. As telas de dados
+                ainda não foram construídas.
+              </>
+            ) : (
+              <>
+                <strong className="text-magenta-texto">Casca sem dados.</strong> Não há
+                banco nem autenticação por trás. Esta área está bloqueada em
+                produção.
+              </>
+            )}
           </p>
         </div>
 

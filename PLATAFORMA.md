@@ -1,8 +1,11 @@
 # Plataforma Psy Comunic — estado atual e o que falta
 
 Documento de engenharia da área logada: CRM, financeiro, gestão de clientes e
-portal de métricas. Serve para você saber exatamente o que já existe, o que é
-maquete e o que está travado esperando decisão.
+portal de métricas. Serve para você saber exatamente o que já existe, o que
+ainda não foi construído e o que depende de você.
+
+**Backend escolhido: Supabase.** Postgres, autenticação e Row Level Security no
+mesmo lugar.
 
 ---
 
@@ -12,89 +15,131 @@ maquete e o que está travado esperando decisão.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Tela de login (`/entrar`) | Interface pronta, **sem autenticação real** |
-| Painel (`/painel/*`) | Casca navegável, **sem banco** |
+| Schema do banco com RLS (`supabase/migrations/`) | **Escrito, não aplicado** |
+| Login real (`/entrar`) | **Escrito, esperando o projeto Supabase** |
+| Sessão e trava de rota (`src/middleware.ts`) | **Escrito, esperando o projeto Supabase** |
+| Telas de dados de cada módulo | **Não construídas** |
 
 ---
 
-## 2. O que é maquete e por quê
+## 2. A trava, e como ela se levanta sozinha
 
-A tela de login e o painel **não autenticam ninguém de verdade**. Não existe
-banco de dados, sessão nem senha. Eles estão bloqueados fora de
-desenvolvimento por uma trava no middleware: em produção retornam 404.
+Enquanto `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+estiverem vazias, `/entrar` e `/painel` **respondem 404 em produção**.
 
 Isso é deliberado. Uma tela de login que aceita qualquer coisa e parece
 funcionar é pior que nenhuma tela: cria a impressão de que os dados estão
-protegidos quando não estão. Ela só passa a existir em produção quando houver
-autenticação real por trás.
+protegidos quando não estão.
 
----
+A trava não é um interruptor manual que alguém esquece de virar. Ela olha para
+o ambiente: **no minuto em que as variáveis existirem, o 404 vira login de
+verdade**, e volta a ser 404 sozinha se as credenciais sumirem.
 
-## 3. A decisão que trava tudo: onde ficam os dados
-
-Nada da área logada avança sem isto. As duas opções realistas:
-
-### Opção A — Supabase (recomendada)
-
-Postgres + autenticação + Row Level Security no mesmo lugar.
-
-- **A favor:** o RLS aplica o isolamento por cliente no próprio banco. É a
-  diferença entre "o front não mostra os dados do outro cliente" e "o banco se
-  recusa a entregá-los". Para um portal onde cada lojista vê o próprio
-  faturamento, isso não é luxo.
-- **Contra:** mais um fornecedor no stack.
-- **Nota:** existe um conector Supabase nesta sessão, mas ele **precisa ser
-  autorizado por você** nas configurações de conectores do claude.ai. Enquanto
-  não estiver, eu não consigo provisionar o banco daqui.
-
-### Opção B — Neon + Auth.js + Drizzle
-
-Postgres puro, login e ORM montados à mão.
-
-- **A favor:** controle total, sem amarras de fornecedor.
-- **Contra:** o isolamento por cliente passa a ser responsabilidade de cada
-  consulta que eu escrever. Um `where` esquecido vaza dados de um cliente para
-  outro, e não há rede de proteção no banco.
-
----
-
-## 4. Modelo de dados proposto
+Verificado nas duas pontas:
 
 ```
-conta            loja cliente da agência (multi-inquilino)
-usuario          pessoa, com papel e vínculo a uma conta
-lead             CRM: origem, estágio, responsável, valor estimado
-interacao        histórico de contato do lead
-proposta         versão, status, link, valor, validade
-contrato         início, fim, plano, fee, reajuste
-lancamento       financeiro: receita/despesa, vencimento, pago em
-fatura           agrupa lançamentos, status de cobrança
-tarefa           responsável, prazo, conta relacionada
-metrica_diaria   conta, data, sessões, pedidos, receita, investimento
-integracao       tokens por conta (Google Ads, Meta, GA4, plataforma)
-log_auditoria    quem fez o quê, quando, em qual registro
-```
+sem as variaveis, em producao:
+  /entrar            404
+  /painel/crm        404
 
-`log_auditoria` não é opcional: financeiro sem trilha de auditoria é problema
-na primeira divergência de cobrança.
+com as variaveis, em producao, sem sessao:
+  /entrar            200
+  /painel/crm        307  ->  /entrar?destino=/painel/crm
+```
 
 ---
 
-## 5. Papéis (já implementados em `src/lib/papeis.ts`)
+## 3. Onde a segurança mora (três camadas, não uma)
+
+Segurança que existe num lugar só cai junto com esse lugar.
+
+| Camada | O que faz | Onde |
+|---|---|---|
+| Middleware | barra quem não está logado, antes da página existir | `src/middleware.ts` |
+| Página | confere o papel contra a matriz | `sessaoAtual()` + `src/lib/papeis.ts` |
+| Banco | recusa a linha, mesmo que as duas de cima falhem | políticas RLS |
+
+O middleware não consulta a tabela `perfil`: ele sabe que **há alguém** logado,
+não **quem**. Isso é de propósito, porque middleware roda em toda requisição e
+uma consulta ali custa caro. A decisão de papel acontece na página e no banco.
+
+Duas escolhas que merecem nota:
+
+**`getUser()`, nunca `getSession()`.** `getSession` lê o cookie e acredita nele.
+`getUser` valida o token no servidor de autenticação. Numa decisão de acesso, é
+a diferença entre confiar e verificar.
+
+**O papel vive na tabela `perfil`, nunca no JWT.** Metadado de usuário é
+gravável pelo próprio usuário em várias configurações do Supabase. Papel que o
+usuário consegue escrever não é permissão, é sugestão.
+
+---
+
+## 4. O banco
+
+Três migrações em `supabase/migrations/`, para rodar **em ordem**:
+
+| Arquivo | O que cria |
+|---|---|
+| `0001_base_e_papeis.sql` | `conta`, `perfil`, as funções que sustentam todo o RLS, o gatilho que cria perfil no cadastro |
+| `0002_crm_e_comercial.sql` | `lead`, `interacao`, `proposta` e a função de leitura pública da proposta pelo link |
+| `0003_financeiro_operacao_auditoria.sql` | `contrato`, `lancamento`, `fatura`, `tarefa`, `metrica_diaria`, `integracao`, `log_auditoria` |
+
+Quatro decisões que valem explicação:
+
+**A política mais importante do banco é `metrica_leitura`.** É ela que impede um
+lojista de ler o faturamento de outro. Tudo mais é conveniência; essa é a que
+não pode falhar.
+
+**A tabela `integracao` não tem política nenhuma.** RLS ligado sem política
+significa: nenhuma linha para ninguém pela chave pública, nem para o admin.
+Token de anúncio de cliente não precisa trafegar até um navegador em hipótese
+alguma. Quem lê é a rotina de sincronização, no servidor.
+
+**`force row level security` em todas as tabelas.** Sem isso, uma rotina que
+rode como dono da tabela passa por cima de tudo sem avisar.
+
+**As funções auxiliares são `security definer` com `search_path` vazio.** O
+`security definer` quebra a recursão (uma política sobre `perfil` que consulte
+`perfil` trava o banco). O `search_path` vazio impede que alguém plante uma
+tabela homônima e sequestre a função — por isso todo nome ali é qualificado.
+
+O `log_auditoria` não é opcional: financeiro sem trilha de auditoria vira
+problema na primeira divergência de cobrança, porque ninguém consegue provar
+quem alterou o valor. Ele não tem política de update nem de delete — se desse
+para editar, não seria log.
+
+---
+
+## 5. A chave de service role
+
+`SUPABASE_SERVICE_ROLE_KEY` passa por cima de **todo** o RLS. Num bundle de
+navegador, ela entrega o banco inteiro: o faturamento de todos os clientes e os
+tokens de anúncio deles.
+
+`src/lib/supabase/servico.ts` começa com `import 'server-only'`, que faz o
+**build falhar** se um componente de cliente importar o arquivo. Testado: com o
+import forçado num componente `'use client'`, o build para com
+`'server-only' cannot be imported from a Client Component module`.
+
+Ela nunca leva o prefixo `NEXT_PUBLIC_`. O prefixo é literalmente o que publica
+a variável no navegador.
+
+---
+
+## 6. Papéis
 
 | Módulo | Admin | Vendedor | CS | Cliente |
 |---|---|---|---|---|
 | CRM | ver, editar, excluir | ver, editar | ver, editar | — |
 | Propostas | ver, editar, excluir | ver, editar | ver | — |
-| Financeiro | ver, editar, excluir | — | — | — |
+| Financeiro | ver, editar, excluir | — | — | só a própria fatura |
 | Clientes | ver, editar, excluir | ver, editar | ver, editar | — |
 | Métricas | ver | ver | ver | **só a própria conta** |
 | Tarefas | ver, editar, excluir | ver, editar | ver, editar | — |
 | Relatórios | ver, editar | — | ver | ver |
 | Equipe | ver, editar, excluir | — | — | — |
 | Configurações | ver, editar | — | — | — |
-
-Três escolhas que valem explicação:
 
 **O vendedor não vê financeiro.** Quem vende não precisa da margem nem da lista
 de inadimplentes para trabalhar, e menos acesso é menos superfície de vazamento.
@@ -104,12 +149,15 @@ comercial depois de assinada.
 
 **Só o admin exclui.** Exclusão em CRM e financeiro é irreversível na prática.
 
-Se alguma dessas regras não bate com a sua operação, mude a matriz no arquivo:
-é um lugar só.
+**Só o admin edita perfil.** Se o vendedor pudesse, ele se promoveria a admin em
+dois cliques e a matriz inteira viraria enfeite.
+
+A matriz está em dois lugares que precisam continuar de acordo: `src/lib/papeis.ts`
+(interface) e as políticas RLS (banco). Se mudar uma, mude a outra.
 
 ---
 
-## 6. Portal de métricas do cliente
+## 7. Portal de métricas do cliente
 
 A parte mais subestimada do pedido. O painel do lojista não é uma tela: é uma
 cadeia de integrações, cada uma com autenticação e limite de requisição
@@ -120,40 +168,53 @@ próprios.
 | Google Ads API | investimento, cliques, conversões | OAuth + token de desenvolvedor (aprovação do Google) |
 | Meta Marketing API | investimento, alcance, conversões | App em análise na Meta |
 | GA4 Data API | sessões, origem, funil | OAuth por conta |
-| Plataforma da loja | pedidos, receita, ticket | Varia por plataforma: VTEX, Nuvemshop, Shopify, Magazord, Tray |
+| Plataforma da loja | pedidos, receita, ticket | Varia: VTEX, Nuvemshop, Shopify, Magazord, Tray |
 
 **A plataforma da loja é o item mais caro:** cada uma tem API própria, e cobrir
 cinco significa cinco integrações separadas. Recomendo começar por **uma só**, a
-mais comum na base atual, e crescer conforme a demanda.
+mais comum na base atual.
 
-O token de desenvolvedor do Google Ads e a análise do app na Meta levam dias ou
-semanas de aprovação. Vale abrir esses pedidos **antes** de o código estar
-pronto, porque eles não dependem de nós.
+**Abra os pedidos de aprovação agora.** O token de desenvolvedor do Google Ads e
+a análise do app na Meta levam dias ou semanas, e não dependem do nosso código.
+Se esperarem o código ficar pronto, o prazo vira a soma dos dois.
 
 ---
 
-## 7. LGPD
+## 8. LGPD
 
 A área logada guarda dado de faturamento de terceiros. Isso muda o patamar de
 responsabilidade em relação a um site institucional:
 
 - contrato de operador de dados com cada cliente
-- criptografia dos tokens de integração em repouso
-- trilha de auditoria de todo acesso a dado financeiro
+- criptografia dos tokens de integração em repouso (`integracao.segredo`)
+- trilha de auditoria de todo acesso a dado financeiro — já implementada
 - política de retenção e rotina de expurgo declaradas
 - 2FA obrigatório para admin
 
 ---
 
-## 8. Ordem sugerida
+## 9. Como ligar o banco
 
-1. Decidir o backend (seção 3) e provisionar
-2. Autenticação real, sessão e as travas de papel no servidor
-3. Contas e usuários
-4. CRM: leads, estágios, interações
-5. Propostas ligadas ao banco, substituindo o arquivo estático
-6. Financeiro: contratos, lançamentos, faturas
-7. Portal de métricas, uma integração por vez
-8. Auditoria, 2FA e o pacote de LGPD
+1. Criar o projeto no Supabase
+2. SQL Editor: rodar as três migrações em ordem
+3. Copiar `.env.example` para `.env.local` e preencher as três chaves
+4. Criar o primeiro admin: cadastrar o usuário em Authentication e depois, no
+   SQL Editor, `update perfil set papel = 'admin' where email = '...'`
+   (o gatilho cria todo mundo como `cliente`, e o menor acesso possível é o
+   padrão certo)
+5. `npm run dev` — a trava se levanta sozinha
 
-Os passos 1 e 2 não têm atalho. Tudo depois deles depende dos dois.
+---
+
+## 10. Ordem sugerida do que falta
+
+1. Ligar o banco (seção 9)
+2. Contas e usuários: convidar time e clientes
+3. CRM: leads, estágios, interações
+4. Propostas ligadas ao banco, substituindo `src/dados/propostas.ts`
+5. Financeiro: contratos, lançamentos, faturas
+6. Portal de métricas, uma integração por vez
+7. 2FA e o pacote de LGPD
+
+Os passos 3 a 6 são independentes entre si: dá para fazer em qualquer ordem, ou
+em paralelo. O passo 1 trava todos.
