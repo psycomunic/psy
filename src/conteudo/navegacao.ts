@@ -32,7 +32,7 @@ export const navRodape = [
       { href: '/diagnostico', rotulo: 'Diagnóstico gratuito' },
       { href: '/calculadora-roi', rotulo: 'Calculadora de ROI' },
       { href: '/materiais', rotulo: 'Materiais' },
-      { href: '/paginas-que-vendem/', rotulo: 'Páginas que vendem' },
+      { href: '/paginas-que-vendem', rotulo: 'Páginas que vendem' },
     ],
   },
   {

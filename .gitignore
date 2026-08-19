@@ -25,6 +25,13 @@ dist/
 *.fig
 *.sketch
 
+# Originais pesados das fotos do site principal. O repositório é público e
+# a Vercel publica /public inteiro: original de 19 MB aqui é 19 MB que
+# todo mundo baixa por engano. As versões que o site usa ficam ao lado.
+#   foto angelo.png  1.228 KB  ->  angelo-vinci.jpg  109 KB
+public/imagens/DSC09066.JPEG
+public/imagens/foto angelo.png
+
 # Originais pesados das fotos. O site usa as versões otimizadas ao lado.
 # Se quiser versionar os originais também, apague estas duas linhas.
 public/paginas-que-vendem/imagens/angelo-final.png
