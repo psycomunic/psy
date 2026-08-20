@@ -10,6 +10,9 @@ import {
   variacao,
   progressoMeta,
   saudeDaConta,
+  pontuacaoSaude,
+  previsaoPonderada,
+  leadParado,
 } from './metricas.ts';
 
 /*
@@ -203,5 +206,86 @@ describe('saudeDaConta', () => {
     ]) {
       assert.ok(s.motivo.length > 10, `motivo curto demais: "${s.motivo}"`);
     }
+  });
+});
+
+describe('pontuacaoSaude', () => {
+  const perfeita = {
+    receita7: 70000, receita7Anterior: 70000, investimento7: 20000,
+    diasSemDado: 0, metaAtingida: 95,
+    tarefasAtrasadas: 0, inadimplencia: 0, diasSemRegistro: 3,
+  };
+
+  test('conta sem nenhum problema tira 100', () => {
+    assert.equal(pontuacaoSaude(perfeita), 100);
+  });
+
+  test('nunca passa de 100 nem cai abaixo de 0', () => {
+    const pior = {
+      receita7: 100, receita7Anterior: 100000, investimento7: 50000,
+      diasSemDado: 40, metaAtingida: 2,
+      tarefasAtrasadas: 50, inadimplencia: 90000, diasSemRegistro: 400,
+    };
+    const n = pontuacaoSaude(pior);
+    assert.ok(n >= 0 && n <= 100, `fora da faixa: ${n}`);
+    assert.equal(n, 0);
+  });
+
+  test('tarefa atrasada tem teto de desconto', () => {
+    /* Vinte atrasadas nao e pior que quatro: as duas estao abandonadas. */
+    const quatro = pontuacaoSaude({ ...perfeita, tarefasAtrasadas: 4 });
+    const vinte = pontuacaoSaude({ ...perfeita, tarefasAtrasadas: 20 });
+    assert.equal(quatro, vinte);
+    assert.equal(quatro, 85);
+  });
+
+  test('silencio de mais de 30 dias e o maior desconto isolado', () => {
+    const calado = 100 - pontuacaoSaude({ ...perfeita, diasSemRegistro: 45 });
+    const semMeta = 100 - pontuacaoSaude({ ...perfeita, metaAtingida: 50 });
+    const inadimplente = 100 - pontuacaoSaude({ ...perfeita, inadimplencia: 5000 });
+    assert.ok(calado >= semMeta, `silencio ${calado} deveria pesar >= meta ${semMeta}`);
+    assert.ok(calado > inadimplente, `silencio ${calado} deveria pesar > inadimplencia ${inadimplente}`);
+  });
+
+  test('sem meta definida nao desconta nada por meta', () => {
+    assert.equal(pontuacaoSaude({ ...perfeita, metaAtingida: null }), 100);
+  });
+
+  test('conta nova, sem historico de receita, nao e punida pela variacao', () => {
+    assert.equal(pontuacaoSaude({ ...perfeita, receita7Anterior: 0 }), 100);
+  });
+});
+
+describe('previsaoPonderada', () => {
+  test('pondera pela probabilidade', () => {
+    assert.equal(
+      previsaoPonderada([
+        { valorFee: 10000, probabilidade: 80 },
+        { valorFee: 10000, probabilidade: 20 },
+      ]),
+      10000,
+    );
+  });
+
+  test('sem probabilidade usa 50, e nao 100', () => {
+    /* Assumir 100 transformaria o funil numa promessa. */
+    assert.equal(previsaoPonderada([{ valorFee: 10000, probabilidade: null }]), 5000);
+  });
+
+  test('lead sem valor nao quebra a soma', () => {
+    assert.equal(previsaoPonderada([{ valorFee: null, probabilidade: 90 }]), 0);
+  });
+});
+
+describe('leadParado', () => {
+  test('sete dias no mesmo estagio ja e parado', () => {
+    assert.equal(leadParado(7, 'negociacao'), true);
+    assert.equal(leadParado(6, 'negociacao'), false);
+  });
+
+  test('ganho e perdido nunca contam como parados', () => {
+    /* Um lead ganho ha seis meses nao esta parado, esta resolvido. */
+    assert.equal(leadParado(180, 'ganho'), false);
+    assert.equal(leadParado(180, 'perdido'), false);
   });
 });

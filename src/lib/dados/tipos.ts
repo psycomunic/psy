@@ -102,11 +102,82 @@ export type Lead = {
   id: string;
   nome: string;
   empresa: string | null;
+  email: string | null;
+  telefone: string | null;
   estagio: Estagio;
   origem: string | null;
-  valorEstimado: number | null;
+  /** Fee mensal estimado. NÃO confundir com a verba de mídia. */
+  valorFee: number | null;
+  valorVerba: number | null;
+  probabilidade: number | null;
   responsavel: string | null;
+  responsavelId: string | null;
+  proximoPasso: string | null;
+  proximoPassoEm: string | null;
+  /** Dias no estágio atual. Mantido pelo BANCO, por gatilho. */
+  diasNoEstagio: number;
+  /** Dias desde a entrada do lead. Calculado na camada de dados, e
+      nunca no render: Date.now() durante render e chamada impura. */
+  diasDesdeEntrada: number;
+  motivoPerda: string | null;
+  /** Preenchido quando o lead virou cliente. */
+  contaId: string | null;
   criadoEm: string;
+};
+
+/** Resumo de um estágio do funil. */
+export type EstagioFunil = {
+  estagio: Estagio;
+  quantidade: number;
+  valorTotal: number;
+  valorPonderado: number;
+  diasMedios: number | null;
+  parados: number;
+};
+
+/** Ficha completa de uma loja. */
+export type ContaFicha = {
+  id: string;
+  nome: string;
+  razaoSocial: string | null;
+  documento: string | null;
+  plataforma: string | null;
+  site: string | null;
+  segmento: string | null;
+  situacao: 'prospect' | 'onboarding' | 'ativa' | 'pausada' | 'encerrada';
+  dataInicio: string | null;
+  observacoes: string | null;
+  responsavel: string | null;
+  /** Nota de 0 a 100 e o porquê. */
+  pontuacao: number | null;
+  tarefasAtrasadas: number;
+  inadimplencia: number;
+  diasSemRegistro: number | null;
+};
+
+export const rotuloSituacaoConta: Record<ContaFicha['situacao'], string> = {
+  prospect: 'Prospect',
+  onboarding: 'Onboarding',
+  ativa: 'Ativa',
+  pausada: 'Pausada',
+  encerrada: 'Encerrada',
+};
+
+export type Interacao = {
+  id: string;
+  tipo: string;
+  resumo: string;
+  autor: string | null;
+  em: string;
+};
+
+export type ContratoResumo = {
+  id: string;
+  plano: string;
+  feeMensal: number;
+  diaVencimento: number;
+  inicio: string;
+  fim: string | null;
 };
 
 export type Tarefa = {

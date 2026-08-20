@@ -1,4 +1,7 @@
 import type {
+  EstagioFunil,
+  ContaFicha,
+  Interacao,
   RegistroAuditoria,
   ContaResumo,
   DiaKpi,
@@ -11,6 +14,7 @@ import type {
   Situacao,
   Estagio,
 } from './tipos';
+import { ESTAGIOS } from './tipos';
 
 /**
  * Dados de DEMONSTRAÇÃO.
@@ -202,31 +206,102 @@ export function financeiroDemo(): FinanceiroMes {
 }
 
 export function leadsDemo(): Lead[] {
-  const base: { n: string; e: string; est: Estagio; o: string; v: number }[] = [
-    { n: 'Camila Restier',  e: 'Moda Ateliê',        est: 'novo',        o: 'google',    v: 2500 },
-    { n: 'Rodrigo Salles',  e: 'Casa & Jardim Sul',  est: 'contato',     o: 'indicacao', v: 3800 },
-    { n: 'Bianca Toledo',   e: 'Suplementa Já',      est: 'diagnostico', o: 'meta',      v: 4200 },
-    { n: 'Fernando Áquila', e: 'Ferramentas Prime',  est: 'proposta',    o: 'organico',  v: 6500 },
-    { n: 'Juliana Prado',   e: 'Bebê Feliz Store',   est: 'negociacao',  o: 'indicacao', v: 5200 },
-    { n: 'Marcos Vinholi',  e: 'Auto Peças Norte',   est: 'ganho',       o: 'google',    v: 4800 },
-    { n: 'Patrícia Lemos',  e: 'Decor Minimal',      est: 'perdido',     o: 'meta',      v: 3100 },
-    { n: 'Thiago Bastos',   e: 'Nutri Pet',          est: 'diagnostico', o: 'organico',  v: 2900 },
+  const base: {
+    n: string; e: string; est: Estagio; o: string; fee: number;
+    prob: number; passo: string | null; diasParado: number;
+  }[] = [
+    { n: "Camila Restier",  e: "Moda Ateliê",       est: "novo",        o: "google",    fee: 2500, prob: 20, passo: "Primeira ligação", diasParado: 1 },
+    { n: "Rodrigo Salles",  e: "Casa & Jardim Sul", est: "contato",     o: "indicacao", fee: 3800, prob: 35, passo: "Enviar material", diasParado: 3 },
+    { n: "Bianca Toledo",   e: "Suplementa Já",     est: "diagnostico", o: "meta",      fee: 4200, prob: 50, passo: "Rodar diagnóstico das 4 frentes", diasParado: 11 },
+    { n: "Fernando Áquila", e: "Ferramentas Prime", est: "proposta",    o: "organico",  fee: 6500, prob: 65, passo: "Cobrar retorno da proposta", diasParado: 9 },
+    { n: "Juliana Prado",   e: "Bebê Feliz Store",  est: "negociacao",  o: "indicacao", fee: 5200, prob: 80, passo: "Fechar condição de setup", diasParado: 2 },
+    { n: "Marcos Vinholi",  e: "Auto Peças Norte",  est: "ganho",       o: "google",    fee: 4800, prob: 100, passo: null, diasParado: 20 },
+    { n: "Patrícia Lemos",  e: "Decor Minimal",     est: "perdido",     o: "meta",      fee: 3100, prob: 0, passo: null, diasParado: 40 },
+    { n: "Thiago Bastos",   e: "Nutri Pet",         est: "diagnostico", o: "organico",  fee: 2900, prob: 45, passo: "Agendar reunião de diagnóstico", diasParado: 4 },
   ];
+
   const fim = hoje();
-  return base.map((b, i) => {
-    const d = new Date(fim);
-    d.setDate(d.getDate() - (i * 3 + 1));
+  const dias = (n: number) => {
+    const x = new Date(fim);
+    x.setDate(x.getDate() - n);
+    return iso(x);
+  };
+
+  return base.map((b, i) => ({
+    id: `ld-${i + 1}`,
+    nome: b.n,
+    empresa: b.e,
+    email: null,
+    telefone: null,
+    estagio: b.est,
+    origem: b.o,
+    valorFee: b.fee,
+    valorVerba: b.fee * 6,
+    probabilidade: b.prob,
+    responsavel: "Angelo Garcia",
+    responsavelId: "p1",
+    proximoPasso: b.passo,
+    proximoPassoEm: b.passo ? dias(-2) : null,
+    diasNoEstagio: b.diasParado,
+    diasDesdeEntrada: i * 3 + 1 + b.diasParado,
+    motivoPerda: b.est === "perdido" ? "Escolheu uma agência mais barata" : null,
+    contaId: b.est === "ganho" ? "dm-1" : null,
+    criadoEm: dias(i * 3 + 1),
+  }));
+}
+
+export function funilDemo(): EstagioFunil[] {
+  const leads = leadsDemo();
+  return ESTAGIOS.map((estagio) => {
+    const doEstagio = leads.filter((l) => l.estagio === estagio);
     return {
-      id: `ld-${i + 1}`,
-      nome: b.n,
-      empresa: b.e,
-      estagio: b.est,
-      origem: b.o,
-      valorEstimado: b.v,
-      responsavel: 'Angelo Garcia',
-      criadoEm: iso(d),
+      estagio,
+      quantidade: doEstagio.length,
+      valorTotal: doEstagio.reduce((s, l) => s + (l.valorFee ?? 0), 0),
+      valorPonderado: Math.round(
+        doEstagio.reduce((s, l) => s + (l.valorFee ?? 0) * ((l.probabilidade ?? 50) / 100), 0),
+      ),
+      diasMedios: doEstagio.length
+        ? Number((doEstagio.reduce((s, l) => s + l.diasNoEstagio, 0) / doEstagio.length).toFixed(1))
+        : null,
+      parados: doEstagio.filter(
+        (l) => l.diasNoEstagio >= 7 && l.estagio !== "ganho" && l.estagio !== "perdido",
+      ).length,
     };
   });
+}
+
+export function fichaDemo(contaId: string): ContaFicha | null {
+  const c = contasBase.find((x) => x.id === contaId);
+  if (!c) return null;
+  const problemas = c.sit === "critico" ? 3 : c.sit === "atencao" ? 1 : 0;
+  return {
+    id: c.id,
+    nome: c.nome,
+    razaoSocial: null,
+    documento: null,
+    plataforma: c.plataforma,
+    site: null,
+    segmento: null,
+    situacao: "ativa",
+    dataInicio: null,
+    observacoes: null,
+    responsavel: c.resp,
+    pontuacao: c.sit === "saudavel" ? 96 : c.sit === "atencao" ? 72 : c.sit === "critico" ? 38 : 55,
+    tarefasAtrasadas: problemas,
+    inadimplencia: c.sit === "critico" ? 3200 : 0,
+    diasSemRegistro: c.sit === "critico" ? 34 : 5,
+  };
+}
+
+export function interacoesDemo(): Interacao[] {
+  const agora = Date.now();
+  const h = (n: number) => new Date(agora - n * 3600000).toISOString();
+  return [
+    { id: "i1", tipo: "reuniao", resumo: "Reunião de diagnóstico. Dor principal é taxa de aprovação em boleto.", autor: "Angelo Garcia", em: h(30) },
+    { id: "i2", tipo: "whatsapp", resumo: "Confirmou o acesso à conta de anúncios.", autor: "Angelo Garcia", em: h(76) },
+    { id: "i3", tipo: "ligacao", resumo: "Primeiro contato. Fatura cerca de R$ 200 mil por mês.", autor: "Angelo Garcia", em: h(150) },
+  ];
 }
 
 export function tarefasDemo(): Tarefa[] {

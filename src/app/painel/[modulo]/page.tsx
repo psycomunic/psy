@@ -25,6 +25,7 @@ import {
   Auditoria,
   EmConstrucao,
 } from '@/componentes/painel/modulos/Outros';
+import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 
 export const metadata = {
   title: 'Painel',
@@ -56,10 +57,10 @@ export default async function PainelModulo({
   searchParams,
 }: {
   params: Promise<{ modulo: string }>;
-  searchParams: Promise<{ papel?: string; conta?: string }>;
+  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta } = await searchParams;
+  const { papel: papelDaUrl, conta, ficha, aba } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
@@ -90,6 +91,12 @@ export default async function PainelModulo({
 
   const visiveis = modulosDoPapel(papel);
   const permitido = pode(papel, moduloAtual, 'ver');
+
+  /* A ficha da loja monta o próprio cabeçalho, com o nome da loja e o
+     health score. Mora dentro de /painel/contas em vez de virar
+     /painel/contas/[id] porque uma pasta estática `contas` passaria à
+     frente do [modulo] e derrubaria as outras rotas do painel. */
+  const naFicha = moduloAtual === 'contas' && !!ficha;
 
   const comPapel = (rota: string) =>
     bancoConfigurado ? rota : `${rota}${rota.includes('?') ? '&' : '?'}papel=${papel}`;
@@ -188,7 +195,7 @@ export default async function PainelModulo({
             {/* O módulo de métricas monta o próprio cabeçalho, com o
                 nome da conta. Repetir o título aqui seria dizer duas
                 vezes onde a pessoa está. */}
-            {moduloAtual !== 'metricas' ? (
+            {moduloAtual !== 'metricas' && !naFicha ? (
               <header>
                 <p className="font-mono text-[0.64rem] uppercase tracking-[0.16em] text-magenta-texto">
                   {rotuloPapel[papel]}
@@ -199,11 +206,15 @@ export default async function PainelModulo({
               </header>
             ) : null}
 
-            <div className={moduloAtual !== 'metricas' ? 'mt-8' : ''}>
+            <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
               {moduloAtual === 'visao' ? <Visao papel={papel} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
-              {moduloAtual === 'crm' ? <Crm /> : null}
-              {moduloAtual === 'contas' ? <Contas papel={papel} /> : null}
+              {moduloAtual === 'crm' ? <Crm papel={papel} /> : null}
+              {naFicha ? (
+                <Ficha contaId={ficha!} aba={abaDaUrl(aba)} papel={papel} />
+              ) : moduloAtual === 'contas' ? (
+                <Contas papel={papel} />
+              ) : null}
               {moduloAtual === 'financeiro' ? <Financeiro /> : null}
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}

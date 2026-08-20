@@ -11,10 +11,15 @@ import type {
   PessoaEquipe,
   Marco,
   RegistroAuditoria,
+  EstagioFunil,
+  ContaFicha,
+  ContratoResumo,
+  Interacao,
   Resposta,
   Situacao,
   Estagio,
 } from './tipos';
+import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
 
 /**
@@ -261,23 +266,191 @@ export async function listarLeads(): Promise<Resposta<Lead[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('lead')
-    .select('id, nome, empresa, estagio, origem, valor_estimado, criado_em, perfil:responsavel_id(nome)')
+    /* Uma string LITERAL, e não concatenada.
+
+       O cliente do Supabase infere o TIPO do retorno lendo o texto do
+       select em tempo de compilação. Quebrado em pedaços com `+`, ele
+       desiste e devolve `GenericStringError`, e todo campo do resultado
+       vira erro de tipo. Feio de ler, mas é o que faz o TypeScript
+       conferir os nomes das colunas por nós. */
+    .select('id, nome, empresa, email, telefone, estagio, origem, valor_fee_estimado, valor_verba_estimada, probabilidade, proximo_passo, proximo_passo_em, estagio_desde, motivo_perda, conta_id, criado_em, responsavel_id, perfil:responsavel_id(nome)')
     .order('criado_em', { ascending: false })
-    .limit(200);
+    .limit(300);
 
   if (faltamTabelas(error)) return semBanco(demo.leadsDemo());
+
+  const agora = Date.now();
 
   return doBanco(
     (data ?? []).map((l) => ({
       id: l.id as string,
       nome: l.nome as string,
       empresa: (l.empresa as string) ?? null,
+      email: (l.email as string) ?? null,
+      telefone: (l.telefone as string) ?? null,
       estagio: l.estagio as Estagio,
       origem: (l.origem as string) ?? null,
-      valorEstimado: l.valor_estimado === null ? null : Number(l.valor_estimado),
-      responsavel:
-        (l.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      valorFee: l.valor_fee_estimado === null ? null : Number(l.valor_fee_estimado),
+      valorVerba:
+        l.valor_verba_estimada === null ? null : Number(l.valor_verba_estimada),
+      probabilidade: l.probabilidade === null ? null : Number(l.probabilidade),
+      responsavel: (l.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      responsavelId: (l.responsavel_id as string) ?? null,
+      proximoPasso: (l.proximo_passo as string) ?? null,
+      proximoPassoEm: (l.proximo_passo_em as string) ?? null,
+      /* Dias no estágio, calculados aqui a partir do carimbo que o
+         GATILHO mantém. Se o cálculo dependesse da tela, uma alteração
+         por SQL pararia o relógio e o alerta de lead parado passaria a
+         mentir justamente nos leads que ninguém está tocando. */
+      diasNoEstagio: Math.floor(
+        (agora - new Date(l.estagio_desde as string).getTime()) / 86400000,
+      ),
+      diasDesdeEntrada: Math.floor(
+        (agora - new Date(l.criado_em as string).getTime()) / 86400000,
+      ),
+      motivoPerda: (l.motivo_perda as string) ?? null,
+      contaId: (l.conta_id as string) ?? null,
       criadoEm: l.criado_em as string,
+    })),
+  );
+}
+
+/** Resumo por estágio, direto da view. */
+export async function listarFunil(): Promise<Resposta<EstagioFunil[]>> {
+  if (!bancoConfigurado) return semBanco(demo.funilDemo());
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase.from('funil_comercial').select('*');
+
+  if (faltamTabelas(error)) return semBanco(demo.funilDemo());
+
+  const porEstagio = new Map(
+    (data ?? []).map((f) => [f.estagio as Estagio, f]),
+  );
+
+  /* A view só devolve estágio que TEM lead. A tela precisa de todos, na
+     ordem do funil, senão as colunas somem e reaparecem conforme o dia. */
+  return doBanco(
+    ESTAGIOS.map((estagio) => {
+      const f = porEstagio.get(estagio);
+      return {
+        estagio,
+        quantidade: Number(f?.quantidade ?? 0),
+        valorTotal: Number(f?.valor_total ?? 0),
+        valorPonderado: Number(f?.valor_ponderado ?? 0),
+        diasMedios:
+          f?.dias_medios_no_estagio === null || f?.dias_medios_no_estagio === undefined
+            ? null
+            : Number(f.dias_medios_no_estagio),
+        parados: Number(f?.parados ?? 0),
+      };
+    }),
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Ficha da loja                                                       */
+/* ------------------------------------------------------------------ */
+
+export async function fichaDaConta(
+  contaId: string,
+): Promise<Resposta<ContaFicha | null>> {
+  if (!bancoConfigurado) return semBanco(demo.fichaDemo(contaId));
+
+  const supabase = await clienteServidor();
+
+  const [rConta, rSaude] = await Promise.all([
+    supabase
+      .from('conta')
+      .select('id, nome, razao_social, documento, plataforma, site, segmento, situacao, data_inicio, observacoes, perfil:responsavel_id(nome)')
+      .eq('id', contaId)
+      .maybeSingle(),
+    supabase
+      .from('saude_conta')
+      .select('pontuacao, tarefas_atrasadas, inadimplencia, dias_sem_registro')
+      .eq('conta_id', contaId)
+      .maybeSingle(),
+  ]);
+
+  if (faltamTabelas(rConta.error)) return semBanco(demo.fichaDemo(contaId));
+  if (!rConta.data) return doBanco(null);
+
+  const c = rConta.data;
+  const s = rSaude.data;
+
+  return doBanco({
+    id: c.id as string,
+    nome: c.nome as string,
+    razaoSocial: (c.razao_social as string) ?? null,
+    documento: (c.documento as string) ?? null,
+    plataforma: (c.plataforma as string) ?? null,
+    site: (c.site as string) ?? null,
+    segmento: (c.segmento as string) ?? null,
+    situacao: c.situacao as ContaFicha['situacao'],
+    dataInicio: (c.data_inicio as string) ?? null,
+    observacoes: (c.observacoes as string) ?? null,
+    responsavel: (c.perfil as unknown as { nome: string } | null)?.nome ?? null,
+    pontuacao: s?.pontuacao === null || s?.pontuacao === undefined ? null : Number(s.pontuacao),
+    tarefasAtrasadas: Number(s?.tarefas_atrasadas ?? 0),
+    inadimplencia: Number(s?.inadimplencia ?? 0),
+    diasSemRegistro:
+      s?.dias_sem_registro === null || s?.dias_sem_registro === undefined
+        ? null
+        : Number(s.dias_sem_registro),
+  });
+}
+
+export async function contratosDaConta(
+  contaId: string,
+): Promise<Resposta<ContratoResumo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('contrato')
+    .select('id, plano, fee_mensal, dia_vencimento, inicio, fim')
+    .eq('conta_id', contaId)
+    .order('inicio', { ascending: false });
+
+  /* Sem linha aqui geralmente significa SEM PERMISSÃO, e não sem
+     contrato: contrato é admin e financeiro. A tela decide o que dizer,
+     conferindo o papel. */
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((c) => ({
+      id: c.id as string,
+      plano: c.plano as string,
+      feeMensal: Number(c.fee_mensal ?? 0),
+      diaVencimento: Number(c.dia_vencimento ?? 10),
+      inicio: c.inicio as string,
+      fim: (c.fim as string) ?? null,
+    })),
+  );
+}
+
+export async function interacoesDaConta(
+  contaId: string,
+): Promise<Resposta<Interacao[]>> {
+  if (!bancoConfigurado) return semBanco(demo.interacoesDemo());
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('interacao')
+    .select('id, tipo, resumo, criada_em, perfil:autor_id(nome)')
+    .eq('conta_id', contaId)
+    .order('criada_em', { ascending: false })
+    .limit(50);
+
+  if (faltamTabelas(error)) return semBanco(demo.interacoesDemo());
+
+  return doBanco(
+    (data ?? []).map((i) => ({
+      id: i.id as string,
+      tipo: i.tipo as string,
+      resumo: i.resumo as string,
+      autor: (i.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      em: i.criada_em as string,
     })),
   );
 }

@@ -187,3 +187,77 @@ export function validar<T extends z.ZodType>(
   const primeiro = r.error.issues[0];
   return { ok: false, mensagem: primeiro?.message ?? 'Dados inválidos.' };
 }
+
+/* ================================================================== */
+/* Funil comercial                                                     */
+/* ================================================================== */
+
+const ESTAGIOS_VALIDOS = [
+  'novo',
+  'contato',
+  'diagnostico',
+  'proposta',
+  'negociacao',
+  'ganho',
+  'perdido',
+] as const;
+
+export const esquemaMoverLead = z.object({
+  id: z.uuid('Lead inválido.'),
+  estagio: z.enum(ESTAGIOS_VALIDOS),
+});
+
+export const esquemaLead = z.object({
+  id: z.uuid('Lead inválido.'),
+  proximo_passo: textoOpcional,
+  proximo_passo_em: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
+  probabilidade: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : Number(v)))
+    .nullable()
+    .refine(
+      (v) => v === null || (Number.isFinite(v) && v >= 0 && v <= 100),
+      'A probabilidade vai de 0 a 100.',
+    ),
+});
+
+export const esquemaPerderLead = z.object({
+  id: z.uuid('Lead inválido.'),
+  /* Motivo OBRIGATÓRIO. Sem ele, "perdido" vira um cemitério de leads
+     sem aprendizado, e três meses depois ninguém sabe se o padrão era
+     preço, prazo ou um concorrente específico. */
+  motivo_perda: textoObrigatorio(3, 'Diga por que este lead foi perdido.'),
+});
+
+export const esquemaConverter = z.object({
+  id: z.uuid('Lead inválido.'),
+  fee_mensal: z
+    .string()
+    .trim()
+    .transform(paraNumero)
+    .refine(
+      (n) => Number.isFinite(n) && n > 0,
+      'O fee mensal precisa ser maior que zero.',
+    ),
+  plataforma: textoOpcional,
+});
+
+export const esquemaInteracao = z.object({
+  lead_id: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
+  conta_id: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
+  tipo: z.enum(['ligacao', 'reuniao', 'whatsapp', 'email', 'nota']),
+  resumo: textoObrigatorio(3, 'Escreva o que aconteceu.'),
+});

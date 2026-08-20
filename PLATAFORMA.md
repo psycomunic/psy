@@ -91,13 +91,23 @@ usuário consegue escrever não é permissão, é sugestão.
 
 ## 4. O banco
 
-Três migrações em `supabase/migrations/`, para rodar **em ordem**:
+Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`):
 
 | Arquivo | O que cria |
 |---|---|
 | `0001_base_e_papeis.sql` | `conta`, `perfil`, as funções que sustentam todo o RLS, o gatilho que cria perfil no cadastro |
 | `0002_crm_e_comercial.sql` | `lead`, `interacao`, `proposta` e a função de leitura pública da proposta pelo link |
 | `0003_financeiro_operacao_auditoria.sql` | `contrato`, `lancamento`, `fatura`, `tarefa`, `metrica_diaria`, `integracao`, `log_auditoria` |
+| `0004_kpis_ecommerce.sql` | `kpi_diario`, `kpi_canal`, `meta_mensal`, `marco` e as views que o painel lê |
+| `0005_gatilho_resiliente.sql` | o gatilho de perfil deixa de derrubar cadastro quando o `app_metadata` ainda não chegou |
+| `0006_papeis_renomeados.sql` | `analista` → `operador`, `cliente_admin` → `cliente` |
+| `0007_papeis_novos.sql` | 7 papéis em uso e `tem_acesso_conta()`, o ponto único de decisão de acesso |
+| `0008_acessos_e_contatos.sql` | `acesso_conta` (multi-loja N:N), `contato`, gatilhos de auditoria |
+| `0009_ficha_e_funil.sql` | view `saude_conta` (health score), view `funil_estagio`, dias no estágio por gatilho |
+| `0010_conversao_recusa_sem_papel.sql` | `converter_lead()` passa a recusar quem não tem papel |
+
+17 tabelas, 6 views, 47 políticas. `npm run testar-banco` confere as três coisas
+que importam: RLS ligado em tudo, isolamento entre lojas, e a conversão de lead.
 
 Quatro decisões que valem explicação:
 
@@ -220,15 +230,26 @@ responsabilidade em relação a um site institucional:
 
 ---
 
-## 10. Ordem sugerida do que falta
+## 10. Ordem das fases
 
-1. Ligar o banco (seção 9)
-2. Contas e usuários: convidar time e clientes
-3. CRM: leads, estágios, interações
-4. Propostas ligadas ao banco, substituindo `src/dados/propostas.ts`
-5. Financeiro: contratos, lançamentos, faturas
-6. Portal de métricas, uma integração por vez
-7. 2FA e o pacote de LGPD
+| Fase | O que entrega | Estado |
+|---|---|---|
+| 0 | Base, papéis, login, painel, RLS | **pronta** |
+| 1 | 7 papéis, multi-loja, contatos, auditoria em tela | **pronta** |
+| 2 | Ficha da loja em abas com health score, CRM com kanban e conversão de lead | **pronta** |
+| 3 | Métricas e ingestão: sincronização por conta, uma fonte por vez | a fazer |
+| 4 | Plataformas: Magazord, Shopify, Merge para WhatsApp | a fazer |
+| 5 | Portal do cliente | a fazer |
+| 6 | Propostas e contratos ligados ao banco | a fazer |
+| 7 | Tarefas, diário e solicitações | a fazer |
+| 8 | Relatórios | a fazer |
+| 9 | Financeiro e cobrança: Asaas e Mercado Pago | a fazer |
+| 10 | Notificações e configurações | a fazer |
 
-Os passos 3 a 6 são independentes entre si: dá para fazer em qualquer ordem, ou
-em paralelo. O passo 1 trava todos.
+As fases 3 a 10 são bastante independentes: dá para trocar a ordem. O que não
+muda é a regra de sempre — tabela nova nasce com RLS e política explícita, e a
+matriz de `src/lib/papeis.ts` acompanha.
+
+**A plataforma ainda não está no ar.** As variáveis do Supabase vivem só em
+`.env.local`: em produção, `/entrar` e `/painel` respondem 404 de propósito.
+Publicar é decisão sua, e o passo é colocar as três variáveis na Vercel.

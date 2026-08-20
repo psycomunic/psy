@@ -5,11 +5,12 @@ import {
   listarTarefas,
   listarEquipe,
   listarAuditoria,
+  listarFunil,
   financeiroDoMes,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
-import { dinheiro, dinheiroCurto, vezes, diasAte, diaLongo } from '@/lib/formato';
+import { rotuloEstagio } from '@/lib/dados/tipos';
+import { dinheiro, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
   FormNovaConta,
@@ -19,17 +20,44 @@ import {
   LojasDaPessoa,
   FormTransferencia,
 } from '../Formularios';
+import { Kanban } from '../Kanban';
+import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 
 /* ================================================================== */
 /* CRM: o funil                                                        */
 /* ================================================================== */
 
-export async function Crm() {
-  const { dados: leads, procedencia } = await listarLeads();
+export async function Crm({ papel }: { papel: Papel }) {
+  const [{ dados: leads, procedencia }, { dados: funil }] = await Promise.all([
+    listarLeads(),
+    listarFunil(),
+  ]);
+
+  const podeEditar =
+    ['administrador', 'gestor', 'comercial'].includes(papel) && procedencia === 'banco';
 
   const abertos = leads.filter((l) => l.estagio !== 'ganho' && l.estagio !== 'perdido');
   const ganhos = leads.filter((l) => l.estagio === 'ganho');
-  const emJogo = abertos.reduce((s, l) => s + (l.valorEstimado ?? 0), 0);
+  const emJogo = abertos.reduce((s, l) => s + (l.valorFee ?? 0), 0);
+
+  const ponderado = previsaoPonderada(
+    abertos.map((l) => ({ valorFee: l.valorFee, probabilidade: l.probabilidade })),
+  );
+
+  const parados = abertos.filter((l) => leadParado(l.diasNoEstagio, l.estagio));
+
+  /* Ciclo de venda: quantos dias, em média, do primeiro contato ao
+     ganho. Só faz sentido sobre quem já foi ganho — a média incluindo
+     quem ainda está negociando mediria o tempo até HOJE, e não até o
+     fechamento. */
+  /* `diasDesdeEntrada` vem pronto da camada de dados. Calcular aqui
+     exigiria Date.now() durante o render, que e chamada impura: em
+     componente de cliente causaria divergencia de hidratacao, e a regra
+     do React vale para os dois casos. */
+  const cicloDias =
+    ganhos.length > 0
+      ? Math.round(ganhos.reduce((s, l) => s + l.diasDesdeEntrada, 0) / ganhos.length)
+      : null;
 
   /* Conversão de ganho sobre o que já foi DECIDIDO, e não sobre a base
      inteira. Contar os que ainda estão em negociação como derrota
@@ -45,78 +73,120 @@ export async function Crm() {
 
       <Secao titulo="O funil hoje">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi rotulo="Em negociação" valor={String(abertos.length)} apoio="Leads que ainda não foram decididos" />
-          <Kpi rotulo="Valor em jogo" valor={dinheiroCurto(emJogo)} apoio="Soma do fee mensal estimado dos leads abertos" />
-          <Kpi rotulo="Ganhos" valor={String(ganhos.length)} />
+          <Kpi
+            rotulo="Previsão ponderada"
+            valor={dinheiroCurto(ponderado)}
+            apoio={`De ${dinheiroCurto(emJogo)} em jogo. Ponderado pela probabilidade: a soma crua trata como certo quem ainda não respondeu.`}
+          />
+          <Kpi rotulo="Em negociação" valor={String(abertos.length)} apoio="Leads ainda não decididos" />
           <Kpi
             rotulo="Taxa de ganho"
             valor={taxaGanho === null ? '—' : `${taxaGanho}%`}
             apoio="Sobre os leads já decididos, e não sobre a base inteira"
           />
+          <Kpi
+            rotulo="Ciclo de venda"
+            valor={cicloDias === null ? '—' : `${cicloDias} dias`}
+            apoio="Média do primeiro contato ao ganho"
+          />
         </div>
       </Secao>
 
-      <Secao titulo="Por estágio" apoio="Um lead parado no mesmo estágio há semanas é um lead perdido que ninguém arquivou.">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {ESTAGIOS.filter((e) => e !== 'perdido').map((estagio) => {
-            const doEstagio = leads.filter((l) => l.estagio === estagio);
-            return (
-              <div key={estagio} className="cartao p-5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-magenta-texto">
-                    {rotuloEstagio[estagio]}
-                  </h3>
-                  <span className="tabular text-sm font-semibold">{doEstagio.length}</span>
-                </div>
-                <ul className="mt-4 space-y-2.5">
-                  {doEstagio.length === 0 ? (
-                    <li className="text-xs text-cinza">Vazio</li>
-                  ) : (
-                    doEstagio.map((l) => (
-                      <li key={l.id} className="rounded-xl bg-white/[0.03] px-4 py-3">
-                        <p className="text-sm font-semibold">{l.empresa ?? l.nome}</p>
-                        <p className="mt-1 text-xs text-cinza">{l.nome}</p>
-                        <p className="tabular mt-2 text-xs text-neve">
-                          {dinheiro(l.valorEstimado)}
-                          <span className="ml-2 text-cinza">{l.origem}</span>
-                        </p>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
+      {/* O que exige ação vem ANTES do quadro: quem abre o CRM de manhã
+          precisa saber o que travou, e não admirar o funil. */}
+      {parados.length > 0 ? (
+        <Secao
+          titulo={`${parados.length} ${parados.length === 1 ? 'lead parado' : 'leads parados'}`}
+          apoio="Sete dias no mesmo estágio. Não é prazo de vendas, é limiar de esquecimento."
+        >
+          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {parados
+              .sort((a, b) => b.diasNoEstagio - a.diasNoEstagio)
+              .map((l) => (
+                <li key={l.id} className="cartao flex items-center gap-4 p-4">
+                  <span aria-hidden className="text-sm" style={{ color: '#FBBF24' }}>▲</span>
+                  <div className="min-w-0 grow">
+                    <p className="truncate text-sm font-semibold">{l.empresa ?? l.nome}</p>
+                    <p className="mt-0.5 text-xs text-cinza">
+                      {rotuloEstagio[l.estagio]} · {l.diasNoEstagio} dias
+                    </p>
+                  </div>
+                  <span className="tabular shrink-0 text-xs text-neve">
+                    {dinheiroCurto(l.valorFee ?? 0)}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </Secao>
+      ) : null}
+
+      <Secao
+        titulo="Funil"
+        apoio={
+          podeEditar
+            ? 'Arraste um card para mudar de estágio. Clique para abrir a ficha.'
+            : 'Clique num card para abrir a ficha.'
+        }
+      >
+        <Kanban leads={leads} podeEditar={podeEditar} />
       </Secao>
 
-      <Secao titulo="Todos os leads">
+      <Secao titulo="Tempo em cada estágio" apoio="Onde o funil trava.">
         <Tabela>
-          <caption className="sr-only">Lista completa de leads</caption>
+          <caption className="sr-only">Quantidade, valor e tempo médio por estágio</caption>
           <thead>
             <tr>
-              <th scope="col" className={th}>Empresa</th>
-              <th scope="col" className={th}>Contato</th>
               <th scope="col" className={th}>Estágio</th>
-              <th scope="col" className={th}>Origem</th>
+              <th scope="col" className={th}>Leads</th>
               <th scope="col" className={th}>Valor</th>
-              <th scope="col" className={th}>Entrada</th>
+              <th scope="col" className={th}>Ponderado</th>
+              <th scope="col" className={th}>Dias médios</th>
+              <th scope="col" className={th}>Parados</th>
             </tr>
           </thead>
           <tbody>
-            {leads.map((l) => (
-              <tr key={l.id}>
-                <th scope="row" className={`${td} font-normal`}>{l.empresa ?? '—'}</th>
-                <td className={td}>{l.nome}</td>
-                <td className={td}>{rotuloEstagio[l.estagio]}</td>
-                <td className={td}>{l.origem ?? '—'}</td>
-                <td className={`${td} tabular`}>{dinheiro(l.valorEstimado)}</td>
-                <td className={`${td} tabular`}>{diaLongo(l.criadoEm)}</td>
+            {funil.map((f) => (
+              <tr key={f.estagio}>
+                <th scope="row" className={`${td} font-normal text-branco`}>
+                  {rotuloEstagio[f.estagio]}
+                </th>
+                <td className={`${td} tabular`}>{f.quantidade}</td>
+                <td className={`${td} tabular`}>{dinheiro(f.valorTotal)}</td>
+                <td className={`${td} tabular`}>{dinheiro(f.valorPonderado)}</td>
+                <td className={`${td} tabular`}>{f.diasMedios === null ? '—' : f.diasMedios}</td>
+                <td className={`${td} tabular`}>
+                  {f.parados > 0 ? (
+                    <span style={{ color: '#FBBF24' }}>▲ {f.parados}</span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </Tabela>
       </Secao>
+
+      {leads.some((l) => l.estagio === 'perdido') ? (
+        <Secao
+          titulo="Por que perdemos"
+          apoio="O padrão só aparece com o motivo registrado. É por isso que ele é obrigatório."
+        >
+          <ul className="space-y-2">
+            {leads
+              .filter((l) => l.estagio === 'perdido')
+              .map((l) => (
+                <li key={l.id} className="cartao flex flex-wrap gap-x-4 gap-y-1 px-5 py-4">
+                  <span className="font-semibold">{l.empresa ?? l.nome}</span>
+                  <span className="text-sm text-cinza">{l.motivoPerda ?? 'sem motivo registrado'}</span>
+                  <span className="tabular ml-auto text-sm text-cinza">
+                    {dinheiro(l.valorFee)}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </Secao>
+      ) : null}
     </>
   );
 }
@@ -160,7 +230,12 @@ export async function Contas({ papel }: { papel: Papel }) {
             {[...contas].sort((a, b) => b.receita - a.receita).map((c) => (
               <tr key={c.id}>
                 <th scope="row" className={`${td} font-normal`}>
-                  <span className="font-semibold text-branco">{c.nome}</span>
+                  <Link
+                    href={`/painel/contas?ficha=${c.id}`}
+                    className="font-semibold text-branco underline-offset-4 hover:underline"
+                  >
+                    {c.nome}
+                  </Link>
                   <span className="mt-1 block font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
                     {c.plataforma ?? '—'}
                   </span>
@@ -171,8 +246,8 @@ export async function Contas({ papel }: { papel: Papel }) {
                 <td className={`${td} tabular`}>{vezes(c.mer)}</td>
                 <td className={`${td} w-40`}><Progresso percentual={c.metaAtingida} /></td>
                 <td className={td}>
-                  <Link href={`/painel/metricas?conta=${c.id}`} className="text-sm font-semibold text-magenta-texto">
-                    Abrir →
+                  <Link href={`/painel/contas?ficha=${c.id}`} className="text-sm font-semibold text-magenta-texto">
+                    Ficha →
                   </Link>
                 </td>
               </tr>

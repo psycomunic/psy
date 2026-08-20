@@ -221,3 +221,102 @@ export function saudeDaConta(e: EntradaSaude): { situacao: Situacao; motivo: str
 
   return { situacao: 'saudavel', motivo: 'Receita e eficiência dentro do esperado.' };
 }
+
+/* ================================================================== */
+/* Pontuação de saúde                                                  */
+/* ================================================================== */
+
+export type EntradaPontuacao = EntradaSaude & {
+  tarefasAtrasadas: number;
+  inadimplencia: number;
+  /** Dias desde o último registro no diário de bordo. null = nenhum. */
+  diasSemRegistro: number | null;
+};
+
+/**
+ * Nota de 0 a 100, por DESCONTO a partir de 100.
+ *
+ * Somar pontos positivos obrigaria a inventar peso para "estar normal".
+ * Descontar é mais honesto: a conta começa saudável e cada problema tira
+ * um pedaço, na proporção do estrago que causa.
+ *
+ * O maior desconto isolado é o SILÊNCIO. Cliente que não recebe notícia
+ * há um mês cancela mesmo com número bom, e é o único item desta lista
+ * que depende só da agência — os outros dependem do mercado, da loja ou
+ * do meio de pagamento.
+ *
+ * ESTA FUNÇÃO ESPELHA a coluna `pontuacao` da view `saude_conta`. As
+ * duas precisam continuar de acordo: a view é o que roda, esta é o que
+ * o teste verifica. Mudou uma, mude a outra.
+ */
+export function pontuacaoSaude(e: EntradaPontuacao): number {
+  let n = 100;
+
+  /* Sem dado é o desconto mais pesado depois do silêncio: número velho
+     leva a decisão errada com confiança total. */
+  if (e.diasSemDado === null || e.diasSemDado > 2) n -= 30;
+
+  if (e.metaAtingida !== null) {
+    if (e.metaAtingida < 70) n -= 20;
+    else if (e.metaAtingida < 90) n -= 10;
+  }
+
+  const varReceita = variacao(e.receita7, e.receita7Anterior);
+  if (varReceita !== null) {
+    if (varReceita < -25) n -= 25;
+    else if (varReceita < -10) n -= 12;
+  }
+
+  const merAtual = mer(e.receita7, e.investimento7);
+  if (merAtual !== null && merAtual < 1) n -= 20;
+
+  /* Teto de 15: uma conta com vinte tarefas atrasadas não é pior que
+     uma com três — as duas estão abandonadas, e o resto do desconto
+     precisa sobrar para os outros sinais. */
+  n -= Math.min(e.tarefasAtrasadas * 5, 15);
+
+  if (e.inadimplencia > 0) n -= 15;
+
+  if (e.diasSemRegistro === null) n -= 10;
+  else if (e.diasSemRegistro > 30) n -= 20;
+  else if (e.diasSemRegistro > 14) n -= 8;
+
+  return Math.max(0, Math.min(100, n));
+}
+
+/* ================================================================== */
+/* Funil                                                               */
+/* ================================================================== */
+
+/**
+ * Previsão ponderada pela probabilidade.
+ *
+ * A soma crua do funil é sempre otimista: trata como certo o lead que
+ * ainda não respondeu. Sem probabilidade informada, 50 é o chute neutro
+ * — melhor do que assumir 100.
+ */
+export function previsaoPonderada(
+  leads: { valorFee: number | null; probabilidade: number | null }[],
+) {
+  return arredondar(
+    leads.reduce(
+      (s, l) => s + (l.valorFee ?? 0) * ((l.probabilidade ?? 50) / 100),
+      0,
+    ),
+  );
+}
+
+/**
+ * Um lead está parado?
+ *
+ * Sete dias no mesmo estágio. Não é prazo de vendas, é limiar de
+ * esquecimento: passou uma semana sem mudar de estado, ninguém tocou.
+ */
+export const LIMIAR_PARADO_DIAS = 7;
+
+export function leadParado(diasNoEstagio: number, estagio: string) {
+  /* Ganho e perdido são estados FINAIS. Um lead ganho há seis meses não
+     está "parado", está resolvido. */
+  if (estagio === 'ganho' || estagio === 'perdido') return false;
+  return diasNoEstagio >= LIMIAR_PARADO_DIAS;
+}
