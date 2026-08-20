@@ -12,7 +12,6 @@ import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
 import { trabalhos, logosMarcas } from '@/conteudo/trabalhos';
-import { planos, recursos, ctaPlano } from '@/conteudo/planos';
 
 const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
 const rotulo =
@@ -34,7 +33,6 @@ function Rotulo({ children }: { children: React.ReactNode }) {
 export default function Home() {
   /* As 7 primeiras linhas da matriz são as confirmadas com o comercial.
      As demais estão marcadas `confirmar` e não vão para a home. */
-  const recursosHome = recursos.filter((r) => !r.confirmar).slice(0, 5);
   const metadeLogos = Math.ceil(logosMarcas.length / 2);
 
   return (
@@ -454,88 +452,98 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            8. PLANOS
+            8. NIVEIS DE PARCERIA
+
+            Aqui havia a tabela de planos, com nome e itens de cada um.
+            Ela saiu do site: plano com preco e escopo agora existe so
+            dentro da proposta, que e link unico, noindex e por cliente.
+
+            O que fica e a ESCADA em palavras. Ela responde "ate onde
+            voces entram?", que e a pergunta que traz a pessoa a esta
+            altura da pagina, sem transformar a home num cardapio que
+            desconto nenhum consegue negociar depois.
             ========================================================== */}
-        <section id="planos" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
+        <section id="parceria" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div className="brilho-magenta absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.18]" />
           </div>
 
           <div className={secao}>
             <div className="revelar max-w-[46rem]">
-              <Rotulo>Planos</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[20ch]'}>
-                Três formas de colocar a operação para rodar.
+              <Rotulo>Níveis de parceria</Rotulo>
+              <h2 className={tituloSecao + ' max-w-[22ch]'}>
+                Três profundidades, e a escolha depende de onde sua loja trava.
               </h2>
+              <p className="mt-7 max-w-[58ch] text-guia text-neve">
+                A Psy Comunic entra no ponto em que a operação precisa, e não num pacote
+                fechado. O escopo e o investimento saem na proposta, depois do diagnóstico,
+                porque antes disso qualquer número seria chute.
+              </p>
             </div>
 
-            <div className="mt-16 grid items-start gap-6 lg:grid-cols-3">
-              {planos.map((p) => (
-                <div
-                  key={p.id}
+            <ol className="mt-16 grid items-start gap-6 lg:grid-cols-3">
+              {[
+                {
+                  n: '01',
+                  t: 'Só a mídia',
+                  d: 'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
+                  q: 'Para quem já vende e quer parar de gastar no escuro.',
+                },
+                {
+                  n: '02',
+                  t: 'Mídia e canais próprios',
+                  d: 'Tudo acima, mais página de conversão, e-mail, recuperação de carrinho e conteúdo. A loja passa a vender também quando a verba pausa.',
+                  q: 'Para quem depende demais de comprar tráfego.',
+                  destaque: true,
+                },
+                {
+                  n: '03',
+                  t: 'A operação inteira',
+                  d: 'Tudo acima, mais plataforma, marketplaces, funil comercial, produto e mentoria do seu time. A agência dentro da operação.',
+                  q: 'Para quem quer crescer sem montar um time do zero.',
+                },
+              ].map((nivel) => (
+                <li
+                  key={nivel.n}
                   className={
                     'revelar cartao relative p-9 transition-transform duration-500 md:p-10 ' +
-                    (p.destaque
+                    (nivel.destaque
                       ? 'border-magenta/45 lg:-translate-y-5 lg:shadow-[0_30px_80px_-30px_rgba(228,21,95,0.55)]'
                       : 'hover:-translate-y-1')
                   }
                 >
-                  {p.destaque ? (
+                  {nivel.destaque ? (
                     <span
                       aria-hidden
                       className="brilho-magenta pointer-events-none absolute -top-32 left-1/2 h-72 w-96 -translate-x-1/2 opacity-45"
                     />
                   ) : null}
 
-                  {p.selo ? (
-                    <span className="relative inline-block rounded-full bg-magenta px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-branco">
-                      {p.selo}
-                    </span>
-                  ) : (
-                    <span aria-hidden className="relative block h-[1.9rem]" />
-                  )}
+                  <span className="relative font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+                    {nivel.n}
+                  </span>
 
-                  <h3 className="relative mt-6 font-display text-sub font-extrabold tracking-[-0.035em]">
-                    {p.nome}
+                  <h3 className="relative mt-5 font-display text-sub font-extrabold tracking-[-0.035em]">
+                    {nivel.t}
                   </h3>
 
-                  {/*
-                    Sem preço, aqui e no código. Critério de aceite do
-                    escopo: valor escrito no fonte iria para o bundle que
-                    qualquer pessoa baixa. Ver src/conteudo/planos.ts.
-                  */}
-                  <dl className="relative mt-8 space-y-4 border-t border-fio pt-8">
-                    {recursosHome.map((r) => (
-                      <div key={r.nome} className="flex items-baseline justify-between gap-4">
-                        <dt className="text-sm text-cinza">{r.nome}</dt>
-                        <dd className="shrink-0 text-right text-sm font-semibold text-neve">
-                          {String(r.valores[p.id])}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
+                  <p className="relative mt-6 border-t border-fio pt-6 text-guia leading-relaxed text-neve">
+                    {nivel.d}
+                  </p>
 
-                  <div className="relative mt-9">
-                    <Botao
-                      href="/planos"
-                      variante={p.destaque ? 'primario' : 'secundario'}
-                      className="w-full"
-                    >
-                      {ctaPlano}
-                    </Botao>
-                  </div>
-                </div>
+                  <p className="relative mt-6 text-sm text-cinza">{nivel.q}</p>
+                </li>
               ))}
-            </div>
+            </ol>
 
-            <p className="revelar mt-10 text-center text-sm">
-              <Link
-                href="/planos"
-                className="text-magenta-texto underline decoration-magenta/40 underline-offset-4 transition-colors hover:decoration-magenta"
-              >
-                Ver a tabela comparativa completa
-              </Link>
-            </p>
+            <div className="revelar mt-14 flex flex-wrap items-center gap-4">
+              <Botao href="/diagnostico" variante="primario">
+                Pedir uma proposta
+              </Botao>
+              <p className="text-sm text-cinza">
+                O escopo e o investimento chegam por link, depois do diagnóstico.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -631,8 +639,8 @@ export default function Home() {
                 <Botao href="/diagnostico" variante="claro">
                   Começar o diagnóstico
                 </Botao>
-                <Botao href="/planos" variante="secundario">
-                  Ver os planos
+                <Botao href="#parceria" variante="secundario">
+                  Ver os níveis de parceria
                 </Botao>
               </div>
             </div>

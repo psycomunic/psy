@@ -27,6 +27,7 @@ import {
 } from '@/componentes/painel/modulos/Outros';
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
+import { Propostas } from '@/componentes/painel/modulos/Propostas';
 
 export const metadata = {
   title: 'Painel',
@@ -34,12 +35,6 @@ export const metadata = {
 };
 
 const AINDA_NAO: Partial<Record<Modulo, string[]>> = {
-  propostas: [
-    'Gerar proposta a partir do lead, com o escopo das quatro frentes',
-    'Versões e status, para saber qual foi a última enviada',
-    'Link único por cliente, sem indexação',
-    'Aviso de validade vencida',
-  ],
   relatorios: [
     'Relatório mensal por conta, com o diário de bordo junto',
     'Exportação em PDF',
@@ -215,6 +210,7 @@ export default async function PainelModulo({
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
               {moduloAtual === 'auditoria' ? <Auditoria /> : null}
               {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} /> : null}
+              {moduloAtual === 'propostas' ? <Propostas papel={papel} /> : null}
               {AINDA_NAO[moduloAtual] ? (
                 <EmConstrucao
                   nome={rotuloModulo[moduloAtual]}

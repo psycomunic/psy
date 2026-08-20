@@ -27,7 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       prioridade: 0.8,
       frequencia: 'monthly' as const,
     })),
-    { caminho: '/planos', prioridade: 0.8, frequencia: 'monthly' },
     { caminho: '/cases', prioridade: 0.7, frequencia: 'monthly' },
     { caminho: '/como-trabalhamos', prioridade: 0.7, frequencia: 'monthly' },
     { caminho: '/sobre', prioridade: 0.6, frequencia: 'yearly' },

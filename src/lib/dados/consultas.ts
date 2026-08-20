@@ -22,9 +22,11 @@ import type {
   Sincronizacao,
   Frescor,
   EstadoIntegracao,
+  PropostaResumo,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
+import { hojeBR, somarDias } from '@/lib/datas';
 
 /**
  * A camada de dados da plataforma.
@@ -690,4 +692,48 @@ export async function frescorDaConta(contaId: string): Promise<Resposta<Frescor>
     diasComDado30: Number(data.dias_com_dado_30 ?? 0),
     diasSemDado30: Number(data.dias_sem_dado_30 ?? 30),
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* Propostas                                                           */
+/* ------------------------------------------------------------------ */
+
+export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('proposta')
+    .select('id, slug, cliente, contato, status, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
+    .order('criada_em', { ascending: false })
+    .limit(60);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const hoje = hojeBR();
+
+  return doBanco(
+    (data ?? []).map((p) => {
+      const emitida = p.emitida_em as string;
+      const vence = somarDias(emitida, Number(p.validade_dias ?? 15));
+
+      return {
+        id: p.id as string,
+        slug: p.slug as string,
+        cliente: p.cliente as string,
+        contato: p.contato as string,
+        status: p.status as PropostaResumo['status'],
+        plano: ((p.corpo as { plano?: string })?.plano) ?? null,
+        emitidaEm: emitida,
+        validadeDias: Number(p.validade_dias ?? 15),
+        /* Calculado AQUI, na camada de dados, e não no render: contar
+           dias exige saber que dia é hoje, e Date.now() durante o render
+           é chamada impura. */
+        diasParaVencer: Math.round(
+          (Date.parse(`${vence}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86400000,
+        ),
+        autor: (p.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      };
+    }),
+  );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Marca } from '@/componentes/Marca';
-import { buscarProposta, venceEm } from '@/dados/propostas';
+import { buscarPropostaExibida, venceEmExibida } from '@/dados/propostas';
+import { condicoesPadrao } from '@/dados/planos';
+import { Planos } from '@/componentes/proposta/Planos';
 import { marca } from '@/conteudo/marca';
 import { linkWhatsapp } from '@/conteudo/navegacao';
 
@@ -28,10 +30,10 @@ export default async function PaginaProposta({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const p = buscarProposta(slug);
+  const p = await buscarPropostaExibida(slug);
   if (!p) notFound();
 
-  const vencimento = venceEm(p);
+  const vencimento = venceEmExibida(p);
   const vencida = vencimento < new Date();
 
   return (
@@ -67,6 +69,7 @@ export default async function PaginaProposta({
       <p className="mt-10 max-w-[62ch] text-lg leading-relaxed text-neve">{p.resumo}</p>
 
       {/* Diagnóstico */}
+      {p.diagnostico.length > 0 ? (
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight">O que encontramos</h2>
         <ul className="mt-6 space-y-4">
@@ -78,8 +81,14 @@ export default async function PaginaProposta({
           ))}
         </ul>
       </section>
+      ) : null}
 
-      {/* Escopo por frente */}
+      {/* Os planos, com o recomendado em destaque. Só a proposta gerada
+          pelo painel tem plano; as antigas trazem escopo escrito à mão. */}
+      {p.plano ? <Planos recomendado={p.plano} /> : null}
+
+      {/* Escopo por frente, das propostas antigas. */}
+      {p.escopo.length > 0 ? (
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight">O que vamos fazer</h2>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -95,8 +104,10 @@ export default async function PaginaProposta({
           ))}
         </div>
       </section>
+      ) : null}
 
       {/* Investimento */}
+      {p.investimento.length > 0 ? (
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight">Investimento</h2>
         <dl className="mt-6 divide-y divide-white/10">
@@ -113,18 +124,20 @@ export default async function PaginaProposta({
           ))}
         </dl>
       </section>
+      ) : null}
 
       {/* Condições */}
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight">Condições</h2>
         <ul className="mt-6 space-y-3 text-neve">
-          {p.condicoes.map((c) => (
+          {(p.condicoes.length > 0 ? p.condicoes : condicoesPadrao).map((c) => (
             <li key={c} className="border-t border-white/10 pt-3">{c}</li>
           ))}
         </ul>
       </section>
 
       {/* Próximos passos */}
+      {p.proximosPassos.length > 0 ? (
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight">Próximos passos</h2>
         <ol className="mt-6 space-y-4">
@@ -138,6 +151,7 @@ export default async function PaginaProposta({
           ))}
         </ol>
       </section>
+      ) : null}
 
       {/* Aceite */}
       <section className="mt-16 rounded-3xl bg-magenta p-8 print:hidden">

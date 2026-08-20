@@ -307,3 +307,27 @@ export type Frescor = {
   diasComDado30: number;
   diasSemDado30: number;
 };
+
+/** Uma proposta gerada, para a lista do painel. */
+export type PropostaResumo = {
+  id: string;
+  slug: string;
+  cliente: string;
+  contato: string;
+  status: 'rascunho' | 'enviada' | 'em_analise' | 'aceita' | 'recusada' | 'expirada';
+  plano: string | null;
+  emitidaEm: string;
+  validadeDias: number;
+  /** Dias que faltam para vencer. Negativo já venceu. */
+  diasParaVencer: number;
+  autor: string | null;
+};
+
+export const rotuloStatusProposta: Record<PropostaResumo['status'], string> = {
+  rascunho: 'Rascunho',
+  enviada: 'Enviada',
+  em_analise: 'Em análise',
+  aceita: 'Aceita',
+  recusada: 'Recusada',
+  expirada: 'Expirada',
+};

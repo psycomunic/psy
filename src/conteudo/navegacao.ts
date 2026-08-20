@@ -16,7 +16,6 @@ export const navPrincipal = [
   { href: '/servicos', rotulo: 'Serviços' },
   { href: '/como-trabalhamos', rotulo: 'Como trabalhamos' },
   { href: '/cases', rotulo: 'Trabalhos' },
-  { href: '/planos', rotulo: 'Planos' },
   { href: '/sobre', rotulo: 'Sobre' },
 ];
 
@@ -43,8 +42,7 @@ export const navRodape = [
     titulo: 'Comece aqui',
     itens: [
       { href: '/diagnostico', rotulo: 'Diagnóstico gratuito' },
-      { href: '/planos', rotulo: 'Planos' },
-      { href: '/paginas-que-vendem', rotulo: 'Páginas que vendem' },
+          { href: '/paginas-que-vendem', rotulo: 'Páginas que vendem' },
     ],
   },
   {
