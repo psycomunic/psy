@@ -120,7 +120,7 @@ try {
   ok(!!erroEscrita, 'nao consegue inventar a propria receita');
 
   const { error: erroPromocao } = await cliente
-    .from('perfil').update({ papel: 'admin' }).eq('id', idUsuario);
+    .from('perfil').update({ papel: 'administrador' }).eq('id', idUsuario);
   const { data: depois } = await admin.from('perfil')
     .select('papel').eq('id', idUsuario).single();
   ok(!!erroPromocao || depois?.papel === 'cliente', 'nao consegue se promover a admin');

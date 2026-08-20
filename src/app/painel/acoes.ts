@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { sessaoAtual } from '@/lib/supabase/servidor';
 import { clienteServico } from '@/lib/supabase/servico';
-import { PAPEIS, type Papel } from '@/lib/papeis';
+import {
+  esquemaConta,
+  esquemaUsuario,
+  esquemaAcesso,
+  esquemaMeta,
+  validar,
+} from '@/lib/validacao/painel';
 
 /**
  * Ações de escrita do painel.
@@ -33,7 +39,7 @@ export type Resultado = { ok: boolean; mensagem: string };
 async function exigirAdmin() {
   const sessao = await sessaoAtual();
   if (!sessao) throw new Error('Sessão expirada. Entre de novo.');
-  if (sessao.papel !== 'admin') {
+  if (sessao.papel !== 'administrador') {
     throw new Error('Só administradores podem fazer isso.');
   }
   return sessao;
@@ -45,14 +51,12 @@ async function registrar(autorId: string, acao: string, tabela: string, alvo: st
   const s = clienteServico();
   await s.from('log_auditoria').insert({
     autor_id: autorId,
-    autor_papel: 'admin',
+    autor_papel: 'administrador',
     acao,
     tabela,
     registro_id: alvo,
   });
 }
-
-const texto = (fd: FormData, campo: string) => String(fd.get(campo) ?? '').trim();
 
 /* ================================================================== */
 /* Contas                                                              */
@@ -65,12 +69,9 @@ export async function criarConta(
   try {
     const sessao = await exigirAdmin();
 
-    const nome = texto(fd, 'nome');
-    const plataforma = texto(fd, 'plataforma');
-    const site = texto(fd, 'site');
-    const documento = texto(fd, 'documento');
-
-    if (nome.length < 2) return { ok: false, mensagem: 'Informe o nome da loja.' };
+    const v = validar(esquemaConta, fd);
+    if (!v.ok) return v;
+    const { nome, plataforma, site, documento } = v.dados;
 
     const s = clienteServico();
 
@@ -86,12 +87,7 @@ export async function criarConta(
 
     const { data, error } = await s
       .from('conta')
-      .insert({
-        nome,
-        plataforma: plataforma || null,
-        site: site || null,
-        documento: documento || null,
-      })
+      .insert({ nome, plataforma, site, documento })
       .select('id, nome')
       .single();
 
@@ -118,34 +114,12 @@ export async function convidarUsuario(
   try {
     const sessao = await exigirAdmin();
 
-    const nome = texto(fd, 'nome');
-    const email = texto(fd, 'email').toLowerCase();
-    const papel = texto(fd, 'papel') as Papel;
-    const contaId = texto(fd, 'conta_id');
-    const senha = String(fd.get('senha') ?? '');
-
-    if (nome.length < 2) return { ok: false, mensagem: 'Informe o nome da pessoa.' };
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return { ok: false, mensagem: 'E-mail inválido.' };
-    }
-
-    /* O papel vem de uma lista fechada, e não do que o formulário
-       mandou. Sem isto, um POST manual com papel inventado entraria
-       direto no banco: server action é endpoint HTTP aberto. */
-    if (!PAPEIS.includes(papel)) {
-      return { ok: false, mensagem: 'Papel inválido.' };
-    }
-
-    /* Cliente sem loja não passa na constraint do banco e ficaria sem
-       perfil, ou seja, logaria e não veria nada. Barrar aqui dá a
-       mensagem certa em vez de um erro de constraint. */
-    if (papel === 'cliente' && !contaId) {
-      return { ok: false, mensagem: 'Cliente precisa estar vinculado a uma loja.' };
-    }
-
-    if (senha.length < 12) {
-      return { ok: false, mensagem: 'A senha precisa de pelo menos 12 caracteres.' };
-    }
+    /* Formato do e-mail, papel dentro da lista fechada, senha mínima e
+       a regra de "cliente precisa de loja" vivem todas no esquema.
+       Ver src/lib/validacao/painel.ts. */
+    const v = validar(esquemaUsuario, fd);
+    if (!v.ok) return v;
+    const { nome, email, papel, conta_id: contaId, senha } = v.dados;
 
     const s = clienteServico();
 
@@ -204,8 +178,9 @@ export async function alterarAcesso(
   try {
     const sessao = await exigirAdmin();
 
-    const id = texto(fd, 'id');
-    const ativo = texto(fd, 'ativo') === 'true';
+    const v = validar(esquemaAcesso, fd);
+    if (!v.ok) return v;
+    const { id, ativo } = v.dados;
 
     /* Desativar a si mesmo tranca o admin para fora do próprio painel, e
        não há outra porta: não existe cadastro aberto nem outro admin
@@ -238,15 +213,12 @@ export async function definirMeta(
   try {
     const sessao = await exigirAdmin();
 
-    const contaId = texto(fd, 'conta_id');
-    const receita = Number(
-      texto(fd, 'receita_meta').replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'),
-    );
-
-    if (!contaId) return { ok: false, mensagem: 'Escolha a loja.' };
-    if (!Number.isFinite(receita) || receita <= 0) {
-      return { ok: false, mensagem: 'A meta de receita precisa ser maior que zero.' };
-    }
+    /* A normalização de "320.000,50" para número vive no esquema: quem
+       preenche meta digita como fala, e essa regra não deve estar
+       espalhada em cada action. */
+    const v = validar(esquemaMeta, fd);
+    if (!v.ok) return v;
+    const { conta_id: contaId, receita_meta: receita } = v.dados;
 
     /* Sempre dia 1: a chave única é (conta, mês), e uma data no meio do
        mês criaria uma segunda meta para o mesmo mês. */

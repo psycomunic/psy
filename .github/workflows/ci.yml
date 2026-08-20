@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Uma execução por branch. Push em sequência cancela a anterior em vez de
+# empilhar build de código que já foi substituído.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 24 porque os testes rodam TypeScript direto, sem transpilar,
+          # com --experimental-strip-types. Em versão menor eles não sobem.
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npx eslint src --max-warnings=0
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Testes de domínio e validação
+        run: npm run teste
+
+      - name: Build
+        # As variáveis do Supabase NÃO entram aqui de propósito. O build
+        # precisa funcionar sem banco: é o mesmo caminho que roda quando
+        # alguém clona o repositório, e se ele depender de segredo, ninguém
+        # de fora consegue compilar.
+        run: npm run build
+
+      - name: Nenhum segredo no bundle do cliente
+        # Critério de aceite nº 8. A chave de service role e a senha do
+        # banco nunca podem aparecer no JavaScript que vai para o
+        # navegador. `server-only` já quebra o build se isso acontecer,
+        # mas essa varredura é a segunda barreira, e é a que pega o caso
+        # de alguém copiar o valor para dentro de um componente.
+        run: |
+          if grep -rlE 'sb_secret_|SUPABASE_SERVICE_ROLE_KEY|postgresql://postgres' .next/static 2>/dev/null; then
+            echo "SEGREDO ENCONTRADO NO BUNDLE DO CLIENTE"
+            exit 1
+          fi
+          echo "Nenhum segredo no bundle."

@@ -8,7 +8,7 @@ import {
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
-import { dinheiro, dinheiroCurto, vezes, numero, diasAte, diaLongo } from '@/lib/formato';
+import { dinheiro, dinheiroCurto, vezes, diasAte, diaLongo } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import { FormNovaConta, FormNovoUsuario, FormMeta, BotaoAcesso } from '../Formularios';
 
@@ -119,7 +119,7 @@ export async function Crm() {
 
 export async function Contas({ papel }: { papel: Papel }) {
   const { dados: contas, procedencia } = await listarContas();
-  const podeEscrever = papel === 'admin' && procedencia === 'banco';
+  const podeEscrever = papel === 'administrador' && procedencia === 'banco';
 
   return (
     <>
@@ -328,7 +328,7 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
     listarEquipe(),
     listarContas(),
   ]);
-  const podeEscrever = papel === 'admin' && procedencia === 'banco';
+  const podeEscrever = papel === 'administrador' && procedencia === 'banco';
 
   return (
     <>

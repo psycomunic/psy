@@ -81,8 +81,7 @@ export function serieDemo(contaId: string, dias = 30): DiaKpi[] {
     const captados = Math.max(1, Math.round(sessoes * (0.014 + r() * 0.012)));
     const aprovados = Math.max(1, Math.round(captados * (0.76 + r() * 0.16)));
     const novos = Math.max(1, Math.round(aprovados * (0.42 + r() * 0.2)));
-    const cliques = Math.round(investimento / (0.9 + r() * 0.8));
-    const impressoes = Math.round(cliques * (28 + r() * 22));
+    /* impressoes so aparecem no recorte por canal, e nao na serie diaria */
 
     saida.push({
       dia: iso(d),
@@ -248,6 +247,6 @@ export function tarefasDemo(): Tarefa[] {
 
 export function equipeDemo(): PessoaEquipe[] {
   return [
-    { id: 'p1', nome: 'Angelo Garcia', email: 'psycomunic@gmail.com', papel: 'admin', ativo: true, contas: 5 },
+    { id: 'p1', nome: 'Angelo Garcia', email: 'psycomunic@gmail.com', papel: 'administrador', ativo: true, contas: 5 },
   ];
 }

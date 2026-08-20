@@ -3,7 +3,7 @@
 import { useActionState, useState, useId } from 'react';
 import { criarConta, convidarUsuario, alterarAcesso, definirMeta } from '@/app/painel/acoes';
 import type { Resultado } from '@/app/painel/acoes';
-import { PAPEIS, rotuloPapel, type Papel } from '@/lib/papeis';
+import { PAPEIS, rotuloPapel, descricaoPapel, type Papel } from '@/lib/papeis';
 
 /* Estilos compartilhados: campo e rótulo iguais em toda a plataforma. */
 const campo =
@@ -203,17 +203,10 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
           </div>
         </div>
 
-        {/* O aviso muda com o papel escolhido, porque a consequência de
-            cada um é diferente e ninguém abre a matriz para conferir. */}
+        {/* A consequencia de cada papel vem da matriz, e nao de texto
+            repetido aqui: um lugar so descreve o que cada um enxerga. */}
         <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-cinza">
-          {papel === 'admin' &&
-            'Administrador enxerga tudo: financeiro, margem, inadimplência e a carteira inteira. Também é quem cria e desativa acessos.'}
-          {papel === 'vendedor' &&
-            'Atendente e vendas enxerga CRM, propostas, clientes e métricas. NÃO enxerga financeiro.'}
-          {papel === 'cs' &&
-            'Customer Success enxerga CRM, clientes, tarefas e métricas. Lê propostas mas não edita, para não haver dúvida sobre quem mexeu em condição comercial.'}
-          {papel === 'cliente' &&
-            'Cliente enxerga apenas os números da loja escolhida. O isolamento é feito pelo banco, não pela tela.'}
+          {descricaoPapel[papel]}
         </p>
 
         <div>

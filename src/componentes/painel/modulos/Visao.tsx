@@ -33,7 +33,7 @@ export async function Visao({ papel }: { papel: Papel }) {
     (t) => t.status !== 'concluida' && t.status !== 'cancelada' && (diasAte(t.prazo) ?? 1) < 0,
   );
 
-  const podeVerFinanceiro = papel === 'admin';
+  const podeVerFinanceiro = papel === 'administrador';
 
   /*
     Primeiro acesso: banco ligado, carteira vazia.

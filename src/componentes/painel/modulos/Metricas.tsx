@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { listarContas, serieDaConta, canaisDaConta, marcosDaConta } from '@/lib/dados/consultas';
 import { SerieTempo, BarrasCanal } from '../Graficos';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { dinheiro, dinheiroCurto, vezes, porcento, numero, diaLongo, nomeCanal } from '@/lib/formato';
+import { dinheiro, vezes, porcento, numero, diaLongo, nomeCanal } from '@/lib/formato';
 import type { Papel } from '@/lib/papeis';
 
 /**

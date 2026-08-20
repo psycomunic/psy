@@ -84,7 +84,7 @@ export default async function PainelModulo({
     nome = sessao.nome;
     meuId = sessao.id;
   } else {
-    papel = PAPEIS.includes(papelDaUrl as Papel) ? (papelDaUrl as Papel) : 'admin';
+    papel = PAPEIS.includes(papelDaUrl as Papel) ? (papelDaUrl as Papel) : 'administrador';
   }
 
   const visiveis = modulosDoPapel(papel);

@@ -67,7 +67,7 @@ const resposta = await fetch(`${url}/auth/v1/admin/users`, {
     email,
     password: senha,
     email_confirm: true,
-    app_metadata: { papel: 'admin' },
+    app_metadata: { papel: 'administrador' },
     user_metadata: { nome: 'Angelo Garcia' },
   }),
 });
