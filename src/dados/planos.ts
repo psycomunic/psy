@@ -300,3 +300,48 @@ export const feeEmReais = (p: Plano) =>
     currency: 'BRL',
     maximumFractionDigits: 0,
   });
+
+/**
+ * O que UM plano entrega, agrupado.
+ *
+ * A tabela de três colunas não cabe num telefone, e a maioria abre a
+ * proposta no telefone. Um slide por plano, com a lista inteira dele,
+ * resolve sem inventar um segundo conteúdo só para tela pequena.
+ *
+ * Os não inclusos vêm juntos, marcados. Some-los faria o plano parecer
+ * mais completo do que é, e a pessoa descobriria a diferença na
+ * reunião, que é o pior lugar.
+ */
+export function entregasDoPlano(p: Plano) {
+  return blocos.map((b) => ({
+    titulo: b.titulo,
+    itens: b.linhas.map((l) => ({
+      nome: l.nome,
+      valor: l.valores[p],
+      incluso: l.valores[p] !== false,
+    })),
+  }));
+}
+
+/** Quantos itens o plano entrega, de quantos existem. */
+export function contarEntregas(p: Plano) {
+  const total = blocos.reduce((s, b) => s + b.linhas.length, 0);
+  const inclusos = blocos.reduce(
+    (s, b) => s + b.linhas.filter((l) => l.valores[p] !== false).length,
+    0,
+  );
+  return { inclusos, total };
+}
+
+/**
+ * As linhas em que os três planos DIFEREM de verdade.
+ *
+ * É o comparativo que cabe em tela pequena. Linha igual nas três
+ * colunas não ajuda a escolher e só empurra o resto para fora da tela.
+ */
+export const diferencas: Linha[] = blocos
+  .flatMap((b) => b.linhas)
+  .filter((l) => {
+    const [a, b2, c] = PLANOS.map((p) => JSON.stringify(l.valores[p]));
+    return !(a === b2 && b2 === c);
+  });

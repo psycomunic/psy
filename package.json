@@ -17,7 +17,8 @@
     "testar-conversao": "node scripts/testar-conversao.mjs",
     "testar-banco": "npm run auditar-rls && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao",
     "testar-ingestao": "node scripts/testar-ingestao.mjs",
-    "testar-credenciais": "node scripts/testar-credenciais.mjs"
+    "testar-credenciais": "node scripts/testar-credenciais.mjs",
+    "medir-proposta": "node scripts/medir-proposta.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -36,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "pg": "^8.23.0",
+    "puppeteer-core": "^25.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

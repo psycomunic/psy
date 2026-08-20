@@ -1,211 +1,357 @@
-import { blocos, fichas, PLANOS, feeEmReais, sempreIncluso, type Plano } from '@/dados/planos';
+import {
+  fichas,
+  PLANOS,
+  feeEmReais,
+  sempreIncluso,
+  entregasDoPlano,
+  contarEntregas,
+  diferencas,
+  type Plano,
+} from '@/dados/planos';
+import { Slide, Bloco } from './Slide';
 
 /**
- * A tabela de planos, dentro da proposta.
+ * Os planos, em slides.
  *
- * Componente de SERVIDOR. Ele importa `@/dados/planos`, que é
- * `server-only` porque tem preço: se algum dia isto virar `use client`,
- * o build quebra, e é para quebrar mesmo.
+ * Componentes de SERVIDOR. Eles importam `@/dados/planos`, que é
+ * `server-only` porque tem preço: se algum destes virar `use client`, o
+ * build quebra, e é para quebrar mesmo.
  *
- * Três decisões de leitura:
+ * ============================================================
+ * A TABELA NÃO CABE NO CELULAR
+ * ============================================================
+ * Vinte e duas linhas por três colunas é uma planilha, e a maioria abre
+ * a proposta no telefone. Rolar uma tabela para o lado DENTRO de uma
+ * apresentação que já passa para o lado é o pior gesto possível: os
+ * dois movimentos brigam pelo mesmo dedo.
  *
- * O plano recomendado vem MARCADO. Uma proposta com três colunas iguais
- * empurra a decisão de volta para o cliente, que foi justamente o que
- * ele contratou a agência para não ter que fazer sozinho.
+ * Então não há tabela de três colunas em lugar nenhum. Cada plano ganha
+ * o próprio slide, e um slide de diferenças mostra só as linhas em que
+ * os três discordam.
  *
- * Incluído e não incluído saem com SÍMBOLO e TEXTO, nunca só com cor.
- * A tabela é lida em telefone, impressa em preto e branco e mandada em
- * print — e cor sozinha some nas três.
+ * ============================================================
+ * O QUE O PLANO NÃO INCLUI FICA EM UMA LINHA, E NÃO EM LISTA
+ * ============================================================
+ * A primeira versão listava os não-inclusos riscados, item por item.
+ * No Saturno isso eram onze itens riscados contra sete marcados: a tela
+ * inteira virava um monumento ao que a agência não faz, bem na hora de
+ * pedir cinco mil reais por mês.
  *
- * A tabela rola sozinha na horizontal, dentro do próprio quadro. Sem
- * isso, a página inteira ganharia barra lateral no telefone.
+ * Omitir também não serve — a pessoa descobriria a diferença na
+ * reunião, que é o pior lugar. Então o que falta sai NOMEADO, numa
+ * linha discreta no rodapé do slide, e detalhado no slide seguinte.
  */
+
+/* Um slide devolve UM elemento, e nunca um fragmento.
+
+   `React.Children.toArray`, que o Deck usa para contar os slides,
+   ACHATA fragmentos: um `<>` com cinco filhos vira cinco slides. A
+   primeira versão devolvia fragmento e a apresentação abriu com 26
+   slides em vez de 12, cada pedaço numa tela. */
 
 const SIM = '#4ADE80';
 const NAO = '#93A0BC';
 
-function Celula({ valor, forte }: { valor: boolean | string; forte: boolean }) {
-  if (valor === true) {
-    return (
-      <span className="inline-flex items-center gap-2 text-sm" style={{ color: SIM }}>
-        <span aria-hidden>✓</span>
-        <span className={forte ? 'font-semibold' : ''}>Incluído</span>
-      </span>
-    );
-  }
+/* ================================================================== */
+/* Slide: os três caminhos                                            */
+/* ================================================================== */
 
-  if (valor === false) {
-    return (
-      <span className="inline-flex items-center gap-2 text-sm" style={{ color: NAO }}>
-        <span aria-hidden>—</span>
-        <span>Não incluído</span>
-      </span>
-    );
-  }
-
+export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
   return (
-    <span className={'text-sm text-neve ' + (forte ? 'font-semibold text-branco' : '')}>
-      {valor}
-    </span>
-  );
-}
-
-export function Planos({ recomendado }: { recomendado?: Plano }) {
-  const alvo = recomendado ?? 'falcon';
-
-  return (
-    <section aria-labelledby="planos-titulo" className="mt-16">
-      <h2
-        id="planos-titulo"
-        className="font-display text-2xl font-extrabold tracking-[-0.03em] md:text-3xl"
-      >
-        Planos
-      </h2>
-      <p className="mt-3 max-w-[68ch] leading-relaxed text-neve">
-        Cada plano contém o anterior inteiro. O que muda é até onde a Psy Comunic entra na
-        operação: só a mídia, a mídia mais os canais próprios, ou tudo.
-      </p>
-
-      {/* Os três cartões: é o que se lê antes de abrir a tabela. */}
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {PLANOS.map((p) => {
+    <Slide
+      rotulo="Planos"
+      titulo={
+        <>
+          Três profundidades,{' '}
+          <span className="text-magenta-texto">uma escada.</span>
+        </>
+      }
+      apoio="Cada plano contém o anterior inteiro. O que muda é até onde a Psy Comunic entra na operação."
+    >
+      <div className="mt-2 grid gap-4 lg:grid-cols-3">
+        {PLANOS.map((p, i) => {
           const f = fichas[p];
-          const escolhido = p === alvo;
+          const alvo = p === recomendado;
+          const { inclusos, total } = contarEntregas(p);
 
           return (
-            <article
+            <Bloco
               key={p}
-              className={
-                'relative flex flex-col rounded-2xl border p-6 ' +
-                (escolhido
-                  ? 'border-magenta bg-magenta/[0.07]'
-                  : 'border-white/10 bg-white/[0.02]')
-              }
+              destaque={alvo}
+              className={'flex flex-col ' + (alvo ? 'lg:-translate-y-3' : '')}
             >
-              {escolhido ? (
-                <p className="absolute -top-3 left-6 rounded-full bg-magenta px-3 py-1 font-mono text-[0.56rem] uppercase tracking-[0.14em] text-branco">
-                  Recomendado para você
-                </p>
-              ) : f.selo ? (
-                <p className="absolute -top-3 left-6 rounded-full border border-white/15 bg-marinho-fundo px-3 py-1 font-mono text-[0.56rem] uppercase tracking-[0.14em] text-cinza">
-                  {f.selo}
-                </p>
-              ) : null}
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-cinza">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {alvo ? (
+                  <span className="rounded-full bg-magenta px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-branco">
+                    recomendado
+                  </span>
+                ) : f.selo ? (
+                  <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-cinza">
+                    {f.selo}
+                  </span>
+                ) : null}
+              </div>
 
-              <h3 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
+              <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
                 {f.nome}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-cinza">{f.paraQuem}</p>
 
-              <p className="mt-5 flex items-baseline gap-1.5">
+              <p className="tabular mt-3 flex items-baseline gap-1.5">
                 <span className="font-display text-3xl font-extrabold tracking-[-0.04em] text-branco">
                   {feeEmReais(p)}
                 </span>
                 <span className="text-sm text-cinza">/mês</span>
               </p>
-              <p className="mt-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
-                fee da agência · verba de mídia à parte
-              </p>
 
-              <p className="mt-5 border-t border-white/10 pt-5 text-sm leading-relaxed text-neve">
+              <p className="mt-4 border-t border-fio pt-4 text-sm leading-relaxed text-neve">
                 {f.promessa}
               </p>
 
-              <p className="mt-auto pt-5 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
-                {f.indicadoPara}
-              </p>
-            </article>
+              {/* Barra de cobertura: a proporção de entregas do plano.
+                  Número e barra juntos, porque a barra sozinha não se
+                  cita numa reunião e o número sozinho não se compara
+                  de relance. */}
+              <div className="mt-auto pt-5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                    cobertura
+                  </span>
+                  <span className="tabular text-xs font-semibold text-neve">
+                    {inclusos} de {total}
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(inclusos / total) * 100}%`,
+                      background: alvo ? 'var(--magenta)' : SIM,
+                    }}
+                  />
+                </div>
+                <p className="mt-3 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                  {f.indicadoPara}
+                </p>
+              </div>
+            </Bloco>
           );
         })}
       </div>
+    </Slide>
+  );
+}
 
-      {/* O comparativo, em blocos. */}
-      <div className="mt-10 space-y-8">
-        {blocos.map((bloco) => (
-          <div key={bloco.titulo}>
-            <h3 className="font-display text-lg font-bold tracking-[-0.02em] text-branco">
-              {bloco.titulo}
-            </h3>
-            <p className="mt-1.5 max-w-[70ch] text-sm text-cinza">{bloco.apoio}</p>
+/* ================================================================== */
+/* Slide: um plano inteiro                                            */
+/* ================================================================== */
 
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10">
-              <table className="w-full min-w-[720px] border-collapse text-left">
-                <caption className="sr-only">
-                  {bloco.titulo}: o que cada plano entrega
-                </caption>
-                <thead>
-                  <tr className="bg-white/[0.03]">
-                    <th
-                      scope="col"
-                      className="w-[30%] px-5 py-3 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-cinza"
-                    >
-                      Entrega
-                    </th>
-                    {PLANOS.map((p) => (
-                      <th
-                        key={p}
-                        scope="col"
-                        className={
-                          'px-5 py-3 font-display text-sm font-bold tracking-[-0.01em] ' +
-                          (p === alvo ? 'bg-magenta/10 text-branco' : 'text-neve')
-                        }
-                      >
-                        {fichas[p].nome}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {bloco.linhas.map((l) => (
-                    <tr key={l.nome}>
-                      <th
-                        scope="row"
-                        className="border-t border-white/10 px-5 py-4 align-top font-normal"
-                      >
-                        <span className="font-semibold text-branco">{l.nome}</span>
-                        {l.porque ? (
-                          <span className="mt-1 block text-xs leading-relaxed text-cinza">
-                            {l.porque}
-                          </span>
-                        ) : null}
-                      </th>
-                      {PLANOS.map((p) => (
-                        <td
-                          key={p}
-                          className={
-                            'border-t border-white/10 px-5 py-4 align-top ' +
-                            (p === alvo ? 'bg-magenta/[0.06]' : '')
-                          }
-                        >
-                          <Celula valor={l.valores[p]} forte={p === alvo} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+export function SlidePlano({ plano, recomendado }: { plano: Plano; recomendado: Plano }) {
+  const f = fichas[plano];
+  const alvo = plano === recomendado;
+  const grupos = entregasDoPlano(plano);
+  const { inclusos, total } = contarEntregas(plano);
+
+  const foraDoPlano = grupos.flatMap((g) => g.itens.filter((i) => !i.incluso).map((i) => i.nome));
+
+  return (
+    <Slide rotulo={alvo ? 'Recomendado para você' : 'Plano'}>
+      <div className="flex min-h-full flex-col">
+        {/* Faixa de topo: nome e preço lado a lado. É a informação que
+            a pessoa procura primeiro ao chegar no slide. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-fio pb-6">
+          <div>
+            <h2 className="font-display text-titulo font-extrabold leading-[1] tracking-[-0.04em]">
+              {f.nome}
+            </h2>
+            <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-cinza">{f.paraQuem}</p>
           </div>
-        ))}
-      </div>
 
-      {/* Fora da tabela de propósito: linha marcada nas três colunas não
-          diferencia nada, mas some da proposta se não for dita. */}
-      <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-        <h3 className="font-display text-lg font-bold tracking-[-0.02em] text-branco">
-          Em todos os planos
-        </h3>
-        <ul className="mt-4 grid gap-3 md:grid-cols-2">
-          {sempreIncluso.map((item) => (
-            <li key={item} className="flex gap-3 text-sm leading-relaxed text-neve">
-              <span aria-hidden className="mt-0.5" style={{ color: SIM }}>
+          <p className="tabular">
+            <span
+              className="font-display text-4xl font-extrabold tracking-[-0.045em] sm:text-5xl"
+              style={{ color: alvo ? 'var(--magenta-texto)' : 'var(--branco)' }}
+            >
+              {feeEmReais(plano)}
+            </span>
+            <span className="ml-1.5 text-sm text-cinza">/mês</span>
+            <span className="mt-1.5 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+              fee da agência · verba de mídia à parte
+            </span>
+          </p>
+        </div>
+
+        <p className="mt-6 max-w-[62ch] text-guia leading-relaxed text-neve">{f.promessa}</p>
+
+        {/* Só o que ESTÁ incluído, agrupado. Duas colunas a partir do
+            tablet; no telefone uma só, porque duas de 170px transformam
+            cada item em três linhas quebradas. */}
+        <div className="mt-8 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+          {grupos
+            .filter((g) => g.itens.some((i) => i.incluso))
+            .map((g) => (
+              <div key={g.titulo}>
+                <h3 className="flex items-center gap-2.5 font-mono text-[0.72rem] uppercase tracking-[0.16em] text-magenta-texto">
+                  <span aria-hidden className="h-px w-5 flex-none bg-magenta/60" />
+                  {g.titulo}
+                </h3>
+                <ul className="mt-3.5 space-y-3">
+                  {g.itens
+                    .filter((i) => i.incluso)
+                    .map((item) => (
+                      <li key={item.nome} className="flex gap-3">
+                        <span
+                          aria-hidden
+                          className="mt-[0.2rem] flex-none text-[0.7rem]"
+                          style={{ color: SIM }}
+                        >
+                          ✓
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium leading-snug text-branco">
+                            {item.nome}
+                          </span>
+                          {typeof item.valor === 'string' ? (
+                            <span className="mt-0.5 block text-xs leading-snug text-cinza">
+                              {item.valor}
+                            </span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+        </div>
+
+        {/* O que falta, em UMA linha. Nomeado, para não haver surpresa
+            na reunião, e discreto, para não virar o assunto do slide. */}
+        {foraDoPlano.length > 0 ? (
+          <p className="mt-auto flex flex-wrap gap-x-2 gap-y-1 border-t border-fio pt-5 text-xs leading-relaxed text-cinza">
+            <span className="font-mono uppercase tracking-[0.12em]" style={{ color: NAO }}>
+              não inclui
+            </span>
+            <span className="min-w-0">{foraDoPlano.join(' · ')}</span>
+          </p>
+        ) : (
+          <p className="mt-auto border-t border-fio pt-5 text-xs uppercase tracking-[0.12em]" style={{ color: SIM }}>
+            <span aria-hidden>✓ </span>
+            entrega as {total} de {total} linhas desta proposta
+          </p>
+        )}
+
+        <p className="sr-only">
+          Este plano inclui {inclusos} das {total} entregas comparadas.
+        </p>
+      </div>
+    </Slide>
+  );
+}
+
+/* ================================================================== */
+/* Slide: o que muda entre eles                                       */
+/* ================================================================== */
+
+export function SlideDiferencas({ recomendado }: { recomendado: Plano }) {
+  return (
+    <Slide
+      rotulo="Comparativo"
+      titulo={
+        <>
+          O que muda <span className="text-magenta-texto">entre eles.</span>
+        </>
+      }
+      apoio="Só as linhas em que os três discordam. O que é igual nos três não ajuda a escolher."
+    >
+      {/* Sem tabela de propósito. Cada item vira um bloco com o rótulo
+          em cima e os três valores embaixo, em grade de três colunas.
+          Isso cabe em 360px, e uma tabela de três colunas não cabe. */}
+      <ul className="mt-2 grid gap-3 lg:grid-cols-2">
+        {diferencas.map((l) => (
+          <li key={l.nome}>
+            <Bloco className="h-full">
+              <p className="text-sm font-semibold text-branco">{l.nome}</p>
+              {l.porque ? (
+                <p className="mt-1 text-xs leading-relaxed text-cinza">{l.porque}</p>
+              ) : null}
+
+              <dl className="mt-4 grid grid-cols-3 gap-2">
+                {PLANOS.map((p) => {
+                  const v = l.valores[p];
+                  const alvo = p === recomendado;
+
+                  return (
+                    <div
+                      key={p}
+                      className={
+                        'rounded-xl px-2.5 py-2.5 ' +
+                        (alvo
+                          ? 'bg-magenta/[0.14] ring-1 ring-magenta/45'
+                          : 'bg-white/[0.045]')
+                      }
+                    >
+                      <dt className="font-mono text-[0.7rem] uppercase tracking-[0.1em] text-cinza">
+                        {fichas[p].nome}
+                      </dt>
+                      <dd
+                        className="mt-1.5 text-xs leading-snug"
+                        style={{ color: v === false ? NAO : v === true ? SIM : undefined }}
+                      >
+                        {v === true ? (
+                          <>
+                            <span aria-hidden>✓ </span>Incluído
+                          </>
+                        ) : v === false ? (
+                          <>
+                            <span aria-hidden>— </span>Não inclui
+                          </>
+                        ) : (
+                          <span className={alvo ? 'font-semibold text-branco' : 'text-neve'}>
+                            {v}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </Bloco>
+          </li>
+        ))}
+      </ul>
+    </Slide>
+  );
+}
+
+/* ================================================================== */
+/* Slide: o que vem em todos                                          */
+/* ================================================================== */
+
+export function SlideSempreIncluso() {
+  return (
+    <Slide
+      rotulo="Em todos os planos"
+      titulo={
+        <>
+          Isso vem junto, <span className="text-magenta-texto">sempre.</span>
+        </>
+      }
+      apoio="Fora do comparativo de propósito: item marcado nos três não diferencia nada. Mas é do que se sente falta ao trocar de agência."
+    >
+      <ul className="mt-2 grid gap-3 sm:grid-cols-2">
+        {sempreIncluso.map((item) => (
+          <li key={item}>
+            <Bloco className="flex h-full gap-4">
+              <span aria-hidden className="mt-0.5 flex-none text-sm" style={{ color: SIM }}>
                 ✓
               </span>
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+              <span className="text-sm leading-relaxed text-neve">{item}</span>
+            </Bloco>
+          </li>
+        ))}
+      </ul>
+    </Slide>
   );
 }
