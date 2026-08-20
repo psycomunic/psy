@@ -241,3 +241,69 @@ export type Resposta<T> = {
   dados: T;
   procedencia: Procedencia;
 };
+
+/* ------------------------------------------------------------------ */
+/* Ingestão                                                            */
+/* ------------------------------------------------------------------ */
+
+export const ESTADOS_INTEGRACAO = [
+  'ok',
+  'atrasada',
+  'com_erro',
+  'nunca_rodou',
+  'sem_credencial',
+  'desligada',
+] as const;
+export type EstadoIntegracao = (typeof ESTADOS_INTEGRACAO)[number];
+
+export const rotuloEstadoIntegracao: Record<EstadoIntegracao, string> = {
+  ok: 'Em dia',
+  atrasada: 'Atrasada',
+  com_erro: 'Com erro',
+  nunca_rodou: 'Nunca rodou',
+  sem_credencial: 'Sem credencial',
+  desligada: 'Desligada',
+};
+
+/** Uma conexão com fonte de dado, sem o segredo: ele nunca sai do banco. */
+export type IntegracaoStatus = {
+  id: string;
+  provedor: string;
+  identificador: string | null;
+  ativa: boolean;
+  janelaDias: number;
+  temCredencial: boolean;
+  ultimaSync: string | null;
+  ultimaSyncOk: string | null;
+  ultimoErro: string | null;
+  estado: EstadoIntegracao;
+};
+
+/** Uma tentativa de sincronização, do log. */
+export type Sincronizacao = {
+  id: number;
+  provedor: string;
+  origem: string;
+  status: 'rodando' | 'sucesso' | 'erro';
+  diaDe: string | null;
+  diaAte: string | null;
+  linhasLidas: number;
+  linhasGravadas: number;
+  erro: string | null;
+  comecouEm: string;
+  terminouEm: string | null;
+};
+
+/**
+ * Há quanto tempo o dado da loja não chega.
+ *
+ * `diasSemDado30` é o que separa "vendeu menos" de "não chegou dado".
+ * Sem essa distinção, buraco na série parece queda, e a agência liga
+ * para o cliente quando devia ligar para o suporte da API.
+ */
+export type Frescor = {
+  ultimoDia: string | null;
+  atrasoDias: number | null;
+  diasComDado30: number;
+  diasSemDado30: number;
+};

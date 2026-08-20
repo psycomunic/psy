@@ -5,14 +5,19 @@ import {
   interacoesDaConta,
   marcosDaConta,
   serieDaConta,
+  frescorDaConta,
+  integracoesDaConta,
+  sincronizacoesDaConta,
 } from '@/lib/dados/consultas';
-import { AvisoProcedencia, Secao, Kpi } from '../base';
+import { AvisoProcedencia, Secao, Kpi, Tabela, th, td } from '../base';
 import { FormInteracao } from '../FormInteracao';
-import { rotuloSituacaoConta } from '@/lib/dados/tipos';
+import { FormImportar } from '../FormImportar';
+import { rotuloSituacaoConta, rotuloEstadoIntegracao } from '@/lib/dados/tipos';
+import type { EstadoIntegracao } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, diaLongo, numero } from '@/lib/formato';
 import { CORES_SITUACAO } from '../paleta';
 import { mer } from '@/lib/dominio/metricas';
-import type { Papel } from '@/lib/papeis';
+import { pode, type Papel } from '@/lib/papeis';
 
 /**
  * Ficha da loja, em abas.
@@ -24,6 +29,7 @@ import type { Papel } from '@/lib/papeis';
 const ABAS = [
   { k: 'resumo', r: 'Resumo' },
   { k: 'diario', r: 'Diário de bordo' },
+  { k: 'dados', r: 'Origem dos dados' },
   { k: 'contrato', r: 'Contrato' },
 ] as const;
 
@@ -179,6 +185,7 @@ export async function Ficha({
         {aba === 'diario' ? (
           <AbaDiario contaId={conta.id} podeRegistrar={podeRegistrar} />
         ) : null}
+        {aba === 'dados' ? <AbaDados contaId={conta.id} papel={papel} /> : null}
         {aba === 'contrato' ? <AbaContrato contaId={conta.id} papel={papel} /> : null}
       </div>
     </>
@@ -277,6 +284,180 @@ async function AbaDiario({
               </li>
             ))}
           </ol>
+        )}
+      </Secao>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+/** Cor e forma do estado da conexão. Estado de integração vira decisão
+    de quem ligar, então nunca sai só como cor. */
+const SINAL: Record<EstadoIntegracao, { cor: string; forma: string }> = {
+  ok:             { cor: CORES_SITUACAO.saudavel, forma: '●' },
+  atrasada:       { cor: CORES_SITUACAO.atencao,  forma: '▲' },
+  com_erro:       { cor: CORES_SITUACAO.critico,  forma: '■' },
+  nunca_rodou:    { cor: CORES_SITUACAO.sem_dado, forma: '○' },
+  sem_credencial: { cor: CORES_SITUACAO.atencao,  forma: '▲' },
+  desligada:      { cor: CORES_SITUACAO.sem_dado, forma: '—' },
+};
+
+const quando = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'nunca';
+
+async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
+  const [{ dados: frescor }, { dados: conexoes }, { dados: rodadas }] = await Promise.all([
+    frescorDaConta(contaId),
+    integracoesDaConta(contaId),
+    sincronizacoesDaConta(contaId),
+  ]);
+
+  const podeImportar = pode(papel, 'metricas', 'editar');
+
+  return (
+    <>
+      {/* Frescor primeiro: é a pergunta que traz a pessoa a esta aba. */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Kpi
+          rotulo="Último dia com dado"
+          valor={frescor.ultimoDia ? diaLongo(frescor.ultimoDia) : '—'}
+          apoio={
+            frescor.atrasoDias === null
+              ? 'Nenhum dado chegou ainda.'
+              : frescor.atrasoDias <= 1
+                ? 'Em dia.'
+                : `${frescor.atrasoDias} dias de atraso.`
+          }
+        />
+        <Kpi
+          rotulo="Dias com dado, em 30"
+          valor={`${frescor.diasComDado30}/30`}
+        />
+        <Kpi
+          rotulo="Dias faltando"
+          valor={numero(frescor.diasSemDado30)}
+          apoio={
+            frescor.diasSemDado30 > 0
+              ? 'Buraco na série parece queda. Não é: é dado que não chegou.'
+              : 'Série completa no mês.'
+          }
+        />
+      </div>
+
+      <Secao
+        titulo="Conexões"
+        apoio="Uma linha por fonte. A credencial fica no banco e não passa por esta tela em nenhum momento."
+      >
+        {conexoes.length === 0 ? (
+          <p className="cartao p-6 text-sm leading-relaxed text-cinza">
+            Nenhuma conexão cadastrada. Enquanto isso, o caminho é a importação de
+            planilha abaixo, que grava exatamente na mesma tabela.
+          </p>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2">
+            {conexoes.map((c) => {
+              const s = SINAL[c.estado];
+              return (
+                <li key={c.id} className="cartao p-5">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="font-semibold text-branco">{c.provedor}</p>
+                    <p className="text-xs font-semibold" style={{ color: s.cor }}>
+                      <span aria-hidden className="mr-1">{s.forma}</span>
+                      {rotuloEstadoIntegracao[c.estado]}
+                    </p>
+                  </div>
+                  <p className="mt-2 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-cinza">
+                    {c.identificador ?? 'sem identificador'} · janela de {c.janelaDias} dias
+                  </p>
+                  <p className="mt-3 text-sm text-cinza">
+                    Última vez sem erro: {quando(c.ultimaSyncOk)}
+                  </p>
+                  {c.ultimoErro ? (
+                    <p className="mt-2 break-words rounded-lg border border-magenta/30 bg-magenta/10 px-3 py-2 text-xs text-magenta-texto">
+                      {c.ultimoErro}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Secao>
+
+      {podeImportar ? (
+        <Secao titulo="Entrada manual" apoio="Toda loja tem um mês que veio de planilha.">
+          <FormImportar contaId={contaId} />
+        </Secao>
+      ) : null}
+
+      <Secao
+        titulo="Últimas rodadas"
+        apoio="É o que responde por que o número está velho: não rodou, rodou e falhou, ou rodou e veio vazio."
+      >
+        {rodadas.length === 0 ? (
+          <p className="cartao p-6 text-sm text-cinza">Nenhuma sincronização registrada.</p>
+        ) : (
+          <Tabela>
+            <caption className="sr-only">Histórico de sincronizações desta loja</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={th}>Quando</th>
+                <th scope="col" className={th}>Fonte</th>
+                <th scope="col" className={th}>Período</th>
+                <th scope="col" className={th}>Linhas</th>
+                <th scope="col" className={th}>Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rodadas.map((r) => (
+                <tr key={r.id}>
+                  <td className={`${td} tabular whitespace-nowrap`}>{quando(r.comecouEm)}</td>
+                  <th scope="row" className={`${td} font-normal`}>
+                    <span className="text-branco">{r.provedor}</span>
+                    <span className="mt-1 block font-mono text-[0.56rem] uppercase tracking-[0.12em] text-cinza">
+                      {r.origem}
+                    </span>
+                  </th>
+                  <td className={`${td} tabular whitespace-nowrap text-sm`}>
+                    {r.diaDe === r.diaAte
+                      ? (r.diaDe ?? '—')
+                      : `${r.diaDe ?? '?'} a ${r.diaAte ?? '?'}`}
+                  </td>
+                  <td className={`${td} tabular`}>
+                    {r.linhasGravadas}
+                    <span className="text-cinza"> de {r.linhasLidas}</span>
+                  </td>
+                  <td className={td}>
+                    {r.status === 'sucesso' ? (
+                      <span className="text-sm" style={{ color: CORES_SITUACAO.saudavel }}>
+                        <span aria-hidden className="mr-1">●</span>ok
+                      </span>
+                    ) : r.status === 'erro' ? (
+                      <span
+                        className="text-sm"
+                        style={{ color: CORES_SITUACAO.critico }}
+                        title={r.erro ?? undefined}
+                      >
+                        <span aria-hidden className="mr-1">■</span>
+                        {r.erro ? r.erro.slice(0, 60) : 'erro'}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-cinza">rodando</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Tabela>
         )}
       </Secao>
     </>

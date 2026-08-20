@@ -127,6 +127,14 @@ type Matriz = Record<Papel, Partial<Record<Modulo, Acao[]>>>;
  *
  * SÓ O ADMINISTRADOR exclui. Exclusão em CRM e financeiro é
  * irreversível na prática.
+ *
+ * UMA EXCEÇÃO À REGRA DOS DOIS LUGARES. Em todo o resto, o que está
+ * aqui tem uma política de RLS correspondente. `metricas: editar` não
+ * tem, e não vai ter: `metrica_diaria` não tem política de escrita
+ * NENHUMA, de propósito, porque métrica não entra pela chave pública.
+ * Quem grava é a rotina do servidor, com a service role, e é lá que
+ * este `editar` é cobrado — em `acoes-metricas.ts`. Procurar a política
+ * equivalente no banco e não achar é o comportamento certo.
  */
 export const permissoes: Matriz = {
   administrador: {
@@ -135,7 +143,7 @@ export const permissoes: Matriz = {
     propostas: ['ver', 'editar', 'excluir'],
     financeiro: ['ver', 'editar', 'excluir'],
     contas: ['ver', 'editar', 'excluir'],
-    metricas: ['ver'],
+    metricas: ['ver', 'editar'],
     tarefas: ['ver', 'editar', 'excluir'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver', 'editar', 'excluir'],
@@ -148,7 +156,7 @@ export const permissoes: Matriz = {
     crm: ['ver', 'editar'],
     propostas: ['ver', 'editar'],
     contas: ['ver', 'editar'],
-    metricas: ['ver'],
+    metricas: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver'],
@@ -171,7 +179,7 @@ export const permissoes: Matriz = {
   operador: {
     visao: ['ver'],
     contas: ['ver', 'editar'],
-    metricas: ['ver'],
+    metricas: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
   },

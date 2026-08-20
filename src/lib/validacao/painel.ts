@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { PAPEIS } from '../papeis.ts';
+import { paraNumero } from '../numero.ts';
+
+/* Reexportado: a validação era a dona desta função, e os testes e as
+   actions ainda a importam por aqui. */
+export { paraNumero };
 
 /**
  * Validação de tudo que entra por Server Action.
@@ -96,45 +101,6 @@ export const esquemaAcesso = z.object({
   /* FormData manda "true"/"false" como texto. */
   ativo: z.enum(['true', 'false']).transform((v) => v === 'true'),
 });
-
-/**
- * Texto digitado por gente → número.
- *
- * Quem preenche meta digita como fala: "320.000", "320.000,50",
- * "R$ 320 mil". A regra que desempata os dois formatos:
- *
- *   O último separador é DECIMAL só quando sobram 1 ou 2 dígitos
- *   depois dele. Com 3, é separador de milhar.
- *
- * Sem essa condição, "320.000" vira 320 — meta mil vezes menor, gravada
- * sem erro nenhum. Foi exatamente o que a primeira versão fazia, e só
- * apareceu quando testei os formatos de verdade.
- *
- * Exportada para poder ser testada sozinha: é a função que decide
- * quanto vale uma meta.
- */
-export function paraNumero(entrada: string): number {
-  const limpo = entrada.replace(/[^\d,.-]/g, '');
-  if (limpo === '') return NaN;
-
-  const ultimaVirgula = limpo.lastIndexOf(',');
-  const ultimoPonto = limpo.lastIndexOf('.');
-  const posSeparador = Math.max(ultimaVirgula, ultimoPonto);
-
-  if (posSeparador === -1) return Number(limpo);
-
-  const digitosDepois = limpo.length - posSeparador - 1;
-
-  /* 3 dígitos depois = milhar. "320.000" e "1.234.567" caem aqui. */
-  if (digitosDepois === 3) return Number(limpo.replace(/[.,]/g, ''));
-
-  const separadorDecimal = ultimaVirgula > ultimoPonto ? ',' : '.';
-  const outro = separadorDecimal === ',' ? '.' : ',';
-
-  return Number(
-    limpo.split(outro).join('').replace(separadorDecimal, '.'),
-  );
-}
 
 export const esquemaMeta = z.object({
   conta_id: z.uuid('Escolha a loja.'),

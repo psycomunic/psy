@@ -15,12 +15,16 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Escrito, não aplicado** |
-| Camada de KPIs de e-commerce (migração 0004) | **Escrita, não aplicada** |
-| Login real (`/entrar`) | **Escrito, esperando o projeto Supabase** |
-| Sessão e trava de rota (`src/middleware.ts`) | **Escrito, esperando o projeto Supabase** |
-| Painel: visão geral, métricas, CRM, contas, financeiro, tarefas, equipe | **Construído, rodando em dados de demonstração** |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 11 migrações |
+| Camada de KPIs de e-commerce | **Aplicada** |
+| Login real (`/entrar`) | **Funcionando** |
+| Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
+| Painel: visão geral, métricas, CRM, contas, financeiro, tarefas, equipe, auditoria | **Funcionando** contra o banco |
+| Ficha da loja em abas, com health score | **Funcionando** |
+| CRM com kanban, funil e conversão de lead em cliente | **Funcionando** |
+| Ingestão de métrica: planilha, `/api/ingestao`, frescor | **Funcionando** |
 | Portal do cliente | **Construído** (é a mesma tela de métricas, com escopo do RLS) |
+| Conectores de Google Ads, Meta, GA4, Magazord e Shopify | **Não construídos** (FASE 4) |
 | Propostas, relatórios e configurações no painel | **Não construídos** |
 
 ### Como o painel se comporta hoje
@@ -98,16 +102,18 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0001_base_e_papeis.sql` | `conta`, `perfil`, as funções que sustentam todo o RLS, o gatilho que cria perfil no cadastro |
 | `0002_crm_e_comercial.sql` | `lead`, `interacao`, `proposta` e a função de leitura pública da proposta pelo link |
 | `0003_financeiro_operacao_auditoria.sql` | `contrato`, `lancamento`, `fatura`, `tarefa`, `metrica_diaria`, `integracao`, `log_auditoria` |
-| `0004_kpis_ecommerce.sql` | `kpi_diario`, `kpi_canal`, `meta_mensal`, `marco` e as views que o painel lê |
-| `0005_gatilho_resiliente.sql` | o gatilho de perfil deixa de derrubar cadastro quando o `app_metadata` ainda não chegou |
+| `0004_kpis_de_ecommerce.sql` | `meta_conta`, `marco_conta` e as views `kpi_diario`, `kpi_canal`, `kpi_mes` e `financeiro_mes` |
+| `0005_gatilho_de_perfil_resiliente.sql` | o gatilho de perfil deixa de derrubar cadastro quando o `app_metadata` ainda não chegou |
 | `0006_papeis_renomeados.sql` | `analista` → `operador`, `cliente_admin` → `cliente` |
-| `0007_papeis_novos.sql` | 7 papéis em uso e `tem_acesso_conta()`, o ponto único de decisão de acesso |
-| `0008_acessos_e_contatos.sql` | `acesso_conta` (multi-loja N:N), `contato`, gatilhos de auditoria |
-| `0009_ficha_e_funil.sql` | view `saude_conta` (health score), view `funil_estagio`, dias no estágio por gatilho |
+| `0007_papeis_novos_em_uso.sql` | 7 papéis em uso e `tem_acesso_conta()`, o ponto único de decisão de acesso |
+| `0008_acessos_e_contatos.sql` | `acessos_conta` (multi-loja N:N), `contato`, gatilhos de auditoria |
+| `0009_ficha_da_conta_e_funil.sql` | view `saude_conta` (health score), view `funil_comercial`, dias no estágio por gatilho |
 | `0010_conversao_recusa_sem_papel.sql` | `converter_lead()` passa a recusar quem não tem papel |
+| `0011_ingestao_de_metricas.sql` | `hoje()`, `registrar_metricas()`, `sincronizacao`, `metrica_bruta`, views `frescor_conta`, `atribuicao_conta` e `integracao_status` |
 
-17 tabelas, 6 views, 47 políticas. `npm run testar-banco` confere as três coisas
-que importam: RLS ligado em tudo, isolamento entre lojas, e a conversão de lead.
+19 tabelas, 9 views, 48 políticas. `npm run testar-banco` confere as quatro
+coisas que importam: RLS ligado em tudo, isolamento entre lojas, conversão de
+lead, e a gravação idempotente de métrica.
 
 Quatro decisões que valem explicação:
 
@@ -153,31 +159,32 @@ a variável no navegador.
 
 ## 6. Papéis
 
-| Módulo | Admin | Vendedor | CS | Cliente |
-|---|---|---|---|---|
-| CRM | ver, editar, excluir | ver, editar | ver, editar | — |
-| Propostas | ver, editar, excluir | ver, editar | ver | — |
-| Financeiro | ver, editar, excluir | — | — | só a própria fatura |
-| Clientes | ver, editar, excluir | ver, editar | ver, editar | — |
-| Métricas | ver | ver | ver | **só a própria conta** |
-| Tarefas | ver, editar, excluir | ver, editar | ver, editar | — |
-| Relatórios | ver, editar | — | ver | ver |
-| Equipe | ver, editar, excluir | — | — | — |
-| Configurações | ver, editar | — | — | — |
+São sete: **administrador**, **gestor**, **comercial**, **operador**,
+**financeiro**, **cliente** e **cliente_leitura**. A matriz completa vive em
+`src/lib/papeis.ts`, e repetir os 77 cruzamentos aqui só criaria uma segunda
+versão para ficar desatualizada.
 
-**O vendedor não vê financeiro.** Quem vende não precisa da margem nem da lista
-de inadimplentes para trabalhar, e menos acesso é menos superfície de vazamento.
+O que a matriz decide, em uma frase cada:
 
-**O CS não edita proposta.** Assim não há dúvida sobre quem mexeu em condição
+**O comercial não vê financeiro.** Quem vende não precisa da margem nem da lista de
+inadimplentes para trabalhar, e menos acesso é menos superfície de vazamento.
+
+**O operador não edita proposta.** Assim não há dúvida sobre quem mexeu em condição
 comercial depois de assinada.
 
-**Só o admin exclui.** Exclusão em CRM e financeiro é irreversível na prática.
+**Só o administrador exclui.** Exclusão em CRM e financeiro é irreversível na prática.
 
-**Só o admin edita perfil.** Se o vendedor pudesse, ele se promoveria a admin em
-dois cliques e a matriz inteira viraria enfeite.
+**Só o administrador edita perfil.** Se o comercial pudesse, ele se promoveria a
+administrador em dois cliques e a matriz inteira viraria enfeite.
 
-A matriz está em dois lugares que precisam continuar de acordo: `src/lib/papeis.ts`
-(interface) e as políticas RLS (banco). Se mudar uma, mude a outra.
+**O cliente vive no portal, não no painel.** Ele enxerga métricas e relatórios
+da própria loja, e nada mais — nunca a margem da agência, nunca outra loja,
+nunca um botão que não pode usar.
+
+A matriz está em dois lugares que precisam continuar de acordo:
+`src/lib/papeis.ts` (interface) e as políticas RLS (banco). Se mudar uma, mude
+a outra. A única exceção é `metricas: editar`, que não tem política
+correspondente de propósito — está explicada no próprio `papeis.ts`.
 
 ---
 
@@ -230,14 +237,68 @@ responsabilidade em relação a um site institucional:
 
 ---
 
-## 10. Ordem das fases
+## 10. Como a métrica entra
+
+Três caminhos, todos terminando na mesma função do banco:
+
+| Caminho | Para quê | Onde |
+|---|---|---|
+| Planilha CSV | a loja cuja plataforma não tem API decente, e todo mês de histórico | aba "Origem dos dados" da ficha |
+| `POST /api/ingestao` | automação da Merge, n8n, cron — máquina mandando dia fechado | cabeçalho `x-psy-token` |
+| Conector | Google Ads, Meta, GA4, Magazord, Shopify | FASE 4, ainda não existe |
+
+**`registrar_metricas()` é o único ponto de escrita.** Duas propriedades, e
+tudo depende delas:
+
+1. **Reimportar sobrescreve, nunca soma.** Toda rodada repete dias de propósito,
+   porque pedido aprovado muda de status depois do fato — é o que a coluna
+   `integracao.janela_dias` controla. Se somasse, o faturamento do cliente
+   dobraria a cada rodada, com o gráfico subindo bonito.
+2. **Cada fonte escreve só as colunas que são dela.** Loja é dona de pedido e
+   receita, GA4 de sessão, Google e Meta de verba, clique e atribuição. As três
+   caem na mesma linha (mesma conta, mesmo dia, mesmo canal), e um `do update`
+   que escrevesse a linha inteira faria a última a rodar zerar as outras.
+
+`npm run testar-ingestao` prova as duas, além de recusar dia no futuro,
+provedor desconhecido, valor negativo e chamada pela chave pública.
+
+**`receita` e `receita_atribuida` nunca se misturam.** A primeira é o que a
+loja faturou e aprovou, e é a única que entra em MER. A segunda é o que a
+plataforma de mídia diz ter gerado — cada uma conta a mesma venda para si, então
+a soma costuma passar do faturamento real. A view `atribuicao_conta` põe esse
+excesso em número, e é o que sustenta a conversa de verba com o cliente.
+
+**`hoje()` em vez de `current_date`.** O Postgres do Supabase roda em UTC, e
+`current_date` às 21h de Brasília já devolve o dia seguinte. Toda janela de
+data do sistema saiu de `current_date` e passou para `hoje()` na migração
+0011.
+
+**Buraco na série não é queda.** A view `frescor_conta` conta os dias sem dado
+nos últimos 30, e a ficha mostra isso antes de qualquer gráfico: a diferença
+entre ligar para o cliente e ligar para o suporte da API.
+
+### O token da ingestão
+
+`INGESTAO_TOKEN` no ambiente, mínimo de 24 caracteres. Sem ele a rota responde
+503 e não grava nada — falha **fechada**, porque uma rota aberta aqui escreve no
+faturamento de qualquer cliente. A comparação é em tempo constante.
+
+```bash
+curl -X POST https://SEU-DOMINIO/api/ingestao   -H 'x-psy-token: SEGREDO' -H 'content-type: application/json'   -d '{"conta_id":"...","provedor":"loja",
+       "linhas":[{"dia":"2026-08-19","canal":"loja","receita":8800.50,
+                  "pedidos_captados":38,"pedidos_aprovados":31}]}'
+```
+
+---
+
+## 11. Ordem das fases
 
 | Fase | O que entrega | Estado |
 |---|---|---|
 | 0 | Base, papéis, login, painel, RLS | **pronta** |
 | 1 | 7 papéis, multi-loja, contatos, auditoria em tela | **pronta** |
 | 2 | Ficha da loja em abas com health score, CRM com kanban e conversão de lead | **pronta** |
-| 3 | Métricas e ingestão: sincronização por conta, uma fonte por vez | a fazer |
+| 3 | Métricas e ingestão: gravação idempotente, planilha, `/api/ingestao`, frescor | **pronta** |
 | 4 | Plataformas: Magazord, Shopify, Merge para WhatsApp | a fazer |
 | 5 | Portal do cliente | a fazer |
 | 6 | Propostas e contratos ligados ao banco | a fazer |

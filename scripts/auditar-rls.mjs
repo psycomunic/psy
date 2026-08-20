@@ -34,6 +34,21 @@ const SEM_POLITICA_DE_PROPOSITO = {
     'guarda token de anúncio de cliente: nada disso pode trafegar até um navegador, nem para admin',
   migracao_aplicada:
     'controle do aplicador de migrações: quem escreve conecta direto no Postgres, fora do RLS',
+  metrica_bruta:
+    'payload cru das APIs: carrega id de campanha e às vezes dado de pedido. Só a rotina de sincronização lê, com a service role',
+};
+
+/**
+ * Views que rodam como DEFINER de propósito.
+ *
+ * Uma view definer passa por cima do RLS da tabela que lê, então cada
+ * caso aqui precisa se defender sozinho: ou ela não seleciona a coluna
+ * sensível, ou ela filtra por papel no próprio corpo. As duas, de
+ * preferência.
+ */
+const DEFINER_DE_PROPOSITO = {
+  integracao_status:
+    'lê `integracao`, que não tem política nenhuma. Não seleciona a coluna `segredo`, então não há token a vazar, e filtra por e_interno()',
 };
 
 const c = new pg.Client({
@@ -103,10 +118,18 @@ try {
     select c.relname,
            coalesce(
              (select option_value from pg_options_to_table(c.reloptions)
-               where option_name = 'security_invoker'), 'off') as invoker
+               where option_name = 'security_invoker'), 'off') as invoker,
+           pg_get_viewdef(c.oid) as corpo,
+           (select string_agg(a.attname, ',')
+              from pg_attribute a
+             where a.attrelid = c.oid and a.attnum > 0 and not a.attisdropped)
+             as colunas
       from pg_class c
      where c.relnamespace = 'public'::regnamespace and c.relkind = 'v'
      order by c.relname`);
+
+  /* Nome de coluna que nunca pode sair de uma view definer. */
+  const SEGREDO = /^(segredo|token|senha|secret|refresh_token|access_token|chave)$/i;
 
   console.log('');
   for (const v of views) {
@@ -118,8 +141,26 @@ try {
        errada. */
     if (['on', 'true', '1'].includes(String(v.invoker).toLowerCase())) {
       console.log(`  ok     ${v.relname.padEnd(20)} security_invoker`);
-    } else {
+      continue;
+    }
+
+    const motivo = DEFINER_DE_PROPOSITO[v.relname];
+    if (!motivo) {
       aviso(`${v.relname}: VIEW sem security_invoker — ignora o RLS de quem consulta`);
+      continue;
+    }
+
+    /* A isenção não vale por estar na lista: vale enquanto as duas
+       propriedades que a justificam continuarem verdadeiras. Alguém
+       adicionar `segredo` ao select desta view amanhã tem que quebrar a
+       auditoria, e não herdar a permissão. */
+    const expostas = String(v.colunas).split(',').filter((n) => SEGREDO.test(n));
+    if (expostas.length > 0) {
+      aviso(`${v.relname}: VIEW definer expondo coluna sensível (${expostas.join(', ')})`);
+    } else if (!/e_interno\(\)|e_admin\(\)|pode_ver_conta\(/.test(v.corpo)) {
+      aviso(`${v.relname}: VIEW definer sem filtro de papel no corpo`);
+    } else {
+      console.log(`  ok     ${v.relname.padEnd(20)} definer — ${motivo}`);
     }
   }
 } catch (e) {

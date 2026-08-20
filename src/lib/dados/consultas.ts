@@ -18,6 +18,10 @@ import type {
   Resposta,
   Situacao,
   Estagio,
+  IntegracaoStatus,
+  Sincronizacao,
+  Frescor,
+  EstadoIntegracao,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -586,4 +590,104 @@ export async function listarAuditoria(
       };
     }),
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Ingestão                                                            */
+/* ------------------------------------------------------------------ */
+
+export async function integracoesDaConta(
+  contaId: string,
+): Promise<Resposta<IntegracaoStatus[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+
+  /* `integracao_status` é uma view DEFINER que não expõe a coluna
+     `segredo` e filtra por e_interno() no próprio corpo. Para cliente
+     ela volta vazia, que é o certo: status de conexão é assunto da
+     agência. */
+  const { data, error } = await supabase
+    .from('integracao_status')
+    .select('id, provedor, identificador, ativa, janela_dias, tem_credencial, ultima_sync, ultima_sync_ok, ultimo_erro, estado')
+    .eq('conta_id', contaId)
+    .order('provedor');
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((i) => ({
+      id: i.id as string,
+      provedor: i.provedor as string,
+      identificador: (i.identificador as string) ?? null,
+      ativa: Boolean(i.ativa),
+      janelaDias: Number(i.janela_dias ?? 7),
+      temCredencial: Boolean(i.tem_credencial),
+      ultimaSync: (i.ultima_sync as string) ?? null,
+      ultimaSyncOk: (i.ultima_sync_ok as string) ?? null,
+      ultimoErro: (i.ultimo_erro as string) ?? null,
+      estado: i.estado as EstadoIntegracao,
+    })),
+  );
+}
+
+export async function sincronizacoesDaConta(
+  contaId: string,
+  limite = 12,
+): Promise<Resposta<Sincronizacao[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('sincronizacao')
+    .select('id, provedor, origem, status, dia_de, dia_ate, linhas_lidas, linhas_gravadas, erro, comecou_em, terminou_em')
+    .eq('conta_id', contaId)
+    .order('comecou_em', { ascending: false })
+    .limit(limite);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((s) => ({
+      id: Number(s.id),
+      provedor: s.provedor as string,
+      origem: s.origem as string,
+      status: s.status as Sincronizacao['status'],
+      diaDe: (s.dia_de as string) ?? null,
+      diaAte: (s.dia_ate as string) ?? null,
+      linhasLidas: Number(s.linhas_lidas ?? 0),
+      linhasGravadas: Number(s.linhas_gravadas ?? 0),
+      erro: (s.erro as string) ?? null,
+      comecouEm: s.comecou_em as string,
+      terminouEm: (s.terminou_em as string) ?? null,
+    })),
+  );
+}
+
+export async function frescorDaConta(contaId: string): Promise<Resposta<Frescor>> {
+  const vazio: Frescor = {
+    ultimoDia: null,
+    atrasoDias: null,
+    diasComDado30: 0,
+    diasSemDado30: 30,
+  };
+
+  if (!bancoConfigurado) return semBanco(vazio);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('frescor_conta')
+    .select('ultimo_dia, atraso_dias, dias_com_dado_30, dias_sem_dado_30')
+    .eq('conta_id', contaId)
+    .maybeSingle();
+
+  if (faltamTabelas(error)) return semBanco(vazio);
+  if (!data) return doBanco(vazio);
+
+  return doBanco({
+    ultimoDia: (data.ultimo_dia as string) ?? null,
+    atrasoDias: data.atraso_dias === null ? null : Number(data.atraso_dias),
+    diasComDado30: Number(data.dias_com_dado_30 ?? 0),
+    diasSemDado30: Number(data.dias_sem_dado_30 ?? 30),
+  });
 }
