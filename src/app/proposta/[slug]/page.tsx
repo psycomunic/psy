@@ -200,16 +200,39 @@ export default async function PaginaProposta({
       {/* ---------------------------------------------------------- */}
       {/* Planos: visão, um slide por plano, e as diferenças          */}
       {/* ---------------------------------------------------------- */}
-      {p.plano ? <SlideVisaoGeral recomendado={recomendado} /> : null}
+      {/*
+        Por padrão a proposta mostra SÓ o plano recomendado.
 
-      {p.plano
+        Três colunas de preço num documento que já traz uma recomendação
+        convidam o cliente a comprar para baixo, e a proposta passa a
+        competir consigo mesma. O comparativo continua existindo para a
+        negociação em que ele ajuda, e aí liga-se `mostrarComparativo`.
+      */}
+      {p.plano && p.mostrarComparativo ? (
+        <SlideVisaoGeral recomendado={recomendado} />
+      ) : null}
+
+      {p.plano && p.mostrarComparativo
         ? PLANOS.map((plano) => (
-            <SlidePlano key={plano} plano={plano} recomendado={recomendado} />
+            <SlidePlano
+              key={plano}
+              plano={plano}
+              recomendado={recomendado}
+              linhasIncluidas={plano === recomendado ? p.linhasIncluidas : []}
+            />
           ))
         : null}
 
-      {p.plano ? <SlideDiferencas recomendado={recomendado} /> : null}
-      {p.plano ? <SlideSempreIncluso /> : null}
+      {p.plano && !p.mostrarComparativo ? (
+        <SlidePlano
+          plano={p.plano}
+          recomendado={recomendado}
+          linhasIncluidas={p.linhasIncluidas}
+        />
+      ) : null}
+
+      {p.plano && p.mostrarComparativo ? <SlideDiferencas recomendado={recomendado} /> : null}
+      {p.plano ? <SlideSempreIncluso comparativo={p.mostrarComparativo} /> : null}
 
       {/* ---------------------------------------------------------- */}
       {/* O que esta proposta dá além do plano                        */}
@@ -226,16 +249,11 @@ export default async function PaginaProposta({
       {/* por mês, tudo somado?". Deixar ela fazer essa conta sozinha */}
       {/* é deixar que erre para mais.                                */}
       {/* ---------------------------------------------------------- */}
-      {p.plano && p.midia ? (
-        <SlideCusto
-          plano={p.plano}
-          midia={p.midia}
-          implantacao={p.implantacaoMeses}
-          notaPlataforma={p.notaPlataforma}
-        />
+      {p.etapas.length > 0 ? (
+        <SlideCusto etapas={p.etapas} notaPlataforma={p.notaPlataforma} />
       ) : null}
 
-      {p.midia ? <SlideLancamento implantacao={p.implantacaoMeses} /> : null}
+      {p.etapas.length > 0 ? <SlideLancamento prazoTexto={p.prazoTexto} /> : null}
 
       {/* ---------------------------------------------------------- */}
       {/* Investimento das propostas antigas                          */}

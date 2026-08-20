@@ -81,6 +81,30 @@ import type { Plano } from './planos';
  * faria a de ontem contradizer a de hoje na primeira vez que um item
  * mudasse — e ninguém iria atrás de corrigir vinte documentos.
  */
+export type EtapaCusto = {
+  /** "Meses 1 e 2", "A partir do mês 4". */
+  rotulo: string;
+  /** "montagem da loja". Vai ao lado do rótulo, em minúscula. */
+  nota: string;
+  /**
+   * O fee do período, ou `null` quando ainda será combinado.
+   *
+   * Nulo é um estado legítimo, e não um dado faltando: há negociação em
+   * que o valor futuro depende de como a operação responder, e cravar
+   * um número ali seria inventar um compromisso. Com `null`, a etapa
+   * mostra `feeTexto` e não soma total nenhum.
+   */
+  fee: number | null;
+  /** O que aparece no lugar do número. "A combinar", por exemplo. */
+  feeTexto?: string;
+  midiaMinDia: number;
+  midiaMaxDia: number;
+  /** Por que o valor é esse. Desconto sem motivo escrito vira preço
+      normal na cabeça do cliente, e o aumento seguinte vira surpresa. */
+  explicacao: string;
+  destaque?: boolean;
+};
+
 export type PropostaExibida = {
   cliente: string;
   contato: string;
@@ -100,12 +124,31 @@ export type PropostaExibida = {
     o padrão a cada acordo é como uma tabela de preços deixa de existir.
   */
 
-  /** Verba diária de mídia sugerida. Só começa depois do lançamento. */
-  midia: { minDia: number; maxDia: number } | null;
-  /** Faixa de meses até a loja ficar pronta. Nesse período não há verba. */
-  implantacaoMeses: { de: number; ate: number } | null;
+  /*
+    O desembolso por PERÍODO, e não um número só.
+
+    Negociação de e-commerce novo quase nunca é uma mensalidade fixa: o
+    fee entra menor enquanto a loja é construída, segura mais um mês na
+    estreia para sobrar verba de anúncio, e volta ao valor do plano
+    quando a operação começa a se pagar. Um campo `fee` único não
+    conseguiria dizer isso, e o cliente descobriria a mudança na fatura.
+  */
+  etapas: EtapaCusto[];
+  /** "1 a 2 meses". Texto, porque o que importa é o que o cliente lê. */
+  prazoTexto: string | null;
+  /**
+   * Linhas do comparativo que esta proposta passa a incluir.
+   *
+   * Precisa existir separado da prosa: o slide do plano monta o "não
+   * inclui" a partir da tabela, e sem esta lista ele diria "não inclui
+   * gestão de marketplaces" dois slides depois de a proposta prometer o
+   * Mercado Livre. Documento que se contradiz derruba a venda sozinho.
+   */
+  linhasIncluidas: string[];
   /** Entregas de um plano superior, concedidas nesta proposta. */
   inclusoesExtras: string[];
+  /** Mostrar os três planos, ou só o recomendado. */
+  mostrarComparativo: boolean;
   /** Condições que substituem ou somam às padrão. */
   condicoesExtras: string[];
   /** Recado sobre custo de plataforma, que não passa pela agência. */
@@ -118,11 +161,16 @@ export type PropostaExibida = {
 
 /** Os campos novos, com o padrão de quem não os tem. */
 const semExtras = {
-  midia: null,
-  implantacaoMeses: null,
+  etapas: [] as EtapaCusto[],
+  prazoTexto: null,
+  linhasIncluidas: [] as string[],
   inclusoesExtras: [] as string[],
   condicoesExtras: [] as string[],
   notaPlataforma: null,
+  /* O padrão é mostrar SÓ o plano recomendado. Três colunas de preço
+     num documento que já traz uma recomendação convidam o cliente a
+     comprar para baixo, e a proposta passa a competir consigo mesma. */
+  mostrarComparativo: false,
 };
 
 const doArquivo = (p: Proposta): PropostaExibida => ({
@@ -161,11 +209,13 @@ export async function buscarPropostaExibida(
         plano?: Plano;
         diagnostico?: string[];
         proximosPassos?: string[];
-        midia?: { minDia: number; maxDia: number };
-        implantacaoMeses?: { de: number; ate: number };
+        etapas?: EtapaCusto[];
+        prazoTexto?: string;
+        linhasIncluidas?: string[];
         inclusoesExtras?: string[];
         condicoesExtras?: string[];
         notaPlataforma?: string;
+        mostrarComparativo?: boolean;
       };
 
       return {
@@ -177,9 +227,11 @@ export async function buscarPropostaExibida(
         diagnostico: corpo.diagnostico ?? [],
         proximosPassos: corpo.proximosPassos ?? [],
         plano: corpo.plano ?? null,
-        midia: corpo.midia ?? null,
-        implantacaoMeses: corpo.implantacaoMeses ?? null,
+        etapas: corpo.etapas ?? [],
+        prazoTexto: corpo.prazoTexto ?? null,
+        linhasIncluidas: corpo.linhasIncluidas ?? [],
         inclusoesExtras: corpo.inclusoesExtras ?? [],
+        mostrarComparativo: corpo.mostrarComparativo === true,
         condicoesExtras: corpo.condicoesExtras ?? [],
         notaPlataforma: corpo.notaPlataforma ?? null,
         escopo: [],

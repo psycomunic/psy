@@ -148,11 +148,38 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
 /* Slide: um plano inteiro                                            */
 /* ================================================================== */
 
-export function SlidePlano({ plano, recomendado }: { plano: Plano; recomendado: Plano }) {
+export function SlidePlano({
+  plano,
+  recomendado,
+  /*
+    Linhas que ESTA proposta concedeu, vindas de um plano superior.
+
+    Sem elas, o slide montava o "não inclui" direto da tabela e dizia
+    "não inclui gestão de marketplaces" dois slides depois de a proposta
+    prometer o Mercado Livre. Documento que se contradiz derruba a venda
+    sozinho, e o cliente é quem encontra.
+  */
+  linhasIncluidas = [],
+}: {
+  plano: Plano;
+  recomendado: Plano;
+  linhasIncluidas?: string[];
+}) {
   const f = fichas[plano];
   const alvo = plano === recomendado;
-  const grupos = entregasDoPlano(plano);
-  const { inclusos, total } = contarEntregas(plano);
+
+  const concedida = (nome: string) => linhasIncluidas.includes(nome);
+
+  const grupos = entregasDoPlano(plano).map((g) => ({
+    ...g,
+    itens: g.itens.map((i) =>
+      concedida(i.nome) ? { ...i, incluso: true, valor: i.valor === false ? true : i.valor } : i,
+    ),
+  }));
+
+  const base = contarEntregas(plano);
+  const inclusos = base.inclusos + linhasIncluidas.length;
+  const total = base.total;
 
   const foraDoPlano = grupos.flatMap((g) => g.itens.filter((i) => !i.incluso).map((i) => i.nome));
 
@@ -343,16 +370,22 @@ export function SlideDiferencas({ recomendado }: { recomendado: Plano }) {
 /* Slide: o que vem em todos                                          */
 /* ================================================================== */
 
-export function SlideSempreIncluso() {
+export function SlideSempreIncluso({ comparativo = true }: { comparativo?: boolean }) {
   return (
     <Slide
-      rotulo="Em todos os planos"
+      rotulo="Em qualquer plano"
       titulo={
         <>
           Isso vem junto, <span className="text-magenta-texto">sempre.</span>
         </>
       }
-      apoio="Fora do comparativo de propósito: item marcado nos três não diferencia nada. Mas é do que se sente falta ao trocar de agência."
+      /* Sem o comparativo na frente, falar em "os três" não faz sentido
+         nenhum para quem só viu um plano. */
+      apoio={
+        comparativo
+          ? 'Fora do comparativo de propósito: item marcado nos três não diferencia nada. Mas é do que se sente falta ao trocar de agência.'
+          : 'Não entra na lista do plano porque vale para todos. Mas é do que se sente falta ao trocar de agência.'
+      }
     >
       <ul className="mt-2 grid gap-3 sm:grid-cols-2">
         {sempreIncluso.map((item) => (
