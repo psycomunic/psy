@@ -91,13 +91,42 @@ export type PropostaExibida = {
   proximosPassos: string[];
   /** Presente na proposta gerada pelo painel. */
   plano: Plano | null;
+
+  /*
+    O que muda DESTA proposta em relação ao plano padrão.
+
+    Vive na proposta, e não em `planos.ts`, porque é negociação: o que
+    foi concedido para um cliente não vira regra para os outros. Mudar
+    o padrão a cada acordo é como uma tabela de preços deixa de existir.
+  */
+
+  /** Verba diária de mídia sugerida. Só começa depois do lançamento. */
+  midia: { minDia: number; maxDia: number } | null;
+  /** Faixa de meses até a loja ficar pronta. Nesse período não há verba. */
+  implantacaoMeses: { de: number; ate: number } | null;
+  /** Entregas de um plano superior, concedidas nesta proposta. */
+  inclusoesExtras: string[];
+  /** Condições que substituem ou somam às padrão. */
+  condicoesExtras: string[];
+  /** Recado sobre custo de plataforma, que não passa pela agência. */
+  notaPlataforma: string | null;
   /** Presentes só nas propostas antigas, escritas à mão. */
   escopo: { frente: string; itens: string[] }[];
   investimento: ItemInvestimento[];
   condicoes: string[];
 };
 
+/** Os campos novos, com o padrão de quem não os tem. */
+const semExtras = {
+  midia: null,
+  implantacaoMeses: null,
+  inclusoesExtras: [] as string[],
+  condicoesExtras: [] as string[],
+  notaPlataforma: null,
+};
+
 const doArquivo = (p: Proposta): PropostaExibida => ({
+  ...semExtras,
   cliente: p.cliente,
   contato: p.contato,
   resumo: p.resumo,
@@ -132,6 +161,11 @@ export async function buscarPropostaExibida(
         plano?: Plano;
         diagnostico?: string[];
         proximosPassos?: string[];
+        midia?: { minDia: number; maxDia: number };
+        implantacaoMeses?: { de: number; ate: number };
+        inclusoesExtras?: string[];
+        condicoesExtras?: string[];
+        notaPlataforma?: string;
       };
 
       return {
@@ -143,6 +177,11 @@ export async function buscarPropostaExibida(
         diagnostico: corpo.diagnostico ?? [],
         proximosPassos: corpo.proximosPassos ?? [],
         plano: corpo.plano ?? null,
+        midia: corpo.midia ?? null,
+        implantacaoMeses: corpo.implantacaoMeses ?? null,
+        inclusoesExtras: corpo.inclusoesExtras ?? [],
+        condicoesExtras: corpo.condicoesExtras ?? [],
+        notaPlataforma: corpo.notaPlataforma ?? null,
         escopo: [],
         investimento: [],
         condicoes: [],

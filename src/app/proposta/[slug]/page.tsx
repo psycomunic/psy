@@ -12,6 +12,7 @@ import {
 } from '@/componentes/proposta/Planos';
 import { SlideMarcas } from '@/componentes/proposta/Marcas';
 import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornada';
+import { SlideCusto, SlideLancamento, SlideInclusoes } from '@/componentes/proposta/Custo';
 import { marca } from '@/conteudo/marca';
 import { linkWhatsapp } from '@/conteudo/navegacao';
 
@@ -211,6 +212,32 @@ export default async function PaginaProposta({
       {p.plano ? <SlideSempreIncluso /> : null}
 
       {/* ---------------------------------------------------------- */}
+      {/* O que esta proposta dá além do plano                        */}
+      {/* ---------------------------------------------------------- */}
+      {p.inclusoesExtras.length > 0 ? (
+        <SlideInclusoes itens={p.inclusoesExtras} />
+      ) : null}
+
+      {/* ---------------------------------------------------------- */}
+      {/* A conta do mês, somada                                      */}
+      {/*                                                             */}
+      {/* Depois dos planos e antes das condições: a pessoa acabou de */}
+      {/* ver o preço do plano, e a pergunta imediata é "quanto sai   */}
+      {/* por mês, tudo somado?". Deixar ela fazer essa conta sozinha */}
+      {/* é deixar que erre para mais.                                */}
+      {/* ---------------------------------------------------------- */}
+      {p.plano && p.midia ? (
+        <SlideCusto
+          plano={p.plano}
+          midia={p.midia}
+          implantacao={p.implantacaoMeses}
+          notaPlataforma={p.notaPlataforma}
+        />
+      ) : null}
+
+      {p.midia ? <SlideLancamento implantacao={p.implantacaoMeses} /> : null}
+
+      {/* ---------------------------------------------------------- */}
       {/* Investimento das propostas antigas                          */}
       {/* ---------------------------------------------------------- */}
       {p.investimento.length > 0 ? (
@@ -252,6 +279,19 @@ export default async function PaginaProposta({
         }
       >
         <ul className="mt-2 grid gap-3">
+          {/* As negociadas primeiro, e destacadas. É o que a pessoa
+              abriu esta tela para conferir; as padrão ela já leu em
+              qualquer proposta. */}
+          {p.condicoesExtras.map((c) => (
+            <li key={c}>
+              <Bloco destaque className="flex gap-4">
+                <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">
+                  →
+                </span>
+                <span className="text-sm leading-relaxed text-neve sm:text-[0.98rem]">{c}</span>
+              </Bloco>
+            </li>
+          ))}
           {condicoes.map((c) => (
             <li key={c}>
               <Bloco className="flex gap-4">

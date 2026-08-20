@@ -100,3 +100,25 @@ export const porQueCompleta = [
       'A leitura sai do faturamento aprovado, e não do que cada plataforma de anúncio se atribui. É o mesmo número que aparece no seu extrato.',
   },
 ];
+
+/**
+ * O que precisa estar pronto para a operação começar.
+ *
+ * Existe porque "após o lançamento" sozinho é data que ninguém consegue
+ * cobrar. A verba de mídia do cliente só começa a ser gasta quando esta
+ * lista inteira estiver fechada, e uma lista escrita é a diferença
+ * entre um marco verificável e uma promessa que escorrega de mês em
+ * mês.
+ *
+ * Vale para os dois lados: o cliente sabe exatamente o que espera
+ * receber antes de pagar o primeiro real de anúncio, e a agência sabe
+ * exatamente onde a Fase 1 termina.
+ */
+export const criteriosDeLancamento = [
+  'Site configurado e o design todo pronto',
+  'Todos os produtos cadastrados, com foto e descrição',
+  'Transportadoras e regras de frete configuradas',
+  'Contas de anúncio da Meta, do Facebook e do Instagram, configuradas',
+  'Conta do Google Ads configurada',
+  'Todas as tags de conversão e de acompanhamento instaladas e testadas',
+];
