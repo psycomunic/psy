@@ -16,9 +16,23 @@ mesmo lugar.
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
 | Schema do banco com RLS (`supabase/migrations/`) | **Escrito, não aplicado** |
+| Camada de KPIs de e-commerce (migração 0004) | **Escrita, não aplicada** |
 | Login real (`/entrar`) | **Escrito, esperando o projeto Supabase** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Escrito, esperando o projeto Supabase** |
-| Telas de dados de cada módulo | **Não construídas** |
+| Painel: visão geral, métricas, CRM, contas, financeiro, tarefas, equipe | **Construído, rodando em dados de demonstração** |
+| Portal do cliente | **Construído** (é a mesma tela de métricas, com escopo do RLS) |
+| Propostas, relatórios e configurações no painel | **Não construídos** |
+
+### Como o painel se comporta hoje
+
+Cada consulta em `src/lib/dados/consultas.ts` tem dois caminhos: com banco
+configurado consulta o Supabase; sem banco devolve dados de **demonstração**,
+com nomes fictícios. A resposta carrega a `procedencia`, e toda tela que mostra
+dado de demonstração exibe um aviso.
+
+Isso existe para o sistema poder ser visto e corrigido antes do banco. Nenhum
+nome de cliente real aparece na demonstração, de propósito: número inventado ao
+lado de uma marca de verdade é como um print vira "resultado" por engano.
 
 ---
 

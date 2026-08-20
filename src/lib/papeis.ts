@@ -23,6 +23,7 @@ export const rotuloPapel: Record<Papel, string> = {
 
 /** Módulos da plataforma. Cada um vira uma área do painel. */
 export const MODULOS = [
+  'visao',
   'crm',
   'propostas',
   'financeiro',
@@ -36,6 +37,7 @@ export const MODULOS = [
 export type Modulo = (typeof MODULOS)[number];
 
 export const rotuloModulo: Record<Modulo, string> = {
+  visao: 'Visão geral',
   crm: 'CRM',
   propostas: 'Propostas',
   financeiro: 'Financeiro',
@@ -64,6 +66,7 @@ type Matriz = Record<Papel, Partial<Record<Modulo, Acao[]>>>;
  */
 export const permissoes: Matriz = {
   admin: {
+    visao: ['ver'],
     crm: ['ver', 'editar', 'excluir'],
     propostas: ['ver', 'editar', 'excluir'],
     financeiro: ['ver', 'editar', 'excluir'],
@@ -75,6 +78,7 @@ export const permissoes: Matriz = {
     configuracoes: ['ver', 'editar'],
   },
   vendedor: {
+    visao: ['ver'],
     crm: ['ver', 'editar'],
     propostas: ['ver', 'editar'],
     contas: ['ver', 'editar'],
@@ -82,6 +86,7 @@ export const permissoes: Matriz = {
     metricas: ['ver'],
   },
   cs: {
+    visao: ['ver'],
     crm: ['ver', 'editar'],
     contas: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
@@ -106,8 +111,8 @@ export function modulosDoPapel(papel: Papel): Modulo[] {
 
 /** Onde cada papel cai ao entrar. */
 export const rotaInicial: Record<Papel, string> = {
-  admin: '/painel/crm',
-  vendedor: '/painel/crm',
+  admin: '/painel/visao',
+  vendedor: '/painel/visao',
   cs: '/painel/contas',
   cliente: '/painel/metricas',
 };
