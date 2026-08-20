@@ -228,6 +228,7 @@ export default async function PaginaProposta({
           plano={p.plano}
           recomendado={recomendado}
           linhasIncluidas={p.linhasIncluidas}
+          precoNaConta={p.etapas.length > 0}
         />
       ) : null}
 

@@ -160,10 +160,22 @@ export function SlidePlano({
     sozinho, e o cliente é quem encontra.
   */
   linhasIncluidas = [],
+  /*
+    Esconde o preço de tabela quando a proposta traz a própria conta.
+
+    Sem isto, este slide anunciava o valor cheio do plano e o slide de
+    investimento, três telas adiante, mostrava outro. Dois preços em
+    lugares diferentes obrigam o cliente a decidir qual vale, e a
+    dúvida some junto com a confiança no resto do documento.
+
+    Com a conta negociada existindo, ela é a única autoridade de número.
+  */
+  precoNaConta = false,
 }: {
   plano: Plano;
   recomendado: Plano;
   linhasIncluidas?: string[];
+  precoNaConta?: boolean;
 }) {
   const f = fichas[plano];
   const alvo = plano === recomendado;
@@ -196,18 +208,26 @@ export function SlidePlano({
             <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-cinza">{f.paraQuem}</p>
           </div>
 
-          <p className="tabular">
-            <span
-              className="font-display text-4xl font-extrabold tracking-[-0.045em] sm:text-5xl"
-              style={{ color: alvo ? 'var(--magenta-texto)' : 'var(--branco)' }}
-            >
-              {feeEmReais(plano)}
-            </span>
-            <span className="ml-1.5 text-sm text-cinza">/mês</span>
-            <span className="mt-1.5 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
-              fee da agência · verba de mídia à parte
-            </span>
-          </p>
+          {precoNaConta ? (
+            <p className="max-w-[22ch] text-sm leading-relaxed text-cinza">
+              O investimento desta proposta está{' '}
+              <span className="text-magenta-texto">logo adiante</span>, com a conta feita
+              mês a mês.
+            </p>
+          ) : (
+            <p className="tabular">
+              <span
+                className="font-display text-4xl font-extrabold tracking-[-0.045em] sm:text-5xl"
+                style={{ color: alvo ? 'var(--magenta-texto)' : 'var(--branco)' }}
+              >
+                {feeEmReais(plano)}
+              </span>
+              <span className="ml-1.5 text-sm text-cinza">/mês</span>
+              <span className="mt-1.5 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                fee da agência · verba de mídia à parte
+              </span>
+            </p>
+          )}
         </div>
 
         <p className="mt-6 max-w-[62ch] text-guia leading-relaxed text-neve">{f.promessa}</p>
