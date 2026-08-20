@@ -12,6 +12,7 @@ import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
 import { trabalhos, logosMarcas } from '@/conteudo/trabalhos';
+import { jornada, promessaCompleta, porQueCompleta } from '@/conteudo/jornada';
 
 const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
 const rotulo =
@@ -61,16 +62,18 @@ export default function Home() {
                   o painel para fora da tela. O padrão de item de grid é
                   min-width:auto, que se recusa a encolher. */}
               <div className="revelar min-w-0">
-                <Rotulo>Operação de crescimento para e-commerce</Rotulo>
+                <Rotulo>Do zero ao lançamento, e todo mês depois</Rotulo>
 
                 <h1 className="mt-7 max-w-[15ch] font-display text-mostro font-extrabold tracking-[-0.045em]">
                   Sua loja não precisa de mais uma agência.{' '}
                   <span className="text-magenta-texto">Precisa de uma operação.</span>
                 </h1>
 
-                <p className="mt-8 max-w-[54ch] text-guia text-neve">
-                  Gestão, tecnologia, marketing e logística rodando junto, porque é isso
-                  que faz um e-commerce vender. Tráfego não paga boleto: operação paga.
+                <p className="mt-8 max-w-[56ch] text-guia text-neve">
+                  A Psy Comunic <strong className="font-semibold text-branco">constrói a
+                  sua loja do zero até o lançamento</strong> e continua entregando todo mês
+                  depois dele. Gestão, tecnologia, marketing e logística rodando junto,
+                  porque é isso que faz um e-commerce vender.
                 </p>
 
                 <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -101,7 +104,7 @@ export default function Home() {
                    fechado aqui envelheceria e ainda venderia menos do
                    que a fita de nomes logo abaixo. As quatro frentes
                    são um número que a Psy Comunic controla. */
-                { n: '4', u: 'frentes', d: 'gestão, tecnologia, marketing e logística rodando junto' },
+                { n: 'Do zero', u: 'ao lançamento', d: 'e as entregas contínuas depois dele, com o mesmo time' },
               ].map((item) => (
                 <div key={item.d} className="bg-marinho px-7 py-8 md:px-9 md:py-10">
                   <dt className="flex items-baseline gap-2.5">
@@ -154,7 +157,114 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            3. O DIAGNÓSTICO
+            3. A JORNADA COMPLETA
+
+            Vem logo depois da fita de marcas, e antes de qualquer
+            explicação de método. Motivo: a dúvida que faz alguém sair
+            desta página é "vocês fazem tudo ou só anunciam?", e ela
+            precisa ser respondida antes de a pessoa ter que procurar.
+
+            Duas fases lado a lado respondem dois medos opostos de uma
+            vez: quem vai começar teme ficar com a loja pronta e
+            ninguém para tocar; quem já vende teme contratar quem só
+            sabe anunciar e não mexe na loja.
+            ========================================================== */}
+        <section
+          id="jornada"
+          aria-labelledby="jornada-titulo"
+          className="scroll-mt-24 relative overflow-hidden py-24 md:py-32"
+        >
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" />
+          </div>
+
+          <div className={secao}>
+            <div className="revelar max-w-[52rem]">
+              <Rotulo>Solução completa</Rotulo>
+              <h2 id="jornada-titulo" className={tituloSecao + ' max-w-[19ch]'}>
+                Construímos a loja. E ficamos para{' '}
+                <span className="text-magenta-texto">fazer ela vender.</span>
+              </h2>
+              <p className="mt-7 max-w-[58ch] text-guia text-neve">{promessaCompleta}</p>
+            </div>
+
+            {/* As duas fases. No desktop ficam lado a lado com a seta
+                entre elas; no telefone empilham, e a seta vira o
+                conector vertical. */}
+            <div className="relative mt-16 grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
+              {jornada.map((fase, i) => (
+                <article
+                  key={fase.id}
+                  className={
+                    'revelar cartao relative flex flex-col p-8 md:p-10 ' +
+                    (i === 1 ? 'border-magenta/40' : '')
+                  }
+                >
+                  <span aria-hidden className="aresta absolute inset-x-10 top-0 h-px" />
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className={
+                        'rounded-full px-3.5 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.16em] ' +
+                        (i === 1
+                          ? 'bg-magenta text-branco'
+                          : 'border border-fio text-magenta-texto')
+                      }
+                    >
+                      {fase.etiqueta}
+                    </span>
+                    <span className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
+                      {fase.entrega}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-6 font-display text-sub font-extrabold tracking-[-0.035em]">
+                    {fase.titulo}
+                  </h3>
+
+                  <p className="mt-5 max-w-[46ch] text-guia leading-relaxed text-neve">
+                    {fase.resumo}
+                  </p>
+
+                  <ul className="mt-8 space-y-3.5 border-t border-fio pt-8">
+                    {fase.itens.map((item) => (
+                      <li key={item} className="flex gap-3.5 text-sm leading-relaxed text-neve">
+                        <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">
+                          ✓
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+
+            {/* Por que completa importa. "Solução completa" é o que toda
+                agência escreve; sem dizer o que a alternativa custa, a
+                frase não significa nada. */}
+            <div className="mt-16 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
+              {porQueCompleta.map((item) => (
+                <div key={item.titulo} className="revelar bg-marinho px-7 py-8 md:px-8 md:py-10">
+                  <h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">
+                    {item.titulo}
+                  </h3>
+                  <p className="mt-3.5 text-sm leading-relaxed text-cinza">{item.texto}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="revelar mt-14 flex flex-wrap items-center gap-4">
+              <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
+              <p className="text-sm text-cinza">
+                Começando do zero ou já vendendo, o diagnóstico é o mesmo primeiro passo.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ==========================================================
+            4. O DIAGNÓSTICO
             ========================================================== */}
         <section className="relative overflow-hidden py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -203,7 +313,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            4. AS QUATRO FRENTES
+            5. AS QUATRO FRENTES
             ========================================================== */}
         <section id="frentes" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -269,7 +379,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            5. RESULTADOS
+            6. RESULTADOS
             ========================================================== */}
         <section id="resultados" className="scroll-mt-24 py-24 md:py-28">
           <div className={secao}>
@@ -294,7 +404,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            6. AUTORIDADE
+            7. AUTORIDADE
             A página não tinha uma linha sobre quem está por trás, que é
             o ativo de credibilidade mais forte que existe aqui. Angelo
             aparece em terceira pessoa, e só porque a informação é sobre
@@ -419,7 +529,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            7. METODOLOGIA
+            8. METODOLOGIA
             ========================================================== */}
         <section id="metodologia" className="scroll-mt-24 py-24 md:py-32">
           <div className={secao}>
@@ -452,7 +562,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            8. NIVEIS DE PARCERIA
+            9. NIVEIS DE PARCERIA
 
             Aqui havia a tabela de planos, com nome e itens de cada um.
             Ela saiu do site: plano com preco e escopo agora existe so
@@ -548,7 +658,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            9. CASES
+            10. CASES
             ========================================================== */}
         <section id="cases" className="scroll-mt-24 relative overflow-hidden py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -593,7 +703,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            10. PARCERIAS
+            11. PARCERIAS
             ========================================================== */}
         <section className="border-t border-fio py-16">
           <div className={secao}>
@@ -615,7 +725,7 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            11. CTA FINAL
+            12. CTA FINAL
             ========================================================== */}
         <section className="relative isolate overflow-hidden bg-magenta py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">

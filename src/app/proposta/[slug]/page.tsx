@@ -11,6 +11,7 @@ import {
   SlideSempreIncluso,
 } from '@/componentes/proposta/Planos';
 import { SlideMarcas } from '@/componentes/proposta/Marcas';
+import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornada';
 import { marca } from '@/conteudo/marca';
 import { linkWhatsapp } from '@/conteudo/navegacao';
 
@@ -108,6 +109,17 @@ export default async function PaginaProposta({
           ) : null}
         </div>
       </Slide>
+
+      {/* ---------------------------------------------------------- */}
+      {/* A solução completa                                          */}
+      {/*                                                             */}
+      {/* Logo depois da capa, de propósito. É o enquadramento de tudo */}
+      {/* o que vem: sem ele, a proposta abre falando dos problemas da */}
+      {/* loja, emenda em plano mensal, e o leitor conclui sozinho que */}
+      {/* a Psy Comunic é mais uma agência de mídia com mensalidade.   */}
+      {/* ---------------------------------------------------------- */}
+      <SlideJornada />
+      <SlidePorQueCompleta />
 
       {/* ---------------------------------------------------------- */}
       {/* Diagnóstico                                                 */}
