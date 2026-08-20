@@ -213,9 +213,23 @@ export function SlidePlano({ plano, recomendado }: { plano: Plano; recomendado: 
                           <span className="block text-sm font-medium leading-snug text-branco">
                             {item.nome}
                           </span>
+                          {/* A sublinha mostra o LIMITE quando ele
+                              existe, e o PORQUÊ quando não existe.
+                              Nunca os dois: dobraria o texto de cada
+                              item, e o slide já é o mais denso do deck.
+
+                              Sem o segundo caso, o `porque` de toda
+                              linha marcada como simples "incluído" era
+                              texto morto no arquivo de dados —
+                              escrito, revisado, e renderizado em lugar
+                              nenhum. */}
                           {typeof item.valor === 'string' ? (
                             <span className="mt-0.5 block text-xs leading-snug text-cinza">
                               {item.valor}
+                            </span>
+                          ) : item.porque ? (
+                            <span className="mt-0.5 block text-xs leading-snug text-cinza">
+                              {item.porque}
                             </span>
                           ) : null}
                         </span>

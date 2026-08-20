@@ -216,10 +216,22 @@ export const blocos: Bloco[] = [
       },
       {
         nome: 'Canal direto com quem opera',
+        /*
+          Igual nos três de propósito, e por isso some do slide de
+          comparativo: `diferencas` filtra as linhas em que os planos
+          concordam, porque o que não muda não ajuda a escolher.
+
+          Continua aparecendo na lista de cada plano, que é onde ela
+          pesa. Atendimento é a primeira coisa que o lojista pergunta ao
+          trocar de agência, e "no mesmo dia" é verificável — "suporte
+          ágil" não é.
+        */
+        porque:
+          'Falar com quem mexe na conta, e não com um atendimento que repassa. Sem escalonamento e sem abrir chamado.',
         valores: {
-          saturno: 'E-mail, resposta em 1 dia útil',
-          falcon: 'Grupo de WhatsApp',
-          apollo: 'Grupo de WhatsApp com o time todo',
+          saturno: 'WhatsApp com quem mexe na conta, resposta no mesmo dia',
+          falcon: 'WhatsApp com quem mexe na conta, resposta no mesmo dia',
+          apollo: 'WhatsApp com quem mexe na conta, resposta no mesmo dia',
         },
       },
     ],
@@ -329,6 +341,9 @@ export function entregasDoPlano(p: Plano) {
     itens: b.linhas.map((l) => ({
       nome: l.nome,
       valor: l.valores[p],
+      /* Vai junto para o slide poder usá-lo como sublinha quando a
+         linha não tem limite escrito. */
+      porque: l.porque,
       incluso: l.valores[p] !== false,
     })),
   }));
