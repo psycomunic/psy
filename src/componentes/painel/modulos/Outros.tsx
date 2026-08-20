@@ -10,6 +10,7 @@ import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td }
 import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, numero, diasAte, diaLongo } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
+import { FormNovaConta, FormNovoUsuario, FormMeta, BotaoAcesso } from '../Formularios';
 
 /* ================================================================== */
 /* CRM: o funil                                                        */
@@ -116,12 +117,22 @@ export async function Crm() {
 /* Contas                                                              */
 /* ================================================================== */
 
-export async function Contas() {
+export async function Contas({ papel }: { papel: Papel }) {
   const { dados: contas, procedencia } = await listarContas();
+  const podeEscrever = papel === 'admin' && procedencia === 'banco';
 
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
+
+      {/* Escrita so para admin, e so com banco de verdade: formulario
+          gravando em dados de demonstracao nao grava em lugar nenhum. */}
+      {podeEscrever ? (
+        <div className="mt-8 grid gap-4">
+          <FormNovaConta />
+          <FormMeta contas={contas.map((c) => ({ id: c.id, nome: c.nome }))} />
+        </div>
+      ) : null}
 
       <Secao titulo="Carteira" apoio="Ordenada por receita do mês.">
         <Tabela>
@@ -312,12 +323,22 @@ export async function Tarefas() {
 /* Equipe                                                              */
 /* ================================================================== */
 
-export async function Equipe() {
-  const { dados: equipe, procedencia } = await listarEquipe();
+export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | null }) {
+  const [{ dados: equipe, procedencia }, { dados: contas }] = await Promise.all([
+    listarEquipe(),
+    listarContas(),
+  ]);
+  const podeEscrever = papel === 'admin' && procedencia === 'banco';
 
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
+
+      {podeEscrever ? (
+        <div className="mt-8">
+          <FormNovoUsuario contas={contas.map((c) => ({ id: c.id, nome: c.nome }))} />
+        </div>
+      ) : null}
 
       <Secao titulo="Pessoas com acesso" apoio="Papel define o que cada uma enxerga. A matriz vive em src/lib/papeis.ts e nas políticas do banco.">
         <Tabela>
@@ -328,6 +349,7 @@ export async function Equipe() {
               <th scope="col" className={th}>E-mail</th>
               <th scope="col" className={th}>Papel</th>
               <th scope="col" className={th}>Situação</th>
+              <th scope="col" className={th}></th>
             </tr>
           </thead>
           <tbody>
@@ -336,7 +358,22 @@ export async function Equipe() {
                 <th scope="row" className={`${td} font-normal text-branco`}>{p.nome}</th>
                 <td className={td}>{p.email}</td>
                 <td className={td}>{rotuloPapel[p.papel as Papel] ?? p.papel}</td>
-                <td className={td}>{p.ativo ? 'Ativo' : 'Desativado'}</td>
+                <td className={td}>
+                  {/* Cor com FORMA junto: quem não distingue verde de
+                      vermelho lê o símbolo e o texto. */}
+                  <span
+                    className="inline-flex items-center gap-2"
+                    style={{ color: p.ativo ? '#4ADE80' : '#93A0BC' }}
+                  >
+                    <span aria-hidden className="text-[0.6rem]">{p.ativo ? '●' : '—'}</span>
+                    {p.ativo ? 'Ativo' : 'Desativado'}
+                  </span>
+                </td>
+                <td className={td}>
+                  {podeEscrever ? (
+                    <BotaoAcesso id={p.id} ativo={p.ativo} eVoce={p.id === meuId} />
+                  ) : null}
+                </td>
               </tr>
             ))}
           </tbody>

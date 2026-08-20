@@ -75,12 +75,14 @@ export default async function PainelModulo({
   */
   let papel: Papel;
   let nome: string | null = null;
+  let meuId: string | null = null;
 
   if (bancoConfigurado) {
     const sessao = await sessaoAtual();
     if (!sessao) redirect(`/entrar?destino=/painel/${moduloAtual}`);
     papel = sessao.papel;
     nome = sessao.nome;
+    meuId = sessao.id;
   } else {
     papel = PAPEIS.includes(papelDaUrl as Papel) ? (papelDaUrl as Papel) : 'admin';
   }
@@ -200,10 +202,10 @@ export default async function PainelModulo({
               {moduloAtual === 'visao' ? <Visao papel={papel} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
               {moduloAtual === 'crm' ? <Crm /> : null}
-              {moduloAtual === 'contas' ? <Contas /> : null}
+              {moduloAtual === 'contas' ? <Contas papel={papel} /> : null}
               {moduloAtual === 'financeiro' ? <Financeiro /> : null}
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
-              {moduloAtual === 'equipe' ? <Equipe /> : null}
+              {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
               {AINDA_NAO[moduloAtual] ? (
                 <EmConstrucao
                   nome={rotuloModulo[moduloAtual]}

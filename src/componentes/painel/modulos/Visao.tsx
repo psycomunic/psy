@@ -54,41 +54,46 @@ export async function Visao({ papel }: { papel: Papel }) {
             {[
               {
                 n: '01',
-                t: 'Cadastrar a primeira conta',
-                d: 'Uma conta é uma loja cliente. É a unidade que o RLS usa para isolar um cliente do outro.',
-                c: 'npm run criar-conta -- "Nome da Loja"',
+                t: 'Cadastrar a primeira loja',
+                d: 'Uma loja é a unidade que o banco usa para isolar um cliente do outro. Tudo pendura nela: métricas, contrato, tarefas.',
+                href: '/painel/contas',
+                cta: 'Ir para Clientes',
               },
               {
                 n: '02',
                 t: 'Dar acesso ao lojista',
-                d: 'O mesmo comando cria o usuário cliente, amarrado à conta. Ele passa a enxergar só os números dela.',
-                c: 'npm run criar-conta -- "Nome" email@loja.com',
+                d: 'Em Equipe, crie o acesso com papel Cliente e escolha a loja. Ele passa a enxergar só os números dela.',
+                href: '/painel/equipe',
+                cta: 'Ir para Equipe',
               },
               {
                 n: '03',
                 t: 'Ligar as métricas',
-                d: 'Google Ads, Meta e a plataforma da loja. É a etapa mais longa: as aprovações do Google e da Meta levam dias.',
-                c: null,
+                d: 'Google Ads, Meta e a plataforma da loja. É a etapa mais longa: as aprovações do Google e da Meta levam dias e não dependem do código.',
+                href: null,
+                cta: null,
               },
             ].map((p) => (
-              <li key={p.n} className="cartao p-6">
+              <li key={p.n} className="cartao flex flex-col p-6">
                 <span className="font-mono text-xs text-magenta-texto">{p.n}</span>
                 <h3 className="mt-4 font-display text-lg font-bold tracking-[-0.02em]">{p.t}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-cinza">{p.d}</p>
-                {p.c ? (
-                  <code className="mt-4 block overflow-x-auto rounded-lg bg-black/30 px-3 py-2.5 font-mono text-[0.68rem] text-neve">
-                    {p.c}
-                  </code>
-                ) : null}
+                <p className="mt-2.5 grow text-sm leading-relaxed text-cinza">{p.d}</p>
+                {p.href ? (
+                  <Link
+                    href={p.href}
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-magenta-texto"
+                  >
+                    {p.cta}
+                    <span aria-hidden>→</span>
+                  </Link>
+                ) : (
+                  <span className="mt-5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+                    Depende de aprovação externa
+                  </span>
+                )}
               </li>
             ))}
           </ol>
-
-          <p className="mt-6 max-w-[68ch] text-sm leading-relaxed text-cinza">
-            As telas do painel hoje LEEM o banco. Cadastro por formulário ainda não
-            existe, e por isso os dois primeiros passos são por comando. É o próximo
-            pedaço a construir.
-          </p>
         </Secao>
       </>
     );
