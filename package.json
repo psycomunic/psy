@@ -9,7 +9,8 @@
     "lint": "eslint",
     "migrar": "node scripts/migrar.mjs",
     "criar-admin": "node scripts/criar-admin.mjs",
-    "testar-isolamento": "node scripts/testar-isolamento.mjs"
+    "testar-isolamento": "node scripts/testar-isolamento.mjs",
+    "criar-conta": "node scripts/criar-conta.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

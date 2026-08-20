@@ -35,6 +35,65 @@ export async function Visao({ papel }: { papel: Papel }) {
 
   const podeVerFinanceiro = papel === 'admin';
 
+  /*
+    Primeiro acesso: banco ligado, carteira vazia.
+
+    Um painel de zeros não diz o que fazer. Este bloco só aparece
+    enquanto não há nenhuma conta, e some sozinho quando a primeira
+    entrar. Sem ele, quem entra pela primeira vez vê quatro cartões
+    zerados e conclui que algo quebrou.
+  */
+  if (procedencia === 'banco' && contas.length === 0) {
+    return (
+      <>
+        <Secao
+          titulo="A carteira está vazia"
+          apoio="O banco está ligado e respondendo. Falta cadastrar a primeira loja."
+        >
+          <ol className="grid gap-4 md:grid-cols-3">
+            {[
+              {
+                n: '01',
+                t: 'Cadastrar a primeira conta',
+                d: 'Uma conta é uma loja cliente. É a unidade que o RLS usa para isolar um cliente do outro.',
+                c: 'npm run criar-conta -- "Nome da Loja"',
+              },
+              {
+                n: '02',
+                t: 'Dar acesso ao lojista',
+                d: 'O mesmo comando cria o usuário cliente, amarrado à conta. Ele passa a enxergar só os números dela.',
+                c: 'npm run criar-conta -- "Nome" email@loja.com',
+              },
+              {
+                n: '03',
+                t: 'Ligar as métricas',
+                d: 'Google Ads, Meta e a plataforma da loja. É a etapa mais longa: as aprovações do Google e da Meta levam dias.',
+                c: null,
+              },
+            ].map((p) => (
+              <li key={p.n} className="cartao p-6">
+                <span className="font-mono text-xs text-magenta-texto">{p.n}</span>
+                <h3 className="mt-4 font-display text-lg font-bold tracking-[-0.02em]">{p.t}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-cinza">{p.d}</p>
+                {p.c ? (
+                  <code className="mt-4 block overflow-x-auto rounded-lg bg-black/30 px-3 py-2.5 font-mono text-[0.68rem] text-neve">
+                    {p.c}
+                  </code>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+
+          <p className="mt-6 max-w-[68ch] text-sm leading-relaxed text-cinza">
+            As telas do painel hoje LEEM o banco. Cadastro por formulário ainda não
+            existe, e por isso os dois primeiros passos são por comando. É o próximo
+            pedaço a construir.
+          </p>
+        </Secao>
+      </>
+    );
+  }
+
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
