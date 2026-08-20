@@ -36,6 +36,8 @@ const SEM_POLITICA_DE_PROPOSITO = {
     'controle do aplicador de migrações: quem escreve conecta direto no Postgres, fora do RLS',
   metrica_bruta:
     'payload cru das APIs: carrega id de campanha e às vezes dado de pedido. Só a rotina de sincronização lê, com a service role',
+  credencial_agencia:
+    'token da BM e do Google Ads da agência: um só destranca TODAS as contas de anúncio dos clientes. Cifrado, e mesmo assim invisível pela chave pública',
 };
 
 /**
@@ -128,8 +130,12 @@ try {
      where c.relnamespace = 'public'::regnamespace and c.relkind = 'v'
      order by c.relname`);
 
-  /* Nome de coluna que nunca pode sair de uma view definer. */
-  const SEGREDO = /^(segredo|token|senha|secret|refresh_token|access_token|chave)$/i;
+  /* Nome de coluna que nunca pode sair de uma view definer.
+     Casa a palavra em qualquer posição do nome, e não só o nome
+     inteiro: a primeira versão testava igualdade exata e teria deixado
+     passar `segredo_da_agencia`. As fronteiras de `_` são o que impede
+     `tem_credencial` e `credencial_rotulo` de caírem junto. */
+  const SEGREDO = /(^|_)(segredo|token|senha|secret|chave|password)(_|$)/i;
 
   console.log('');
   for (const v of views) {

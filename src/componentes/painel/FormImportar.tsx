@@ -16,7 +16,7 @@ const rotulo = 'block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-
     virar documentação em outro lugar. */
 const COLUNAS: Record<ProvedorPlanilha, string> = {
   planilha_loja:
-    'dia · pedidos captados · pedidos aprovados · receita · receita bruta · novos clientes',
+    'dia · pedidos captados · pedidos aprovados · receita (aprovada, total com frete) · frete · receita bruta · novos clientes',
   planilha_midia:
     'dia · canal (obrigatório) · investimento · cliques · impressões · receita atribuída',
   planilha_sessao: 'dia · canal · sessões',

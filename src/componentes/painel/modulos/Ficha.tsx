@@ -12,6 +12,7 @@ import {
 import { AvisoProcedencia, Secao, Kpi, Tabela, th, td } from '../base';
 import { FormInteracao } from '../FormInteracao';
 import { FormImportar } from '../FormImportar';
+import { FormFonte, BotaoSincronizar, BotaoDesvincular } from '../FormFonte';
 import { rotuloSituacaoConta, rotuloEstadoIntegracao } from '@/lib/dados/tipos';
 import type { EstadoIntegracao } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, diaLongo, numero } from '@/lib/formato';
@@ -322,6 +323,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
   ]);
 
   const podeImportar = pode(papel, 'metricas', 'editar');
+  const ehAdmin = papel === 'administrador';
 
   return (
     <>
@@ -355,8 +357,13 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
 
       <Secao
         titulo="Conexões"
-        apoio="Uma linha por fonte. A credencial fica no banco e não passa por esta tela em nenhum momento."
+        apoio="Uma linha por fonte. A credencial é da agência, fica cifrada no banco e não passa por esta tela em nenhum momento."
       >
+        {ehAdmin ? (
+          <div className="mb-5">
+            <BotaoSincronizar contaId={contaId} />
+          </div>
+        ) : null}
         {conexoes.length === 0 ? (
           <p className="cartao p-6 text-sm leading-relaxed text-cinza">
             Nenhuma conexão cadastrada. Enquanto isso, o caminho é a importação de
@@ -386,12 +393,26 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                       {c.ultimoErro}
                     </p>
                   ) : null}
+                  {ehAdmin ? (
+                    <p className="mt-4 border-t border-fio pt-3">
+                      <BotaoDesvincular id={c.id} />
+                    </p>
+                  ) : null}
                 </li>
               );
             })}
           </ul>
         )}
       </Secao>
+
+      {ehAdmin ? (
+        <Secao
+          titulo="Nova fonte"
+          apoio="A conta do cliente já precisa estar na BM e na gerenciadora da agência."
+        >
+          <FormFonte contaId={contaId} />
+        </Secao>
+      ) : null}
 
       {podeImportar ? (
         <Secao titulo="Entrada manual" apoio="Toda loja tem um mês que veio de planilha.">

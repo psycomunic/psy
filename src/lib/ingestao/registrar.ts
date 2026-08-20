@@ -34,6 +34,7 @@ export async function gravarMetricas({
   origem,
   autorId = null,
   guardarBruto = true,
+  bruto,
 }: {
   contaId: string;
   provedor: string;
@@ -41,6 +42,10 @@ export async function gravarMetricas({
   origem: Origem;
   autorId?: string | null;
   guardarBruto?: boolean;
+  /* A resposta ORIGINAL da fonte, quando existe. Para conector, é ela
+     que serve para reprocessar mapeamento; guardar as linhas já
+     mapeadas guardaria a saída do código que se quer poder corrigir. */
+  bruto?: unknown;
 }): Promise<ResultadoIngestao> {
   const supabase = clienteServico();
 
@@ -123,7 +128,7 @@ export async function gravarMetricas({
       conta_id: contaId,
       provedor,
       dia: diaDe,
-      carga: linhas,
+      carga: bruto ?? linhas,
     });
     /* Falhar em guardar o cru não impede gravar a métrica: perder o
        histórico de reprocessamento é ruim, perder o dado do dia é pior. */

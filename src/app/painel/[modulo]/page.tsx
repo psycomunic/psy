@@ -26,6 +26,7 @@ import {
   EmConstrucao,
 } from '@/componentes/painel/modulos/Outros';
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
+import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 
 export const metadata = {
   title: 'Painel',
@@ -43,12 +44,6 @@ const AINDA_NAO: Partial<Record<Modulo, string[]>> = {
     'Relatório mensal por conta, com o diário de bordo junto',
     'Exportação em PDF',
     'Envio automático no fechamento do mês',
-  ],
-  configuracoes: [
-    'Dados da agência: razão social, CNPJ, endereço',
-    'Integrações por conta: Google Ads, Meta, GA4 e plataforma da loja',
-    'Metas por conta e por mês',
-    'Modelos de proposta',
   ],
 };
 
@@ -219,6 +214,7 @@ export default async function PainelModulo({
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
               {moduloAtual === 'auditoria' ? <Auditoria /> : null}
+              {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} /> : null}
               {AINDA_NAO[moduloAtual] ? (
                 <EmConstrucao
                   nome={rotuloModulo[moduloAtual]}

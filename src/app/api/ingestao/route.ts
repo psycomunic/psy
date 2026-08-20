@@ -44,6 +44,8 @@ const esquema = z.object({
         pedidos_aprovados: z.number().nonnegative().optional(),
         receita: z.number().nonnegative().optional(),
         receita_bruta: z.number().nonnegative().optional(),
+        /* Parcela de frete JÁ CONTIDA em `receita`. */
+        frete: z.number().nonnegative().optional(),
         novos_clientes: z.number().nonnegative().optional(),
         investimento: z.number().nonnegative().optional(),
         cliques: z.number().nonnegative().optional(),

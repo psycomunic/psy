@@ -42,6 +42,8 @@ export type LinhaMetrica = {
   pedidos_aprovados?: number;
   receita?: number;
   receita_bruta?: number;
+  /** Parcela de frete JÁ CONTIDA em `receita`. Não somar as duas. */
+  frete?: number;
   novos_clientes?: number;
   investimento?: number;
   cliques?: number;
@@ -102,6 +104,8 @@ const APELIDOS: Record<string, keyof LinhaMetrica> = {
   receita_bruta: 'receita_bruta', faturamento_bruto: 'receita_bruta',
   receita_captada: 'receita_bruta',
 
+  frete: 'frete', valor_frete: 'frete', frete_total: 'frete', shipping: 'frete',
+
   novos_clientes: 'novos_clientes', clientes_novos: 'novos_clientes',
   new_customers: 'novos_clientes', primeira_compra: 'novos_clientes',
 
@@ -126,7 +130,7 @@ type ChaveValor = Exclude<keyof LinhaMetrica, 'dia' | 'canal'>;
 
 const NUMERICAS: ChaveValor[] = [
   'sessoes', 'pedidos_captados', 'pedidos_aprovados', 'receita',
-  'receita_bruta', 'novos_clientes', 'investimento', 'cliques',
+  'receita_bruta', 'frete', 'novos_clientes', 'investimento', 'cliques',
   'impressoes', 'receita_atribuida',
 ];
 
