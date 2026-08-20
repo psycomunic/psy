@@ -35,6 +35,30 @@ import * as demo from './demonstracao';
 const semBanco = <T>(dados: T): Resposta<T> => ({ dados, procedencia: 'demonstracao' });
 const doBanco = <T>(dados: T): Resposta<T> => ({ dados, procedencia: 'banco' });
 
+/**
+ * O estado intermediário: credenciais existem, tabelas ainda não.
+ *
+ * Acontece entre criar o projeto no Supabase e rodar as migrações. Sem
+ * isto, o painel inteiro ficaria vazio nesse intervalo, sem dizer por
+ * quê, e pareceria quebrado.
+ *
+ * O reconhecimento é ESTREITO de propósito: só "relação não existe"
+ * (42P01 no Postgres, PGRST205 no PostgREST). Qualquer outro erro passa
+ * direto e a tela mostra vazio.
+ *
+ * A diferença importa muito: "permissão negada" NÃO pode cair aqui. Se
+ * caísse, um cliente sem acesso veria dados de demonstração no lugar de
+ * uma tela vazia, e acharia que são os números dele.
+ */
+function faltamTabelas(erro: { code?: string; message?: string } | null) {
+  if (!erro) return false;
+  return (
+    erro.code === 'PGRST205' ||
+    erro.code === '42P01' ||
+    /Could not find the table|does not exist/i.test(erro.message ?? '')
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Contas                                                              */
 /* ------------------------------------------------------------------ */
@@ -48,11 +72,17 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
      saude_conta traz o semáforo. Juntar no banco exigiria uma terceira
      view só para isso, e o custo aqui é uma requisição a mais numa
      lista que tem dezenas de linhas, não milhares. */
-  const [{ data: mes }, { data: saude }, { data: contas }] = await Promise.all([
+  const [rMes, rSaude, rContas] = await Promise.all([
     supabase.from('kpi_mes').select('*'),
     supabase.from('saude_conta').select('*'),
     supabase.from('conta').select('id, nome, plataforma'),
   ]);
+
+  if (faltamTabelas(rMes.error)) return semBanco(demo.contasDemo());
+
+  const mes = rMes.data;
+  const saude = rSaude.data;
+  const contas = rContas.data;
 
   const porId = new Map((saude ?? []).map((s) => [s.conta_id as string, s]));
   const info = new Map((contas ?? []).map((c) => [c.id as string, c]));
@@ -93,12 +123,14 @@ export async function serieDaConta(
   desde.setDate(desde.getDate() - dias);
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('kpi_diario')
     .select('*')
     .eq('conta_id', contaId)
     .gte('dia', desde.toISOString().slice(0, 10))
     .order('dia', { ascending: true });
+
+  if (faltamTabelas(error)) return semBanco(demo.serieDemo(contaId, dias));
 
   return doBanco(
     (data ?? []).map((d) => ({
@@ -128,11 +160,13 @@ export async function canaisDaConta(
   desde.setDate(desde.getDate() - dias);
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('kpi_canal')
     .select('*')
     .eq('conta_id', contaId)
     .gte('dia', desde.toISOString().slice(0, 10));
+
+  if (faltamTabelas(error)) return semBanco(demo.canaisDemo(contaId));
 
   /* A view é por dia e por canal. O acumulado do período é somado aqui:
      somar receita e investimento e SÓ DEPOIS dividir é o que dá o ROAS
@@ -172,12 +206,14 @@ export async function marcosDaConta(contaId: string): Promise<Resposta<Marco[]>>
   if (!bancoConfigurado) return semBanco(demo.marcosDemo(contaId));
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('marco_conta')
     .select('id, dia, tipo, titulo, detalhe')
     .eq('conta_id', contaId)
     .order('dia', { ascending: false })
     .limit(20);
+
+  if (faltamTabelas(error)) return semBanco(demo.marcosDemo(contaId));
 
   return doBanco(
     (data ?? []).map((m) => ({
@@ -198,7 +234,9 @@ export async function financeiroDoMes(): Promise<Resposta<FinanceiroMes>> {
   if (!bancoConfigurado) return semBanco(demo.financeiroDemo());
 
   const supabase = await clienteServidor();
-  const { data } = await supabase.from('financeiro_mes').select('*').single();
+  const { data, error } = await supabase.from('financeiro_mes').select('*').single();
+
+  if (faltamTabelas(error)) return semBanco(demo.financeiroDemo());
 
   /* Sem linha significa sem permissão: financeiro é admin-only no RLS.
      Zerar é o comportamento certo, e a tela já checa o papel antes. */
@@ -220,11 +258,13 @@ export async function listarLeads(): Promise<Resposta<Lead[]>> {
   if (!bancoConfigurado) return semBanco(demo.leadsDemo());
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('lead')
     .select('id, nome, empresa, estagio, origem, valor_estimado, criado_em, perfil:responsavel_id(nome)')
     .order('criado_em', { ascending: false })
     .limit(200);
+
+  if (faltamTabelas(error)) return semBanco(demo.leadsDemo());
 
   return doBanco(
     (data ?? []).map((l) => ({
@@ -249,11 +289,13 @@ export async function listarTarefas(): Promise<Resposta<Tarefa[]>> {
   if (!bancoConfigurado) return semBanco(demo.tarefasDemo());
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('tarefa')
     .select('id, titulo, status, prazo, conta:conta_id(nome), perfil:responsavel_id(nome)')
     .order('prazo', { ascending: true, nullsFirst: false })
     .limit(200);
+
+  if (faltamTabelas(error)) return semBanco(demo.tarefasDemo());
 
   return doBanco(
     (data ?? []).map((t) => ({
@@ -271,10 +313,12 @@ export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
   if (!bancoConfigurado) return semBanco(demo.equipeDemo());
 
   const supabase = await clienteServidor();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('perfil')
     .select('id, nome, email, papel, ativo')
     .order('nome');
+
+  if (faltamTabelas(error)) return semBanco(demo.equipeDemo());
 
   return doBanco(
     (data ?? []).map((p) => ({
