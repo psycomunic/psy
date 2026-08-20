@@ -138,11 +138,44 @@ try {
   console.error(`\nERRO: ${e.message}`);
   falhas++;
 } finally {
+  /*
+    A ordem importa, e a versão anterior estava errada.
+
+    `conta` é protegida por `on delete restrict` vindo de `contrato` e
+    de `fatura`: apagar a loja ANTES do contrato falha. E como o erro
+    não era conferido, o script imprimia "dados de teste removidos" e
+    seguia — deixando no banco de produção seis lojas falsas com
+    contrato de R$ 4.500, trinta tarefas e seis marcos, indistinguíveis
+    de cliente de verdade na tela do painel.
+
+    O RESTRICT está certo e fica: contrato assinado é histórico
+    financeiro, e não some porque alguém apagou um cadastro. Quem
+    estava errado era a limpeza.
+
+    Limpeza que MENTE é pior que limpeza que não existe: sem ela
+    alguém percebe a sujeira, com ela ninguém procura.
+  */
   if (usuarioId) await admin.auth.admin.deleteUser(usuarioId).catch(() => {});
-  if (contaId) await admin.from('conta').delete().eq('id', contaId);
   if (leadId) await admin.from('lead').delete().eq('id', leadId);
-  await admin.from('conta').delete().like('nome', 'conv-%');
-  console.log('\nDados de teste removidos.');
+
+  const { data: sobras } = await admin.from('conta').select('id').like('nome', 'conv-%');
+  for (const c of sobras ?? []) {
+    await admin.from('fatura').delete().eq('conta_id', c.id);
+    await admin.from('contrato').delete().eq('conta_id', c.id);
+    const { error } = await admin.from('conta').delete().eq('id', c.id);
+    if (error) {
+      console.error(`  NAO REMOVEU a loja de teste ${c.id}: ${error.message}`);
+      falhas++;
+    }
+  }
+
+  const { data: resto } = await admin.from('conta').select('id').like('nome', 'conv-%');
+  if ((resto ?? []).length > 0) {
+    console.error(`\n  ${resto.length} loja(s) de teste ficaram no banco.`);
+    falhas++;
+  } else {
+    console.log('\nDados de teste removidos.');
+  }
 }
 
 console.log(falhas === 0 ? '\nCONVERSAO OK\n' : `\n${falhas} FALHA(S)\n`);

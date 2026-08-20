@@ -70,14 +70,21 @@ export function Rodape() {
           ))}
         </div>
 
-        {/* EDITAR: razão social, CNPJ e endereço. Asset pendente do
-            cliente, listado na seção 14 do escopo. */}
-        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-fio pt-8">
+        {/* PENDENTE: razão social, CNPJ e endereço.
+
+            A linha "a preencher" que ficava aqui saiu. Ela não era
+            informação falsa, era um recado interno impresso em toda
+            página do site: quem chega para contratar lia que a empresa
+            não terminou de se cadastrar.
+
+            Rodapé sem CNPJ é normal e não chama atenção. Rodapé
+            avisando que falta o CNPJ chama.
+
+            Quando os dados chegarem, entram aqui e também em
+            `site.ts`, onde a cidade e o estado alimentam o JSON-LD. */}
+        <div className="mt-16 border-t border-fio pt-8">
           <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
             © {new Date().getFullYear()} {marca.nome}
-          </p>
-          <p className="text-xs text-cinza">
-            Razão social, CNPJ e endereço a preencher.
           </p>
         </div>
       </div>

@@ -35,62 +35,20 @@ export type Proposta = {
 };
 
 /**
- * EXEMPLO. Duplique o bloco, troque o slug por algo longo e aleatorio e
- * envie so aquele link ao cliente.
+ * Propostas escritas à mão. VAZIO, e assim deve ficar.
+ *
+ * Aqui existia uma proposta de exemplo, com "Nome da loja", "Nome do
+ * responsavel" e um fee de "R$ 0.000,00" marcado como EDITAR. Ela era
+ * alcançável: quem abrisse /proposta/exemplo-9f3c1a7b2e via um
+ * documento comercial da Psy Comunic com valor zerado e cliente
+ * fictício. Documento falso servido por um endereço público é pior que
+ * endereço quebrado.
+ *
+ * Proposta agora nasce no painel, em /painel/propostas, e vive no
+ * banco. Este array continua existindo só para as propostas antigas,
+ * escritas antes do gerador, e hoje não há nenhuma.
  */
-export const propostas: Proposta[] = [
-  {
-    slug: 'exemplo-9f3c1a7b2e',
-    cliente: 'Nome da loja',
-    contato: 'Nome do responsavel',
-    emitidaEm: '2026-08-19',
-    validadeDias: 15,
-    resumo:
-      'Proposta de operacao de crescimento para e-commerce, cobrindo as quatro frentes: gestao, tecnologia, marketing e atendimento com logistica.',
-    diagnostico: [
-      'Trafego chega, mas a conversao fica abaixo da media do segmento.',
-      'Checkout com etapas demais e sem recuperacao de carrinho ativa.',
-      'Investimento em midia sem leitura de ROI por canal.',
-    ],
-    escopo: [
-      {
-        frente: 'Gestao',
-        itens: ['Analise de concorrencia e canais', 'Definicao de metas e organograma'],
-      },
-      {
-        frente: 'Tecnologia',
-        itens: ['Auditoria de velocidade e checkout', 'Integracao de gateway e antifraude'],
-      },
-      {
-        frente: 'Marketing',
-        itens: ['Estruturacao de campanhas Google e Meta', 'Criativos e copy focados em conversao'],
-      },
-      {
-        frente: 'Atendimento e logistica',
-        itens: ['Mapeamento de fluxos e SLA de entrega', 'Aumento da aprovacao de pagamento'],
-      },
-    ],
-    investimento: [
-      { rotulo: 'Fee mensal de operacao', valor: 'R$ 0.000,00', observacao: 'EDITAR' },
-      {
-        rotulo: 'Verba de midia',
-        valor: 'A definir',
-        observacao: 'Paga direto as plataformas, nao entra no fee.',
-      },
-    ],
-    condicoes: [
-      'Contrato de 6 meses, renovavel.',
-      'A verba de midia e paga diretamente ao Google e a Meta, separada do fee.',
-      'Relatorio de desempenho todo mes.',
-    ],
-    proximosPassos: [
-      'Aprovacao desta proposta.',
-      'Kick off e briefing da operacao.',
-      'Plano de midia com projecao de investimento.',
-      'Estruturacao das contas e inicio das campanhas.',
-    ],
-  },
-];
+export const propostas: Proposta[] = [];
 
 export function buscarProposta(slug: string) {
   return propostas.find((p) => p.slug === slug) ?? null;
