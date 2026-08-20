@@ -54,21 +54,48 @@ const doBanco = <T>(dados: T): Resposta<T> => ({ dados, procedencia: 'banco' });
  * isto, o painel inteiro ficaria vazio nesse intervalo, sem dizer por
  * quê, e pareceria quebrado.
  *
- * O reconhecimento é ESTREITO de propósito: só "relação não existe"
- * (42P01 no Postgres, PGRST205 no PostgREST). Qualquer outro erro passa
- * direto e a tela mostra vazio.
+ * ============================================================
+ * O ERRO QUE ESTA FUNÇÃO JÁ COMETEU
+ * ============================================================
+ * A primeira versão também casava a MENSAGEM, com
+ * `/Could not find the table|does not exist/i`. Parecia inofensivo, e
+ * não era: o Postgres diz "column lead.motivo_perda does not exist"
+ * quando falta uma COLUNA, e aquele regex engolia isso também.
  *
- * A diferença importa muito: "permissão negada" NÃO pode cair aqui. Se
- * caísse, um cliente sem acesso veria dados de demonstração no lugar de
- * uma tela vazia, e acharia que são os números dele.
+ * O efeito: um erro de digitação numa coluna virava "as tabelas ainda
+ * não existem", e o painel respondia com DADOS DE DEMONSTRAÇÃO. Um
+ * administrador logado no banco de produção via um funil inventado, com
+ * nomes de empresa fictícios e previsão de R$ 13,6 mil, sem nenhum
+ * aviso de que algo tinha falhado.
+ *
+ * É a pior falha possível nesta camada, porque não parece falha.
+ *
+ * Agora só os dois CÓDIGOS de "relação não existe" contam: 42P01 no
+ * Postgres, PGRST205 no PostgREST. Código é exato; mensagem é texto que
+ * muda de versão para versão e casa com o que não devia.
+ *
+ * Qualquer outro erro passa direto, e a tela mostra VAZIO. Vazio é
+ * honesto: diz que não há nada para mostrar. Dado de demonstração
+ * afirma um número que ninguém faturou.
  */
 function faltamTabelas(erro: { code?: string; message?: string } | null) {
   if (!erro) return false;
-  return (
+
+  const tabelaAusente =
     erro.code === 'PGRST205' ||
     erro.code === '42P01' ||
-    /Could not find the table|does not exist/i.test(erro.message ?? '')
-  );
+    /Could not find the table/i.test(erro.message ?? '');
+
+  /* Erro inesperado não pode sumir. Sem este registro, a consulta
+     devolve vazio e ninguém fica sabendo por quê — que foi exatamente
+     como o `motivo_perda` passou despercebido. Vai para o log do
+     servidor, e nunca para a tela: mensagem de erro de banco expõe
+     nome de coluna e de tabela. */
+  if (!tabelaAusente) {
+    console.error(`[consultas] ${erro.code ?? 'sem código'}: ${erro.message ?? 'sem mensagem'}`);
+  }
+
+  return tabelaAusente;
 }
 
 /* ------------------------------------------------------------------ */
@@ -496,10 +523,17 @@ export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
 
   /* As lojas vêm junto, pelo relacionamento. Uma consulta por pessoa
      seria N+1 numa tela que existe justamente para ver todo mundo de
-     uma vez. */
+     uma vez.
+
+     O nome da chave estrangeira é OBRIGATÓRIO aqui. `acessos_conta`
+     aponta para `perfil` duas vezes: `usuario_id`, que é quem tem o
+     acesso, e `convidado_por`, que é quem concedeu. Sem dizer qual, o
+     PostgREST recusa a consulta com PGRST201 em vez de escolher — e
+     está certo, porque escolher errado listaria as lojas que a pessoa
+     CONVIDOU alguém para ver, e não as que ela vê. */
   const { data, error } = await supabase
     .from('perfil')
-    .select('id, nome, email, papel, ativo, acessos_conta(conta:conta_id(id, nome))')
+    .select('id, nome, email, papel, ativo, acessos_conta!acessos_conta_usuario_id_fkey(conta:conta_id(id, nome))')
     .order('nome');
 
   if (faltamTabelas(error)) return semBanco(demo.equipeDemo());

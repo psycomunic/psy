@@ -210,7 +210,9 @@ export async function registrarInteracao(
       tipo,
       resumo,
       autor_id: sessao.id,
-      ocorrida_em: new Date().toISOString(),
+      /* Sem `ocorrida_em`: a coluna nunca existiu, e este insert
+         falhava inteiro por causa dela. `criada_em` tem default now()
+         e responde a mesma pergunta. */
     });
 
     if (error) return { ok: false, mensagem: error.message };
