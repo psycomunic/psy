@@ -8,6 +8,8 @@ import {
   esquemaUsuario,
   esquemaAcesso,
   esquemaMeta,
+  esquemaVinculo,
+  esquemaTransferencia,
   validar,
 } from '@/lib/validacao/painel';
 
@@ -119,9 +121,14 @@ export async function convidarUsuario(
        Ver src/lib/validacao/painel.ts. */
     const v = validar(esquemaUsuario, fd);
     if (!v.ok) return v;
-    const { nome, email, papel, conta_id: contaId, senha } = v.dados;
+    const { nome, email, papel, contas, senha } = v.dados;
 
     const s = clienteServico();
+
+    /* A primeira loja da lista vira a principal: é a que o portal abre
+       por padrão quando a pessoa tem mais de uma. O acesso de verdade
+       vem das linhas em acessos_conta, criadas logo abaixo. */
+    const principal = contas[0] ?? null;
 
     const { data, error } = await s.auth.admin.createUser({
       email,
@@ -132,7 +139,7 @@ export async function convidarUsuario(
       /* app_metadata, e NUNCA user_metadata: user_metadata o próprio
          usuário edita pelo endpoint de update, e papel gravado lá seria
          promoção a admin numa requisição. */
-      app_metadata: { papel, conta_id: contaId || null },
+      app_metadata: { papel, conta_id: principal },
       user_metadata: { nome },
     });
 
@@ -162,10 +169,31 @@ export async function convidarUsuario(
       };
     }
 
+    /* O gatilho já criou o vínculo da loja principal. As demais entram
+       aqui, e o `ignoreDuplicates` evita conflito com a que ele criou. */
+    if (contas.length > 0) {
+      await s.from('acessos_conta').upsert(
+        contas.map((conta_id) => ({
+          usuario_id: data.user.id,
+          conta_id,
+          convidado_por: sessao.id,
+          aceito_em: new Date().toISOString(),
+        })),
+        { onConflict: 'usuario_id,conta_id', ignoreDuplicates: true },
+      );
+    }
+
     await registrar(sessao.id, 'criou', 'perfil', data.user.id);
     revalidatePath('/painel/equipe');
 
-    return { ok: true, mensagem: `${nome} agora tem acesso.` };
+    const quantas = contas.length;
+    return {
+      ok: true,
+      mensagem:
+        quantas === 0
+          ? `${nome} agora tem acesso.`
+          : `${nome} agora tem acesso a ${quantas} ${quantas === 1 ? 'loja' : 'lojas'}.`,
+    };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }
@@ -237,6 +265,172 @@ export async function definirMeta(
     revalidatePath('/painel/contas');
 
     return { ok: true, mensagem: 'Meta do mês definida.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/* ================================================================== */
+/* Vínculos usuário ↔ loja                                             */
+/* ================================================================== */
+
+export async function vincularConta(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await exigirAdmin();
+
+    const v = validar(esquemaVinculo, fd);
+    if (!v.ok) return v;
+    const { usuario_id, conta_id } = v.dados;
+
+    const s = clienteServico();
+    const { error } = await s
+      .from('acessos_conta')
+      .upsert(
+        {
+          usuario_id,
+          conta_id,
+          convidado_por: sessao.id,
+          aceito_em: new Date().toISOString(),
+        },
+        { onConflict: 'usuario_id,conta_id', ignoreDuplicates: true },
+      );
+
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/equipe');
+    return { ok: true, mensagem: 'Acesso à loja concedido.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+export async function desvincularConta(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirAdmin();
+
+    const v = validar(esquemaVinculo, fd);
+    if (!v.ok) return v;
+    const { usuario_id, conta_id } = v.dados;
+
+    const s = clienteServico();
+
+    /*
+      Um cliente sem nenhuma loja fica logado e sem enxergar nada, e a
+      constraint `cliente_precisa_de_conta` ainda o segura pela loja
+      principal — o resultado seria um usuário num limbo silencioso.
+      Melhor recusar e mandar desativar o acesso inteiro.
+    */
+    const { data: perfil } = await s
+      .from('perfil').select('papel').eq('id', usuario_id).maybeSingle();
+
+    if (perfil?.papel === 'cliente' || perfil?.papel === 'cliente_leitura') {
+      const { count } = await s
+        .from('acessos_conta')
+        .select('*', { count: 'exact', head: true })
+        .eq('usuario_id', usuario_id);
+
+      if ((count ?? 0) <= 1) {
+        return {
+          ok: false,
+          mensagem:
+            'Esta é a única loja da pessoa. Para tirar o acesso, desative-o em vez de desvincular.',
+        };
+      }
+    }
+
+    const { error } = await s
+      .from('acessos_conta')
+      .delete()
+      .eq('usuario_id', usuario_id)
+      .eq('conta_id', conta_id);
+
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/equipe');
+    return { ok: true, mensagem: 'Acesso à loja removido.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Transferência de carteira.
+ *
+ * Existe porque desativar alguém sem passar as lojas adiante deixa
+ * contas órfãs: ninguém responsável, ninguém recebendo o alerta, e o
+ * problema só aparece quando o cliente liga reclamando.
+ *
+ * A operação é: copiar os vínculos, remover os antigos, e opcionalmente
+ * desativar. Não é transação de banco única porque passa pelo PostgREST;
+ * a ordem escolhida (copiar ANTES de remover) garante que uma falha no
+ * meio deixe acesso duplicado, e não acesso perdido. Duplicado se
+ * conserta numa tela; perdido ninguém percebe.
+ */
+export async function transferirCarteira(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await exigirAdmin();
+
+    const v = validar(esquemaTransferencia, fd);
+    if (!v.ok) return v;
+    const { de_id, para_id, desativar } = v.dados;
+
+    if (desativar && para_id === sessao.id && de_id === sessao.id) {
+      return { ok: false, mensagem: 'Você não pode desativar o próprio acesso.' };
+    }
+
+    const s = clienteServico();
+
+    const { data: vinculos } = await s
+      .from('acessos_conta').select('conta_id').eq('usuario_id', de_id);
+
+    const contas = (vinculos ?? []).map((x) => x.conta_id as string);
+
+    if (contas.length === 0) {
+      return { ok: false, mensagem: 'Essa pessoa não tem nenhuma loja para transferir.' };
+    }
+
+    const { error: erroCopia } = await s.from('acessos_conta').upsert(
+      contas.map((conta_id) => ({
+        usuario_id: para_id,
+        conta_id,
+        convidado_por: sessao.id,
+        aceito_em: new Date().toISOString(),
+      })),
+      { onConflict: 'usuario_id,conta_id', ignoreDuplicates: true },
+    );
+
+    if (erroCopia) return { ok: false, mensagem: erroCopia.message };
+
+    const { error: erroRemocao } = await s
+      .from('acessos_conta').delete().eq('usuario_id', de_id);
+
+    if (erroRemocao) {
+      return {
+        ok: false,
+        mensagem: `As lojas foram passadas adiante, mas não saíram do antigo responsável: ${erroRemocao.message}`,
+      };
+    }
+
+    if (desativar) {
+      await s.from('perfil').update({ ativo: false }).eq('id', de_id);
+    }
+
+    await registrar(sessao.id, 'transferiu carteira', 'acessos_conta', de_id);
+    revalidatePath('/painel/equipe');
+
+    return {
+      ok: true,
+      mensagem: `${contas.length} ${contas.length === 1 ? 'loja transferida' : 'lojas transferidas'}${desativar ? ', e o acesso antigo foi desativado' : ''}.`,
+    };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }

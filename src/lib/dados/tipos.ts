@@ -124,7 +124,36 @@ export type PessoaEquipe = {
   email: string;
   papel: string;
   ativo: boolean;
-  contas: number;
+  /* As lojas que a pessoa enxerga, e não a contagem. Um número obriga a
+     abrir outra tela para descobrir QUAIS são, e essa é sempre a
+     pergunta seguinte. */
+  contas: { id: string; nome: string }[];
+};
+
+/** Uma linha da trilha de auditoria. */
+export type RegistroAuditoria = {
+  id: number;
+  autor: string | null;
+  autorPapel: string | null;
+  acao: string;
+  tabela: string;
+  registroId: string | null;
+  em: string;
+  /* Só os campos que mudaram, já comparados. Despejar `antes` e `depois`
+     inteiros na tela seria jogar duas linhas de banco na cara de quem só
+     quer saber o que mudou. */
+  mudancas: { campo: string; de: unknown; para: unknown }[];
+};
+
+export type Contato = {
+  id: string;
+  contaId: string;
+  nome: string;
+  cargo: string | null;
+  email: string | null;
+  telefone: string | null;
+  whatsapp: string | null;
+  principal: boolean;
 };
 
 /**

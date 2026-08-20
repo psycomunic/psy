@@ -81,6 +81,7 @@ export const MODULOS = [
   'tarefas',
   'relatorios',
   'equipe',
+  'auditoria',
   'configuracoes',
 ] as const;
 export type Modulo = (typeof MODULOS)[number];
@@ -95,6 +96,7 @@ export const rotuloModulo: Record<Modulo, string> = {
   tarefas: 'Tarefas',
   relatorios: 'Relatórios',
   equipe: 'Equipe',
+  auditoria: 'Auditoria',
   configuracoes: 'Configurações',
 };
 
@@ -137,6 +139,7 @@ export const permissoes: Matriz = {
     tarefas: ['ver', 'editar', 'excluir'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver', 'editar', 'excluir'],
+    auditoria: ['ver'],
     configuracoes: ['ver', 'editar'],
   },
 
@@ -149,6 +152,9 @@ export const permissoes: Matriz = {
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver'],
+    /* O gestor le a auditoria para responder "quem mudou isso?" sem
+       depender do administrador. Mas nao gere usuarios nem exclui. */
+    auditoria: ['ver'],
     configuracoes: ['ver'],
   },
 

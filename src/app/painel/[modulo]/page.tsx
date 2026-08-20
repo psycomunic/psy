@@ -22,6 +22,7 @@ import {
   Financeiro,
   Tarefas,
   Equipe,
+  Auditoria,
   EmConstrucao,
 } from '@/componentes/painel/modulos/Outros';
 
@@ -206,6 +207,7 @@ export default async function PainelModulo({
               {moduloAtual === 'financeiro' ? <Financeiro /> : null}
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
+              {moduloAtual === 'auditoria' ? <Auditoria /> : null}
               {AINDA_NAO[moduloAtual] ? (
                 <EmConstrucao
                   nome={rotuloModulo[moduloAtual]}

@@ -1,4 +1,5 @@
 import type {
+  RegistroAuditoria,
   ContaResumo,
   DiaKpi,
   CanalKpi,
@@ -246,7 +247,62 @@ export function tarefasDemo(): Tarefa[] {
 }
 
 export function equipeDemo(): PessoaEquipe[] {
+  const todas = contasBase.map((c) => ({ id: c.id, nome: c.nome }));
   return [
-    { id: 'p1', nome: 'Angelo Garcia', email: 'psycomunic@gmail.com', papel: 'administrador', ativo: true, contas: 5 },
+    {
+      id: 'p1',
+      nome: 'Angelo Garcia',
+      email: 'psycomunic@gmail.com',
+      papel: 'administrador',
+      ativo: true,
+      contas: todas,
+    },
+    /* Um operador com recorte: ele enxerga o módulo de métricas, mas só
+       as duas lojas em que é responsável. É o caso que mostra que o
+       recorte por loja acontece no banco, e não na tela. */
+    {
+      id: 'p2',
+      nome: 'Operadora de exemplo',
+      email: 'operacao@exemplo.invalido',
+      papel: 'operador',
+      ativo: true,
+      contas: todas.slice(0, 2),
+    },
+    {
+      id: 'p3',
+      nome: 'Dono da Loja Aurora',
+      email: 'dono@exemplo.invalido',
+      papel: 'cliente',
+      ativo: true,
+      contas: todas.slice(0, 1),
+    },
+  ];
+}
+
+export function auditoriaDemo(): RegistroAuditoria[] {
+  const agora = Date.now();
+  const horasAtras = (h: number) => new Date(agora - h * 3600000).toISOString();
+
+  return [
+    {
+      id: 4, autor: 'Angelo Garcia', autorPapel: 'administrador',
+      acao: 'update', tabela: 'contrato', registroId: 'dm-c1', em: horasAtras(3),
+      mudancas: [{ campo: 'fee_mensal', de: 4800, para: 5200 }],
+    },
+    {
+      id: 3, autor: 'Angelo Garcia', autorPapel: 'administrador',
+      acao: 'insert', tabela: 'acessos_conta', registroId: 'dm-a1', em: horasAtras(9),
+      mudancas: [{ campo: 'conta_id', de: null, para: 'Loja Aurora' }],
+    },
+    {
+      id: 2, autor: 'Angelo Garcia', autorPapel: 'administrador',
+      acao: 'update', tabela: 'perfil', registroId: 'dm-p2', em: horasAtras(28),
+      mudancas: [{ campo: 'ativo', de: true, para: false }],
+    },
+    {
+      id: 1, autor: 'Angelo Garcia', autorPapel: 'administrador',
+      acao: 'insert', tabela: 'conta', registroId: 'dm-1', em: horasAtras(52),
+      mudancas: [{ campo: 'nome', de: null, para: 'Loja Aurora' }],
+    },
   ];
 }

@@ -37,6 +37,14 @@ export const esquemaConta = z.object({
   documento: textoOpcional,
 });
 
+/** Lista de uuid vinda de um campo repetido no formulário. */
+const listaDeLojas = z
+  .array(z.uuid('Loja inválida.'))
+  .default([])
+  /* Marcar a mesma loja duas vezes não é erro do usuário, é ruído do
+     formulário. Deduplica em silêncio em vez de recusar. */
+  .transform((v) => [...new Set(v)]);
+
 export const esquemaUsuario = z
   .object({
     nome: textoObrigatorio(2, 'Informe o nome da pessoa.'),
@@ -49,19 +57,38 @@ export const esquemaUsuario = z
        um papel inventado entraria no app_metadata e o gatilho tentaria
        convertê-lo para o enum. */
     papel: z.enum(PAPEIS),
-    conta_id: z
-      .string()
-      .trim()
-      .transform((v) => (v === '' ? null : v))
-      .nullable()
-      .refine((v) => v === null || z.uuid().safeParse(v).success, 'Loja inválida.'),
+    /* Várias lojas: uma pessoa pode ser dona de duas marcas, e um
+       operador pode ser responsável por três contas. */
+    contas: listaDeLojas,
     /* Doze, e não os seis que o Supabase aceita: esta senha guarda o
        faturamento de uma loja inteira. */
     senha: z.string().min(12, 'A senha precisa de pelo menos 12 caracteres.'),
   })
-  .refine((d) => !(d.papel === 'cliente' || d.papel === 'cliente_leitura') || d.conta_id, {
-    message: 'Cliente precisa estar vinculado a uma loja.',
-    path: ['conta_id'],
+  .refine(
+    (d) => !(d.papel === 'cliente' || d.papel === 'cliente_leitura') || d.contas.length > 0,
+    {
+      message: 'Cliente precisa estar vinculado a pelo menos uma loja.',
+      path: ['contas'],
+    },
+  );
+
+export const esquemaVinculo = z.object({
+  usuario_id: z.uuid('Usuário inválido.'),
+  conta_id: z.uuid('Loja inválida.'),
+});
+
+export const esquemaTransferencia = z
+  .object({
+    de_id: z.uuid('Escolha de quem sai.'),
+    para_id: z.uuid('Escolha para quem vai.'),
+    /* Desativar junto é o caso normal: transfere-se carteira quando
+       alguém sai do time. Mas transferir sem desativar também acontece,
+       na redistribuição entre operadores. */
+    desativar: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  })
+  .refine((d) => d.de_id !== d.para_id, {
+    message: 'A carteira não pode ser transferida para a mesma pessoa.',
+    path: ['para_id'],
   });
 
 export const esquemaAcesso = z.object({
@@ -128,7 +155,29 @@ export function validar<T extends z.ZodType>(
   esquema: T,
   fd: FormData,
 ): { ok: true; dados: z.infer<T> } | { ok: false; mensagem: string } {
-  const bruto = Object.fromEntries(fd.entries());
+  /*
+    `Object.fromEntries(fd.entries())` descarta valores repetidos e fica
+    só com o último. Num formulário com várias caixas de "loja" marcadas,
+    isso silenciosamente vincularia a pessoa a UMA loja só — e o bug
+    apareceria semanas depois, como "o cliente não vê a segunda loja".
+
+    Por isso campo repetido vira array.
+  */
+  const bruto: Record<string, unknown> = {};
+  for (const chave of new Set(fd.keys())) {
+    const valores = fd.getAll(chave);
+    bruto[chave] = valores.length > 1 ? valores : valores[0];
+  }
+
+  /* Campo de múltipla escolha com UMA marcada chega como string. O
+     esquema espera array, então normaliza aqui: a alternativa seria
+     cada campo lidar com os dois formatos. */
+  for (const chave of ['contas']) {
+    if (chave in bruto && !Array.isArray(bruto[chave])) {
+      bruto[chave] = bruto[chave] === '' ? [] : [bruto[chave]];
+    }
+  }
+
   const r = esquema.safeParse(bruto);
 
   if (r.success) return { ok: true, dados: r.data };

@@ -10,6 +10,7 @@ import type {
   Tarefa,
   PessoaEquipe,
   Marco,
+  RegistroAuditoria,
   Resposta,
   Situacao,
   Estagio,
@@ -313,12 +314,18 @@ export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
   if (!bancoConfigurado) return semBanco(demo.equipeDemo());
 
   const supabase = await clienteServidor();
+
+  /* As lojas vêm junto, pelo relacionamento. Uma consulta por pessoa
+     seria N+1 numa tela que existe justamente para ver todo mundo de
+     uma vez. */
   const { data, error } = await supabase
     .from('perfil')
-    .select('id, nome, email, papel, ativo')
+    .select('id, nome, email, papel, ativo, acessos_conta(conta:conta_id(id, nome))')
     .order('nome');
 
   if (faltamTabelas(error)) return semBanco(demo.equipeDemo());
+
+  type LinhaAcesso = { conta: { id: string; nome: string } | null };
 
   return doBanco(
     (data ?? []).map((p) => ({
@@ -327,7 +334,83 @@ export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
       email: p.email as string,
       papel: p.papel as string,
       ativo: Boolean(p.ativo),
-      contas: 0,
+      contas: ((p.acessos_conta as unknown as LinhaAcesso[]) ?? [])
+        .map((a) => a.conta)
+        .filter((c): c is { id: string; nome: string } => c !== null),
     })),
+  );
+}
+
+/**
+ * Trilha de auditoria.
+ *
+ * A tabela guarda `antes` e `depois` como a linha inteira em jsonb. A
+ * tela não precisa disso: precisa saber O QUE MUDOU. A comparação
+ * acontece aqui, e o que sobe para a interface são só os campos
+ * diferentes.
+ *
+ * Campos de carimbo ficam de fora: `atualizado_em` muda em toda escrita
+ * e apareceria em 100% das linhas, empurrando para baixo a alteração
+ * que interessa.
+ */
+const CAMPOS_IGNORADOS = new Set(['atualizado_em', 'atualizada_em', 'criado_em', 'criada_em']);
+
+export async function listarAuditoria(
+  limite = 100,
+): Promise<Resposta<RegistroAuditoria[]>> {
+  if (!bancoConfigurado) return semBanco(demo.auditoriaDemo());
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('log_auditoria')
+    .select('id, acao, tabela, registro_id, em, autor_papel, perfil:autor_id(nome)')
+    .order('em', { ascending: false })
+    .limit(limite);
+
+  if (faltamTabelas(error)) return semBanco(demo.auditoriaDemo());
+
+  /* `antes` e `depois` vêm numa segunda consulta, só das linhas que a
+     primeira devolveu: são os dois campos mais pesados da tabela, e
+     trazê-los no join multiplicaria o payload por nada. */
+  const ids = (data ?? []).map((l) => l.id as number);
+  const { data: corpos } = ids.length
+    ? await supabase.from('log_auditoria').select('id, antes, depois').in('id', ids)
+    : { data: [] };
+
+  const porId = new Map(
+    (corpos ?? []).map((c) => [c.id as number, c as { antes: unknown; depois: unknown }]),
+  );
+
+  return doBanco(
+    (data ?? []).map((l) => {
+      const c = porId.get(l.id as number);
+      const antes = (c?.antes ?? null) as Record<string, unknown> | null;
+      const depois = (c?.depois ?? null) as Record<string, unknown> | null;
+
+      const campos = new Set([
+        ...Object.keys(antes ?? {}),
+        ...Object.keys(depois ?? {}),
+      ]);
+
+      const mudancas: RegistroAuditoria['mudancas'] = [];
+      for (const campo of campos) {
+        if (CAMPOS_IGNORADOS.has(campo)) continue;
+        const de = antes?.[campo] ?? null;
+        const para = depois?.[campo] ?? null;
+        if (JSON.stringify(de) === JSON.stringify(para)) continue;
+        mudancas.push({ campo, de, para });
+      }
+
+      return {
+        id: l.id as number,
+        autor: (l.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        autorPapel: (l.autor_papel as string) ?? null,
+        acao: l.acao as string,
+        tabela: l.tabela as string,
+        registroId: (l.registro_id as string) ?? null,
+        em: l.em as string,
+        mudancas,
+      };
+    }),
   );
 }

@@ -4,13 +4,21 @@ import {
   listarLeads,
   listarTarefas,
   listarEquipe,
+  listarAuditoria,
   financeiroDoMes,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, diasAte, diaLongo } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
-import { FormNovaConta, FormNovoUsuario, FormMeta, BotaoAcesso } from '../Formularios';
+import {
+  FormNovaConta,
+  FormNovoUsuario,
+  FormMeta,
+  BotaoAcesso,
+  LojasDaPessoa,
+  FormTransferencia,
+} from '../Formularios';
 
 /* ================================================================== */
 /* CRM: o funil                                                        */
@@ -329,25 +337,38 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
     listarContas(),
   ]);
   const podeEscrever = papel === 'administrador' && procedencia === 'banco';
+  const listaLojas = contas.map((c) => ({ id: c.id, nome: c.nome }));
 
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
 
       {podeEscrever ? (
-        <div className="mt-8">
-          <FormNovoUsuario contas={contas.map((c) => ({ id: c.id, nome: c.nome }))} />
+        <div className="mt-8 grid gap-4">
+          <FormNovoUsuario contas={listaLojas} />
+          <FormTransferencia
+            pessoas={equipe.map((p) => ({
+              id: p.id,
+              nome: p.nome,
+              contas: p.contas.length,
+            }))}
+          />
         </div>
       ) : null}
 
-      <Secao titulo="Pessoas com acesso" apoio="Papel define o que cada uma enxerga. A matriz vive em src/lib/papeis.ts e nas políticas do banco.">
+      <Secao
+        titulo="Pessoas com acesso"
+        apoio="O papel decide quais MÓDULOS a pessoa enxerga. As lojas decidem quais LINHAS ela recebe, e isso é aplicado no banco."
+      >
         <Tabela>
-          <caption className="sr-only">Usuários da plataforma e seus papéis</caption>
+          <caption className="sr-only">
+            Usuários da plataforma, papéis e lojas às quais têm acesso
+          </caption>
           <thead>
             <tr>
               <th scope="col" className={th}>Nome</th>
-              <th scope="col" className={th}>E-mail</th>
               <th scope="col" className={th}>Papel</th>
+              <th scope="col" className={th}>Lojas</th>
               <th scope="col" className={th}>Situação</th>
               <th scope="col" className={th}></th>
             </tr>
@@ -355,9 +376,19 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
           <tbody>
             {equipe.map((p) => (
               <tr key={p.id}>
-                <th scope="row" className={`${td} font-normal text-branco`}>{p.nome}</th>
-                <td className={td}>{p.email}</td>
+                <th scope="row" className={`${td} font-normal`}>
+                  <span className="font-semibold text-branco">{p.nome}</span>
+                  <span className="mt-1 block text-xs text-cinza">{p.email}</span>
+                </th>
                 <td className={td}>{rotuloPapel[p.papel as Papel] ?? p.papel}</td>
+                <td className={`${td} min-w-[18rem]`}>
+                  <LojasDaPessoa
+                    usuarioId={p.id}
+                    atuais={p.contas}
+                    todas={listaLojas}
+                    editavel={podeEscrever}
+                  />
+                </td>
                 <td className={td}>
                   {/* Cor com FORMA junto: quem não distingue verde de
                       vermelho lê o símbolo e o texto. */}
@@ -380,13 +411,125 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
         </Tabela>
       </Secao>
 
-      <Secao titulo="Convidar alguém">
-        <p className="cartao p-6 text-sm leading-relaxed text-cinza">
-          O convite grava o papel e a conta em <code className="text-neve">app_metadata</code>,
-          que o usuário não consegue editar, e o gatilho do banco cria o perfil no primeiro
-          acesso. Por isso não existe cadastro aberto: quem se cadastrasse sozinho entraria
-          sem papel e sem conta, e ficaria logado sem lugar nenhum.
-        </p>
+      <Secao titulo="Como o acesso funciona">
+        <div className="cartao space-y-4 p-6 text-sm leading-relaxed text-cinza">
+          <p>
+            O convite grava o papel e a loja em{' '}
+            <code className="text-neve">app_metadata</code>, que o usuário não consegue
+            editar, e um gatilho do banco cria o perfil no primeiro acesso. Por isso não
+            existe cadastro aberto: quem se cadastrasse sozinho entraria sem papel e sem
+            loja, e ficaria logado sem lugar nenhum.
+          </p>
+          <p>
+            <strong className="text-neve">Desativar não apaga.</strong> O acesso é cortado
+            na mesma sessão, sem esperar o próximo login, e o histórico da pessoa continua
+            na auditoria. Excluir apagaria quem fez o quê.
+          </p>
+          <p>
+            Um cliente precisa de ao menos uma loja. Tirar a última seria deixá-lo logado
+            enxergando nada, então o sistema recusa e pede que você desative o acesso.
+          </p>
+        </div>
+      </Secao>
+    </>
+  );
+}
+
+/* ================================================================== */
+/* Auditoria                                                           */
+/* ================================================================== */
+
+/** Como um valor de banco vira algo legível numa linha de tabela. */
+function valorLegivel(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—';
+  if (typeof v === 'boolean') return v ? 'sim' : 'não';
+  if (typeof v === 'object') return JSON.stringify(v);
+  const s = String(v);
+  /* uuid inteiro numa célula empurra a tabela para o lado sem informar
+     nada: os oito primeiros já servem para conferir. */
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(s) ? `${s.slice(0, 8)}…` : s;
+}
+
+const ROTULO_ACAO: Record<string, string> = {
+  insert: 'criou',
+  update: 'alterou',
+  delete: 'excluiu',
+};
+
+const ROTULO_TABELA: Record<string, string> = {
+  conta: 'Loja',
+  perfil: 'Usuário',
+  acessos_conta: 'Acesso a loja',
+  contrato: 'Contrato',
+  fatura: 'Fatura',
+  lancamento: 'Lançamento',
+  proposta: 'Proposta',
+  meta_conta: 'Meta',
+  integracao: 'Integração',
+};
+
+export async function Auditoria() {
+  const { dados: registros, procedencia } = await listarAuditoria(100);
+
+  return (
+    <>
+      <AvisoProcedencia procedencia={procedencia} />
+
+      <Secao
+        titulo="Quem fez o quê"
+        apoio="Últimos 100 registros das tabelas sensíveis. O log não se altera nem se apaga: se desse para editar, não seria log."
+      >
+        {registros.length === 0 ? (
+          <p className="cartao p-6 text-sm text-cinza">
+            Nenhum registro ainda. A trilha começa na primeira alteração de contrato,
+            fatura, acesso, integração ou meta.
+          </p>
+        ) : (
+          <ol className="space-y-3">
+            {registros.map((r) => (
+              <li key={r.id} className="cartao p-5">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="font-semibold text-branco">{r.autor ?? 'Sistema'}</span>
+                  <span className="text-sm text-cinza">
+                    {ROTULO_ACAO[r.acao] ?? r.acao}{' '}
+                    <span className="text-neve">
+                      {ROTULO_TABELA[r.tabela] ?? r.tabela}
+                    </span>
+                  </span>
+                  <span className="ml-auto font-mono text-[0.62rem] uppercase tracking-[0.12em] text-cinza">
+                    {new Date(r.em).toLocaleString('pt-BR', {
+                      timeZone: 'America/Sao_Paulo',
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+
+                {r.mudancas.length > 0 ? (
+                  <ul className="mt-3 space-y-1.5 border-t border-fio pt-3">
+                    {r.mudancas.slice(0, 6).map((m) => (
+                      <li key={m.campo} className="flex flex-wrap items-baseline gap-2 text-xs">
+                        <span className="font-mono uppercase tracking-[0.1em] text-cinza">
+                          {m.campo}
+                        </span>
+                        <span className="text-cinza line-through">{valorLegivel(m.de)}</span>
+                        <span aria-hidden className="text-magenta-texto">→</span>
+                        <span className="text-neve">{valorLegivel(m.para)}</span>
+                      </li>
+                    ))}
+                    {r.mudancas.length > 6 ? (
+                      <li className="text-xs text-cinza">
+                        e mais {r.mudancas.length - 6} campos
+                      </li>
+                    ) : null}
+                  </ul>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        )}
       </Secao>
     </>
   );

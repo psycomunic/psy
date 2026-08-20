@@ -162,14 +162,26 @@ coluna:
   arredondamento, e passa o resultado por `arredondar()`
 - JavaScript trata dinheiro como camada de **exibição**
 
-### 6.2 O multi-loja entra por uma função, não por 38 políticas
+### 6.2 O multi-loja entrou por uma função, não por 38 políticas
 
-Todas as políticas chamam `tem_acesso_conta(uuid)`. Hoje ela lê
-`perfil.conta_id` (uma loja por usuário). Na FASE 1 o corpo passa a ler
-`acessos_conta` (N:N) e **nenhuma política precisa ser reescrita**.
+Todas as políticas chamam `tem_acesso_conta(uuid)`. Na FASE 0 ela lia
+`perfil.conta_id`; na FASE 1 o corpo passou a ler `acessos_conta` (N:N) e
+**nenhuma política precisou ser reescrita**. Foi para isso que a lógica
+de acesso ficou centralizada desde a primeira migração.
 
-Foi para isso que a lógica de acesso ficou centralizada desde a primeira
-migração.
+`perfil.conta_id` continua existindo, com outro significado: **loja
+principal**, a que o portal abre por padrão para quem tem mais de uma.
+
+### 6.3 A auditoria apaga o segredo antes de gravar
+
+`registrar_auditoria()` guarda `antes` e `depois` como a linha inteira em
+jsonb. Em `integracao`, isso incluiria o token de anúncio do cliente, e o
+log viraria o lugar mais fácil de vazar credencial no banco todo. O
+gatilho remove o campo `segredo` antes de escrever.
+
+Verificado inserindo uma integração com token de teste: o log grava
+`ativa, conta_id, criada_em, id, identificador, provedor, ultima_sync` e
+nada mais.
 
 ---
 
@@ -188,6 +200,7 @@ arquivo descreve.
 | 0005 | gatilho de perfil resiliente |
 | 0006 | papéis renomeados, RLS em `migracao_aplicada` |
 | 0007 | papéis novos em uso, `tem_acesso_conta()` |
+| 0008 | `acessos_conta` (N:N), `contato`, auditoria nas tabelas de acesso e credencial |
 
 **0006 e 0007 são duas porque o Postgres proíbe usar um valor de enum na
 mesma transação em que ele é criado.**
