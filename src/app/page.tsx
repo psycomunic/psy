@@ -602,7 +602,7 @@ export default function Home() {
                 {
                   n: '02',
                   t: 'Mídia e canais próprios',
-                  d: 'Tudo acima, mais página de conversão, e-mail, recuperação de carrinho e conteúdo. A loja passa a vender também quando a verba pausa.',
+                  d: 'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
                   q: 'Para quem depende demais de comprar tráfego.',
                   destaque: true,
                 },

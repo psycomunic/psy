@@ -70,7 +70,7 @@ export const fichas: Record<Plano, FichaPlano> = {
     nome: 'Falcon',
     paraQuem: 'Loja que quer parar de depender só de mídia paga',
     promessa:
-      'Tudo do Saturno, mais os canais próprios: página de conversão, e-mail, recuperação de carrinho e conteúdo.',
+      'Tudo do Saturno, mais o conteúdo: linhas editoriais, campanhas de data, criativos produzidos e recuperação de carrinho.',
     fee: 7000,
     destaque: true,
     selo: 'O mais contratado',
@@ -136,13 +136,37 @@ export const blocos: Bloco[] = [
           apollo: 'Sem teto',
         },
       },
+      /*
+        Criativo virou DUAS linhas porque são dois trabalhos com donos
+        diferentes, e juntá-los numa linha só prometia o que a agência
+        não faz.
+
+        O material principal, sobretudo vídeo, sai melhor com quem vive
+        o produto: quem está na loja sabe o detalhe que vende, e um
+        externo não descobre isso em briefing. Então a sua equipe grava
+        e a Psy Comunic dirige.
+
+        O dia a dia é o contrário: variação de oferta, formato novo,
+        destaque da semana. É volume constante, e é da agência.
+      */
       {
-        nome: 'Criativos',
-        porque: 'Criativo é o que mais move resultado em mídia hoje.',
+        nome: 'Criativos do dia a dia',
+        porque:
+          'Variação de oferta, formato e destaque, toda semana. É o que mais move resultado em mídia hoje, e é volume que não para.',
         valores: {
           saturno: 'Referências e direção de arte',
-          falcon: 'Edição e adaptação por formato',
-          apollo: 'Criação, edição e testes contínuos',
+          falcon: 'Produção e adaptação por formato',
+          apollo: 'Produção contínua, com teste por ângulo',
+        },
+      },
+      {
+        nome: 'Direção do material principal',
+        porque:
+          'Vídeo de produto rende mais gravado por quem vive o produto. A sua equipe grava, a Psy Comunic define o roteiro, o corte e o que vai a teste.',
+        valores: {
+          saturno: 'Roteiro e referências do que gravar',
+          falcon: 'Roteiro, referências e edição',
+          apollo: 'Roteiro, edição e calendário de gravação',
         },
       },
       {
@@ -202,22 +226,9 @@ export const blocos: Bloco[] = [
   },
 
   {
-    titulo: 'Canais próprios e conversão',
-    apoio: 'O que faz a loja vender sem depender só de comprar mídia.',
+    titulo: 'Conteúdo e conversão',
+    apoio: 'O que faz a loja vender sem depender só de aumentar a verba.',
     linhas: [
-      {
-        nome: 'Landing pages',
-        porque: 'Página feita para a campanha converte mais que a página de produto.',
-        valores: { saturno: false, falcon: '1 por trimestre', apollo: 'Sem limite' },
-      },
-      {
-        nome: 'E-mail marketing e automação',
-        valores: {
-          saturno: false,
-          falcon: 'Boas-vindas, carrinho e pós-compra',
-          apollo: 'Régua completa, com segmentação',
-        },
-      },
       {
         nome: 'Recuperação de carrinho e de boleto',
         porque: 'Pedido gerado e não pago é a receita mais barata de recuperar.',

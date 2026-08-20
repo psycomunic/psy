@@ -63,7 +63,8 @@ export const jornada: FaseDaJornada[] = [
       'Lançar é o começo. A partir daí a operação roda com meta declarada, leitura semanal e ajuste em cima do número que a loja faturou, e não do que a plataforma de mídia diz ter gerado.',
     itens: [
       'Mídia paga gerida com meta de faturamento, e não com meta de clique',
-      'Canais próprios: e-mail, recuperação de carrinho, conteúdo e página de campanha',
+      'Conteúdo e criativos do dia a dia, com direção do material que a sua equipe grava',
+      'Recuperação de carrinho e de boleto',
       'Ajuste contínuo de plataforma, checkout e taxa de aprovação',
       'Gestão de marketplaces e novos canais de venda',
       'Painel de métricas ao vivo, com o seu login',
