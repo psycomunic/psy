@@ -331,3 +331,45 @@ export const rotuloStatusProposta: Record<PropostaResumo['status'], string> = {
   recusada: 'Recusada',
   expirada: 'Expirada',
 };
+
+/* ------------------------------------------------------------------ */
+/* Cobrança                                                            */
+/* ------------------------------------------------------------------ */
+
+export type FaturaResumo = {
+  id: string;
+  numero: string;
+  conta: string | null;
+  contratoId: string | null;
+  status: 'aberta' | 'enviada' | 'paga' | 'vencida' | 'cancelada';
+  valor: number;
+  competencia: string;
+  vencimento: string;
+  pagaEm: string | null;
+  /** Presente quando a cobrança já existe no Asaas. */
+  asaasId: string | null;
+  linkPagamento: string | null;
+  formaPagamento: string | null;
+  /** Dias até vencer. Negativo já venceu. */
+  diasAteVencer: number;
+};
+
+export const rotuloStatusFatura: Record<FaturaResumo['status'], string> = {
+  aberta: 'Aberta',
+  enviada: 'Enviada',
+  paga: 'Paga',
+  vencida: 'Vencida',
+  cancelada: 'Cancelada',
+};
+
+export type ContratoAtivo = {
+  id: string;
+  conta: string | null;
+  contaId: string;
+  plano: string;
+  feeMensal: number;
+  inicio: string;
+  fim: string | null;
+  /** A fatura do mês corrente já existe? */
+  faturadoNoMes: boolean;
+};

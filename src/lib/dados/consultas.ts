@@ -23,6 +23,8 @@ import type {
   Frescor,
   EstadoIntegracao,
   PropostaResumo,
+  FaturaResumo,
+  ContratoAtivo,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -825,4 +827,81 @@ export async function leadPorId(id: string): Promise<Lead | null> {
 
   const { dados } = await listarLeads();
   return dados.find((l) => l.id === id) ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cobrança                                                            */
+/* ------------------------------------------------------------------ */
+
+export async function listarFaturas(limite = 60): Promise<Resposta<FaturaResumo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('fatura')
+    .select('id, numero, contrato_id, status, valor, competencia, vencimento, paga_em, asaas_id, link_pagamento, forma_pagamento, conta:conta_id(nome)')
+    .order('vencimento', { ascending: false })
+    .limit(limite);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const hoje = hojeBR();
+
+  return doBanco(
+    (data ?? []).map((f) => ({
+      id: f.id as string,
+      numero: f.numero as string,
+      conta: (f.conta as unknown as { nome: string } | null)?.nome ?? null,
+      contratoId: (f.contrato_id as string) ?? null,
+      status: f.status as FaturaResumo['status'],
+      valor: Number(f.valor ?? 0),
+      competencia: f.competencia as string,
+      vencimento: f.vencimento as string,
+      pagaEm: (f.paga_em as string) ?? null,
+      asaasId: (f.asaas_id as string) ?? null,
+      linkPagamento: (f.link_pagamento as string) ?? null,
+      formaPagamento: (f.forma_pagamento as string) ?? null,
+      /* Calculado na camada de dados, e não no render: contar dias
+         exige saber que dia é hoje, e Date.now() durante o render é
+         chamada impura. */
+      diasAteVencer: Math.round(
+        (Date.parse(`${f.vencimento}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86400000,
+      ),
+    })),
+  );
+}
+
+export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const hoje = hojeBR();
+  const mes = `${hoje.slice(0, 7)}-01`;
+
+  const [rContratos, rFaturas] = await Promise.all([
+    supabase
+      .from('contrato')
+      .select('id, conta_id, plano, fee_mensal, inicio, fim, conta:conta_id(nome)')
+      .lte('inicio', hoje)
+      .or(`fim.is.null,fim.gte.${hoje}`)
+      .order('inicio', { ascending: false }),
+    supabase.from('fatura').select('contrato_id').eq('competencia', mes),
+  ]);
+
+  if (faltamTabelas(rContratos.error)) return semBanco([]);
+
+  const faturados = new Set((rFaturas.data ?? []).map((f) => f.contrato_id as string));
+
+  return doBanco(
+    (rContratos.data ?? []).map((c) => ({
+      id: c.id as string,
+      conta: (c.conta as unknown as { nome: string } | null)?.nome ?? null,
+      contaId: c.conta_id as string,
+      plano: c.plano as string,
+      feeMensal: Number(c.fee_mensal ?? 0),
+      inicio: c.inicio as string,
+      fim: (c.fim as string) ?? null,
+      faturadoNoMes: faturados.has(c.id as string),
+    })),
+  );
 }

@@ -15,13 +15,14 @@
     "auditar-rls": "node scripts/auditar-rls.mjs",
     "verificar": "npm run lint && npx tsc --noEmit && npm run teste && npm run build",
     "testar-conversao": "node scripts/testar-conversao.mjs",
-    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao",
+    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao && npm run testar-cobranca",
     "testar-ingestao": "node scripts/testar-ingestao.mjs",
     "testar-credenciais": "node scripts/testar-credenciais.mjs",
     "medir-proposta": "node scripts/medir-proposta.mjs",
     "limpar-teste": "node scripts/limpar-teste.mjs",
     "conferir-consultas": "node scripts/conferir-consultas.mjs",
-    "medir-painel": "node scripts/medir-painel.mjs"
+    "medir-painel": "node scripts/medir-painel.mjs",
+    "testar-cobranca": "node scripts/testar-cobranca.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

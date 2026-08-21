@@ -8,9 +8,11 @@ import {
   listarFunil,
   financeiroDoMes,
   interacoesDosLeads,
+  listarFaturas,
+  listarContratos,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { rotuloEstagio } from '@/lib/dados/tipos';
+import { rotuloEstagio, rotuloStatusFatura } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
@@ -23,6 +25,8 @@ import {
 } from '../Formularios';
 import { Kanban } from '../Kanban';
 import { FormLead } from '../FormLead';
+import { BotaoFaturar, BotaoCobrar, BotaoConferir, CopiarCobranca } from '../FormCobranca';
+import { CORES_SITUACAO } from '../paleta';
 import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 
 /* ================================================================== */
@@ -316,11 +320,21 @@ export async function Contas({ papel }: { papel: Papel }) {
 /* Financeiro                                                          */
 /* ================================================================== */
 
+const COR_FATURA: Record<string, string> = {
+  aberta: CORES_SITUACAO.sem_dado,
+  enviada: CORES_SITUACAO.atencao,
+  paga: CORES_SITUACAO.saudavel,
+  vencida: CORES_SITUACAO.critico,
+  cancelada: CORES_SITUACAO.sem_dado,
+};
+
+const FORMA_FATURA: Record<string, string> = {
+  aberta: '○', enviada: '▲', paga: '●', vencida: '■', cancelada: '—',
+};
+
 export async function Financeiro() {
-  const [{ dados: fin, procedencia }, { dados: contas }] = await Promise.all([
-    financeiroDoMes(),
-    listarContas(),
-  ]);
+  const [{ dados: fin, procedencia }, { dados: contas }, { dados: faturas }, { dados: contratos }] =
+    await Promise.all([financeiroDoMes(), listarContas(), listarFaturas(), listarContratos()]);
 
   const ticketMedio = fin.contratosAtivos > 0
     ? Math.round(fin.receitaRecorrente / fin.contratosAtivos)
@@ -341,6 +355,108 @@ export async function Financeiro() {
           <Kpi rotulo="A receber" valor={dinheiro(fin.aReceberMes)} />
         </div>
       </Secao>
+
+      {contratos.length > 0 ? (
+        <Secao
+          titulo="Faturar o mês"
+          apoio="Uma fatura por contrato, por competência. Clicar duas vezes não gera segunda cobrança: a emissão devolve a fatura que já existe."
+        >
+          <Tabela>
+            <caption className="sr-only">Contratos ativos e a fatura do mês corrente</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={th}>Loja</th>
+                <th scope="col" className={th}>Plano</th>
+                <th scope="col" className={th}>Fee</th>
+                <th scope="col" className={th}>Mês corrente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contratos.map((c) => (
+                <tr key={c.id}>
+                  <th scope="row" className={`${td} font-normal text-branco`}>{c.conta ?? '—'}</th>
+                  <td className={td}>{c.plano}</td>
+                  <td className={`${td} tabular`}>{dinheiro(c.feeMensal)}</td>
+                  <td className={td}>
+                    <BotaoFaturar contratoId={c.id} jaFaturado={c.faturadoNoMes} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Tabela>
+        </Secao>
+      ) : null}
+
+      {faturas.length > 0 ? (
+        <Secao
+          titulo="Faturas"
+          apoio="O status vem do Asaas pelo webhook. 'Conferir' puxa o estado real, para quando o retorno se perde."
+        >
+          <Tabela>
+            <caption className="sr-only">Faturas emitidas, com status e link de pagamento</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={th}>Fatura</th>
+                <th scope="col" className={th}>Valor</th>
+                <th scope="col" className={th}>Vencimento</th>
+                <th scope="col" className={th}>Status</th>
+                <th scope="col" className={th}>Cobrança</th>
+              </tr>
+            </thead>
+            <tbody>
+              {faturas.map((f) => {
+                const vencida = f.status !== 'paga' && f.status !== 'cancelada' && f.diasAteVencer < 0;
+                const chave = vencida ? 'vencida' : f.status;
+                return (
+                  <tr key={f.id}>
+                    <th scope="row" className={`${td} font-normal`}>
+                      <span className="font-semibold text-branco">{f.conta ?? '—'}</span>
+                      <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                        {f.numero}
+                      </span>
+                    </th>
+                    <td className={`${td} tabular`}>{dinheiro(f.valor)}</td>
+                    <td className={`${td} tabular whitespace-nowrap text-sm`}>
+                      {new Date(`${f.vencimento}T12:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                      <span className="mt-1 block text-xs text-cinza">
+                        {f.status === 'paga'
+                          ? 'paga'
+                          : f.diasAteVencer < 0
+                            ? `venceu há ${Math.abs(f.diasAteVencer)} d`
+                            : `vence em ${f.diasAteVencer} d`}
+                      </span>
+                    </td>
+                    <td className={td}>
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ color: COR_FATURA[chave] }}
+                      >
+                        <span aria-hidden className="mr-1.5">{FORMA_FATURA[chave]}</span>
+                        {rotuloStatusFatura[chave as keyof typeof rotuloStatusFatura]}
+                      </span>
+                      {f.formaPagamento ? (
+                        <span className="mt-1 block text-xs text-cinza">{f.formaPagamento}</span>
+                      ) : null}
+                    </td>
+                    <td className={td}>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {!f.asaasId ? (
+                          <BotaoCobrar faturaId={f.id} />
+                        ) : (
+                          <>
+                            {f.linkPagamento ? <CopiarCobranca link={f.linkPagamento} /> : null}
+                            {f.status !== 'paga' ? <BotaoConferir faturaId={f.id} /> : null}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Tabela>
+        </Secao>
+      ) : null}
 
       <Secao titulo="Risco">
         <div className="grid gap-4 sm:grid-cols-2">

@@ -15,13 +15,14 @@ import { cifrarCom, decifrarCom, lerChave, final, ErroDeCripto } from '@/lib/cri
  * processo; as de escrita recebem o claro e devolvem só a pista.
  */
 
-export const PROVEDORES_DE_API = ['meta_ads', 'google_ads', 'ga4'] as const;
+export const PROVEDORES_DE_API = ['meta_ads', 'google_ads', 'ga4', 'asaas'] as const;
 export type ProvedorApi = (typeof PROVEDORES_DE_API)[number];
 
 export const rotuloProvedorApi: Record<ProvedorApi, string> = {
   meta_ads: 'Meta Ads (BM da agência)',
   google_ads: 'Google Ads (MCC da agência)',
   ga4: 'Google Analytics 4',
+  asaas: 'Asaas (cobrança)',
 };
 
 /**
@@ -56,10 +57,33 @@ export const CAMPOS_DO_PROVEDOR: Record<
     { chave: 'client_secret', rotulo: 'Client secret', segredo: true, obrigatorio: true, ajuda: 'Pode ser o mesmo do Google Ads.' },
     { chave: 'refresh_token', rotulo: 'Refresh token', segredo: true, obrigatorio: true, ajuda: 'Precisa ter sido gerado com o escopo analytics.readonly.' },
   ],
+  asaas: [
+    {
+      chave: 'api_key',
+      rotulo: 'Chave de API',
+      segredo: true,
+      obrigatorio: true,
+      ajuda: 'Asaas > Integrações > API. A chave de sandbox começa com \$aact_hmlg e a de produção com \$aact_prod.',
+    },
+    {
+      chave: 'ambiente',
+      rotulo: 'Ambiente: sandbox ou producao',
+      segredo: false,
+      obrigatorio: true,
+      ajuda: 'Comece em sandbox. Chave de sandbox apontada para produção responde 401, e o contrário emite cobrança de verdade.',
+    },
+    {
+      chave: 'webhook_token',
+      rotulo: 'Token do webhook',
+      segredo: true,
+      obrigatorio: false,
+      ajuda: 'O mesmo que você configurar no Asaas em Integrações > Webhooks. Sem ele, a rota de retorno recusa tudo.',
+    },
+  ],
 };
 
 /** Campos que NÃO são segredo e ficam legíveis em `configuracao`. */
-const ABERTOS = new Set(['client_id', 'login_customer_id', 'property_id']);
+const ABERTOS = new Set(['client_id', 'login_customer_id', 'property_id', 'ambiente']);
 
 function chave() {
   const bruta = process.env.CRIPTO_CHAVE;
