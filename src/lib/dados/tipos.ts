@@ -219,13 +219,53 @@ export type ContratoResumo = {
   fim: string | null;
 };
 
+export const PRIORIDADES = ['baixa', 'media', 'alta', 'urgente'] as const;
+export type Prioridade = (typeof PRIORIDADES)[number];
+
+export const rotuloPrioridade: Record<Prioridade, string> = {
+  baixa: 'Baixa',
+  media: 'Média',
+  alta: 'Alta',
+  urgente: 'Urgente',
+};
+
+export const RECORRENCIAS = ['nenhuma', 'diaria', 'semanal', 'quinzenal', 'mensal'] as const;
+export type Recorrencia = (typeof RECORRENCIAS)[number];
+
+export const rotuloRecorrencia: Record<Recorrencia, string> = {
+  nenhuma: 'Não se repete',
+  diaria: 'Todo dia',
+  semanal: 'Toda semana',
+  quinzenal: 'A cada 15 dias',
+  mensal: 'Todo mês',
+};
+
 export type Tarefa = {
   id: string;
   titulo: string;
+  detalhe: string | null;
   conta: string | null;
+  contaId: string | null;
   status: 'aberta' | 'fazendo' | 'concluida' | 'cancelada';
   responsavel: string | null;
+  responsavelId: string | null;
   prazo: string | null;
+  prioridade: Prioridade;
+  recorrencia: Recorrencia;
+  lembrarDias: number;
+  concluidaEm: string | null;
+  /** Dias até o prazo. Negativo já passou. Null sem prazo. */
+  diasAtePrazo: number | null;
+};
+
+export type Notificacao = {
+  id: number;
+  tipo: 'tarefa_vence' | 'tarefa_atrasada' | 'fatura_vencida' | 'aviso';
+  titulo: string;
+  corpo: string | null;
+  link: string | null;
+  lidaEm: string | null;
+  criadaEm: string;
 };
 
 export type PessoaEquipe = {

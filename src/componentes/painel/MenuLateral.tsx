@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Marca } from '@/componentes/Marca';
 import { BotaoMenu } from './BotaoMenu';
 import { IconeModulo } from './IconeModulo';
+import { Sino } from './Sino';
 import { Sair } from '@/app/painel/Sair';
 import {
   GRUPOS_DE_MODULOS,
@@ -14,6 +15,7 @@ import {
   type Modulo,
   type Papel,
 } from '@/lib/papeis';
+import type { Notificacao } from '@/lib/dados/tipos';
 
 /**
  * A navegação do painel.
@@ -48,12 +50,14 @@ export function MenuLateral({
   moduloAtual,
   bancoConfigurado,
   contadores = {},
+  avisos,
 }: {
   papel: Papel;
   nome: string | null;
   moduloAtual: Modulo;
   bancoConfigurado: boolean;
   contadores?: Contadores;
+  avisos?: { lista: Notificacao[]; naoLidas: number; agora: string };
 }) {
   const visiveis = modulosDoPapel(papel);
   const temAcesso = (m: Modulo) => visiveis.includes(m);
@@ -142,7 +146,13 @@ export function MenuLateral({
         <span className="menu-rotulo min-w-0">
           <Marca />
         </span>
-        <BotaoMenu />
+        <span className="flex items-center gap-2">
+          {/* O sino no topo do menu, e nao dentro de um modulo: e o
+              unico lugar por onde toda navegacao passa. Lembrete que
+              exige abrir a tela certa nao e lembrete. */}
+          {avisos ? <Sino lista={avisos.lista} naoLidas={avisos.naoLidas} agora={avisos.agora} /> : null}
+          <BotaoMenu />
+        </span>
       </div>
 
       <div className="menu-corpo">

@@ -16,17 +16,18 @@ import { Metricas } from '@/componentes/painel/modulos/Metricas';
 import {
   Crm,
   Contas,
-  Tarefas,
   Equipe,
   Auditoria,
   EmConstrucao,
 } from '@/componentes/painel/modulos/Outros';
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 import { Financeiro, abaFinanceiro } from '@/componentes/painel/modulos/Financeiro';
+import { Tarefas, filtroDaUrl } from '@/componentes/painel/modulos/Tarefas';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { MenuLateral } from '@/componentes/painel/MenuLateral';
 import { resumoDaOperacao } from '@/lib/dados/operacao';
+import { minhasNotificacoes } from '@/lib/dados/consultas';
 
 export const metadata = {
   title: 'Painel',
@@ -46,10 +47,13 @@ export default async function PainelModulo({
   searchParams,
 }: {
   params: Promise<{ modulo: string }>;
-  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string; pagina?: string; lead?: string }>;
+  searchParams: Promise<{
+    papel?: string; conta?: string; ficha?: string; aba?: string;
+    pagina?: string; lead?: string; filtro?: string;
+  }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead } = await searchParams;
+  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
@@ -96,6 +100,14 @@ export default async function PainelModulo({
     Só para papel interno. Cliente não tem tarefa da agência nem lead.
   */
   const resumo = eInterno(papel) && bancoConfigurado ? await resumoDaOperacao() : null;
+
+  /* Os avisos vem aqui, e nao dentro do menu: o menu e componente de
+     cliente, e consulta de banco em componente de cliente nao existe.
+     O relogio vai junto pelo mesmo motivo de sempre - Date.now() no
+     render do navegador divergiria do HTML que o servidor mandou. */
+  const avisos = bancoConfigurado
+    ? await minhasNotificacoes().then((r) => ({ ...r.dados, agora: new Date().toISOString() }))
+    : undefined;
 
   const contadores = resumo
     ? {
@@ -148,6 +160,7 @@ export default async function PainelModulo({
         moduloAtual={moduloAtual}
         bancoConfigurado={bancoConfigurado}
         contadores={contadores}
+        avisos={avisos}
       />
 
             {/* Conteúdo */}
@@ -191,7 +204,9 @@ export default async function PainelModulo({
                 <Contas papel={papel} />
               ) : null}
               {moduloAtual === 'financeiro' ? <Financeiro aba={abaFinanceiro(aba)} /> : null}
-              {moduloAtual === 'tarefas' ? <Tarefas /> : null}
+              {moduloAtual === 'tarefas' ? (
+                <Tarefas papel={papel} filtro={filtroDaUrl(filtro)} />
+              ) : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
               {moduloAtual === 'auditoria' ? (
                 <Auditoria pagina={Math.max(0, Number(pagina) || 0)} />

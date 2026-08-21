@@ -318,14 +318,34 @@ export function tarefasDemo(): Tarefa[] {
     d.setDate(d.getDate() + n);
     return iso(d);
   };
-  return [
-    { id: 't1', titulo: 'Revisar campanhas de Performance Max', conta: 'Loja Aurora',      status: 'fazendo',   responsavel: 'Angelo Garcia', prazo: prazo(1) },
-    { id: 't2', titulo: 'Investigar queda na taxa de aprovação', conta: 'Nordeste Fitness', status: 'aberta',    responsavel: 'Angelo Garcia', prazo: prazo(-2) },
-    { id: 't3', titulo: 'Subir novos criativos de remarketing',  conta: 'Verano Casa',      status: 'aberta',    responsavel: 'Angelo Garcia', prazo: prazo(3) },
-    { id: 't4', titulo: 'Reunião mensal de resultados',          conta: 'Petit Bebê',       status: 'aberta',    responsavel: 'Angelo Garcia', prazo: prazo(5) },
-    { id: 't5', titulo: 'Reconectar integração da loja',         conta: 'Oficina do Ferro', status: 'aberta',    responsavel: 'Angelo Garcia', prazo: prazo(0) },
-    { id: 't6', titulo: 'Enviar relatório mensal',               conta: 'Loja Aurora',      status: 'concluida', responsavel: 'Angelo Garcia', prazo: prazo(-4) },
+  const base: {
+    id: string; t: string; c: string; s: Tarefa['status']; d: number;
+    p: Tarefa['prioridade']; r: Tarefa['recorrencia'];
+  }[] = [
+    { id: 't1', t: 'Revisar campanhas de Performance Max', c: 'Loja Aurora',      s: 'fazendo',   d: 1,  p: 'alta',    r: 'semanal' },
+    { id: 't2', t: 'Investigar queda na taxa de aprovação', c: 'Nordeste Fitness', s: 'aberta',    d: -2, p: 'urgente', r: 'nenhuma' },
+    { id: 't3', t: 'Subir novos criativos de remarketing',  c: 'Verano Casa',      s: 'aberta',    d: 3,  p: 'media',   r: 'nenhuma' },
+    { id: 't4', t: 'Reunião mensal de resultados',          c: 'Petit Bebê',       s: 'aberta',    d: 5,  p: 'media',   r: 'mensal' },
+    { id: 't5', t: 'Reconectar integração da loja',         c: 'Oficina do Ferro', s: 'aberta',    d: 0,  p: 'alta',    r: 'nenhuma' },
+    { id: 't6', t: 'Enviar relatório mensal',               c: 'Loja Aurora',      s: 'concluida', d: -4, p: 'media',   r: 'mensal' },
   ];
+
+  return base.map((b) => ({
+    id: b.id,
+    titulo: b.t,
+    detalhe: null,
+    conta: b.c,
+    contaId: null,
+    status: b.s,
+    responsavel: 'Angelo Garcia',
+    responsavelId: null,
+    prazo: prazo(b.d),
+    prioridade: b.p,
+    recorrencia: b.r,
+    lembrarDias: 1,
+    concluidaEm: b.s === 'concluida' ? prazo(b.d) : null,
+    diasAtePrazo: b.d,
+  }));
 }
 
 export function equipeDemo(): PessoaEquipe[] {

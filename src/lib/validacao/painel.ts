@@ -424,3 +424,82 @@ export const esquemaPagarDespesa = z.object({
 });
 
 export const esquemaId = z.object({ id: z.uuid('Registro inválido.') });
+
+/* ------------------------------------------------------------------ */
+/* Tarefas                                                             */
+/* ------------------------------------------------------------------ */
+
+export const PRIORIDADES_VALIDAS = ['baixa', 'media', 'alta', 'urgente'] as const;
+export const RECORRENCIAS_VALIDAS = [
+  'nenhuma',
+  'diaria',
+  'semanal',
+  'quinzenal',
+  'mensal',
+] as const;
+
+/** Data opcional: campo vazio vira null, e não "data inválida". */
+const dataOpcional = z
+  .string()
+  .trim()
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), 'Data inválida.');
+
+/** Referência opcional a uma linha: vazio vira null. */
+const uuidOpcional = z
+  .string()
+  .trim()
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .refine(
+    (v) => v === null || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v),
+    'Seleção inválida.',
+  );
+
+const camposDaTarefa = {
+  titulo: textoObrigatorio(3, 'Diga o que precisa ser feito.'),
+  detalhe: textoOpcional,
+  conta_id: uuidOpcional,
+  responsavel_id: uuidOpcional,
+  prazo: dataOpcional,
+  prioridade: z.enum(PRIORIDADES_VALIDAS).default('media'),
+  recorrencia: z.enum(RECORRENCIAS_VALIDAS).default('nenhuma'),
+  /*
+     AUSENTE e diferente de VAZIO, e aqui os dois precisam passar.
+
+     O campo 'repetir ate' so aparece na tela depois de escolher uma
+     recorrencia. Numa tarefa que nao se repete ele nao existe, e o
+     FormData chega sem a chave. Sem `.optional()`, o Zod recusava com
+     'expected string, received undefined' e NENHUMA tarefa simples
+     podia ser criada - o formulario devolvia erro de um campo que a
+     pessoa nem via.
+  */
+  recorrencia_ate: dataOpcional.optional().transform((v) => v ?? null),
+  /* Até 30 dias de antecedência. Mais que isso não é lembrete, é
+     ansiedade: o aviso apareceria antes de a tarefa fazer sentido. */
+  lembrar_dias: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? 1 : Math.trunc(paraNumero(v))))
+    .refine(
+      (n) => Number.isFinite(n) && n >= 0 && n <= 30,
+      'O lembrete vai de 0 (no dia) a 30 dias antes.',
+    ),
+};
+
+export const esquemaNovaTarefa = z.object(camposDaTarefa);
+
+export const esquemaEditarTarefa = z.object({
+  id: z.uuid('Tarefa inválida.'),
+  ...camposDaTarefa,
+});
+
+export const esquemaIdTarefa = z.object({ id: z.uuid('Tarefa inválida.') });
+
+export const esquemaStatusTarefa = z.object({
+  id: z.uuid('Tarefa inválida.'),
+  /* Lista fechada: um POST manual com status inventado quebraria o
+     enum do Postgres com uma mensagem que não ajuda ninguém. */
+  status: z.enum(['aberta', 'fazendo', 'concluida', 'cancelada']),
+});

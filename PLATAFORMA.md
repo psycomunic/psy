@@ -121,8 +121,9 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0020_financeiro_completo.sql` | `financeiro_mes` passa a somar `fatura`; `lancamento` vira livro de despesa; cobrança avulsa; view `serie_financeira` |
 | `0021_cliente_de_qualquer_nicho.sql` | `conta.tipo`, health score por tipo, `contrato.dia_vencimento`, assinatura do Asaas |
 | `0022_saude_conta_completa.sql` | devolve à `saude_conta` as colunas que a 0021 derrubou |
+| `0023_tarefas_e_lembretes.sql` | prioridade e recorrência em `tarefa`, `concluir_tarefa()`, tabela `notificacao`, `gerar_lembretes()` |
 
-21 tabelas, 10 views, 49 políticas. `npm run testar-banco` confere o que não
+22 tabelas, 11 views, 51 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
 gravação idempotente de métrica, cobrança que não duplica, e o ciclo de vida do
 contrato pela tela de verdade (`npm run testar-contratos`, que precisa do
@@ -315,7 +316,7 @@ curl -X POST https://SEU-DOMINIO/api/ingestao   -H 'x-psy-token: SEGREDO' -H 'co
 | 4 | Plataformas: Magazord, Shopify, Merge para WhatsApp | a fazer |
 | 5 | Portal do cliente | a fazer |
 | 6 | Propostas e contratos ligados ao banco | **pronta** |
-| 7 | Tarefas, diário e solicitações | a fazer |
+| 7 | Tarefas com prioridade, recorrência e lembretes | **pronta** (solicitações do cliente seguem de fora) |
 | 8 | Relatórios | a fazer |
 | 9 | Financeiro e cobrança pelo Asaas | **pronta** (Mercado Pago segue de fora) |
 | 10 | Notificações e configurações | a fazer |
@@ -389,3 +390,55 @@ empurraria a cobrança de fevereiro para março.
 Webhook se perde. `conferirAssinaturas()` puxa do Asaas as cobranças que cada
 assinatura gerou e cria aqui o que faltou — é o botão "Conferir cobranças", na
 aba Visão.
+
+---
+
+## 8. Tarefas e lembretes
+
+### Recorrência
+
+Operação de agência é feita de tarefa que volta: revisar campanha toda segunda,
+fechar relatório todo dia 1. `concluir_tarefa()` fecha a atual e abre a próxima
+**na mesma transação**, e a data da seguinte sai do PRAZO, não do dia da
+conclusão.
+
+Contar de hoje faria a reunião de segunda virar reunião de quinta na semana em
+que alguém concluísse com atraso — e em três meses a agenda inteira estaria
+deslocada sem ninguém saber quando começou.
+
+A função é idempotente: concluir duas vezes não cria duas ocorrências.
+
+### Como o lembrete chega
+
+`gerar_lembretes()` decide o que merece aviso e escreve em `notificacao`. Roda
+por `/api/lembretes`, que o cron da Vercel chama **todo dia às 8h de Brasília**
+(`vercel.json`, `0 11 * * *` em UTC).
+
+Três regras:
+
+- **A chave carrega o dia.** O índice único em `(perfil_id, chave)` faz a
+  repetição não criar nada. Rodar de hora em hora não vira 24 avisos; um atraso
+  que continua rende um aviso por dia, que é o certo.
+- **Sem responsável, vai para os administradores.** Tarefa órfã atrasada é
+  problema de quem toca a agência, e o silêncio aqui seria o caso que ninguém vê.
+- **Aviso é correspondência.** A política só deixa cada um ler os próprios —
+  nem o administrador lê os dos outros. Quem fez o quê já vive em
+  `log_auditoria`.
+
+O sino fica no topo do **menu**, e não dentro de um módulo: é o único lugar por
+onde toda navegação passa. Lembrete que exige abrir a tela certa não é lembrete.
+
+### O que ainda não sai do painel
+
+Não há provedor de e-mail nem de WhatsApp configurado neste projeto. O aviso
+existe, é gerado na hora certa e aparece no sino — mas **não persegue ninguém
+fora da tela**.
+
+A rotina já está no lugar onde um canal externo se encaixa: `gerar_lembretes()`
+devolve quantos avisos criou, e `/api/lembretes` é quem os dispara. Ligar
+e-mail ou WhatsApp é acrescentar o envio ali, e não repensar a decisão de "isto
+merece um aviso" — que fica num lugar só.
+
+Variáveis: `LEMBRETES_TOKEN` (disparo manual, cabeçalho `x-psy-token`) ou
+`CRON_SECRET` (o que a Vercel manda como `Authorization: Bearer`). Sem nenhum
+dos dois a rota responde 503 e não grava nada.

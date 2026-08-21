@@ -15,7 +15,7 @@
     "auditar-rls": "node scripts/auditar-rls.mjs",
     "verificar": "npm run lint && npx tsc --noEmit && npm run teste && npm run build",
     "testar-conversao": "node scripts/testar-conversao.mjs",
-    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao && npm run testar-cobranca && npm run testar-contratos && npm run testar-financeiro && npm run testar-recorrencia",
+    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao && npm run testar-cobranca && npm run testar-contratos && npm run testar-financeiro && npm run testar-recorrencia && npm run testar-tarefas",
     "testar-ingestao": "node scripts/testar-ingestao.mjs",
     "testar-credenciais": "node scripts/testar-credenciais.mjs",
     "medir-proposta": "node scripts/medir-proposta.mjs",
@@ -25,7 +25,8 @@
     "testar-cobranca": "node scripts/testar-cobranca.mjs",
     "testar-contratos": "node scripts/testar-contratos.mjs",
     "testar-financeiro": "node scripts/testar-financeiro.mjs",
-    "testar-recorrencia": "node scripts/testar-recorrencia.mjs"
+    "testar-recorrencia": "node scripts/testar-recorrencia.mjs",
+    "testar-tarefas": "node scripts/testar-tarefas.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

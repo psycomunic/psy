@@ -2,7 +2,6 @@ import Link from 'next/link';
 import {
   listarContas,
   listarLeads,
-  listarTarefas,
   listarEquipe,
   listarAuditoria,
   listarFunil,
@@ -10,7 +9,7 @@ import {
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { rotuloEstagio, rotuloTipoConta } from '@/lib/dados/tipos';
-import { dinheiro, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
+import { dinheiro, dinheiroCurto, vezes } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
   FormNovaConta,
@@ -342,76 +341,6 @@ export async function Contas({ papel }: { papel: Papel }) {
   );
 }
 
-/* ================================================================== */
-/* Tarefas                                                             */
-/* ================================================================== */
-
-export async function Tarefas() {
-  const { dados: tarefas, procedencia } = await listarTarefas();
-
-  const abertas = tarefas.filter((t) => t.status === 'aberta' || t.status === 'fazendo');
-  const atrasadas = abertas.filter((t) => (diasAte(t.prazo) ?? 1) < 0);
-
-  const prazoTexto = (prazo: string | null) => {
-    const d = diasAte(prazo);
-    if (d === null) return 'sem prazo';
-    if (d < 0) return `${Math.abs(d)} ${Math.abs(d) === 1 ? 'dia' : 'dias'} em atraso`;
-    if (d === 0) return 'hoje';
-    if (d === 1) return 'amanhã';
-    return `em ${d} dias`;
-  };
-
-  return (
-    <>
-      <AvisoProcedencia procedencia={procedencia} />
-
-      <Secao titulo="Operação">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Kpi rotulo="Abertas" valor={String(abertas.length)} />
-          <Kpi rotulo="Atrasadas" valor={String(atrasadas.length)} invertido variacao={null} />
-          <Kpi rotulo="Concluídas" valor={String(tarefas.filter((t) => t.status === 'concluida').length)} />
-        </div>
-      </Secao>
-
-      <Secao titulo="Lista" apoio="Atrasadas primeiro, depois por prazo.">
-        <ul className="space-y-3">
-          {[...tarefas]
-            .sort((a, b) => (diasAte(a.prazo) ?? 999) - (diasAte(b.prazo) ?? 999))
-            .map((t) => {
-              const d = diasAte(t.prazo);
-              const atrasada = t.status !== 'concluida' && t.status !== 'cancelada' && (d ?? 1) < 0;
-              return (
-                <li key={t.id} className="cartao flex flex-wrap items-center gap-x-6 gap-y-2 p-5">
-                  <span
-                    aria-hidden
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{
-                      background:
-                        t.status === 'concluida' ? '#4ADE80' : atrasada ? '#FF7A7A' : '#93A0BC',
-                    }}
-                  />
-                  <div className="min-w-0 grow">
-                    <p className={t.status === 'concluida' ? 'text-cinza line-through' : 'font-semibold'}>
-                      {t.titulo}
-                    </p>
-                    <p className="mt-1 text-xs text-cinza">
-                      {t.conta ?? 'Sem conta'} · {t.responsavel ?? 'Sem responsável'}
-                    </p>
-                  </div>
-                  <span
-                    className="shrink-0 font-mono text-[0.75rem] uppercase tracking-[0.12em]"
-                    style={{ color: atrasada ? '#FF7A7A' : 'var(--cinza)' }}
-                  >
-                    {t.status === 'concluida' ? 'concluída' : prazoTexto(t.prazo)}
-                  </span>
-                </li>
-              );
-            })}
-        </ul>
-      </Secao>
-    </>
-  );
-}
 
 /* ================================================================== */
 /* Equipe                                                              */

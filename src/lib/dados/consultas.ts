@@ -28,6 +28,7 @@ import type {
   MesFinanceiro,
   Despesa,
   TipoConta,
+  Notificacao,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -602,22 +603,77 @@ export async function listarTarefas(): Promise<Resposta<Tarefa[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('tarefa')
-    .select('id, titulo, status, prazo, conta:conta_id(nome), perfil:responsavel_id(nome)')
+    .select('id, titulo, detalhe, status, prazo, prioridade, recorrencia, lembrar_dias, concluida_em, conta_id, responsavel_id, conta:conta_id(nome), perfil:responsavel_id(nome)')
     .order('prazo', { ascending: true, nullsFirst: false })
-    .limit(200);
+    .limit(300);
 
   if (faltamTabelas(error)) return semBanco(demo.tarefasDemo());
+
+  const hoje = hojeBR();
 
   return doBanco(
     (data ?? []).map((t) => ({
       id: t.id as string,
       titulo: t.titulo as string,
+      detalhe: (t.detalhe as string) ?? null,
       conta: (t.conta as unknown as { nome: string } | null)?.nome ?? null,
+      contaId: (t.conta_id as string) ?? null,
       status: t.status as Tarefa['status'],
       responsavel: (t.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      responsavelId: (t.responsavel_id as string) ?? null,
       prazo: (t.prazo as string) ?? null,
+      prioridade: (t.prioridade as Tarefa['prioridade']) ?? 'media',
+      recorrencia: (t.recorrencia as Tarefa['recorrencia']) ?? 'nenhuma',
+      lembrarDias: Number(t.lembrar_dias ?? 1),
+      concluidaEm: (t.concluida_em as string) ?? null,
+      /* Contado aqui, e não no render: saber que dia é hoje exige
+         Date.now(), que é chamada impura durante a renderização. */
+      diasAtePrazo: t.prazo
+        ? Math.round(
+            (Date.parse(`${t.prazo as string}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) /
+              86400000,
+          )
+        : null,
     })),
   );
+}
+
+/**
+ * A caixa de avisos de quem está logado.
+ *
+ * A view já filtra por `auth.uid()`, então não há `.eq()` aqui para
+ * alguém esquecer. É a mesma disciplina do resto desta camada: quem
+ * filtra é o banco.
+ */
+export async function minhasNotificacoes(
+  limite = 30,
+): Promise<Resposta<{ lista: Notificacao[]; naoLidas: number }>> {
+  if (!bancoConfigurado) return semBanco({ lista: [], naoLidas: 0 });
+
+  const supabase = await clienteServidor();
+
+  const [rLista, rContagem] = await Promise.all([
+    supabase.from('minhas_notificacoes').select('*').limit(limite),
+    supabase
+      .from('notificacao')
+      .select('id', { count: 'exact', head: true })
+      .is('lida_em', null),
+  ]);
+
+  if (faltamTabelas(rLista.error)) return semBanco({ lista: [], naoLidas: 0 });
+
+  return doBanco({
+    lista: (rLista.data ?? []).map((n) => ({
+      id: Number(n.id),
+      tipo: n.tipo as Notificacao['tipo'],
+      titulo: n.titulo as string,
+      corpo: (n.corpo as string) ?? null,
+      link: (n.link as string) ?? null,
+      lidaEm: (n.lida_em as string) ?? null,
+      criadaEm: n.criada_em as string,
+    })),
+    naoLidas: rContagem.count ?? 0,
+  });
 }
 
 export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
