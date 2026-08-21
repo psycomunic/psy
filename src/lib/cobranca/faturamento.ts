@@ -284,14 +284,14 @@ export async function aplicarEventoAsaas(corpo: {
 
   let { data: fatura } = await servico
     .from('fatura')
-    .select('id')
+    .select('id, status')
     .eq('asaas_id', pagamento.id)
     .maybeSingle();
 
   if (!fatura && pagamento.externalReference) {
     const r = await servico
       .from('fatura')
-      .select('id')
+      .select('id, status')
       .eq('id', pagamento.externalReference)
       .maybeSingle();
     fatura = r.data;
@@ -313,6 +313,31 @@ export async function aplicarEventoAsaas(corpo: {
   }
 
   const novoStatus = statusDaFatura(pagamento.status ?? '');
+
+  /*
+    Fatura paga não volta a "vencida" por evento antigo reentregue.
+
+    O Asaas reenvia o que falhou, com espera crescente. Um
+    PAYMENT_OVERDUE que ficou preso na fila pode chegar DEPOIS de um
+    PAYMENT_RECEIVED já processado, e sem esta guarda ele viraria uma
+    cobrança em cima de quem já pagou.
+
+    "Cancelada" passa de propósito: estorno e chargeback são justamente
+    os casos em que uma fatura paga deixa de estar paga, e ignorá-los
+    esconderia dinheiro que voltou.
+  */
+  if (fatura.status === 'paga' && novoStatus !== 'paga' && novoStatus !== 'cancelada') {
+    await registrar({
+      faturaId: fatura.id as string,
+      asaasId: pagamento.id,
+      origem: 'webhook',
+      evento: corpo.event,
+      status: 'sucesso',
+      erro: `Ignorado: fatura já paga, evento diria "${novoStatus}".`,
+      carga: corpo,
+    });
+    return { ok: true, mensagem: 'Evento antigo ignorado: a fatura já está paga.' };
+  }
 
   await servico
     .from('fatura')
