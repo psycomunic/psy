@@ -9,6 +9,8 @@ import {
   esquemaPerderLead,
   esquemaConverter,
   esquemaInteracao,
+  esquemaNovoLead,
+  esquemaEditarLead,
   validar,
 } from '@/lib/validacao/painel';
 import type { Resultado } from './acoes';
@@ -221,6 +223,75 @@ export async function registrarInteracao(
     if (conta_id) revalidatePath('/painel/contas');
 
     return { ok: true, mensagem: 'Interação registrada.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Cria um lead.
+ *
+ * Faltava. O CRM sabia mover, editar próximo passo, perder e converter,
+ * mas não sabia CRIAR — e um funil onde a primeira coluna só enche por
+ * SQL não é um funil, é um relatório.
+ *
+ * O responsável nasce sendo quem cadastrou. Lead sem dono é lead que
+ * ninguém cobra, e a lista de "parados há 7 dias" existe justamente
+ * para cobrar alguém.
+ */
+export async function criarLead(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await exigirComercial();
+
+    const v = validar(esquemaNovoLead, fd);
+    if (!v.ok) return v;
+
+    const supabase = await clienteServidor();
+    const { error } = await supabase.from('lead').insert({
+      ...v.dados,
+      responsavel_id: sessao.id,
+    });
+
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/crm');
+    revalidatePath('/painel/visao');
+
+    return { ok: true, mensagem: `${v.dados.empresa ?? v.dados.nome} entrou no funil.` };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Edita a ficha inteira do lead.
+ *
+ * Diferente de `atualizarLead`, que só mexe em próximo passo e
+ * probabilidade. Os dois existem de propósito: o rápido é o do card, e
+ * salvar a ficha inteira a partir dele apagaria contato e valor, porque
+ * campo ausente no FormData chega como vazio.
+ */
+export async function editarLead(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirComercial();
+
+    const v = validar(esquemaEditarLead, fd);
+    if (!v.ok) return v;
+    const { id, ...campos } = v.dados;
+
+    const supabase = await clienteServidor();
+    const { error } = await supabase.from('lead').update(campos).eq('id', id);
+
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/crm');
+    return { ok: true, mensagem: 'Lead atualizado.' };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }

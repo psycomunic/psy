@@ -21,6 +21,7 @@ import {
   FormTransferencia,
 } from '../Formularios';
 import { Kanban } from '../Kanban';
+import { FormLead } from '../FormLead';
 import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 
 /* ================================================================== */
@@ -67,9 +68,26 @@ export async function Crm({ papel }: { papel: Papel }) {
     ? Number(((100 * ganhos.length) / decididos.length).toFixed(0))
     : null;
 
+  /* De onde os leads vêm, contando só os que ainda estão em jogo.
+     Somar os perdidos misturaria a pergunta "o que funciona" com a
+     pergunta "o que já acabou". */
+  const porOrigem = new Map<string, { n: number; valor: number }>();
+  for (const l of abertos) {
+    const chave = l.origem?.trim() || 'sem origem';
+    const atual = porOrigem.get(chave) ?? { n: 0, valor: 0 };
+    porOrigem.set(chave, { n: atual.n + 1, valor: atual.valor + (l.valorFee ?? 0) });
+  }
+  const origens = [...porOrigem.entries()].sort((a, b) => b[1].n - a[1].n);
+
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
+
+      {podeEditar ? (
+        <div className="mt-8">
+          <FormLead />
+        </div>
+      ) : null}
 
       <Secao titulo="O funil hoje">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -166,6 +184,42 @@ export async function Crm({ papel }: { papel: Papel }) {
           </tbody>
         </Tabela>
       </Secao>
+
+      {origens.length > 0 ? (
+        <Secao
+          titulo="De onde eles vêm"
+          apoio="Só os leads ainda em jogo. Somar os perdidos misturaria o que funciona com o que já acabou."
+        >
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {origens.map(([origem, d]) => {
+              const fatia = abertos.length > 0 ? (d.n / abertos.length) * 100 : 0;
+              return (
+                <li key={origem} className="cartao p-5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-semibold text-branco">{origem}</span>
+                    <span className="tabular text-sm text-neve">
+                      {d.n} {d.n === 1 ? 'lead' : 'leads'}
+                    </span>
+                  </div>
+                  {/* Barra e número juntos: a barra sozinha não se cita
+                      numa reunião, e o número sozinho não se compara de
+                      relance entre seis linhas. */}
+                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+                    <div
+                      className="h-full rounded-full bg-magenta"
+                      style={{ width: `${fatia}%` }}
+                    />
+                  </div>
+                  <p className="mt-2.5 flex items-baseline justify-between gap-3 text-xs text-cinza">
+                    <span>{fatia.toFixed(0)}% do funil aberto</span>
+                    <span className="tabular">{dinheiroCurto(d.valor)} em jogo</span>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </Secao>
+      ) : null}
 
       {leads.some((l) => l.estagio === 'perdido') ? (
         <Secao

@@ -227,3 +227,63 @@ export const esquemaInteracao = z.object({
   tipo: z.enum(['ligacao', 'reuniao', 'whatsapp', 'email', 'nota']),
   resumo: textoObrigatorio(3, 'Escreva o que aconteceu.'),
 });
+
+/**
+ * Lead novo.
+ *
+ * Só o nome é obrigatório. Um formulário de captação que exige
+ * e-mail, telefone e valor antes de deixar salvar empurra o comercial
+ * de volta para o bloco de notas, e é lá que o lead morre.
+ *
+ * O resto se preenche depois, conforme a conversa acontece.
+ */
+export const esquemaNovoLead = z.object({
+  nome: textoObrigatorio(2, 'Diga com quem você falou.'),
+  empresa: textoOpcional,
+  email: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v.toLowerCase()))
+    .nullable()
+    .refine((v) => v === null || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), 'E-mail inválido.'),
+  telefone: textoOpcional,
+  origem: textoOpcional,
+  estagio: z.enum(ESTAGIOS_VALIDOS).default('novo'),
+  valor_fee_estimado: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : paraNumero(v)))
+    .nullable()
+    .refine((n) => n === null || (Number.isFinite(n) && n >= 0), 'Valor inválido.'),
+  valor_verba_estimada: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : paraNumero(v)))
+    .nullable()
+    .refine((n) => n === null || (Number.isFinite(n) && n >= 0), 'Valor inválido.'),
+  probabilidade: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : Number(v)))
+    .nullable()
+    .refine((n) => n === null || (n >= 0 && n <= 100), 'A probabilidade vai de 0 a 100.'),
+  proximo_passo: textoOpcional,
+  proximo_passo_em: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
+});
+
+/**
+ * Edição da ficha do lead.
+ *
+ * Separado de `esquemaLead`, que só cobre próximo passo e
+ * probabilidade: aquele é o formulário rápido do card, este é a ficha
+ * inteira. Um esquema só faria o formulário rápido apagar contato e
+ * valor toda vez que fosse salvo, porque campo ausente no FormData
+ * chega como vazio.
+ */
+export const esquemaEditarLead = esquemaNovoLead.extend({
+  id: z.uuid('Lead inválido.'),
+});
