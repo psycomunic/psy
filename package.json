@@ -20,7 +20,8 @@
     "testar-credenciais": "node scripts/testar-credenciais.mjs",
     "medir-proposta": "node scripts/medir-proposta.mjs",
     "limpar-teste": "node scripts/limpar-teste.mjs",
-    "conferir-consultas": "node scripts/conferir-consultas.mjs"
+    "conferir-consultas": "node scripts/conferir-consultas.mjs",
+    "medir-painel": "node scripts/medir-painel.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
