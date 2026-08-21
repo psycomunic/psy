@@ -780,3 +780,49 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
     }),
   );
 }
+
+/**
+ * As conversas de todos os leads em jogo, de uma vez.
+ *
+ * Uma consulta por lead seria N+1 numa tela que mostra o funil inteiro:
+ * quarenta cards abertos viram quarenta idas ao banco antes da primeira
+ * pintura. Aqui vem tudo junto e o quadro reparte por lead.
+ *
+ * Devolve um objeto simples, e não um Map, porque atravessa a fronteira
+ * servidor → cliente: o React serializa objeto, e Map vira `{}`.
+ */
+export async function interacoesDosLeads(): Promise<Resposta<Record<string, Interacao[]>>> {
+  if (!bancoConfigurado) return semBanco({});
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('interacao')
+    .select('id, tipo, resumo, criada_em, lead_id, perfil:autor_id(nome)')
+    .not('lead_id', 'is', null)
+    .order('criada_em', { ascending: false })
+    .limit(400);
+
+  if (faltamTabelas(error)) return semBanco({});
+
+  const porLead: Record<string, Interacao[]> = {};
+  for (const i of data ?? []) {
+    const chave = i.lead_id as string;
+    (porLead[chave] ??= []).push({
+      id: i.id as string,
+      tipo: i.tipo as string,
+      resumo: i.resumo as string,
+      autor: (i.perfil as unknown as { nome: string } | null)?.nome ?? null,
+      em: i.criada_em as string,
+    });
+  }
+
+  return doBanco(porLead);
+}
+
+/** Um lead pelo id, para pré-preencher a proposta a partir dele. */
+export async function leadPorId(id: string): Promise<Lead | null> {
+  if (!bancoConfigurado) return null;
+
+  const { dados } = await listarLeads();
+  return dados.find((l) => l.id === id) ?? null;
+}

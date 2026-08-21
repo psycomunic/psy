@@ -47,10 +47,10 @@ export default async function PainelModulo({
   searchParams,
 }: {
   params: Promise<{ modulo: string }>;
-  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string; pagina?: string }>;
+  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string; pagina?: string; lead?: string }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina } = await searchParams;
+  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
@@ -223,7 +223,7 @@ export default async function PainelModulo({
                 <Auditoria pagina={Math.max(0, Number(pagina) || 0)} />
               ) : null}
               {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} /> : null}
-              {moduloAtual === 'propostas' ? <Propostas papel={papel} /> : null}
+              {moduloAtual === 'propostas' ? <Propostas papel={papel} leadId={lead} /> : null}
               {AINDA_NAO[moduloAtual] ? (
                 <EmConstrucao
                   nome={rotuloModulo[moduloAtual]}

@@ -1,4 +1,4 @@
-import { listarPropostas } from '@/lib/dados/consultas';
+import { listarPropostas, leadPorId } from '@/lib/dados/consultas';
 import { rotuloStatusProposta } from '@/lib/dados/tipos';
 import { PLANOS, fichas, feeEmReais } from '@/dados/planos';
 import { AvisoProcedencia, Secao, Tabela, th, td } from '../base';
@@ -34,8 +34,15 @@ const FORMAS: Record<string, string> = {
   expirada: '■',
 };
 
-export async function Propostas({ papel }: { papel: Papel }) {
+export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: string }) {
   const { dados: propostas, procedencia } = await listarPropostas();
+
+  /* Proposta a partir do lead: o funil manda o id e o formulário nasce
+     preenchido. Antes o nome da loja era digitado duas vezes, e pior
+     que o trabalho repetido era a divergência — "Loja Aurora" no funil
+     e "Aurora Store" na proposta viram dois clientes na cabeça de quem
+     lê o relatório depois. */
+  const lead = leadId ? await leadPorId(leadId) : null;
   const podeEditar = pode(papel, 'propostas', 'editar') && procedencia === 'banco';
 
   const opcoes = PLANOS.map((p) => ({
@@ -59,7 +66,19 @@ export async function Propostas({ papel }: { papel: Papel }) {
 
       {podeEditar ? (
         <div className="mt-8">
-          <FormProposta planos={opcoes} />
+          <FormProposta
+            planos={opcoes}
+            lead={
+              lead
+                ? {
+                    id: lead.id,
+                    cliente: lead.empresa ?? lead.nome,
+                    contato: lead.nome,
+                    fee: lead.valorFee,
+                  }
+                : null
+            }
+          />
         </div>
       ) : null}
 

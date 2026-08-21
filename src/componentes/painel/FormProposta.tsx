@@ -32,34 +32,81 @@ function Aviso({ r }: { r: Resultado | null }) {
     importar `@/dados/planos`, que é server-only. */
 export type OpcaoPlano = { id: string; nome: string; fee: string; paraQuem: string };
 
-export function FormProposta({ planos }: { planos: OpcaoPlano[] }) {
+/** O lead de origem, quando a proposta nasce do funil. */
+export type LeadDeOrigem = {
+  id: string;
+  cliente: string;
+  contato: string;
+  fee: number | null;
+};
+
+export function FormProposta({
+  planos,
+  lead = null,
+}: {
+  planos: OpcaoPlano[];
+  lead?: LeadDeOrigem | null;
+}) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
     gerarProposta,
     null,
   );
-  const [escolhido, setEscolhido] = useState(planos[1]?.id ?? planos[0]?.id);
+
+  /*
+    Vindo do funil, o plano sugerido é o mais próximo do fee negociado,
+    e não o do meio.
+
+    Quem já conversou sobre R$ 10 mil não deveria precisar corrigir a
+    tela para Apollo: o valor já foi dito, e repetir a escolha é onde
+    entra a divergência entre o que foi combinado e o que a proposta diz.
+  */
+  const sugerido = (() => {
+    if (!lead?.fee) return planos[1]?.id ?? planos[0]?.id;
+    const numero = (t: string) => Number(t.replace(/\D/g, '')) || 0;
+    return planos.reduce((melhor, p) =>
+      Math.abs(numero(p.fee) - lead.fee!) < Math.abs(numero(melhor.fee) - lead.fee!) ? p : melhor,
+    ).id;
+  })();
+
+  const [escolhido, setEscolhido] = useState(sugerido);
 
   return (
     <form action={acao} className="cartao space-y-6 p-6 md:p-8">
+      {lead ? <input type="hidden" name="lead_id" value={lead.id} /> : null}
+
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">
-          Gerar link de proposta
+          {lead ? `Proposta para ${lead.cliente}` : 'Gerar link de proposta'}
         </h3>
         <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-cinza">
-          O link nasce como rascunho e não abre para ninguém até você publicar. Os três
-          planos aparecem na página, com o que você recomendar em destaque — o cliente vê a
-          escada inteira e entende o que está deixando de fora.
+          {lead
+            ? 'Veio do funil, então os dados já estão preenchidos e a proposta fica ligada ao lead. O link nasce como rascunho e não abre para ninguém até você publicar.'
+            : 'O link nasce como rascunho e não abre para ninguém até você publicar. Por padrão a página mostra só o plano recomendado.'}
         </p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <label htmlFor="pr-cliente" className={rotuloCss}>Loja *</label>
-          <input id="pr-cliente" name="cliente" required placeholder="Loja Aurora" className={`mt-2 ${campo}`} />
+          <input
+            id="pr-cliente"
+            name="cliente"
+            required
+            defaultValue={lead?.cliente ?? ''}
+            placeholder="Loja Aurora"
+            className={`mt-2 ${campo}`}
+          />
         </div>
         <div>
           <label htmlFor="pr-contato" className={rotuloCss}>Com quem você está falando *</label>
-          <input id="pr-contato" name="contato" required placeholder="Mariana, sócia" className={`mt-2 ${campo}`} />
+          <input
+            id="pr-contato"
+            name="contato"
+            required
+            defaultValue={lead?.contato ?? ''}
+            placeholder="Mariana, sócia"
+            className={`mt-2 ${campo}`}
+          />
         </div>
       </div>
 

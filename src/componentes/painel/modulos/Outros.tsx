@@ -7,6 +7,7 @@ import {
   listarAuditoria,
   listarFunil,
   financeiroDoMes,
+  interacoesDosLeads,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { rotuloEstagio } from '@/lib/dados/tipos';
@@ -29,10 +30,8 @@ import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 /* ================================================================== */
 
 export async function Crm({ papel }: { papel: Papel }) {
-  const [{ dados: leads, procedencia }, { dados: funil }] = await Promise.all([
-    listarLeads(),
-    listarFunil(),
-  ]);
+  const [{ dados: leads, procedencia }, { dados: funil }, { dados: conversas }] =
+    await Promise.all([listarLeads(), listarFunil(), interacoesDosLeads()]);
 
   const podeEditar =
     ['administrador', 'gestor', 'comercial'].includes(papel) && procedencia === 'banco';
@@ -146,7 +145,7 @@ export async function Crm({ papel }: { papel: Papel }) {
             : 'Clique num card para abrir a ficha.'
         }
       >
-        <Kanban leads={leads} podeEditar={podeEditar} />
+        <Kanban leads={leads} podeEditar={podeEditar} interacoes={conversas} />
       </Secao>
 
       <Secao titulo="Tempo em cada estágio" apoio="Onde o funil trava.">

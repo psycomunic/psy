@@ -1,9 +1,16 @@
 'use client';
 
 import { useState, useOptimistic, useTransition, useRef } from 'react';
-import { moverLead, perderLead, atualizarLead, converterEmCliente } from '@/app/painel/acoes-crm';
+import Link from 'next/link';
+import {
+  moverLead,
+  perderLead,
+  atualizarLead,
+  converterEmCliente,
+  registrarInteracao,
+} from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
-import type { Lead, Estagio } from '@/lib/dados/tipos';
+import type { Lead, Estagio, Interacao } from '@/lib/dados/tipos';
 import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto } from '@/lib/formato';
 import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
@@ -24,14 +31,19 @@ const campo =
 export function Kanban({
   leads,
   podeEditar,
+  interacoes = {},
 }: {
   leads: Lead[];
   podeEditar: boolean;
+  /** Conversas já registradas, por lead. Vêm prontas do servidor: uma
+      consulta por card seria N+1 com o funil inteiro na tela. */
+  interacoes?: Record<string, Interacao[]>;
 }) {
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
   const [aberto, setAberto] = useState<Lead | null>(null);
   const [sobre, setSobre] = useState<Estagio | null>(null);
+  const [busca, setBusca] = useState('');
   const arrastando = useRef<string | null>(null);
 
   /*
@@ -70,6 +82,20 @@ export function Kanban({
     });
   }
 
+  /* Busca sem acento e sem caixa: quem procura "aurora" quer achar
+     "Loja Aurora", e quem digita "indicacao" quer achar "Indicação". */
+  const normalizar = (t: string) =>
+    t.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
+  const termo = normalizar(busca.trim());
+  const filtrados = termo
+    ? otimista.filter((l) =>
+        normalizar(
+          [l.empresa, l.nome, l.origem, l.responsavel, l.proximoPasso].filter(Boolean).join(' '),
+        ).includes(termo),
+      )
+    : otimista;
+
   return (
     <>
       {erro ? (
@@ -81,9 +107,44 @@ export function Kanban({
         </p>
       ) : null}
 
+      {/* Busca no funil.
+
+          Com quarenta leads, achar um vira rolagem por cinco colunas. O
+          filtro roda no CLIENTE, sobre a lista que já está na memória:
+          ir ao servidor a cada tecla daria latência a um filtro que a
+          resposta cabe inteira na tela.
+
+          A contagem de cada coluna continua sendo a dos leads FILTRADOS,
+          e não a do funil todo. Coluna dizendo 12 com 2 cards à vista é
+          o tipo de número que faz alguém desconfiar da tela inteira. */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por loja, contato ou origem"
+          aria-label="Buscar no funil"
+          className="min-w-0 grow rounded-full border border-fio bg-white/[0.03] px-5 py-2.5 text-sm text-branco outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta sm:max-w-sm"
+        />
+        {busca ? (
+          <button
+            type="button"
+            onClick={() => setBusca('')}
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+          >
+            Limpar
+          </button>
+        ) : null}
+        {busca ? (
+          <span aria-live="polite" className="text-xs text-cinza">
+            {filtrados.length} de {otimista.length}
+          </span>
+        ) : null}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {COLUNAS.map((estagio) => {
-          const daColuna = otimista.filter((l) => l.estagio === estagio);
+          const daColuna = filtrados.filter((l) => l.estagio === estagio);
           const total = daColuna.reduce((s, l) => s + (l.valorFee ?? 0), 0);
 
           return (
@@ -187,7 +248,12 @@ export function Kanban({
       ) : null}
 
       {aberto ? (
-        <FichaLead lead={aberto} podeEditar={podeEditar} aoFechar={() => setAberto(null)} />
+        <FichaLead
+          lead={aberto}
+          podeEditar={podeEditar}
+          conversas={interacoes[aberto.id] ?? []}
+          aoFechar={() => setAberto(null)}
+        />
       ) : null}
     </>
   );
@@ -200,13 +266,15 @@ export function Kanban({
 function FichaLead({
   lead,
   podeEditar,
+  conversas,
   aoFechar,
 }: {
   lead: Lead;
   podeEditar: boolean;
+  conversas: Interacao[];
   aoFechar: () => void;
 }) {
-  const [aba, setAba] = useState<'passo' | 'ganhar' | 'perder'>('passo');
+  const [aba, setAba] = useState<'passo' | 'conversa' | 'ganhar' | 'perder'>('passo');
   const [r, setR] = useState<Resultado | null>(null);
   const [pendente, iniciar] = useTransition();
 
@@ -283,11 +351,58 @@ function FichaLead({
           </p>
         ) : null}
 
+        {/* Contato à mão. Abrir o WhatsApp direto daqui é o gesto que a
+            pessoa ia fazer de qualquer jeito, copiando o número para
+            outro app. */}
+        {lead.telefone || lead.email ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {lead.telefone ? (
+              <a
+                href={`https://wa.me/55${lead.telefone.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                WhatsApp
+              </a>
+            ) : null}
+            {lead.email ? (
+              <a
+                href={`mailto:${lead.email}`}
+                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                {lead.email}
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/*
+          Proposta a partir do lead.
+
+          Antes eram dois cadastros separados e o nome da loja era
+          digitado duas vezes. Pior que o trabalho repetido é a
+          divergência: "Loja Aurora" no funil e "Aurora Store" na
+          proposta viram dois clientes na cabeça de quem lê o relatório.
+
+          O link leva o id, e a tela de propostas preenche o resto.
+        */}
+        {podeEditar && lead.estagio !== 'ganho' && lead.estagio !== 'perdido' ? (
+          <Link
+            href={`/painel/propostas?lead=${lead.id}`}
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-magenta/50 bg-magenta/10 px-5 py-2.5 text-sm font-semibold text-magenta-texto transition-colors hover:bg-magenta hover:text-branco"
+          >
+            Gerar proposta para este lead
+            <span aria-hidden>→</span>
+          </Link>
+        ) : null}
+
         {podeEditar && lead.estagio !== 'ganho' && lead.estagio !== 'perdido' ? (
           <>
             <nav className="mt-7 flex gap-2" aria-label="O que fazer com este lead">
               {[
                 { k: 'passo' as const, r: 'Próximo passo' },
+                { k: 'conversa' as const, r: `Conversas${conversas.length ? ` (${conversas.length})` : ''}` },
                 { k: 'ganhar' as const, r: 'Converter' },
                 { k: 'perder' as const, r: 'Perder' },
               ].map((t) => (
@@ -307,6 +422,77 @@ function FichaLead({
             </nav>
 
             <div className="mt-5">
+              {aba === 'conversa' ? (
+                <div className="space-y-5">
+                  {/* Registro rápido, aberto. O diário de um lead só
+                      serve se for alimentado logo depois da conversa, e
+                      um clique a mais é o suficiente para a pessoa
+                      deixar para depois. */}
+                  <form onSubmit={enviar(registrarInteracao)} className="space-y-3">
+                    <input type="hidden" name="lead_id" value={lead.id} />
+                    <input type="hidden" name="conta_id" value="" />
+
+                    <div className="flex gap-3">
+                      <select
+                        name="tipo"
+                        defaultValue="whatsapp"
+                        aria-label="Tipo de conversa"
+                        className={`w-36 shrink-0 ${campo}`}
+                      >
+                        {[
+                          ['whatsapp', 'WhatsApp'],
+                          ['ligacao', 'Ligação'],
+                          ['reuniao', 'Reunião'],
+                          ['email', 'E-mail'],
+                          ['nota', 'Nota'],
+                        ].map(([v, r]) => (
+                          <option key={v} value={v}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        name="resumo"
+                        required
+                        placeholder="O que ficou combinado"
+                        aria-label="Resumo da conversa"
+                        className={campo}
+                      />
+                    </div>
+
+                    <Botao pendente={pendente}>Registrar</Botao>
+                  </form>
+
+                  {conversas.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs leading-relaxed text-cinza">
+                      Nenhuma conversa registrada. É esse histórico que responde
+                      &ldquo;por que esse lead parou?&rdquo; três semanas depois.
+                    </p>
+                  ) : (
+                    <ol className="space-y-3 border-t border-fio pt-5">
+                      {conversas.map((c) => (
+                        <li key={c.id} className="rounded-xl border border-fio bg-white/[0.02] p-4">
+                          <p className="flex flex-wrap items-baseline gap-x-3">
+                            <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.75rem] uppercase tracking-[0.1em] text-magenta-texto">
+                              {c.tipo}
+                            </span>
+                            <span className="text-xs text-cinza">{c.autor ?? 'Sistema'}</span>
+                            <span className="tabular ml-auto font-mono text-[0.75rem] text-cinza">
+                              {new Date(c.em).toLocaleDateString('pt-BR', {
+                                timeZone: 'America/Sao_Paulo',
+                                day: '2-digit',
+                                month: '2-digit',
+                              })}
+                            </span>
+                          </p>
+                          <p className="mt-2 text-sm leading-relaxed text-neve">{c.resumo}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              ) : null}
+
               {aba === 'passo' ? (
                 <form onSubmit={enviar(atualizarLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
