@@ -287,3 +287,51 @@ export const esquemaNovoLead = z.object({
 export const esquemaEditarLead = esquemaNovoLead.extend({
   id: z.uuid('Lead inválido.'),
 });
+
+/**
+ * Contrato: o que sustenta a cobrança.
+ *
+ * `fee_mensal` é obrigatório e maior que zero. Contrato com fee zero
+ * gera fatura de zero real, que o Asaas recusa e o painel registra como
+ * erro — melhor barrar aqui, onde dá para explicar.
+ */
+export const esquemaContrato = z.object({
+  conta_id: z.uuid('Escolha a loja.'),
+  plano: textoObrigatorio(2, 'Diga o nome do plano.'),
+  fee_mensal: z
+    .string()
+    .trim()
+    .transform(paraNumero)
+    .refine((n) => Number.isFinite(n) && n > 0, 'O fee mensal precisa ser maior que zero.'),
+  inicio: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a data de início.'),
+  fim: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable(),
+  reajuste: textoOpcional,
+  observacoes: textoOpcional,
+});
+
+/**
+ * Reajuste de fee.
+ *
+ * Não altera o contrato: encerra o atual e abre outro. Ver o comentário
+ * da ação, em `acoes-contrato.ts`.
+ */
+export const esquemaReajuste = z.object({
+  id: z.uuid('Contrato inválido.'),
+  fee_mensal: z
+    .string()
+    .trim()
+    .transform(paraNumero)
+    .refine((n) => Number.isFinite(n) && n > 0, 'O novo fee precisa ser maior que zero.'),
+  a_partir_de: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a partir de quando vale.'),
+  motivo: textoOpcional,
+});
+
+export const esquemaEncerrar = z.object({
+  id: z.uuid('Contrato inválido.'),
+  fim: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a data de encerramento.'),
+  motivo: textoOpcional,
+});

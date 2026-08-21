@@ -882,7 +882,11 @@ export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
     supabase
       .from('contrato')
       .select('id, conta_id, plano, fee_mensal, inicio, fim, conta:conta_id(nome)')
-      .lte('inicio', hoje)
+      /* Vigentes E agendados. O reajuste abre um contrato que começa no
+         mês que vem; filtrando por `inicio <= hoje` ele ficava invisível
+         até virar o mês, e não havia como conferir nem desfazer.
+         Contrato que já terminou sai daqui: o histórico dele vive nas
+         faturas que ele emitiu. */
       .or(`fim.is.null,fim.gte.${hoje}`)
       .order('inicio', { ascending: false }),
     supabase.from('fatura').select('contrato_id').eq('competencia', mes),
@@ -901,6 +905,7 @@ export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
       feeMensal: Number(c.fee_mensal ?? 0),
       inicio: c.inicio as string,
       fim: (c.fim as string) ?? null,
+      futuro: (c.inicio as string) > hoje,
       faturadoNoMes: faturados.has(c.id as string),
     })),
   );

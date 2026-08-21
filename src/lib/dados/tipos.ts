@@ -370,6 +370,8 @@ export type ContratoAtivo = {
   feeMensal: number;
   inicio: string;
   fim: string | null;
+  /** Começa depois de hoje: existe, mas ainda não fatura. */
+  futuro: boolean;
   /** A fatura do mês corrente já existe? */
   faturadoNoMes: boolean;
 };

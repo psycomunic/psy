@@ -26,6 +26,7 @@ import {
 import { Kanban } from '../Kanban';
 import { FormLead } from '../FormLead';
 import { BotaoFaturar, BotaoCobrar, BotaoConferir, CopiarCobranca } from '../FormCobranca';
+import { FormContrato, AcoesContrato } from '../FormContrato';
 import { CORES_SITUACAO } from '../paleta';
 import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 
@@ -320,6 +321,10 @@ export async function Contas({ papel }: { papel: Papel }) {
 /* Financeiro                                                          */
 /* ================================================================== */
 
+/** "2026-01-01" -> "01/01/2026". Sem `new Date`: data pura em ISO é lida
+    como UTC, e à meia-noite de Brasília volta um dia. */
+const dataBR = (iso: string) => iso.split('-').reverse().join('/');
+
 const COR_FATURA: Record<string, string> = {
   aberta: CORES_SITUACAO.sem_dado,
   enviada: CORES_SITUACAO.atencao,
@@ -340,6 +345,20 @@ export async function Financeiro() {
     ? Math.round(fin.receitaRecorrente / fin.contratosAtivos)
     : 0;
 
+  const podeMexer = procedencia === 'banco';
+
+  /* Só quem tem vigência ABERTA entra travado. Contrato com fim marcado
+     não impede o próximo: quem encerrou em outubro precisa poder abrir
+     o de novembro antes de outubro acabar. */
+  const comContratoAberto = new Set(
+    contratos.filter((c) => !c.fim).map((c) => c.contaId),
+  );
+  const lojasParaContrato = contas.map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    comContrato: comContratoAberto.has(c.id),
+  }));
+
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
@@ -356,36 +375,62 @@ export async function Financeiro() {
         </div>
       </Secao>
 
-      {contratos.length > 0 ? (
-        <Secao
-          titulo="Faturar o mês"
-          apoio="Uma fatura por contrato, por competência. Clicar duas vezes não gera segunda cobrança: a emissão devolve a fatura que já existe."
-        >
-          <Tabela>
-            <caption className="sr-only">Contratos ativos e a fatura do mês corrente</caption>
-            <thead>
-              <tr>
-                <th scope="col" className={th}>Loja</th>
-                <th scope="col" className={th}>Plano</th>
-                <th scope="col" className={th}>Fee</th>
-                <th scope="col" className={th}>Mês corrente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contratos.map((c) => (
-                <tr key={c.id}>
-                  <th scope="row" className={`${td} font-normal text-branco`}>{c.conta ?? '—'}</th>
-                  <td className={td}>{c.plano}</td>
-                  <td className={`${td} tabular`}>{dinheiro(c.feeMensal)}</td>
-                  <td className={td}>
-                    <BotaoFaturar contratoId={c.id} jaFaturado={c.faturadoNoMes} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Tabela>
-        </Secao>
-      ) : null}
+      <Secao
+        titulo="Contratos"
+        apoio="O contrato é o que diz quanto faturar todo mês. Uma fatura por contrato, por competência: clicar duas vezes não gera segunda cobrança, porque a emissão devolve a fatura que já existe."
+      >
+        <div className="space-y-4">
+          {podeMexer ? <FormContrato lojas={lojasParaContrato} /> : null}
+
+          {contratos.length === 0 ? (
+            <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
+              Nenhum contrato vigente. Sem contrato não há o que faturar: contrato nasce
+              aqui, ou sozinho quando um lead vira cliente no CRM.
+            </p>
+          ) : null}
+
+          {contratos.map((c) => (
+            <article key={c.id} className="cartao space-y-4 p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                <div>
+                  <h3 className="font-semibold text-branco">
+                    {c.conta ?? '—'}
+                    {c.futuro ? (
+                      <span className="ml-2.5 rounded-full border border-fio px-2.5 py-1 align-middle font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                        agendado
+                      </span>
+                    ) : null}
+                  </h3>
+                  <p className="mt-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                    {c.plano} · {c.futuro ? 'começa em' : 'desde'} {dataBR(c.inicio)}
+                    {c.fim ? ` · até ${dataBR(c.fim)}` : ''}
+                  </p>
+                </div>
+                <p className="tabular text-lg font-semibold">
+                  {dinheiro(c.feeMensal)}
+                  <span className="ml-1.5 text-xs font-normal text-cinza">por mês</span>
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {/* Contrato agendado não fatura: a competência dele ainda
+                    não chegou, e emitir agora criaria a fatura do mês em
+                    que o contrato nem valia. */}
+                {c.futuro ? null : (
+                  <BotaoFaturar contratoId={c.id} jaFaturado={c.faturadoNoMes} />
+                )}
+                {podeMexer ? (
+                  <AcoesContrato
+                    contratoId={c.id}
+                    feeAtual={c.feeMensal}
+                    encerrado={Boolean(c.fim)}
+                  />
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </Secao>
 
       {faturas.length > 0 ? (
         <Secao

@@ -110,10 +110,20 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0009_ficha_da_conta_e_funil.sql` | view `saude_conta` (health score), view `funil_comercial`, dias no estágio por gatilho |
 | `0010_conversao_recusa_sem_papel.sql` | `converter_lead()` passa a recusar quem não tem papel |
 | `0011_ingestao_de_metricas.sql` | `hoje()`, `registrar_metricas()`, `sincronizacao`, `metrica_bruta`, views `frescor_conta`, `atribuicao_conta` e `integracao_status` |
+| `0012_credenciais_da_agencia.sql` | `credencial_agencia` (segredo cifrado, sem política de leitura), `metrica_diaria.frete` |
+| `0013_apagar_credencial_sempre_possivel.sql` | gatilho que solta as integrações antes do delete: credencial vazada tinha de poder sair |
+| `0014_frete_na_gravacao.sql` | `registrar_metricas()` grava `frete` |
+| `0015_motivo_perda.sql` | `lead.perdido_por` → `motivo_perda` |
+| `0016_interacao_tipo.sql` | `interacao.canal` → `tipo` |
+| `0017_cobranca_asaas.sql` | `cobranca_evento`, `emitir_fatura()` idempotente, campos de Asaas em `conta` e `fatura` |
+| `0018_fatura_dentro_da_vigencia.sql` | `emitir_fatura()` recusa mês fora do início/fim do contrato |
+| `0019_contrato_coerente.sql` | contrato não termina antes de começar, e fee não é negativo |
 
-19 tabelas, 9 views, 48 políticas. `npm run testar-banco` confere as quatro
-coisas que importam: RLS ligado em tudo, isolamento entre lojas, conversão de
-lead, e a gravação idempotente de métrica.
+21 tabelas, 9 views, 49 políticas. `npm run testar-banco` confere o que não
+pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
+gravação idempotente de métrica, cobrança que não duplica, e o ciclo de vida do
+contrato pela tela de verdade (`npm run testar-contratos`, que precisa do
+`npm run dev` rodando).
 
 Quatro decisões que valem explicação:
 
@@ -301,16 +311,36 @@ curl -X POST https://SEU-DOMINIO/api/ingestao   -H 'x-psy-token: SEGREDO' -H 'co
 | 3 | Métricas e ingestão: gravação idempotente, planilha, `/api/ingestao`, frescor | **pronta** |
 | 4 | Plataformas: Magazord, Shopify, Merge para WhatsApp | a fazer |
 | 5 | Portal do cliente | a fazer |
-| 6 | Propostas e contratos ligados ao banco | a fazer |
+| 6 | Propostas e contratos ligados ao banco | **pronta** |
 | 7 | Tarefas, diário e solicitações | a fazer |
 | 8 | Relatórios | a fazer |
-| 9 | Financeiro e cobrança: Asaas e Mercado Pago | a fazer |
+| 9 | Financeiro e cobrança pelo Asaas | **pronta** (Mercado Pago segue de fora) |
 | 10 | Notificações e configurações | a fazer |
 
 As fases 3 a 10 são bastante independentes: dá para trocar a ordem. O que não
 muda é a regra de sempre — tabela nova nasce com RLS e política explícita, e a
 matriz de `src/lib/papeis.ts` acompanha.
 
-**A plataforma ainda não está no ar.** As variáveis do Supabase vivem só em
-`.env.local`: em produção, `/entrar` e `/painel` respondem 404 de propósito.
-Publicar é decisão sua, e o passo é colocar as três variáveis na Vercel.
+**A plataforma está no ar.** As variáveis do Supabase estão na Vercel, e
+`/entrar` e `/painel` respondem em produção. Sem elas o painel volta a responder
+404 de propósito, que é o comportamento correto para um deploy sem banco.
+
+### Contratos e cobrança
+
+O contrato é o que diz quanto faturar. Nasce em dois lugares: quando um lead
+vira cliente no CRM, e no botão **Novo contrato** dentro de Financeiro.
+
+Três regras que o teste `testar-contratos` protege:
+
+1. **Uma vigência aberta por loja.** Duas abertas gerariam duas faturas no mesmo
+   mês. A tela trava a opção e o servidor recusa de novo, porque uma tela aberta
+   há dez minutos não sabe o que mudou desde então.
+2. **Reajuste não edita o fee: encerra um contrato e abre outro.** A fatura
+   aponta para o contrato que a originou. Sobrescrever o valor faria a fatura de
+   março passar a dizer um número que ela nunca cobrou.
+3. **A fatura tem de caber na vigência.** `emitir_fatura()` recusa competência
+   anterior ao início ou posterior ao fim, por mês. É o que impede o contrato
+   agendado de cobrar o fee novo antes da data combinada.
+
+Encerrar nunca apaga: `fatura` aponta para `contrato` com `on delete restrict`,
+e é o contrato encerrado que explica o valor de uma fatura de dois anos atrás.
