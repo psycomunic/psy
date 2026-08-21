@@ -28,6 +28,7 @@ import {
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
+import { BotaoMenu } from '@/componentes/painel/BotaoMenu';
 
 export const metadata = {
   title: 'Painel',
@@ -93,6 +94,17 @@ export default async function PainelModulo({
 
   return (
     <div className="relative flex min-h-screen flex-col lg:flex-row">
+      {/* Aplica a preferência de menu antes da primeira pintura.
+          `dangerouslySetInnerHTML` é o único jeito de embutir script
+          numa árvore do React, e aqui o conteúdo é uma constante
+          escrita à mão: nada vem de fora, nada vem do usuário. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "try{if(localStorage.getItem('psy-menu')==='recolhido')" +
+            "document.documentElement.dataset.menu='recolhido'}catch(e){}",
+        }}
+      />
       {/* Cenário fixo, igual ao do site. Não rola com o conteúdo: se
           rolasse, o brilho passaria correndo e viraria efeito barato. */}
       {/* `overflow-hidden` recorta os brilhos. Eles têm 680px de
@@ -105,18 +117,24 @@ export default async function PainelModulo({
         <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
       </div>
       {/* Navegação lateral */}
-      <aside className="relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 p-6 backdrop-blur-sm lg:w-64 lg:border-b-0 lg:border-r">
-        <Marca />
+      <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 p-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
+        <div className="flex items-center justify-between gap-3">
+          <span className="menu-rotulo min-w-0">
+            <Marca />
+          </span>
+          <BotaoMenu />
+        </div>
 
+        <div className="menu-corpo">
         {bancoConfigurado ? (
-          <div className="mt-8">
+          <div className="menu-rotulo mt-8">
             <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
               {rotuloPapel[papel]}
             </p>
             <p className="mt-1 truncate text-sm text-neve">{nome}</p>
           </div>
         ) : (
-          <>
+          <div className="menu-rotulo">
             <p className="mt-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
               Perfil em visualização
             </p>
@@ -135,7 +153,7 @@ export default async function PainelModulo({
                 </li>
               ))}
             </ul>
-          </>
+          </div>
         )}
 
         <nav aria-label="Módulos" className="mt-8">
@@ -145,21 +163,30 @@ export default async function PainelModulo({
                 <Link
                   href={comPapel(`/painel/${m}`)}
                   aria-current={m === moduloAtual ? 'page' : undefined}
+                  title={rotuloModulo[m]}
                   className={
-                    'block rounded-xl px-4 py-2.5 text-sm transition-colors ' +
+                    'menu-item flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors ' +
                     (m === moduloAtual
                       ? 'bg-marinho-alto font-semibold text-branco'
                       : 'text-neve hover:bg-white/5')
                   }
                 >
-                  {rotuloModulo[m]}
+                  {/* A inicial, só no modo recolhido. O `title` acima é
+                      o que devolve o nome inteiro ao parar o mouse. */}
+                  <span
+                    aria-hidden
+                    className="menu-icone h-6 w-6 flex-none items-center justify-center rounded-md bg-white/[0.06] font-mono text-[0.75rem] uppercase"
+                  >
+                    {rotuloModulo[m].charAt(0)}
+                  </span>
+                  <span className="menu-rotulo truncate">{rotuloModulo[m]}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
 
-        <p className="mt-8 text-xs leading-relaxed text-cinza">
+        <p className="menu-rotulo mt-8 text-xs leading-relaxed text-cinza">
           {papel === 'cliente'
             ? 'Você enxerga apenas os números da sua conta.'
             : `${rotuloPapel[papel]} enxerga ${visiveis.length} de ${MODULOS.length} módulos.`}
@@ -174,6 +201,7 @@ export default async function PainelModulo({
             </Link>
           )}
         </p>
+        </div>
       </aside>
 
       {/* Conteúdo */}

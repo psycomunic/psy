@@ -83,7 +83,33 @@
   --text-guia--line-height: 1.6;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+
+  /*
+    O QUE ISTO CONSERTA: a lista do <select> abrindo branca.
+
+    A caixa do select é desenhada pelo navegador, e não pela página.
+    Estilizar o <select> deixa o CAMPO escuro, mas a lista que abre
+    continua sendo um menu do sistema operacional, que assume tema
+    claro por padrão. O resultado era texto quase branco sobre fundo
+    branco: ilegível, e em todo formulário do painel.
+
+    `color-scheme: dark` é o que avisa o navegador que a página é
+    escura. Ele passa a desenhar a lista do select, o seletor de data,
+    a barra de rolagem e o autofill no tema certo, sem CSS nenhum por
+    controle.
+  */
+  color-scheme: dark;
+}
+
+/* Reforço para os navegadores que ainda pintam a lista pelo elemento.
+   `color-scheme` resolve na maioria; estes dois fecham o resto. */
+option,
+optgroup {
+  background-color: var(--marinho-alto);
+  color: var(--neve);
+}
 
 body {
   background: var(--marinho);
@@ -252,4 +278,59 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* =================================================================
+   Menu lateral recolhível.
+
+   O estado vive num atributo do <html>, e não no React. Três motivos:
+
+   Não pisca. Um script minúsculo lê a preferência antes da primeira
+   pintura; com estado em React, a tela abriria com o menu aberto e o
+   recolheria depois da hidratação, na frente do usuário.
+
+   Não tem divergência de hidratação. O servidor não sabe o que está no
+   localStorage, então qualquer estado inicial que ele chutasse teria
+   chance de discordar do cliente.
+
+   E não precisa de re-render: quem esconde o rótulo é o CSS. O botão
+   só troca o atributo.
+   ================================================================= */
+@media (min-width: 1024px) {
+  [data-menu='recolhido'] .menu-lateral {
+    width: 4.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* O que some quando recolhe: rótulo do item, marca por extenso,
+     nome de quem está logado e o rodapé explicativo. Sobra o ícone e
+     o `title`, que o navegador mostra ao parar o mouse. */
+  [data-menu='recolhido'] .menu-rotulo {
+    display: none;
+  }
+
+  [data-menu='recolhido'] .menu-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  [data-menu='recolhido'] .menu-icone {
+    display: flex;
+  }
+}
+
+/* No celular a sidebar é uma faixa no topo, e recolher significa
+   esconder a navegação atrás do botão. Nada de largura aqui: o que
+   muda é a lista aparecer ou não. */
+@media (max-width: 1023px) {
+  [data-menu='recolhido'] .menu-corpo {
+    display: none;
+  }
+}
+
+/* O ícone só existe no modo recolhido, e no desktop. */
+.menu-icone {
+  display: none;
 }
