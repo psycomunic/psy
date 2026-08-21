@@ -181,7 +181,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
             transform: ativo! > serie.length / 2 ? 'translateX(-105%)' : 'translateX(5%)',
           }}
         >
-          <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             {diaLongo(d.dia)}
           </p>
           <dl className="mt-3 space-y-2 text-sm">

@@ -23,7 +23,7 @@ export function Marca({ className = '' }: { className?: string }) {
         aria-hidden
         className="h-4 w-px bg-magenta transition-[height] duration-300 group-hover:h-5"
       />
-      <span className="font-mono text-[0.68rem] uppercase leading-none tracking-[0.26em] text-cinza transition-colors group-hover:text-neve">
+      <span className="font-mono text-[0.75rem] uppercase leading-none tracking-[0.26em] text-cinza transition-colors group-hover:text-neve">
         Comunic
       </span>
     </Link>

@@ -236,7 +236,7 @@ export async function Contas({ papel }: { papel: Papel }) {
                   >
                     {c.nome}
                   </Link>
-                  <span className="mt-1 block font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
+                  <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {c.plataforma ?? '—'}
                   </span>
                 </th>
@@ -246,7 +246,7 @@ export async function Contas({ papel }: { papel: Papel }) {
                 <td className={`${td} tabular`}>{vezes(c.mer)}</td>
                 <td className={`${td} w-40`}><Progresso percentual={c.metaAtingida} /></td>
                 <td className={td}>
-                  <Link href={`/painel/contas?ficha=${c.id}`} className="text-sm font-semibold text-magenta-texto">
+                  <Link href={`/painel/contas?ficha=${c.id}`} className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto">
                     Ficha →
                   </Link>
                 </td>
@@ -388,7 +388,7 @@ export async function Tarefas() {
                     </p>
                   </div>
                   <span
-                    className="shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.12em]"
+                    className="shrink-0 font-mono text-[0.75rem] uppercase tracking-[0.12em]"
                     style={{ color: atrasada ? '#FF7A7A' : 'var(--cinza)' }}
                   >
                     {t.status === 'concluida' ? 'concluída' : prazoTexto(t.prazo)}
@@ -471,7 +471,7 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
                     className="inline-flex items-center gap-2"
                     style={{ color: p.ativo ? '#4ADE80' : '#93A0BC' }}
                   >
-                    <span aria-hidden className="text-[0.6rem]">{p.ativo ? '●' : '—'}</span>
+                    <span aria-hidden className="text-[0.75rem]">{p.ativo ? '●' : '—'}</span>
                     {p.ativo ? 'Ativo' : 'Desativado'}
                   </span>
                 </td>
@@ -518,11 +518,38 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
 function valorLegivel(v: unknown): string {
   if (v === null || v === undefined || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'sim' : 'não';
-  if (typeof v === 'object') return JSON.stringify(v);
+
+  /*
+    Coluna `jsonb` não vira texto legível, vira parede.
+
+    O corpo de uma proposta tem nove chaves e várias listas dentro. Um
+    `JSON.stringify` disso produzia uma linha de 367px que empurrava a
+    página para 412px de largura, e era a única rota do painel que
+    estourava a tela do celular.
+
+    Pior: mesmo cabendo, ninguém lê um objeto serializado para descobrir
+    o que mudou. Então o resumo diz o TAMANHO da mudança e nomeia os
+    primeiros campos, que é a informação que a auditoria precisa dar:
+    "mexeram no corpo, e mexeram nisto aqui".
+  */
+  if (typeof v === 'object') {
+    if (Array.isArray(v)) return `${v.length} ${v.length === 1 ? 'item' : 'itens'}`;
+    const chaves = Object.keys(v as Record<string, unknown>);
+    if (chaves.length === 0) return 'vazio';
+    const amostra = chaves.slice(0, 3).join(', ');
+    return chaves.length > 3
+      ? `${chaves.length} campos: ${amostra}…`
+      : `${chaves.length} ${chaves.length === 1 ? 'campo' : 'campos'}: ${amostra}`;
+  }
+
   const s = String(v);
   /* uuid inteiro numa célula empurra a tabela para o lado sem informar
      nada: os oito primeiros já servem para conferir. */
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(s) ? `${s.slice(0, 8)}…` : s;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(s)) return `${s.slice(0, 8)}…`;
+
+  /* Texto longo também empurra. 120 caracteres é o suficiente para
+     reconhecer o que mudou sem transformar a linha num parágrafo. */
+  return s.length > 120 ? `${s.slice(0, 120)}…` : s;
 }
 
 const ROTULO_ACAO: Record<string, string> = {
@@ -543,8 +570,15 @@ const ROTULO_TABELA: Record<string, string> = {
   integracao: 'Integração',
 };
 
-export async function Auditoria() {
-  const { dados: registros, procedencia } = await listarAuditoria(100);
+const POR_PAGINA = 20;
+
+export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
+  /* Pede UM a mais que a página para saber se existe próxima, sem
+     gastar uma consulta de contagem. O extra é descartado antes de
+     renderizar. */
+  const { dados: bruto, procedencia } = await listarAuditoria(POR_PAGINA + 1, pagina);
+  const temMais = bruto.length > POR_PAGINA;
+  const registros = bruto.slice(0, POR_PAGINA);
 
   return (
     <>
@@ -552,7 +586,7 @@ export async function Auditoria() {
 
       <Secao
         titulo="Quem fez o quê"
-        apoio="Últimos 100 registros das tabelas sensíveis. O log não se altera nem se apaga: se desse para editar, não seria log."
+        apoio="As tabelas sensíveis, da alteração mais recente para trás. O log não se altera nem se apaga: se desse para editar, não seria log."
       >
         {registros.length === 0 ? (
           <p className="cartao p-6 text-sm text-cinza">
@@ -571,7 +605,7 @@ export async function Auditoria() {
                       {ROTULO_TABELA[r.tabela] ?? r.tabela}
                     </span>
                   </span>
-                  <span className="ml-auto font-mono text-[0.62rem] uppercase tracking-[0.12em] text-cinza">
+                  <span className="ml-auto font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {new Date(r.em).toLocaleString('pt-BR', {
                       timeZone: 'America/Sao_Paulo',
                       day: '2-digit',
@@ -582,16 +616,23 @@ export async function Auditoria() {
                   </span>
                 </div>
 
+                {/* `min-w-0` e `break-words` nos valores: sem os dois, um
+                    texto sem espaço não quebra e empurra a linha inteira
+                    para fora da tela, mesmo já resumido. */}
                 {r.mudancas.length > 0 ? (
                   <ul className="mt-3 space-y-1.5 border-t border-fio pt-3">
                     {r.mudancas.slice(0, 6).map((m) => (
                       <li key={m.campo} className="flex flex-wrap items-baseline gap-2 text-xs">
-                        <span className="font-mono uppercase tracking-[0.1em] text-cinza">
+                        <span className="flex-none font-mono uppercase tracking-[0.1em] text-cinza">
                           {m.campo}
                         </span>
-                        <span className="text-cinza line-through">{valorLegivel(m.de)}</span>
-                        <span aria-hidden className="text-magenta-texto">→</span>
-                        <span className="text-neve">{valorLegivel(m.para)}</span>
+                        <span className="min-w-0 break-words text-cinza line-through">
+                          {valorLegivel(m.de)}
+                        </span>
+                        <span aria-hidden className="flex-none text-magenta-texto">→</span>
+                        <span className="min-w-0 break-words text-neve">
+                          {valorLegivel(m.para)}
+                        </span>
                       </li>
                     ))}
                     {r.mudancas.length > 6 ? (
@@ -605,6 +646,45 @@ export async function Auditoria() {
             ))}
           </ol>
         )}
+
+        {/* Navegação por página. Antes eram cem registros de uma vez, o
+            que dava 27.711px de altura no celular e fazia desta a única
+            rota do painel que estourava a largura da tela.
+
+            Log não se lê rolando: se lê procurando uma alteração
+            específica, e para isso a página precisa caber. */}
+        {registros.length > 0 && (temMais || pagina > 0) ? (
+          <nav
+            aria-label="Páginas da auditoria"
+            className="mt-5 flex items-center justify-between gap-4"
+          >
+            {pagina > 0 ? (
+              <Link
+                href={`/painel/auditoria?pagina=${pagina - 1}`}
+                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                ← Mais recentes
+              </Link>
+            ) : (
+              <span />
+            )}
+
+            <span className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+              página {pagina + 1}
+            </span>
+
+            {temMais ? (
+              <Link
+                href={`/painel/auditoria?pagina=${pagina + 1}`}
+                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                Mais antigos →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        ) : null}
       </Secao>
     </>
   );

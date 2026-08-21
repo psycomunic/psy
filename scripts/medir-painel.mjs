@@ -112,10 +112,22 @@ try {
             .filter((el) => {
               const r = el.getBoundingClientRect();
               if (r.width <= janela + 1) return false;
-              let pai = el.parentElement;
-              while (pai) {
-                if (/auto|scroll/.test(getComputedStyle(pai).overflowX)) return false;
-                pai = pai.parentElement;
+
+              /* Elemento posicionado em relação à JANELA não estende a
+                 área de rolagem do documento, então não pode causar
+                 rolagem lateral. Contá-lo era falso positivo: onze
+                 rotas acusadas enquanto `scrollWidth` seguia igual à
+                 largura da tela.
+
+                 Falso positivo em ferramenta de medição é pior que não
+                 medir, porque some com o problema real no meio do
+                 ruído. */
+              let no = el;
+              while (no && no !== document.body) {
+                const e = getComputedStyle(no);
+                if (e.position === 'fixed') return false;
+                if (no !== el && /auto|scroll|hidden|clip/.test(e.overflowX)) return false;
+                no = no.parentElement;
               }
               return true;
             })
@@ -167,11 +179,27 @@ try {
           };
         });
 
-        const semEstouro = m.docLarg <= m.janela + 1 && m.estouram.length === 0;
-        if (!semEstouro) problemas++;
+        /*
+          Página que não renderizou não passa no teste.
 
-        const sinal = semEstouro ? 'ok  ' : 'ESTOURA';
-        const extra = semEstouro ? '' : `  <- ${m.estouram.join(' | ')}`;
+          Sem esta checagem, um erro de compilação produzia "ok" em
+          todas as rotas com sidebar 0px e fonte 0px: página vazia não
+          estoura largura nenhuma. É o mesmo falso positivo que o
+          detector de estouro já tinha, e o pior tipo — o que diz que
+          está tudo bem justamente quando tudo quebrou.
+        */
+        const renderizou = m.asideLarg > 0 && m.menorFonte > 0;
+        if (!renderizou) problemas++;
+
+        const semEstouro = m.docLarg <= m.janela + 1 && m.estouram.length === 0;
+        if (renderizou && !semEstouro) problemas++;
+
+        const sinal = !renderizou ? 'QUEBRADA' : semEstouro ? 'ok  ' : 'ESTOURA';
+        const extra = !renderizou
+          ? '  <- a página não renderizou'
+          : semEstouro
+            ? ''
+            : `  <- ${m.estouram.join(' | ')}`;
 
         console.log(
           `  ${sinal} /${rota.padEnd(14)} doc ${String(m.docLarg).padStart(4)}  ` +

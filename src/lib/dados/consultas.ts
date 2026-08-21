@@ -568,8 +568,17 @@ export async function listarEquipe(): Promise<Resposta<PessoaEquipe[]>> {
  */
 const CAMPOS_IGNORADOS = new Set(['atualizado_em', 'atualizada_em', 'criado_em', 'criada_em']);
 
+/**
+ * A trilha de auditoria, em página.
+ *
+ * Cem registros de uma vez davam 27.711px de altura no celular, e essa
+ * era a única rota do painel que estourava a largura da tela. Log não
+ * se lê em rolagem infinita: se lê procurando uma alteração
+ * específica, e para isso a página precisa caber.
+ */
 export async function listarAuditoria(
-  limite = 100,
+  limite = 20,
+  pagina = 0,
 ): Promise<Resposta<RegistroAuditoria[]>> {
   if (!bancoConfigurado) return semBanco(demo.auditoriaDemo());
 
@@ -578,7 +587,7 @@ export async function listarAuditoria(
     .from('log_auditoria')
     .select('id, acao, tabela, registro_id, em, autor_papel, perfil:autor_id(nome)')
     .order('em', { ascending: false })
-    .limit(limite);
+    .range(pagina * limite, pagina * limite + limite - 1);
 
   if (faltamTabelas(error)) return semBanco(demo.auditoriaDemo());
 

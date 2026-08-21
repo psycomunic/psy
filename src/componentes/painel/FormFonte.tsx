@@ -11,7 +11,7 @@ import type { Resultado } from '@/app/painel/acoes';
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
   'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotuloCss = 'block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 /** O que pedir por provedor. Errar o formato do identificador é o
     primeiro erro de todo mundo, então o exemplo fica no campo. */
@@ -178,7 +178,7 @@ export function BotaoDesvincular({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="text-xs font-semibold text-cinza underline-offset-4 transition-colors hover:text-magenta-texto hover:underline disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-cinza underline-offset-4 transition-colors hover:text-magenta-texto hover:underline disabled:opacity-60"
       >
         {pendente ? 'Removendo...' : 'Desvincular'}
       </button>

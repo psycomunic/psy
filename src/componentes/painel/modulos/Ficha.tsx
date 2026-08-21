@@ -69,7 +69,7 @@ export async function Ficha({
           Loja não encontrada, ou fora do seu acesso.
         </p>
         <p className="mt-6">
-          <Link href="/painel/contas" className="text-sm font-semibold text-magenta-texto">
+          <Link href="/painel/contas" className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto">
             ← Voltar para a carteira
           </Link>
         </p>
@@ -95,7 +95,7 @@ export async function Ficha({
           <h1 className="font-display text-3xl font-extrabold tracking-[-0.035em]">
             {conta.nome}
           </h1>
-          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.64rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             <span>{rotuloSituacaoConta[conta.situacao]}</span>
             {conta.plataforma ? <span>· {conta.plataforma}</span> : null}
             {conta.responsavel ? <span>· {conta.responsavel}</span> : null}
@@ -106,7 +106,7 @@ export async function Ficha({
         {/* Health score com a razão junto: nota sem motivo obriga a
             procurar o que houve, e é esse tempo que ela deveria poupar. */}
         <div className="cartao min-w-[13rem] p-5">
-          <p className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             Health score
           </p>
           <p className="tabular mt-2 flex items-baseline gap-2">
@@ -243,14 +243,14 @@ async function AbaDiario({
           <ol className="space-y-3">
             {marcos.map((m) => (
               <li key={m.id} className="cartao flex flex-wrap gap-x-6 gap-y-2 p-5">
-                <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-magenta-texto">
+                <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {diaLongo(m.dia)}
                 </span>
                 <div className="min-w-0 grow">
                   <p className="font-semibold">{m.titulo}</p>
                   {m.detalhe ? <p className="mt-1 text-sm text-cinza">{m.detalhe}</p> : null}
                 </div>
-                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
+                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                   {m.tipo}
                 </span>
               </li>
@@ -267,11 +267,11 @@ async function AbaDiario({
             {interacoes.map((i) => (
               <li key={i.id} className="cartao p-5">
                 <div className="flex flex-wrap items-baseline gap-x-3">
-                  <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-magenta-texto">
+                  <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-magenta-texto">
                     {i.tipo}
                   </span>
                   <span className="text-sm text-cinza">{i.autor ?? 'Sistema'}</span>
-                  <span className="ml-auto font-mono text-[0.6rem] uppercase tracking-[0.12em] text-cinza">
+                  <span className="ml-auto font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {new Date(i.em).toLocaleString('pt-BR', {
                       timeZone: 'America/Sao_Paulo',
                       day: '2-digit',
@@ -382,7 +382,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                       {rotuloEstadoIntegracao[c.estado]}
                     </p>
                   </div>
-                  <p className="mt-2 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-cinza">
+                  <p className="mt-2 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {c.identificador ?? 'sem identificador'} · janela de {c.janelaDias} dias
                   </p>
                   <p className="mt-3 text-sm text-cinza">
@@ -444,7 +444,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                   <td className={`${td} tabular whitespace-nowrap`}>{quando(r.comecouEm)}</td>
                   <th scope="row" className={`${td} font-normal`}>
                     <span className="text-branco">{r.provedor}</span>
-                    <span className="mt-1 block font-mono text-[0.56rem] uppercase tracking-[0.12em] text-cinza">
+                    <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                       {r.origem}
                     </span>
                   </th>
@@ -511,7 +511,7 @@ async function AbaContrato({ contaId, papel }: { contaId: string; papel: Papel }
     <ul className="grid gap-4 md:grid-cols-2">
       {contratos.map((c) => (
         <li key={c.id} className="cartao p-6">
-          <p className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-magenta-texto">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
             {c.plano}
           </p>
           <p className="tabular mt-3 font-display text-2xl font-extrabold tracking-[-0.03em]">

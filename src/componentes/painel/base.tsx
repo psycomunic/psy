@@ -24,7 +24,7 @@ export function SeloSituacao({ situacao }: { situacao: Situacao }) {
       className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
       style={{ color: cor, borderColor: `${cor}44`, background: `${cor}14` }}
     >
-      <span aria-hidden className="text-[0.6rem] leading-none">
+      <span aria-hidden className="text-[0.75rem] leading-none">
         {FORMAS[situacao]}
       </span>
       {rotuloSituacao[situacao]}
@@ -60,7 +60,7 @@ export function Kpi({
 
   return (
     <div className="cartao p-6">
-      <p className="font-mono text-[0.64rem] uppercase tracking-[0.16em] text-cinza">
+      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
         {rotulo}
       </p>
       <p className="tabular mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">
@@ -98,7 +98,7 @@ export function Progresso({ percentual }: { percentual: number | null }) {
         <span className="tabular text-sm font-semibold" style={{ color: cor }}>
           {percentual.toFixed(0)}%
         </span>
-        <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+        <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
           da meta do mês
         </span>
       </div>
@@ -175,5 +175,5 @@ export function Tabela({ children }: { children: ReactNode }) {
 }
 
 export const th =
-  'px-5 py-4 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza font-normal';
+  'px-5 py-4 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza font-normal';
 export const td = 'px-5 py-4 border-t border-fio';

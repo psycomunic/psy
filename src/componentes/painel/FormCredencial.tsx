@@ -7,7 +7,7 @@ import type { Resultado } from '@/app/painel/acoes';
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
   'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotuloCss = 'block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 type Campo = {
   chave: string;
@@ -155,7 +155,7 @@ export function BotaoDesligarCredencial({ id, rotulo }: { id: string; rotulo: st
         type="submit"
         disabled={pendente}
         title={`Desligar ${rotulo} e apagar o token`}
-        className="text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
       >
         {pendente ? 'Desligando...' : 'Desligar e apagar token'}
       </button>

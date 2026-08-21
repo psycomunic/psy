@@ -106,7 +106,7 @@ export function Kanban({
               }
             >
               <header className="flex items-baseline justify-between gap-2">
-                <h3 className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-magenta-texto">
+                <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {rotuloEstagio[estagio]}
                 </h3>
                 <span className="tabular text-sm font-semibold">{daColuna.length}</span>
@@ -162,7 +162,7 @@ export function Kanban({
                           {/* Cor + ÍCONE + texto: nunca cor sozinha. */}
                           {parado ? (
                             <p
-                              className="mt-2.5 flex items-center gap-1.5 text-[0.68rem] font-semibold"
+                              className="mt-2.5 flex items-center gap-1.5 text-[0.75rem] font-semibold"
                               style={{ color: '#FBBF24' }}
                             >
                               <span aria-hidden>▲</span>
@@ -181,7 +181,7 @@ export function Kanban({
       </div>
 
       {pendente ? (
-        <p className="mt-4 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+        <p className="mt-4 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
           salvando...
         </p>
       ) : null}
@@ -252,25 +252,25 @@ function FichaLead({
 
         <dl className="mt-6 grid grid-cols-2 gap-4 border-y border-fio py-5 text-sm">
           <div>
-            <dt className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Fee estimado
             </dt>
             <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorFee)}</dd>
           </div>
           <div>
-            <dt className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Verba estimada
             </dt>
             <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorVerba)}</dd>
           </div>
           <div>
-            <dt className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Estágio
             </dt>
             <dd className="mt-1">{rotuloEstagio[lead.estagio]}</dd>
           </div>
           <div>
-            <dt className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Há quanto tempo
             </dt>
             <dd className="mt-1">{lead.diasNoEstagio} dias</dd>
@@ -311,7 +311,7 @@ function FichaLead({
                 <form onSubmit={enviar(atualizarLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="pp" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                    <label htmlFor="pp" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Próximo passo
                     </label>
                     <input
@@ -324,7 +324,7 @@ function FichaLead({
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="ppe" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                      <label htmlFor="ppe" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                         Quando
                       </label>
                       <input
@@ -336,7 +336,7 @@ function FichaLead({
                       />
                     </div>
                     <div>
-                      <label htmlFor="pb" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                      <label htmlFor="pb" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                         Probabilidade
                       </label>
                       <input
@@ -368,7 +368,7 @@ function FichaLead({
                     falhar, nada é criado.
                   </p>
                   <div>
-                    <label htmlFor="fee" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                    <label htmlFor="fee" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Fee mensal fechado *
                     </label>
                     <input
@@ -381,7 +381,7 @@ function FichaLead({
                     />
                   </div>
                   <div>
-                    <label htmlFor="plat" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                    <label htmlFor="plat" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Plataforma da loja
                     </label>
                     <input
@@ -405,7 +405,7 @@ function FichaLead({
                 <form onSubmit={enviar(perderLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="mp" className="block font-mono text-[0.6rem] uppercase tracking-[0.14em] text-cinza">
+                    <label htmlFor="mp" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Por que foi perdido? *
                     </label>
                     <textarea

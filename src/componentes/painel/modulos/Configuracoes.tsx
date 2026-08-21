@@ -84,7 +84,7 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
                       {rotuloProvedorApi[p]}
                     </p>
                     {c ? (
-                      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-cinza">
+                      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                         <span>{c.rotulo}</span>
                         <span>token {c.pista}</span>
                         <span>
@@ -109,7 +109,7 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
                   <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-fio pt-4 text-sm">
                     {Object.entries(c.configuracao).map(([k, v]) => (
                       <div key={k}>
-                        <dt className="font-mono text-[0.56rem] uppercase tracking-[0.12em] text-cinza">
+                        <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                           {k}
                         </dt>
                         <dd className="tabular mt-0.5 break-all text-neve">{v}</dd>

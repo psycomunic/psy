@@ -10,7 +10,7 @@ const campo =
   'outline-none transition-colors file:mr-4 file:rounded-full file:border-0 ' +
   'file:bg-white/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-branco ' +
   'placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotulo = 'block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza';
+const rotulo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 /** As colunas que cada tipo de planilha aceita, para caber na tela sem
     virar documentação em outro lugar. */

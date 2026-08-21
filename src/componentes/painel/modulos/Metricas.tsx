@@ -127,7 +127,7 @@ export async function Metricas({
           <h1 className="font-display text-3xl font-extrabold tracking-[-0.035em]">
             {conta.nome}
           </h1>
-          <p className="mt-2 font-mono text-[0.64rem] uppercase tracking-[0.16em] text-cinza">
+          <p className="mt-2 font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
             {conta.plataforma ?? 'Plataforma a definir'}
             {conta.ultimoDia ? ` · dado até ${diaLongo(conta.ultimoDia)}` : ''}
           </p>
@@ -187,7 +187,7 @@ export async function Metricas({
               { r: 'Clientes novos', v: numero(nov7), a: `${numero(ped7 - nov7)} foram recompra` },
             ].map((e, i) => (
               <li key={e.r} className={i > 0 ? 'sm:border-l sm:border-fio sm:pl-6' : ''}>
-                <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                   {e.r}
                 </p>
                 <p className="tabular mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
@@ -222,7 +222,7 @@ export async function Metricas({
       <Secao titulo="De onde vem a receita" apoio="Acumulado de 30 dias. Orgânico e direto não têm custo de mídia atribuído.">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="cartao p-7">
-            <h3 className="font-mono text-[0.64rem] uppercase tracking-[0.16em] text-cinza">
+            <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
               Receita por canal
             </h3>
             <div className="mt-6">
@@ -230,7 +230,7 @@ export async function Metricas({
             </div>
           </div>
           <div className="cartao p-7">
-            <h3 className="font-mono text-[0.64rem] uppercase tracking-[0.16em] text-cinza">
+            <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
               ROAS por canal
             </h3>
             <div className="mt-6">
@@ -283,14 +283,14 @@ export async function Metricas({
           <ol className="space-y-3">
             {marcos.map((m) => (
               <li key={m.id} className="cartao flex flex-wrap gap-x-6 gap-y-2 p-5">
-                <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-magenta-texto">
+                <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {diaLongo(m.dia)}
                 </span>
                 <div className="min-w-0 grow">
                   <p className="font-semibold">{m.titulo}</p>
                   {m.detalhe ? <p className="mt-1 text-sm text-cinza">{m.detalhe}</p> : null}
                 </div>
-                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cinza">
+                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                   {m.tipo}
                 </span>
               </li>

@@ -47,10 +47,10 @@ export default async function PainelModulo({
   searchParams,
 }: {
   params: Promise<{ modulo: string }>;
-  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string }>;
+  searchParams: Promise<{ papel?: string; conta?: string; ficha?: string; aba?: string; pagina?: string }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba } = await searchParams;
+  const { papel: papelDaUrl, conta, ficha, aba, pagina } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
@@ -92,21 +92,32 @@ export default async function PainelModulo({
     bancoConfigurado ? rota : `${rota}${rota.includes('?') ? '&' : '?'}papel=${papel}`;
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="relative flex min-h-screen flex-col lg:flex-row">
+      {/* Cenário fixo, igual ao do site. Não rola com o conteúdo: se
+          rolasse, o brilho passaria correndo e viraria efeito barato. */}
+      {/* `overflow-hidden` recorta os brilhos. Eles têm 680px de
+          propósito, para o degradê sangrar fora da tela; sem o recorte
+          ficam maiores que a janela e sujam qualquer medição de
+          largura, mesmo sem criar rolagem. */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="grade absolute inset-0 opacity-50" />
+        <div className="brilho-magenta absolute -right-[22%] -top-[28%] h-[680px] w-[680px] opacity-[0.22]" />
+        <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
+      </div>
       {/* Navegação lateral */}
-      <aside className="shrink-0 border-b border-fio bg-marinho-fundo p-6 lg:w-64 lg:border-b-0 lg:border-r">
+      <aside className="relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 p-6 backdrop-blur-sm lg:w-64 lg:border-b-0 lg:border-r">
         <Marca />
 
         {bancoConfigurado ? (
           <div className="mt-8">
-            <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-magenta-texto">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
               {rotuloPapel[papel]}
             </p>
             <p className="mt-1 truncate text-sm text-neve">{nome}</p>
           </div>
         ) : (
           <>
-            <p className="mt-8 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-magenta-texto">
+            <p className="mt-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
               Perfil em visualização
             </p>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -115,7 +126,7 @@ export default async function PainelModulo({
                   <Link
                     href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
                     className={
-                      'inline-block rounded-full px-3 py-1.5 text-[0.68rem] font-semibold transition-colors ' +
+                      'inline-block rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors ' +
                       (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
                     }
                   >
@@ -166,7 +177,7 @@ export default async function PainelModulo({
       </aside>
 
       {/* Conteúdo */}
-      <main id="conteudo" className="min-w-0 flex-1 p-6 md:p-10">
+      <main id="conteudo" className="relative z-10 min-w-0 flex-1 p-6 md:p-10">
         {!permitido ? (
           <>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">Sem acesso</h1>
@@ -187,7 +198,7 @@ export default async function PainelModulo({
                 vezes onde a pessoa está. */}
             {moduloAtual !== 'metricas' && !naFicha ? (
               <header>
-                <p className="font-mono text-[0.64rem] uppercase tracking-[0.16em] text-magenta-texto">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-magenta-texto">
                   {rotuloPapel[papel]}
                 </p>
                 <h1 className="mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">
@@ -197,7 +208,7 @@ export default async function PainelModulo({
             ) : null}
 
             <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
-              {moduloAtual === 'visao' ? <Visao papel={papel} /> : null}
+              {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
               {moduloAtual === 'crm' ? <Crm papel={papel} /> : null}
               {naFicha ? (
@@ -208,7 +219,9 @@ export default async function PainelModulo({
               {moduloAtual === 'financeiro' ? <Financeiro /> : null}
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
-              {moduloAtual === 'auditoria' ? <Auditoria /> : null}
+              {moduloAtual === 'auditoria' ? (
+                <Auditoria pagina={Math.max(0, Number(pagina) || 0)} />
+              ) : null}
               {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} /> : null}
               {moduloAtual === 'propostas' ? <Propostas papel={papel} /> : null}
               {AINDA_NAO[moduloAtual] ? (
@@ -221,6 +234,10 @@ export default async function PainelModulo({
           </>
         )}
       </main>
+
+      {/* Grão por cima de tudo. É o que separa "azul chapado" de
+          superfície, e é a mesma camada do site. */}
+      <div aria-hidden className="grao-camada" />
     </div>
   );
 }

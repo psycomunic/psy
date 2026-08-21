@@ -7,7 +7,7 @@ import type { Resultado } from '@/app/painel/acoes';
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
   'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotulo = 'block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza';
+const rotulo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 const TIPOS = [
   { v: 'ligacao', r: 'Ligação' },
