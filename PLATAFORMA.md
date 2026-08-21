@@ -118,8 +118,11 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0017_cobranca_asaas.sql` | `cobranca_evento`, `emitir_fatura()` idempotente, campos de Asaas em `conta` e `fatura` |
 | `0018_fatura_dentro_da_vigencia.sql` | `emitir_fatura()` recusa mês fora do início/fim do contrato |
 | `0019_contrato_coerente.sql` | contrato não termina antes de começar, e fee não é negativo |
+| `0020_financeiro_completo.sql` | `financeiro_mes` passa a somar `fatura`; `lancamento` vira livro de despesa; cobrança avulsa; view `serie_financeira` |
+| `0021_cliente_de_qualquer_nicho.sql` | `conta.tipo`, health score por tipo, `contrato.dia_vencimento`, assinatura do Asaas |
+| `0022_saude_conta_completa.sql` | devolve à `saude_conta` as colunas que a 0021 derrubou |
 
-21 tabelas, 9 views, 49 políticas. `npm run testar-banco` confere o que não
+21 tabelas, 10 views, 49 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
 gravação idempotente de métrica, cobrança que não duplica, e o ciclo de vida do
 contrato pela tela de verdade (`npm run testar-contratos`, que precisa do
@@ -344,3 +347,45 @@ Três regras que o teste `testar-contratos` protege:
 
 Encerrar nunca apaga: `fatura` aponta para `contrato` com `on delete restrict`,
 e é o contrato encerrado que explica o valor de uma fatura de dois anos atrás.
+
+### Cliente que não é loja
+
+A carteira tem chalé, concessionária e outros nichos onde a agência faz só
+tráfego. `conta.tipo` distingue `ecommerce`, `trafego` e `outro`, e isso muda o
+CÁLCULO, não só a palavra na tela: o health score desconta 20 pontos por
+"gastou em mídia e não teve receita", e cliente de tráfego puro nunca registra
+receita aqui. Sem o tipo, metade da carteira ficaria eternamente vermelha, e
+semáforo que mente é pior que semáforo nenhum.
+
+Na carteira, cliente de tráfego mostra traço em receita e MER, e não R$ 0,00.
+Zero afirma que não vendeu; traço diz que a agência não mede isso.
+
+`npm run testar-recorrencia` prova os dois lados: a mesma situação (verba
+gasta, receita zero) deixa uma LOJA em crítico e um cliente de tráfego em
+saudável.
+
+### Cobrança recorrente
+
+`contrato.asaas_assinatura_id` liga a assinatura mensal do Asaas. A partir daí
+quem emite a fatura é o Asaas, na data, todo mês, e o webhook cria a linha aqui
+por `fatura_de_assinatura()`.
+
+Três coisas sustentam isso:
+
+- **O `externalReference` da assinatura é o id do CONTRATO**, e não de uma
+  fatura: toda cobrança que ela gerar herda essa referência, e cada uma é de um
+  mês diferente. Por isso o webhook só trata `externalReference` como id de
+  fatura quando o evento NÃO traz `subscription` — senão aplicaria um pagamento
+  na linha errada.
+- **O primeiro vencimento é calculado, não pedido.** A assinatura cria a
+  primeira cobrança na hora; uma data já passada faria o cliente receber, no
+  mesmo minuto, uma cobrança nascida vencida.
+- **Desligar não cancela o que já foi emitido.** O cliente continua devendo os
+  meses vencidos, e apagá-los seria perdoar dívida sem ninguém decidir isso.
+
+`dia_vencimento` vai de 1 a 28: 29, 30 e 31 não existem em todo mês, e o Asaas
+empurraria a cobrança de fevereiro para março.
+
+Webhook se perde. `conferirAssinaturas()` puxa do Asaas as cobranças que cada
+assinatura gerou e cria aqui o que faltou — é o botão "Conferir cobranças", na
+aba Visão.

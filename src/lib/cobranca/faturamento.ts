@@ -2,6 +2,7 @@ import 'server-only';
 import { clienteServico } from '@/lib/supabase/servico';
 import { clienteServidor } from '@/lib/supabase/servidor';
 import { abrirSegredo } from '@/lib/ingestao/credenciais';
+import { hojeBR } from '@/lib/datas';
 import {
   garantirCliente,
   emitirCobranca,
@@ -10,6 +11,9 @@ import {
   cancelarCobranca,
   receberEmDinheiro,
   saldoAsaas,
+  criarAssinatura,
+  cancelarAssinatura,
+  cobrancasDaAssinatura,
   statusDaFatura,
   ErroAsaas,
   type AmbienteAsaas,
@@ -293,6 +297,10 @@ export async function aplicarEventoAsaas(corpo: {
     externalReference?: string;
     invoiceUrl?: string;
     netValue?: number;
+    /** Presente quando a cobrança nasceu de uma assinatura. */
+    subscription?: string;
+    value?: number;
+    dueDate?: string;
   };
 }): Promise<{ ok: boolean; mensagem: string }> {
   const pagamento = corpo.payment;
@@ -308,13 +316,45 @@ export async function aplicarEventoAsaas(corpo: {
     .eq('asaas_id', pagamento.id)
     .maybeSingle();
 
-  if (!fatura && pagamento.externalReference) {
+  /* O `externalReference` de uma cobrança avulsa ou de contrato carrega
+     o id da NOSSA fatura. Numa cobrança de assinatura ele carrega o id
+     do CONTRATO, herdado da assinatura — por isso a busca é guardada
+     por um teste de uuid e continua sendo por `fatura.id`: contrato e
+     fatura são tabelas diferentes, e um acerto por acaso aqui aplicaria
+     um pagamento na linha errada. */
+  if (!fatura && pagamento.externalReference && !pagamento.subscription) {
     const r = await servico
       .from('fatura')
       .select('id, status')
       .eq('id', pagamento.externalReference)
       .maybeSingle();
     fatura = r.data;
+  }
+
+  /*
+    A cobrança que a assinatura gerou sozinha.
+
+    Ela nasce no Asaas, no dia, sem ninguém clicar em nada. Este painel
+    nunca a viu. Sem criar a linha aqui, o evento viraria só um registro
+    dizendo "não encontrada" — e um cliente com cobrança automática
+    pagaria todo mês sem entrar em nenhum indicador.
+  */
+  if (!fatura && pagamento.subscription) {
+    const { data: novaId } = await servico.rpc('fatura_de_assinatura', {
+      p_assinatura: pagamento.subscription,
+      p_asaas_id: pagamento.id,
+      p_valor: pagamento.value ?? 0,
+      p_vencimento: pagamento.dueDate ?? hojeBR(),
+    });
+
+    if (novaId) {
+      const r = await servico
+        .from('fatura')
+        .select('id, status')
+        .eq('id', novaId as string)
+        .maybeSingle();
+      fatura = r.data;
+    }
   }
 
   if (!fatura) {
@@ -723,4 +763,289 @@ export async function saldoDaAgencia(): Promise<{
   const cred = await credencialAsaas();
   if (!cred) return { saldo: null, ambiente: null };
   return { saldo: await saldoAsaas(cred), ambiente: cred.ambiente };
+}
+
+/* ------------------------------------------------------------------ */
+/* Assinatura: a recorrência que não depende de alguém lembrar         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Liga a cobrança automática de um contrato.
+ *
+ * A partir daqui quem emite a fatura mensal é o Asaas, e o webhook cria
+ * a linha aqui. O botão "Faturar o mês" continua existindo e continua
+ * idempotente — mas deixa de ser necessário.
+ *
+ * O PRIMEIRO VENCIMENTO é calculado, e não pedido: a assinatura cria a
+ * primeira cobrança na hora, e uma data passada faria o cliente receber
+ * hoje uma cobrança já vencida. Se o dia do contrato ainda não passou
+ * neste mês, é ele; se passou, é o do mês que vem.
+ */
+export async function ativarAssinatura(contratoId: string): Promise<ResultadoCobranca> {
+  const servico = clienteServico();
+
+  const { data: contrato } = await servico
+    .from('contrato')
+    .select('id, plano, fee_mensal, inicio, fim, dia_vencimento, asaas_assinatura_id, conta:conta_id(id, nome, documento, asaas_cliente_id)')
+    .eq('id', contratoId)
+    .maybeSingle();
+
+  if (!contrato) {
+    return { ok: false, faturaId: null, link: null, mensagem: 'Contrato não encontrado.' };
+  }
+
+  if (contrato.asaas_assinatura_id) {
+    return {
+      ok: true,
+      faturaId: null,
+      link: null,
+      mensagem: 'Este contrato já cobra automaticamente. Nada foi criado de novo.',
+    };
+  }
+
+  if (contrato.fim) {
+    return {
+      ok: false,
+      faturaId: null,
+      link: null,
+      mensagem: 'Contrato com data de fim não vira assinatura: ela cobraria depois do fim.',
+    };
+  }
+
+  const conta = contrato.conta as unknown as {
+    id: string;
+    nome: string;
+    documento: string | null;
+    asaas_cliente_id: string | null;
+  };
+
+  if (!conta.documento) {
+    return {
+      ok: false,
+      faturaId: null,
+      link: null,
+      mensagem: `${conta.nome} está sem CNPJ ou CPF. O Asaas exige o documento para criar a assinatura.`,
+    };
+  }
+
+  const cred = await credencialAsaas();
+  if (!cred) {
+    return { ok: false, faturaId: null, link: null, mensagem: 'O Asaas não está conectado.' };
+  }
+
+  try {
+    let clienteAsaas = conta.asaas_cliente_id;
+    if (!clienteAsaas) {
+      const c = await garantirCliente(cred, { nome: conta.nome, documento: conta.documento });
+      clienteAsaas = c.id;
+      await servico.from('conta').update({ asaas_cliente_id: c.id }).eq('id', conta.id);
+    }
+
+    const dia = Number(contrato.dia_vencimento ?? 10);
+    const primeiro = proximoVencimento(dia);
+
+    const assinatura = await criarAssinatura(cred, {
+      clienteAsaas,
+      valor: Number(contrato.fee_mensal),
+      primeiroVencimento: primeiro,
+      descricao: `Psy Comunic · ${contrato.plano}`,
+      contratoId,
+    });
+
+    await servico
+      .from('contrato')
+      .update({ asaas_assinatura_id: assinatura.id })
+      .eq('id', contratoId);
+
+    /* A primeira cobrança já nasceu junto. Puxa agora em vez de esperar
+       o webhook: o painel tem de mostrar a fatura no mesmo clique, ou a
+       pessoa acha que não funcionou e clica de novo. */
+    const trazidas = await importarCobrancasDaAssinatura(assinatura.id);
+
+    await registrar({
+      asaasId: assinatura.id,
+      origem: 'emissao',
+      evento: 'ASSINATURA_CRIADA',
+      status: 'sucesso',
+      carga: assinatura,
+    });
+
+    return {
+      ok: true,
+      faturaId: null,
+      link: null,
+      mensagem:
+        `Cobrança automática ligada: todo dia ${dia}, ${Number(contrato.fee_mensal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.` +
+        (trazidas > 0 ? ` A primeira já foi emitida, para ${primeiro}.` : '') +
+        (cred.ambiente === 'sandbox' ? ' (SANDBOX)' : ''),
+    };
+  } catch (e) {
+    const msg = e instanceof ErroAsaas ? e.message : (e as Error).message;
+    await registrar({ origem: 'emissao', evento: 'ASSINATURA_CRIADA', status: 'erro', erro: msg });
+    return { ok: false, faturaId: null, link: null, mensagem: `Asaas: ${msg}` };
+  }
+}
+
+/**
+ * Desliga a cobrança automática.
+ *
+ * As cobranças JÁ EMITIDAS continuam de pé. O cliente ainda deve os
+ * meses que venceram, e cancelá-los junto seria perdoar dívida sem
+ * ninguém ter decidido isso.
+ */
+export async function desativarAssinatura(contratoId: string): Promise<ResultadoCobranca> {
+  const servico = clienteServico();
+
+  const { data: contrato } = await servico
+    .from('contrato')
+    .select('id, asaas_assinatura_id')
+    .eq('id', contratoId)
+    .maybeSingle();
+
+  if (!contrato?.asaas_assinatura_id) {
+    return {
+      ok: true,
+      faturaId: null,
+      link: null,
+      mensagem: 'Este contrato não tinha cobrança automática.',
+    };
+  }
+
+  const cred = await credencialAsaas();
+  if (!cred) {
+    return { ok: false, faturaId: null, link: null, mensagem: 'O Asaas não está conectado.' };
+  }
+
+  try {
+    await cancelarAssinatura(cred, contrato.asaas_assinatura_id as string);
+  } catch (e) {
+    const msg = e instanceof ErroAsaas ? e.message : (e as Error).message;
+    await registrar({
+      asaasId: contrato.asaas_assinatura_id as string,
+      origem: 'cancelamento',
+      evento: 'ASSINATURA_CANCELADA',
+      status: 'erro',
+      erro: msg,
+    });
+    return { ok: false, faturaId: null, link: null, mensagem: `Asaas: ${msg}` };
+  }
+
+  await servico
+    .from('contrato')
+    .update({ asaas_assinatura_id: null })
+    .eq('id', contratoId);
+
+  await registrar({
+    asaasId: contrato.asaas_assinatura_id as string,
+    origem: 'cancelamento',
+    evento: 'ASSINATURA_CANCELADA',
+    status: 'sucesso',
+  });
+
+  return {
+    ok: true,
+    faturaId: null,
+    link: null,
+    mensagem: 'Cobrança automática desligada. As cobranças já emitidas continuam valendo.',
+  };
+}
+
+/**
+ * Traz para cá as cobranças que a assinatura gerou lá.
+ *
+ * É a rede de segurança do webhook. Assinatura roda por meses; basta
+ * uma janela de deploy no dia da emissão para uma cobrança nunca virar
+ * linha no painel — e cobrança que o painel não conhece é dinheiro
+ * entrando sem aparecer em indicador nenhum.
+ *
+ * Devolve quantas foram criadas ou atualizadas.
+ */
+export async function importarCobrancasDaAssinatura(assinaturaId: string): Promise<number> {
+  const cred = await credencialAsaas();
+  if (!cred) return 0;
+
+  const servico = clienteServico();
+  let contadas = 0;
+
+  try {
+    for (const c of await cobrancasDaAssinatura(cred, assinaturaId)) {
+      const { data: faturaId } = await servico.rpc('fatura_de_assinatura', {
+        p_assinatura: assinaturaId,
+        p_asaas_id: c.id,
+        p_valor: c.value,
+        p_vencimento: c.dueDate,
+      });
+
+      if (!faturaId) continue;
+      contadas += 1;
+
+      await servico
+        .from('fatura')
+        .update({
+          status: statusDaFatura(c.status),
+          paga_em: statusDaFatura(c.status) === 'paga' ? (c.paymentDate ?? null) : null,
+          link_pagamento: c.invoiceUrl ?? null,
+          link_boleto: c.bankSlipUrl ?? null,
+          valor_liquido: c.netValue ?? null,
+          forma_pagamento: c.billingType ?? null,
+          sincronizada_em: new Date().toISOString(),
+        })
+        .eq('id', faturaId as string);
+    }
+  } catch (e) {
+    const msg = e instanceof ErroAsaas ? e.message : (e as Error).message;
+    await registrar({
+      asaasId: assinaturaId,
+      origem: 'consulta',
+      evento: 'IMPORTAR_ASSINATURA',
+      status: 'erro',
+      erro: msg,
+    });
+  }
+
+  return contadas;
+}
+
+/** Confere no Asaas todas as assinaturas ligadas, e traz o que faltar. */
+export async function conferirAssinaturas(): Promise<{ ok: boolean; mensagem: string }> {
+  const servico = clienteServico();
+
+  const { data: contratos } = await servico
+    .from('contrato')
+    .select('asaas_assinatura_id')
+    .not('asaas_assinatura_id', 'is', null);
+
+  if (!contratos || contratos.length === 0) {
+    return { ok: true, mensagem: 'Nenhum contrato com cobrança automática.' };
+  }
+
+  let total = 0;
+  for (const c of contratos) {
+    total += await importarCobrancasDaAssinatura(c.asaas_assinatura_id as string);
+  }
+
+  return {
+    ok: true,
+    mensagem: `${contratos.length} assinatura(s) conferida(s), ${total} cobrança(s) em dia com o painel.`,
+  };
+}
+
+/**
+ * O próximo dia `dia` que ainda não passou.
+ *
+ * Se hoje é 21 e o vencimento é 10, a primeira cobrança vai para o dia
+ * 10 do mês que vem. Mandar o 10 deste mês criaria, hoje, uma cobrança
+ * nascida vencida — e o cliente recebe um lembrete de atraso no mesmo
+ * minuto em que a agência liga a cobrança automática.
+ */
+function proximoVencimento(dia: number): string {
+  const hoje = hojeBR();
+  const [ano, mes, d] = hoje.split('-').map(Number);
+  const alvo = Math.min(Math.max(dia, 1), 28);
+
+  const data = alvo > d
+    ? new Date(Date.UTC(ano, mes - 1, alvo))
+    : new Date(Date.UTC(ano, mes, alvo));
+
+  return data.toISOString().slice(0, 10);
 }

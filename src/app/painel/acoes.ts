@@ -73,7 +73,7 @@ export async function criarConta(
 
     const v = validar(esquemaConta, fd);
     if (!v.ok) return v;
-    const { nome, plataforma, site, documento } = v.dados;
+    const { nome, tipo, segmento, plataforma, site, documento } = v.dados;
 
     const s = clienteServico();
 
@@ -89,7 +89,7 @@ export async function criarConta(
 
     const { data, error } = await s
       .from('conta')
-      .insert({ nome, plataforma, site, documento })
+      .insert({ nome, tipo, segmento, plataforma, site, documento })
       .select('id, nome')
       .single();
 

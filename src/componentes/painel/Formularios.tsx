@@ -91,12 +91,48 @@ export function FormNovaConta() {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(criarConta, null);
 
   return (
-    <Dobra titulo="Cadastrar uma loja" acaoRotulo="Nova loja">
+    <Dobra titulo="Cadastrar um cliente" acaoRotulo="Novo cliente">
       <form action={acao} className="space-y-5">
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label htmlFor="c-nome" className={rotulo}>Nome da loja *</label>
-            <input id="c-nome" name="nome" required placeholder="Loja do João" className={`mt-2 ${campo}`} />
+            <label htmlFor="c-nome" className={rotulo}>Nome do cliente *</label>
+            <input
+              id="c-nome"
+              name="nome"
+              required
+              placeholder="Chalés Recanto da Serra"
+              className={`mt-2 ${campo}`}
+            />
+          </div>
+          <div>
+            <label htmlFor="c-tipo" className={rotulo}>Tipo *</label>
+            <select id="c-tipo" name="tipo" defaultValue="ecommerce" className={`mt-2 ${campo}`}>
+              <option value="ecommerce">Loja online</option>
+              <option value="trafego">Só tráfego</option>
+              <option value="outro">Outro</option>
+            </select>
+            {/* O aviso onde a escolha acontece. Sem ele, alguém cadastra
+                um chalé como loja online e depois estranha ver o
+                semáforo vermelho para sempre. */}
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+              Cliente de tráfego não tem venda registrada aqui, e o semáforo de saúde deixa
+              de descontar por meta e ROAS.
+            </p>
+          </div>
+          <div>
+            <label htmlFor="c-seg" className={rotulo}>Segmento</label>
+            <input
+              id="c-seg"
+              name="segmento"
+              list="segmentos"
+              placeholder="Chalés, concessionária, moda..."
+              className={`mt-2 ${campo}`}
+            />
+            <datalist id="segmentos">
+              {['Chalés e pousadas', 'Concessionária', 'Moda', 'Suplementos', 'Casa e decoração', 'Clínica', 'Serviços'].map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
           </div>
           <div>
             <label htmlFor="c-plat" className={rotulo}>Plataforma</label>
@@ -106,7 +142,7 @@ export function FormNovaConta() {
               id="c-plat"
               name="plataforma"
               list="plataformas"
-              placeholder="Nuvemshop, VTEX, Shopify..."
+              placeholder="Só para loja online"
               className={`mt-2 ${campo}`}
             />
             <datalist id="plataformas">
@@ -117,11 +153,14 @@ export function FormNovaConta() {
           </div>
           <div>
             <label htmlFor="c-site" className={rotulo}>Site</label>
-            <input id="c-site" name="site" type="url" placeholder="https://loja.com.br" className={`mt-2 ${campo}`} />
+            <input id="c-site" name="site" type="url" placeholder="https://cliente.com.br" className={`mt-2 ${campo}`} />
           </div>
           <div>
-            <label htmlFor="c-doc" className={rotulo}>CNPJ</label>
+            <label htmlFor="c-doc" className={rotulo}>CNPJ ou CPF</label>
             <input id="c-doc" name="documento" placeholder="00.000.000/0001-00" className={`mt-2 ${campo}`} />
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+              Sem documento não dá para emitir cobrança: o Asaas exige.
+            </p>
           </div>
         </div>
 
@@ -132,7 +171,7 @@ export function FormNovaConta() {
           disabled={pendente}
           className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
-          {pendente ? 'Cadastrando...' : 'Cadastrar loja'}
+          {pendente ? 'Cadastrando...' : 'Cadastrar cliente'}
         </button>
       </form>
     </Dobra>

@@ -159,7 +159,7 @@ export function FormCobrancaAvulsa({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label htmlFor="cb-loja" className={rotuloCss}>Loja *</label>
+          <label htmlFor="cb-loja" className={rotuloCss}>Cliente *</label>
           <select id="cb-loja" name="conta_id" required className={`mt-2 ${campo}`}>
             <option value="">Escolha</option>
             {lojas.map((l) => (
@@ -170,7 +170,7 @@ export function FormCobrancaAvulsa({
             ))}
           </select>
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
-            Loja sem CNPJ fica travada: o Asaas exige documento para emitir.
+            Cliente sem CNPJ ou CPF fica travado: o Asaas exige documento para emitir.
           </p>
         </div>
 
@@ -489,7 +489,7 @@ export function FormDespesa({
           <input id="dp-venc" name="vencimento" type="date" required className={`mt-2 ${campo}`} />
         </div>
         <div>
-          <label htmlFor="dp-loja" className={rotuloCss}>Loja</label>
+          <label htmlFor="dp-loja" className={rotuloCss}>Cliente</label>
           <select id="dp-loja" name="conta_id" className={`mt-2 ${campo}`}>
             <option value="">Da agência</option>
             {lojas.map((l) => (

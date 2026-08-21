@@ -128,6 +128,11 @@ export type CobrancaAsaas = {
   billingType?: string;
   /** Id do parcelamento, quando a cobrança foi dividida. */
   installment?: string;
+  /** Id da assinatura, quando a cobrança nasceu de uma. */
+  subscription?: string;
+  description?: string;
+  externalReference?: string;
+  paymentDate?: string;
 };
 
 /**
@@ -297,4 +302,98 @@ export function statusDaFatura(asaas: string): 'aberta' | 'enviada' | 'paga' | '
     default:
       return 'aberta';
   }
+}
+
+/* ================================================================== */
+/* Assinatura: a cobrança que se repete sozinha                       */
+/* ================================================================== */
+
+export type AssinaturaAsaas = {
+  id: string;
+  status: string;
+  value: number;
+  nextDueDate: string;
+  cycle: string;
+  deleted?: boolean;
+};
+
+/**
+ * Cria a assinatura mensal.
+ *
+ * ============================================================
+ * POR QUE ASSINATURA, E NÃO UM CLIQUE POR MÊS
+ * ============================================================
+ * "Faturar o mês" funciona e depende de alguém lembrar. Um mês
+ * esquecido é um mês não cobrado, e ninguém percebe até fechar o caixa.
+ * A assinatura emite sozinha, na data, todo mês, e avisa por webhook.
+ *
+ * `nextDueDate` é o vencimento da PRIMEIRA cobrança, e o Asaas já a
+ * cria na hora. Mandar uma data passada faria o cliente receber, hoje,
+ * uma cobrança nascida vencida.
+ */
+export async function criarAssinatura(
+  cred: { chave: string; ambiente: AmbienteAsaas },
+  dados: {
+    clienteAsaas: string;
+    valor: number;
+    primeiroVencimento: string;
+    descricao: string;
+    contratoId: string;
+    forma?: FormaCobranca;
+  },
+): Promise<AssinaturaAsaas> {
+  return chamar<AssinaturaAsaas>(cred, '/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify({
+      customer: dados.clienteAsaas,
+      billingType: dados.forma ?? 'UNDEFINED',
+      value: dados.valor,
+      nextDueDate: dados.primeiroVencimento,
+      cycle: 'MONTHLY',
+      description: dados.descricao,
+      /* O id do CONTRATO, e não o de uma fatura: toda cobrança que a
+         assinatura gerar vai herdar esta referência, e cada uma delas é
+         de um mês diferente. */
+      externalReference: dados.contratoId,
+    }),
+  });
+}
+
+export async function consultarAssinatura(
+  cred: { chave: string; ambiente: AmbienteAsaas },
+  id: string,
+): Promise<AssinaturaAsaas> {
+  return chamar<AssinaturaAsaas>(cred, `/subscriptions/${id}`);
+}
+
+/**
+ * Cancela a assinatura.
+ *
+ * As cobranças já emitidas por ela CONTINUAM de pé: o cliente ainda
+ * deve os meses que já venceram, e apagá-los seria perdoar dívida sem
+ * ninguém decidir isso.
+ */
+export async function cancelarAssinatura(
+  cred: { chave: string; ambiente: AmbienteAsaas },
+  id: string,
+): Promise<void> {
+  await chamar(cred, `/subscriptions/${id}`, { method: 'DELETE' });
+}
+
+/**
+ * As cobranças que uma assinatura já gerou.
+ *
+ * Serve para recuperar o que o webhook perdeu. Assinatura roda por
+ * meses; basta uma janela de deploy no dia da emissão para uma
+ * cobrança nunca virar linha no painel.
+ */
+export async function cobrancasDaAssinatura(
+  cred: { chave: string; ambiente: AmbienteAsaas },
+  id: string,
+): Promise<CobrancaAsaas[]> {
+  const r = await chamar<{ data: CobrancaAsaas[] }>(
+    cred,
+    `/subscriptions/${id}/payments?limit=100`,
+  );
+  return r.data ?? [];
 }

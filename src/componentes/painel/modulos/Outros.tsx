@@ -9,7 +9,7 @@ import {
   interacoesDosLeads,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { rotuloEstagio } from '@/lib/dados/tipos';
+import { rotuloEstagio, rotuloTipoConta } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
@@ -264,12 +264,15 @@ export async function Contas({ papel }: { papel: Papel }) {
         </div>
       ) : null}
 
-      <Secao titulo="Carteira" apoio="Ordenada por receita do mês.">
+      <Secao
+        titulo="Carteira"
+        apoio="Ordenada por receita do mês. Cliente de tráfego não tem venda registrada aqui, e por isso aparece com traço em vez de zero: zero afirma que não vendeu, traço diz que a agência não mede isso."
+      >
         <Tabela>
-          <caption className="sr-only">Contas ativas com receita, MER e progresso da meta</caption>
+          <caption className="sr-only">Clientes ativos com receita, verba, MER e progresso da meta</caption>
           <thead>
             <tr>
-              <th scope="col" className={th}>Conta</th>
+              <th scope="col" className={th}>Cliente</th>
               <th scope="col" className={th}>Situação</th>
               <th scope="col" className={th}>Receita do mês</th>
               <th scope="col" className={th}>Verba</th>
@@ -279,31 +282,59 @@ export async function Contas({ papel }: { papel: Papel }) {
             </tr>
           </thead>
           <tbody>
-            {[...contas].sort((a, b) => b.receita - a.receita).map((c) => (
-              <tr key={c.id}>
-                <th scope="row" className={`${td} font-normal`}>
-                  <Link
-                    href={`/painel/contas?ficha=${c.id}`}
-                    className="font-semibold text-branco underline-offset-4 hover:underline"
-                  >
-                    {c.nome}
-                  </Link>
-                  <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
-                    {c.plataforma ?? '—'}
-                  </span>
-                </th>
-                <td className={td}><SeloSituacao situacao={c.situacao} /></td>
-                <td className={`${td} tabular`}>{dinheiro(c.receita)}</td>
-                <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
-                <td className={`${td} tabular`}>{vezes(c.mer)}</td>
-                <td className={`${td} w-40`}><Progresso percentual={c.metaAtingida} /></td>
-                <td className={td}>
-                  <Link href={`/painel/contas?ficha=${c.id}`} className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto">
-                    Ficha →
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {[...contas]
+              .sort((a, b) => b.receita - a.receita || b.investimento - a.investimento)
+              .map((c) => {
+                /* Loja mede venda. Cliente de tráfego não: a receita
+                   dele acontece na recepção do chalé, no pátio da
+                   concessionária, fora de qualquer sistema que a gente
+                   integre. Mostrar R$ 0 seria afirmar que não vendeu. */
+                const vende = c.tipo === 'ecommerce';
+                return (
+                  <tr key={c.id}>
+                    <th scope="row" className={`${td} font-normal`}>
+                      <Link
+                        href={`/painel/contas?ficha=${c.id}`}
+                        className="font-semibold text-branco underline-offset-4 hover:underline"
+                      >
+                        {c.nome}
+                      </Link>
+                      <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                        {[
+                          rotuloTipoConta[c.tipo],
+                          c.segmento,
+                          vende ? c.plataforma : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
+                    </th>
+                    <td className={td}><SeloSituacao situacao={c.situacao} /></td>
+                    <td className={`${td} tabular`}>
+                      {vende ? dinheiro(c.receita) : <span className="text-cinza">—</span>}
+                    </td>
+                    <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
+                    <td className={`${td} tabular`}>
+                      {vende ? vezes(c.mer) : <span className="text-cinza">—</span>}
+                    </td>
+                    <td className={`${td} w-40`}>
+                      {vende ? (
+                        <Progresso percentual={c.metaAtingida} />
+                      ) : (
+                        <span className="text-xs text-cinza">sem meta de venda</span>
+                      )}
+                    </td>
+                    <td className={td}>
+                      <Link
+                        href={`/painel/contas?ficha=${c.id}`}
+                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto"
+                      >
+                        Ficha →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </Tabela>
       </Secao>

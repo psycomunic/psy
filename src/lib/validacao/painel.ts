@@ -28,8 +28,24 @@ const textoOpcional = z
   .transform((v) => (v === '' ? null : v))
   .nullable();
 
+/**
+ * Nem todo cliente vende online.
+ *
+ * A carteira tem chalé, concessionária e outros nichos onde a agência
+ * faz só tráfego. O tipo muda o CÁLCULO do health score, e não só a
+ * palavra na tela: sem ele, um cliente de tráfego puro ficaria
+ * eternamente crítico por "gastou em mídia e não teve receita".
+ */
+export const TIPOS_DE_CONTA = ['ecommerce', 'trafego', 'outro'] as const;
+
 export const esquemaConta = z.object({
-  nome: textoObrigatorio(2, 'Informe o nome da loja.'),
+  nome: textoObrigatorio(2, 'Informe o nome do cliente.'),
+  /* `default` e não `catch`: campo AUSENTE vira e-commerce, que é o
+     padrão e o mais rigoroso no health score; valor INVÁLIDO é recusado
+     em vez de virar e-commerce em silêncio. Um POST dizendo
+     tipo: 'chale' merece erro, e não um dado trocado sem aviso. */
+  tipo: z.enum(TIPOS_DE_CONTA).default('ecommerce'),
+  segmento: textoOpcional.optional().transform((s) => s ?? null),
   plataforma: textoOpcional,
   /* URL só é validada quando existe: campo opcional vazio não pode
      falhar por "url inválida". */
@@ -304,6 +320,16 @@ export const esquemaContrato = z.object({
     .transform(paraNumero)
     .refine((n) => Number.isFinite(n) && n > 0, 'O fee mensal precisa ser maior que zero.'),
   inicio: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a data de início.'),
+  /* Até 28: 29, 30 e 31 não existem em todo mês, e a assinatura do Asaas
+     empurraria a cobrança de fevereiro para março. */
+  dia_vencimento: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? 10 : Math.trunc(paraNumero(v))))
+    .refine(
+      (n) => Number.isFinite(n) && n >= 1 && n <= 28,
+      'O dia do vencimento vai de 1 a 28.',
+    ),
   fim: z
     .string()
     .trim()

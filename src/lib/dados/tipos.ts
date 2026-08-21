@@ -15,9 +15,20 @@ export const rotuloSituacao: Record<Situacao, string> = {
 };
 
 /** Uma conta cliente com o resumo do mês e o sinal de risco. */
+export const TIPOS_CONTA = ['ecommerce', 'trafego', 'outro'] as const;
+export type TipoConta = (typeof TIPOS_CONTA)[number];
+
+export const rotuloTipoConta: Record<TipoConta, string> = {
+  ecommerce: 'Loja online',
+  trafego: 'Só tráfego',
+  outro: 'Outro',
+};
+
 export type ContaResumo = {
   id: string;
   nome: string;
+  tipo: TipoConta;
+  segmento: string | null;
   plataforma: string | null;
   situacao: Situacao;
   receita: number;
@@ -406,6 +417,9 @@ export type ContratoAtivo = {
   feeMensal: number;
   inicio: string;
   fim: string | null;
+  diaVencimento: number;
+  /** Ligada: quem emite a fatura do mês é o Asaas. */
+  cobrancaAutomatica: boolean;
   /** Começa depois de hoje: existe, mas ainda não fatura. */
   futuro: boolean;
   /** A fatura do mês corrente já existe? */

@@ -123,4 +123,27 @@ describe('esquemaConta', () => {
     assert.equal(esquemaConta.safeParse({ nome: 'Loja', plataforma: '', site: 'nao-e-url', documento: '' }).success, false);
     assert.equal(esquemaConta.safeParse({ nome: 'Loja', plataforma: '', site: '', documento: '' }).success, true);
   });
+
+  test('sem tipo, e e-commerce', () => {
+    /* O padrao e o MAIS RIGOROSO no health score. Cair no permissivo por
+       omissao esconderia alarme de loja que parou de vender. */
+    const r = esquemaConta.safeParse({ nome: 'Loja', plataforma: '', site: '', documento: '' });
+    assert.equal(r.success && r.data.tipo, 'ecommerce');
+  });
+
+  test('tipo de trafego e aceito', () => {
+    const r = esquemaConta.safeParse({
+      nome: 'Chales Recanto', tipo: 'trafego', segmento: 'Chales',
+      plataforma: '', site: '', documento: '',
+    });
+    assert.equal(r.success && r.data.tipo, 'trafego');
+    assert.equal(r.success && r.data.segmento, 'Chales');
+  });
+
+  test('tipo inventado e RECUSADO, e nao convertido em silencio', () => {
+    const r = esquemaConta.safeParse({
+      nome: 'Loja', tipo: 'chale', plataforma: '', site: '', documento: '',
+    });
+    assert.equal(r.success, false);
+  });
 });

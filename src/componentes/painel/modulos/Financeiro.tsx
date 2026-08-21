@@ -580,6 +580,8 @@ function Contratos({
                   contratoId={c.id}
                   feeAtual={c.feeMensal}
                   encerrado={Boolean(c.fim)}
+                  automatica={c.cobrancaAutomatica}
+                  diaVencimento={c.diaVencimento}
                 />
               ) : null}
             </div>

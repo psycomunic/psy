@@ -27,6 +27,7 @@ import type {
   ContratoAtivo,
   MesFinanceiro,
   Despesa,
+  TipoConta,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -118,7 +119,7 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
   const [rMes, rSaude, rContas] = await Promise.all([
     supabase.from('kpi_mes').select('*'),
     supabase.from('saude_conta').select('*'),
-    supabase.from('conta').select('id, nome, plataforma'),
+    supabase.from('conta').select('id, nome, tipo, segmento, plataforma'),
   ]);
 
   if (faltamTabelas(rMes.error)) return semBanco(demo.contasDemo());
@@ -136,6 +137,8 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
       return {
         id: m.conta_id as string,
         nome: m.conta_nome as string,
+        tipo: ((info.get(m.conta_id as string)?.tipo as TipoConta) ?? 'ecommerce'),
+        segmento: (info.get(m.conta_id as string)?.segmento as string) ?? null,
         plataforma: (info.get(m.conta_id as string)?.plataforma as string) ?? null,
         situacao: ((s?.situacao as Situacao) ?? 'sem_dado'),
         receita: Number(m.receita ?? 0),
@@ -985,7 +988,7 @@ export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
   const [rContratos, rFaturas] = await Promise.all([
     supabase
       .from('contrato')
-      .select('id, conta_id, plano, fee_mensal, inicio, fim, conta:conta_id(nome)')
+      .select('id, conta_id, plano, fee_mensal, inicio, fim, dia_vencimento, asaas_assinatura_id, conta:conta_id(nome)')
       /* Vigentes E agendados. O reajuste abre um contrato que começa no
          mês que vem; filtrando por `inicio <= hoje` ele ficava invisível
          até virar o mês, e não havia como conferir nem desfazer.
@@ -1009,6 +1012,8 @@ export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
       feeMensal: Number(c.fee_mensal ?? 0),
       inicio: c.inicio as string,
       fim: (c.fim as string) ?? null,
+      diaVencimento: Number(c.dia_vencimento ?? 10),
+      cobrancaAutomatica: Boolean(c.asaas_assinatura_id),
       futuro: (c.inicio as string) > hoje,
       faturadoNoMes: faturados.has(c.id as string),
     })),

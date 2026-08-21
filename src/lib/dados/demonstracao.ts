@@ -123,6 +123,8 @@ export function contasDemo(): ContaResumo[] {
     return {
       id: c.id,
       nome: c.nome,
+      tipo: 'ecommerce' as const,
+      segmento: null,
       plataforma: c.plataforma,
       situacao: c.sit,
       receita,

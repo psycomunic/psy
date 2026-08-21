@@ -11,6 +11,9 @@ import {
   receberForaDoAsaas,
   faturarTodos,
   conferirTodas,
+  ativarAssinatura,
+  desativarAssinatura,
+  conferirAssinaturas,
 } from '@/lib/cobranca/faturamento';
 import {
   esquemaCobrancaAvulsa,
@@ -242,9 +245,14 @@ export async function conferirTudo(
 ): Promise<Resultado> {
   try {
     await exigirFinanceiro();
-    const r = await conferirTodas();
+
+    /* As duas coisas, porque "conferir" tem de significar "o painel
+       está em dia com o Asaas". Uma cobrança que a assinatura gerou e o
+       webhook perdeu não existe aqui para ser conferida — ela precisa
+       ser TRAZIDA. */
+    const [r, ass] = await Promise.all([conferirTodas(), conferirAssinaturas()]);
     atualizarTelas();
-    return { ok: r.ok, mensagem: r.mensagem };
+    return { ok: r.ok && ass.ok, mensagem: `${r.mensagem} ${ass.mensagem}` };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }
@@ -342,6 +350,53 @@ export async function apagarDespesa(
 
     atualizarTelas();
     return { ok: true, mensagem: 'Despesa removida.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Cobrança automática                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Liga a assinatura mensal no Asaas.
+ *
+ * "Faturar o mês" funciona e depende de alguém lembrar. Um mês
+ * esquecido é um mês não cobrado, e ninguém percebe até fechar o caixa.
+ * Com a assinatura, quem emite é o Asaas e o webhook cria a linha aqui.
+ */
+export async function ligarAutomatico(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirFinanceiro();
+
+    const contratoId = String(fd.get('contrato_id') ?? '');
+    if (!contratoId) return { ok: false, mensagem: 'Contrato não informado.' };
+
+    const r = await ativarAssinatura(contratoId);
+    atualizarTelas();
+    return { ok: r.ok, mensagem: r.mensagem };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+export async function desligarAutomatico(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirFinanceiro();
+
+    const contratoId = String(fd.get('contrato_id') ?? '');
+    if (!contratoId) return { ok: false, mensagem: 'Contrato não informado.' };
+
+    const r = await desativarAssinatura(contratoId);
+    atualizarTelas();
+    return { ok: r.ok, mensagem: r.mensagem };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }
