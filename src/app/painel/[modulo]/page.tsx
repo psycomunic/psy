@@ -1,19 +1,16 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Marca } from '@/componentes/Marca';
 import {
   MODULOS,
   PAPEIS,
-  modulosDoPapel,
   rotuloModulo,
   rotuloPapel,
+  eInterno,
   pode,
   type Modulo,
   type Papel,
 } from '@/lib/papeis';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { sessaoAtual } from '@/lib/supabase/servidor';
-import { Sair } from '../Sair';
 import { Visao } from '@/componentes/painel/modulos/Visao';
 import { Metricas } from '@/componentes/painel/modulos/Metricas';
 import {
@@ -28,7 +25,8 @@ import {
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
-import { BotaoMenu } from '@/componentes/painel/BotaoMenu';
+import { MenuLateral } from '@/componentes/painel/MenuLateral';
+import { resumoDaOperacao } from '@/lib/dados/operacao';
 
 export const metadata = {
   title: 'Painel',
@@ -80,7 +78,6 @@ export default async function PainelModulo({
     papel = PAPEIS.includes(papelDaUrl as Papel) ? (papelDaUrl as Papel) : 'administrador';
   }
 
-  const visiveis = modulosDoPapel(papel);
   const permitido = pode(papel, moduloAtual, 'ver');
 
   /* A ficha da loja monta o próprio cabeçalho, com o nome da loja e o
@@ -89,8 +86,35 @@ export default async function PainelModulo({
      frente do [modulo] e derrubaria as outras rotas do painel. */
   const naFicha = moduloAtual === 'contas' && !!ficha;
 
-  const comPapel = (rota: string) =>
-    bancoConfigurado ? rota : `${rota}${rota.includes('?') ? '&' : '?'}papel=${papel}`;
+  /*
+    Contadores do menu.
+
+    Buscados aqui, uma vez por navegação, e não dentro do MenuLateral:
+    componente de layout que vai ao banco sozinho vira consulta
+    escondida, e ninguém acha depois por que a rota ficou lenta.
+
+    Só para papel interno. Cliente não tem tarefa da agência nem lead.
+  */
+  const resumo = eInterno(papel) && bancoConfigurado ? await resumoDaOperacao() : null;
+
+  const contadores = resumo
+    ? {
+        tarefas: {
+          n: resumo.tarefasAtrasadas,
+          grave: true,
+          titulo: 'Tarefas com prazo vencido',
+        },
+        crm: {
+          n: resumo.leadsParados,
+          titulo: 'Leads há mais de 7 dias no mesmo estágio',
+        },
+        configuracoes: {
+          n: resumo.integracoesComErro,
+          grave: true,
+          titulo: 'Integrações com erro ou sem credencial',
+        },
+      }
+    : {};
 
   return (
     <div className="relative flex min-h-screen flex-col lg:flex-row">
@@ -116,95 +140,17 @@ export default async function PainelModulo({
         <div className="brilho-magenta absolute -right-[22%] -top-[28%] h-[680px] w-[680px] opacity-[0.22]" />
         <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
       </div>
-      {/* Navegação lateral */}
-      <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 p-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
-        <div className="flex items-center justify-between gap-3">
-          <span className="menu-rotulo min-w-0">
-            <Marca />
-          </span>
-          <BotaoMenu />
-        </div>
+      {/* Navegação lateral. Agrupada, com ícone e contador: onze itens
+          no mesmo peso visual não são um menu, são uma lista. */}
+      <MenuLateral
+        papel={papel}
+        nome={nome}
+        moduloAtual={moduloAtual}
+        bancoConfigurado={bancoConfigurado}
+        contadores={contadores}
+      />
 
-        <div className="menu-corpo">
-        {bancoConfigurado ? (
-          <div className="menu-rotulo mt-8">
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-              {rotuloPapel[papel]}
-            </p>
-            <p className="mt-1 truncate text-sm text-neve">{nome}</p>
-          </div>
-        ) : (
-          <div className="menu-rotulo">
-            <p className="mt-8 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-              Perfil em visualização
-            </p>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {PAPEIS.map((p) => (
-                <li key={p}>
-                  <Link
-                    href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
-                    className={
-                      'inline-block rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors ' +
-                      (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
-                    }
-                  >
-                    {rotuloPapel[p]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <nav aria-label="Módulos" className="mt-8">
-          <ul className="space-y-1">
-            {visiveis.map((m) => (
-              <li key={m}>
-                <Link
-                  href={comPapel(`/painel/${m}`)}
-                  aria-current={m === moduloAtual ? 'page' : undefined}
-                  title={rotuloModulo[m]}
-                  className={
-                    'menu-item flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors ' +
-                    (m === moduloAtual
-                      ? 'bg-marinho-alto font-semibold text-branco'
-                      : 'text-neve hover:bg-white/5')
-                  }
-                >
-                  {/* A inicial, só no modo recolhido. O `title` acima é
-                      o que devolve o nome inteiro ao parar o mouse. */}
-                  <span
-                    aria-hidden
-                    className="menu-icone h-6 w-6 flex-none items-center justify-center rounded-md bg-white/[0.06] font-mono text-[0.75rem] uppercase"
-                  >
-                    {rotuloModulo[m].charAt(0)}
-                  </span>
-                  <span className="menu-rotulo truncate">{rotuloModulo[m]}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <p className="menu-rotulo mt-8 text-xs leading-relaxed text-cinza">
-          {papel === 'cliente'
-            ? 'Você enxerga apenas os números da sua conta.'
-            : `${rotuloPapel[papel]} enxerga ${visiveis.length} de ${MODULOS.length} módulos.`}
-        </p>
-
-        <p className="mt-6">
-          {bancoConfigurado ? (
-            <Sair />
-          ) : (
-            <Link href="/entrar" className="text-sm text-magenta-texto underline underline-offset-4">
-              Trocar de perfil
-            </Link>
-          )}
-        </p>
-        </div>
-      </aside>
-
-      {/* Conteúdo */}
+            {/* Conteúdo */}
       <main id="conteudo" className="relative z-10 min-w-0 flex-1 p-6 md:p-10">
         {!permitido ? (
           <>

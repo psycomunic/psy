@@ -224,3 +224,51 @@ export const rotaInicial: Record<Papel, string> = {
   cliente: '/painel/metricas',
   cliente_leitura: '/painel/metricas',
 };
+
+/**
+ * Como os módulos se agrupam no menu.
+ *
+ * Mora aqui, junto da matriz, para não existir uma segunda lista de
+ * módulos em outro arquivo: acrescentar um módulo e esquecer de
+ * agrupá-lo faria ele sumir do menu sem erro nenhum. A checagem no fim
+ * deste bloco impede isso.
+ *
+ * `visao` fica FORA dos grupos de propósito. Ela é a porta de entrada,
+ * e não uma das áreas: enfiá-la em "Operação" a esconderia no meio de
+ * outras quatro, quando é a primeira coisa que se abre.
+ *
+ * A divisão é por PERGUNTA, e não por semelhança técnica:
+ *   Prospecção     — de onde vem cliente novo
+ *   Operação       — o que se faz com os que já entraram
+ *   Administração  — o que sustenta a agência por trás
+ */
+export const GRUPOS_DE_MODULOS: { titulo: string; modulos: Modulo[] }[] = [
+  { titulo: 'Prospecção', modulos: ['crm', 'propostas'] },
+  { titulo: 'Operação', modulos: ['contas', 'metricas', 'tarefas', 'relatorios'] },
+  { titulo: 'Administração', modulos: ['financeiro', 'equipe', 'auditoria', 'configuracoes'] },
+];
+
+/** O módulo que abre sozinho no topo, fora de qualquer grupo. */
+export const MODULO_INICIAL: Modulo = 'visao';
+
+/*
+  Trava de consistência, avaliada quando o módulo carrega.
+
+  Sem ela, acrescentar um módulo em MODULOS e esquecer de agrupá-lo o
+  faria desaparecer do menu em silêncio — a matriz de permissões
+  continuaria concedendo acesso, a rota continuaria funcionando, e só
+  não haveria como chegar lá clicando.
+*/
+{
+  const agrupados = new Set<Modulo>([
+    MODULO_INICIAL,
+    ...GRUPOS_DE_MODULOS.flatMap((g) => g.modulos),
+  ]);
+  const orfaos = MODULOS.filter((m) => !agrupados.has(m));
+  if (orfaos.length > 0) {
+    throw new Error(
+      `Módulo sem grupo no menu: ${orfaos.join(', ')}. ` +
+        'Acrescente em GRUPOS_DE_MODULOS ou o item some da navegação sem erro.',
+    );
+  }
+}

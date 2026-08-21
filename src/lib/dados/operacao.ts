@@ -2,6 +2,7 @@ import 'server-only';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { clienteServidor } from '@/lib/supabase/servidor';
 import { hojeBR, somarDias } from '@/lib/datas';
+import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas';
 
 /**
  * O estado da operação, para o painel inicial.
@@ -47,6 +48,11 @@ export type ResumoOperacao = {
   pessoas: number;
   integracoesOk: number;
   integracoesComErro: number;
+  /* Os que viram contador no menu. Sinal no item de navegação é o
+     único jeito de alguém saber que precisa abrir uma tela em que não
+     ia clicar hoje. */
+  tarefasAtrasadas: number;
+  leadsParados: number;
   diasSemDado: number | null;
 };
 
@@ -65,6 +71,8 @@ export async function resumoDaOperacao(): Promise<ResumoOperacao> {
     pessoas: 0,
     integracoesOk: 0,
     integracoesComErro: 0,
+    tarefasAtrasadas: 0,
+    leadsParados: 0,
     diasSemDado: null,
   };
 
@@ -84,6 +92,8 @@ export async function resumoDaOperacao(): Promise<ResumoOperacao> {
     rClientes,
     rIntegracoes,
     rMetrica,
+    rAtrasadas,
+    rParados,
   ] = await Promise.all([
     contar('conta'),
     supabase.from('conta').select('id', { count: 'exact', head: true }).eq('situacao', 'ativa'),
@@ -106,6 +116,19 @@ export async function resumoDaOperacao(): Promise<ResumoOperacao> {
       .in('papel', ['cliente', 'cliente_leitura']),
     supabase.from('integracao_status').select('id, estado'),
     supabase.from('frescor_conta').select('atraso_dias').order('atraso_dias').limit(1),
+    supabase
+      .from('tarefa')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['aberta', 'fazendo'])
+      .lt('prazo', hojeBR()),
+    /* Sete dias no mesmo estágio. Não é prazo de vendas, é limiar de
+       esquecimento — o mesmo que o CRM usa, e vem do domínio para os
+       dois não divergirem. */
+    supabase
+      .from('lead')
+      .select('id', { count: 'exact', head: true })
+      .not('estagio', 'in', '("ganho","perdido")')
+      .lt('estagio_desde', `${somarDias(hojeBR(), -LIMIAR_PARADO_DIAS)}T00:00:00Z`),
   ]);
 
   const integracoes = rIntegracoes.data ?? [];
@@ -183,6 +206,8 @@ export async function resumoDaOperacao(): Promise<ResumoOperacao> {
     pessoas: zero(rPessoas.count),
     integracoesOk,
     integracoesComErro,
+    tarefasAtrasadas: zero(rAtrasadas.count),
+    leadsParados: zero(rParados.count),
     diasSemDado: atraso === null || atraso === undefined ? null : Number(atraso),
   };
 }

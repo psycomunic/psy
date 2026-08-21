@@ -316,9 +316,6 @@ body {
     padding-right: 0;
   }
 
-  [data-menu='recolhido'] .menu-icone {
-    display: flex;
-  }
 }
 
 /* No celular a sidebar é uma faixa no topo, e recolher significa
@@ -330,7 +327,22 @@ body {
   }
 }
 
-/* O ícone só existe no modo recolhido, e no desktop. */
-.menu-icone {
-  display: none;
+
+/* Menu recolhido: o que muda além da largura. */
+@media (min-width: 1024px) {
+  /* O fio substitui o título do grupo. Sem ele, os onze itens voltam a
+     ser uma lista só, que é justamente o que o agrupamento resolveu. */
+  .menu-fio { display: none; }
+  [data-menu='recolhido'] .menu-fio { display: block; }
+
+  /* O contador vira ponto: o número não cabe em 72px, e esconder o
+     aviso puniria quem escolheu ver menos coisa na tela. */
+  .menu-ponto { display: none; }
+  [data-menu='recolhido'] .menu-ponto { display: block; }
+
+  [data-menu='recolhido'] .menu-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
