@@ -275,8 +275,13 @@ try {
     pagina.click('button[type="submit"]'),
   ]);
 
+  /* A aba de contratos, e não a raiz do financeiro: desde que o módulo
+     ganhou abas, "Novo contrato" mora em ?aba=contratos. */
   const irParaFinanceiro = () =>
-    pagina.goto(`${APP}/painel/financeiro`, { waitUntil: 'networkidle0', timeout: 60000 });
+    pagina.goto(`${APP}/painel/financeiro?aba=contratos`, {
+      waitUntil: 'networkidle0',
+      timeout: 60000,
+    });
 
   await irParaFinanceiro();
 
@@ -285,7 +290,7 @@ try {
 
   ok(
     await clicarTexto(pagina, 'Novo contrato'),
-    'existe o botão "Novo contrato" em /painel/financeiro',
+    'existe o botão "Novo contrato" na aba Contratos',
   );
   await pagina.waitForSelector('select[name="conta_id"]', { timeout: 10000 });
 

@@ -71,10 +71,38 @@ export type Marco = {
 export type FinanceiroMes = {
   receitaRecorrente: number;
   contratosAtivos: number;
+  /** Emitido para a competência do mês. Não é o mesmo que recebido. */
+  faturadoMes: number;
   recebidoMes: number;
+  /** O mesmo recebimento, menos a taxa do gateway. */
+  recebidoLiquidoMes: number;
   aReceberMes: number;
   inadimplencia: number;
+  faturasVencidas: number;
+  despesaMes: number;
+  despesaPrevistaMes: number;
   verbaSobGestao: number;
+};
+
+/** Um mês da série de 12. */
+export type MesFinanceiro = {
+  mes: string;
+  faturado: number;
+  recebido: number;
+  despesa: number;
+};
+
+export type Despesa = {
+  id: string;
+  descricao: string;
+  categoria: string | null;
+  valor: number;
+  vencimento: string;
+  pagoEm: string | null;
+  status: 'previsto' | 'pago' | 'atrasado' | 'cancelado';
+  conta: string | null;
+  /** Dias até vencer. Negativo já venceu. */
+  diasAteVencer: number;
 };
 
 export const ESTAGIOS = [
@@ -340,15 +368,23 @@ export type FaturaResumo = {
   id: string;
   numero: string;
   conta: string | null;
+  contaId: string;
   contratoId: string | null;
   status: 'aberta' | 'enviada' | 'paga' | 'vencida' | 'cancelada';
   valor: number;
+  /** O que sobra depois da taxa do Asaas. Null antes da emissão. */
+  valorLiquido: number | null;
+  /** O que o cliente lê na cobrança. Null nas faturas de contrato. */
+  descricao: string | null;
+  parcelas: number;
   competencia: string;
   vencimento: string;
   pagaEm: string | null;
   /** Presente quando a cobrança já existe no Asaas. */
   asaasId: string | null;
   linkPagamento: string | null;
+  /** Código PIX copia e cola, quando o Asaas devolveu. */
+  pixCopiaCola: string | null;
   formaPagamento: string | null;
   /** Dias até vencer. Negativo já venceu. */
   diasAteVencer: number;

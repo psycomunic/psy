@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useId } from 'react';
-import type { DiaKpi, CanalKpi } from '@/lib/dados/tipos';
+import type { DiaKpi, CanalKpi, MesFinanceiro } from '@/lib/dados/tipos';
 import { dinheiroCurto, dinheiro, diaCurto, diaLongo, vezes, nomeCanal, porcento } from '@/lib/formato';
-import { COR_RECEITA, COR_INVESTIMENTO, corDoCanal, GRADE, EIXO } from './paleta';
+import {
+  COR_RECEITA,
+  COR_INVESTIMENTO,
+  COR_FATURADO,
+  COR_RECEBIDO,
+  corDoCanal,
+  GRADE,
+  EIXO,
+} from './paleta';
 
 /* ==================================================================
    SÉRIE TEMPORAL: receita e investimento
@@ -290,5 +298,213 @@ export function BarrasCanal({
         );
       })}
     </ul>
+  );
+}
+
+/* ==================================================================
+   DOZE MESES: faturado contra recebido
+
+   Barras agrupadas, UM eixo, escala partindo do zero. As duas medidas
+   estão em reais, então a comparação visual entre elas é honesta.
+
+   POR QUE AS DUAS SÉRIES, E NÃO SÓ UMA
+   Faturado é o que foi emitido para a competência. Recebido é o que
+   entrou no mês. Nunca batem: a fatura de agosto que o cliente paga em
+   setembro conta em agosto num e em setembro no outro. É justamente a
+   distância entre as duas barras que responde "o faturamento subiu e o
+   caixa não" — a pergunta que agência costuma responder tarde demais.
+   ================================================================== */
+
+const MW = 720;
+const MH = 240;
+const ML = 62;
+const MR = 14;
+const MT = 12;
+const MB = 30;
+
+export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
+  const [ativo, setAtivo] = useState<number | null>(null);
+
+  if (serie.length === 0) {
+    return (
+      <p className="py-16 text-center text-sm text-cinza">
+        Ainda não há histórico para desenhar.
+      </p>
+    );
+  }
+
+  /* Sempre do zero. Eixo truncado faz uma queda de 5% parecer um
+     desabamento, e num gráfico de dinheiro isso muda decisão. */
+  const max = Math.max(...serie.flatMap((m) => [m.faturado, m.recebido]), 1);
+
+  const areaX = MW - ML - MR;
+  const areaY = MH - MT - MB;
+  const passo = areaX / serie.length;
+
+  /* Duas barras finas dentro do passo, com 2px de superfície entre
+     elas: fatia colada em fatia lê como uma barra só. */
+  const larguraBarra = Math.max((passo - 10) / 2, 3);
+
+  const y = (v: number) => MT + areaY - (v / max) * areaY;
+  const alturaDe = (v: number) => Math.max((v / max) * areaY, v > 0 ? 2 : 0);
+
+  const rotuloMes = (iso: string) => {
+    const [a, m] = iso.split('-');
+    return `${['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][Number(m) - 1]}/${a.slice(2)}`;
+  };
+
+  const marcas = [0, 0.5, 1].map((f) => f * max);
+  const m = ativo === null ? null : serie[ativo];
+
+  return (
+    <figure className="m-0">
+      {/* Legenda sempre presente com duas séries: identidade nunca é
+          só cor. */}
+      <figcaption className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+        {[
+          ['Faturado', COR_FATURADO],
+          ['Recebido', COR_RECEBIDO],
+        ].map(([rotulo, cor]) => (
+          <span key={rotulo} className="flex items-center gap-2 text-neve">
+            <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: cor }} />
+            {rotulo}
+          </span>
+        ))}
+      </figcaption>
+
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${MW} ${MH}`}
+          className="w-full"
+          role="img"
+          aria-label="Faturado e recebido nos últimos doze meses"
+          onMouseLeave={() => setAtivo(null)}
+        >
+          {marcas.map((v) => (
+            <g key={v}>
+              <line x1={ML} x2={MW - MR} y1={y(v)} y2={y(v)} stroke={GRADE} strokeWidth={1} />
+              <text
+                x={ML - 8}
+                y={y(v) + 4}
+                textAnchor="end"
+                className="tabular"
+                fill={EIXO}
+                fontSize={11}
+                fontFamily="var(--fonte-mono, monospace)"
+              >
+                {dinheiroCurto(v)}
+              </text>
+            </g>
+          ))}
+
+          {serie.map((mes, i) => {
+            const x0 = ML + i * passo;
+            const destaque = ativo === i;
+            return (
+              <g key={mes.mes}>
+                {/* Alvo de toque do tamanho do passo inteiro, e não da
+                    barra: acertar 15px com o dedo não acontece. */}
+                <rect
+                  x={x0}
+                  y={MT}
+                  width={passo}
+                  height={areaY}
+                  fill={destaque ? 'rgba(255,255,255,0.04)' : 'transparent'}
+                  onMouseEnter={() => setAtivo(i)}
+                />
+                <rect
+                  x={x0 + passo / 2 - larguraBarra - 1}
+                  y={y(mes.faturado)}
+                  width={larguraBarra}
+                  height={alturaDe(mes.faturado)}
+                  rx={3}
+                  fill={COR_FATURADO}
+                  pointerEvents="none"
+                />
+                <rect
+                  x={x0 + passo / 2 + 1}
+                  y={y(mes.recebido)}
+                  width={larguraBarra}
+                  height={alturaDe(mes.recebido)}
+                  rx={3}
+                  fill={COR_RECEBIDO}
+                  pointerEvents="none"
+                />
+                <text
+                  x={x0 + passo / 2}
+                  y={MH - 10}
+                  textAnchor="middle"
+                  fill={EIXO}
+                  fontSize={11}
+                  fontFamily="var(--fonte-mono, monospace)"
+                  pointerEvents="none"
+                >
+                  {rotuloMes(mes.mes)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+
+        {m ? (
+          <div className="pointer-events-none absolute right-0 top-0 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+              {rotuloMes(m.mes)}
+            </p>
+            <dl className="mt-2 space-y-1.5">
+              {[
+                ['Faturado', dinheiro(m.faturado)],
+                ['Recebido', dinheiro(m.recebido)],
+                ['Despesa', dinheiro(m.despesa)],
+                ['Resultado', dinheiro(m.recebido - m.despesa)],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-6">
+                  <dt className="text-cinza">{k}</dt>
+                  <dd className="tabular text-branco">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
+      </div>
+
+      {/* A tabela é a mesma informação sem depender de enxergar o
+          desenho, e é o que um leitor de tela lê. */}
+      <details className="mt-4">
+        <summary className="cursor-pointer text-xs text-cinza hover:text-neve">
+          Ver os números
+        </summary>
+        <div className="mt-3 overflow-x-auto rounded-xl border border-fio">
+          <table className="w-full min-w-[30rem] border-collapse text-left text-xs">
+            <caption className="sr-only">Faturado, recebido e despesa por mês</caption>
+            <thead>
+              <tr>
+                {['Mês', 'Faturado', 'Recebido', 'Despesa'].map((h) => (
+                  <th
+                    key={h}
+                    scope="col"
+                    className="px-4 py-3 font-mono text-[0.75rem] uppercase tracking-[0.12em] font-normal text-cinza"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {serie.map((mes) => (
+                <tr key={mes.mes}>
+                  <th scope="row" className="border-t border-fio px-4 py-2.5 font-normal text-neve">
+                    {rotuloMes(mes.mes)}
+                  </th>
+                  <td className="tabular border-t border-fio px-4 py-2.5">{dinheiro(mes.faturado)}</td>
+                  <td className="tabular border-t border-fio px-4 py-2.5">{dinheiro(mes.recebido)}</td>
+                  <td className="tabular border-t border-fio px-4 py-2.5">{dinheiro(mes.despesa)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </figure>
   );
 }

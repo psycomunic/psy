@@ -7,6 +7,9 @@ import {
   emitirCobranca,
   pixDaCobranca,
   consultarCobranca,
+  cancelarCobranca,
+  receberEmDinheiro,
+  saldoAsaas,
   statusDaFatura,
   ErroAsaas,
   type AmbienteAsaas,
@@ -146,7 +149,7 @@ export async function cobrarFatura(faturaId: string): Promise<ResultadoCobranca>
 
   const { data: fatura } = await servico
     .from('fatura')
-    .select('id, numero, valor, vencimento, competencia, asaas_id, link_pagamento, conta:conta_id(id, nome, documento, asaas_cliente_id)')
+    .select('id, numero, valor, vencimento, competencia, descricao, parcelas, contrato_id, asaas_id, link_pagamento, conta:conta_id(id, nome, documento, asaas_cliente_id)')
     .eq('id', faturaId)
     .maybeSingle();
 
@@ -202,13 +205,23 @@ export async function cobrarFatura(faturaId: string): Promise<ResultadoCobranca>
       await servico.from('conta').update({ asaas_cliente_id: c.id }).eq('id', conta.id);
     }
 
-    /* 2. A cobrança. */
+    /* 2. A cobrança.
+
+       A descrição é o que o cliente lê no e-mail e no boleto. Cobrança
+       avulsa traz a sua; fatura de contrato não tem uma, e o mês por
+       extenso é o que responde "que cobrança é essa?" sem ninguém
+       precisar perguntar. */
+    const descricao =
+      (fatura.descricao as string | null)?.trim() ||
+      `Psy Comunic · fee de ${new Date(`${fatura.competencia}T12:00:00Z`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })}`;
+
     const cobranca = await emitirCobranca(cred, {
       clienteAsaas,
       valor: Number(fatura.valor),
       vencimento: fatura.vencimento as string,
-      descricao: `Psy Comunic · fee de ${new Date(`${fatura.competencia}T12:00:00Z`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })}`,
+      descricao,
       faturaId,
+      parcelas: Number(fatura.parcelas ?? 1),
     });
 
     /* 3. O PIX é uma chamada à parte e pode falhar sozinho. Falha aqui
@@ -223,6 +236,12 @@ export async function cobrarFatura(faturaId: string): Promise<ResultadoCobranca>
         link_boleto: cobranca.bankSlipUrl ?? null,
         pix_copia_cola: pix,
         status: statusDaFatura(cobranca.status),
+        /* Já na emissão o Asaas informa quanto vai sobrar depois da
+           taxa. É o número que responde "faturei cinco mil, entra
+           quanto?", e ele não aparece em lugar nenhum se não for
+           guardado agora. */
+        valor_liquido: cobranca.netValue ?? null,
+        asaas_parcelamento: cobranca.installment ?? null,
         sincronizada_em: new Date().toISOString(),
       })
       .eq('id', faturaId);
@@ -273,6 +292,7 @@ export async function aplicarEventoAsaas(corpo: {
     paymentDate?: string;
     externalReference?: string;
     invoiceUrl?: string;
+    netValue?: number;
   };
 }): Promise<{ ok: boolean; mensagem: string }> {
   const pagamento = corpo.payment;
@@ -349,6 +369,10 @@ export async function aplicarEventoAsaas(corpo: {
       paga_em: novoStatus === 'paga' ? (pagamento.paymentDate ?? new Date().toISOString().slice(0, 10)) : null,
       forma_pagamento: pagamento.billingType ?? null,
       link_pagamento: pagamento.invoiceUrl ?? undefined,
+      /* O líquido só é definitivo na confirmação: a taxa depende de
+         como o cliente escolheu pagar, e PIX, boleto e cartão custam
+         diferente. `undefined` mantém o que a emissão estimou. */
+      valor_liquido: typeof pagamento.netValue === 'number' ? pagamento.netValue : undefined,
       sincronizada_em: new Date().toISOString(),
     })
     .eq('id', fatura.id);
@@ -402,4 +426,301 @@ export async function conferirFatura(faturaId: string): Promise<ResultadoCobranc
     await registrar({ faturaId, origem: 'consulta', status: 'erro', erro: msg });
     return { ok: false, faturaId, link: null, mensagem: `Asaas: ${msg}` };
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Cobrança avulsa                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Cobra qualquer coisa que não seja o fee do mês.
+ *
+ * Setup, projeto de loja, criativo extra, reembolso de mídia. Antes
+ * disso, essas cobranças eram feitas à mão no site do Asaas — fora do
+ * painel, fora de todo indicador, e sem ninguém para lembrar de
+ * conferir se foram pagas.
+ */
+export async function criarCobrancaAvulsa(dados: {
+  contaId: string;
+  valor: number;
+  vencimento: string;
+  descricao: string;
+  parcelas?: number;
+}): Promise<ResultadoCobranca> {
+  const supabase = await clienteServidor();
+
+  /* Nasce aqui primeiro, pela função do Postgres, que confere o papel.
+     Mesma ordem da fatura de contrato, e pela mesma razão: cobrança
+     criada lá e não gravada aqui é boleto que o painel não conhece. */
+  const { data: faturaId, error } = await supabase.rpc('criar_cobranca_avulsa', {
+    p_conta_id: dados.contaId,
+    p_valor: dados.valor,
+    p_vencimento: dados.vencimento,
+    p_descricao: dados.descricao,
+    p_parcelas: dados.parcelas ?? 1,
+  });
+
+  if (error) return { ok: false, faturaId: null, link: null, mensagem: error.message };
+
+  return cobrarFatura(faturaId as string);
+}
+
+/* ------------------------------------------------------------------ */
+/* Fim de vida de uma cobrança                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Cancela a cobrança no Asaas e marca a fatura.
+ *
+ * A ordem é lá primeiro. Marcar cancelada aqui e falhar lá deixaria o
+ * cliente recebendo lembrete de uma cobrança que o painel já considera
+ * morta, e a agência sem saber por que ele está reclamando.
+ *
+ * Fatura paga não cancela por aqui: dinheiro que já entrou se desfaz
+ * com estorno, que é outra operação e tem consequência contábil.
+ */
+export async function cancelarFatura(faturaId: string): Promise<ResultadoCobranca> {
+  const servico = clienteServico();
+
+  const { data: fatura } = await servico
+    .from('fatura')
+    .select('id, numero, status, asaas_id')
+    .eq('id', faturaId)
+    .maybeSingle();
+
+  if (!fatura) return { ok: false, faturaId, link: null, mensagem: 'Fatura não encontrada.' };
+
+  if (fatura.status === 'paga') {
+    return {
+      ok: false,
+      faturaId,
+      link: null,
+      mensagem:
+        'Esta fatura já foi paga. Cancelar não devolve dinheiro: o caminho é estorno, direto no Asaas.',
+    };
+  }
+
+  if (fatura.status === 'cancelada') {
+    return { ok: true, faturaId, link: null, mensagem: 'Esta fatura já estava cancelada.' };
+  }
+
+  if (fatura.asaas_id) {
+    const cred = await credencialAsaas();
+    if (!cred) {
+      return { ok: false, faturaId, link: null, mensagem: 'O Asaas não está conectado.' };
+    }
+    try {
+      await cancelarCobranca(cred, fatura.asaas_id as string);
+    } catch (e) {
+      const msg = e instanceof ErroAsaas ? e.message : (e as Error).message;
+      await registrar({
+        faturaId,
+        asaasId: fatura.asaas_id as string,
+        origem: 'cancelamento',
+        status: 'erro',
+        erro: msg,
+      });
+      return { ok: false, faturaId, link: null, mensagem: `Asaas: ${msg}` };
+    }
+  }
+
+  await servico
+    .from('fatura')
+    .update({ status: 'cancelada', cancelada_em: new Date().toISOString() })
+    .eq('id', faturaId);
+
+  await registrar({
+    faturaId,
+    asaasId: (fatura.asaas_id as string) ?? null,
+    origem: 'cancelamento',
+    status: 'sucesso',
+  });
+
+  return {
+    ok: true,
+    faturaId,
+    link: null,
+    mensagem: `Fatura ${fatura.numero} cancelada${fatura.asaas_id ? ' aqui e no Asaas' : ''}.`,
+  };
+}
+
+/**
+ * Registra pagamento que não passou pelo Asaas.
+ *
+ * O caso é comum: o cliente manda PIX direto para a conta da agência.
+ * O dinheiro entrou, o Asaas não tem como saber, e sem isto a fatura
+ * fica vencida para sempre, mandando lembrete para quem já pagou.
+ *
+ * Passa pelo Asaas quando existe cobrança lá, e não só marca aqui, para
+ * que a conciliação continue tendo um lugar só como verdade.
+ */
+export async function receberForaDoAsaas(
+  faturaId: string,
+  data: string,
+): Promise<ResultadoCobranca> {
+  const servico = clienteServico();
+
+  const { data: fatura } = await servico
+    .from('fatura')
+    .select('id, numero, status, valor, asaas_id')
+    .eq('id', faturaId)
+    .maybeSingle();
+
+  if (!fatura) return { ok: false, faturaId, link: null, mensagem: 'Fatura não encontrada.' };
+
+  if (fatura.status === 'paga') {
+    return { ok: true, faturaId, link: null, mensagem: 'Esta fatura já constava como paga.' };
+  }
+
+  if (fatura.asaas_id) {
+    const cred = await credencialAsaas();
+    if (!cred) {
+      return { ok: false, faturaId, link: null, mensagem: 'O Asaas não está conectado.' };
+    }
+    try {
+      const c = await receberEmDinheiro(cred, fatura.asaas_id as string, {
+        valor: Number(fatura.valor),
+        data,
+      });
+      await aplicarEventoAsaas({ event: 'RECEBIDO_FORA_DO_ASAAS', payment: c });
+      return {
+        ok: true,
+        faturaId,
+        link: null,
+        mensagem: `Fatura ${fatura.numero} baixada como recebida em ${data}.`,
+      };
+    } catch (e) {
+      const msg = e instanceof ErroAsaas ? e.message : (e as Error).message;
+      await registrar({ faturaId, origem: 'consulta', status: 'erro', erro: msg });
+      return { ok: false, faturaId, link: null, mensagem: `Asaas: ${msg}` };
+    }
+  }
+
+  /* Sem cobrança no Asaas, a baixa é só nossa. */
+  await servico
+    .from('fatura')
+    .update({ status: 'paga', paga_em: data, forma_pagamento: 'FORA_DO_ASAAS' })
+    .eq('id', faturaId);
+
+  await registrar({ faturaId, origem: 'consulta', status: 'sucesso', evento: 'BAIXA_MANUAL' });
+
+  return {
+    ok: true,
+    faturaId,
+    link: null,
+    mensagem: `Fatura ${fatura.numero} baixada como recebida em ${data}.`,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Em lote                                                             */
+/* ------------------------------------------------------------------ */
+
+export type ResultadoLote = {
+  ok: boolean;
+  emitidas: number;
+  jaExistiam: number;
+  falhas: { loja: string; motivo: string }[];
+  mensagem: string;
+};
+
+/**
+ * Fatura todos os contratos vigentes de uma competência.
+ *
+ * Uma por uma, e não em paralelo, de propósito: são chamadas a uma API
+ * de terceiro com limite de requisição, e disparar trinta de uma vez
+ * troca "demora dez segundos" por "metade falhou com 429".
+ *
+ * Uma loja que falha NÃO interrompe as outras. O motivo mais comum é
+ * loja sem CNPJ, e travar a rodada inteira por causa de um cadastro
+ * incompleto obrigaria a agência a consertar antes de cobrar quem está
+ * em ordem.
+ */
+export async function faturarTodos(competencia: string): Promise<ResultadoLote> {
+  const supabase = await clienteServidor();
+
+  const { data: contratos, error } = await supabase
+    .from('contrato')
+    .select('id, conta:conta_id(nome)')
+    .lte('inicio', competencia)
+    .or(`fim.is.null,fim.gte.${competencia}`);
+
+  if (error) {
+    return { ok: false, emitidas: 0, jaExistiam: 0, falhas: [], mensagem: error.message };
+  }
+
+  let emitidas = 0;
+  let jaExistiam = 0;
+  const falhas: { loja: string; motivo: string }[] = [];
+
+  for (const c of contratos ?? []) {
+    const loja = (c.conta as unknown as { nome: string } | null)?.nome ?? 'sem nome';
+    const r = await faturarContrato(c.id as string, competencia);
+
+    if (!r.ok) falhas.push({ loja, motivo: r.mensagem });
+    else if (r.mensagem.includes('já tinha cobrança')) jaExistiam += 1;
+    else emitidas += 1;
+  }
+
+  const partes = [
+    emitidas > 0
+      ? `${emitidas} cobrança${emitidas > 1 ? 's' : ''} emitida${emitidas > 1 ? 's' : ''}`
+      : null,
+    jaExistiam > 0 ? `${jaExistiam} já existia${jaExistiam > 1 ? 'm' : ''}` : null,
+    falhas.length > 0 ? `${falhas.length} falhou` : null,
+  ].filter(Boolean);
+
+  return {
+    ok: falhas.length === 0,
+    emitidas,
+    jaExistiam,
+    falhas,
+    mensagem:
+      partes.length > 0 ? `${partes.join(', ')}.` : 'Nenhum contrato vigente para faturar.',
+  };
+}
+
+/** Confere no Asaas todas as cobranças que ainda não foram pagas. */
+export async function conferirTodas(): Promise<{ ok: boolean; mensagem: string }> {
+  const servico = clienteServico();
+
+  const { data: faturas } = await servico
+    .from('fatura')
+    .select('id, status')
+    .not('asaas_id', 'is', null)
+    .not('status', 'in', '("paga","cancelada")');
+
+  if (!faturas || faturas.length === 0) {
+    return { ok: true, mensagem: 'Nenhuma cobrança aberta para conferir.' };
+  }
+
+  let mudou = 0;
+  for (const f of faturas) {
+    const r = await conferirFatura(f.id as string);
+    if (!r.ok) continue;
+    const { data: depois } = await servico
+      .from('fatura')
+      .select('status')
+      .eq('id', f.id)
+      .maybeSingle();
+    if (depois?.status !== f.status) mudou += 1;
+  }
+
+  return {
+    ok: true,
+    mensagem:
+      mudou === 0
+        ? `${faturas.length} cobrança(s) conferida(s). Nenhuma mudou de estado.`
+        : `${faturas.length} conferida(s), ${mudou} mudou de estado.`,
+  };
+}
+
+/** Saldo da conta Asaas da agência, ou null quando não dá para saber. */
+export async function saldoDaAgencia(): Promise<{
+  saldo: number | null;
+  ambiente: AmbienteAsaas | null;
+}> {
+  const cred = await credencialAsaas();
+  if (!cred) return { saldo: null, ambiente: null };
+  return { saldo: await saldoAsaas(cred), ambiente: cred.ambiente };
 }

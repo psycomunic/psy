@@ -120,11 +120,25 @@ export type CobrancaAsaas = {
   id: string;
   status: string;
   value: number;
+  /** O que sobra depois da taxa do gateway. R$ 300 viram R$ 293,54. */
+  netValue?: number;
   dueDate: string;
   invoiceUrl?: string;
   bankSlipUrl?: string;
   billingType?: string;
+  /** Id do parcelamento, quando a cobrança foi dividida. */
+  installment?: string;
 };
+
+/**
+ * Como o cliente pode pagar.
+ *
+ * `UNDEFINED` é o padrão e devolve uma página onde ele escolhe entre o
+ * que a conta tiver habilitado. Fixar é para o caso em que a agência
+ * precisa do meio específico: boleto porque o financeiro do cliente só
+ * paga boleto, cartão porque foi combinado parcelar.
+ */
+export type FormaCobranca = 'UNDEFINED' | 'BOLETO' | 'PIX' | 'CREDIT_CARD';
 
 /**
  * Emite a cobrança.
@@ -148,19 +162,79 @@ export async function emitirCobranca(
     vencimento: string;
     descricao: string;
     faturaId: string;
+    forma?: FormaCobranca;
+    /** Parcelas no cartão ou boleto. 1 ou ausente emite cobrança única. */
+    parcelas?: number;
+    /** Multa por atraso, em % do valor. */
+    multa?: number;
+    /** Juros ao mês, em %. */
+    juros?: number;
   },
 ): Promise<CobrancaAsaas> {
+  const parcelas = Math.max(1, Math.trunc(dados.parcelas ?? 1));
+
   return chamar<CobrancaAsaas>(cred, '/payments', {
     method: 'POST',
     body: JSON.stringify({
       customer: dados.clienteAsaas,
-      billingType: 'UNDEFINED',
-      value: dados.valor,
+      billingType: dados.forma ?? 'UNDEFINED',
       dueDate: dados.vencimento,
       description: dados.descricao,
       externalReference: dados.faturaId,
+
+      /* Parcelado manda `totalValue` e o Asaas divide. Mandar `value`
+         junto significaria "cada parcela vale isto", e uma cobrança de
+         R$ 900 em 3x viraria R$ 2.700. */
+      ...(parcelas > 1
+        ? { installmentCount: parcelas, totalValue: dados.valor }
+        : { value: dados.valor }),
+
+      /* Multa e juros só vão quando pedidos. O padrão do Asaas é zero, e
+         cobrar encargo de um cliente que não foi avisado é a forma mais
+         rápida de transformar atraso de três dias em discussão. */
+      ...(dados.multa ? { fine: { value: dados.multa } } : {}),
+      ...(dados.juros ? { interest: { value: dados.juros } } : {}),
     }),
   });
+}
+
+/**
+ * Marca a cobrança como recebida fora do Asaas.
+ *
+ * O caso real: o cliente manda PIX direto para a conta da agência em
+ * vez de usar o link. O dinheiro entrou, mas o Asaas nunca vai saber
+ * sozinho, e a fatura ficaria vencida para sempre — cobrando de novo
+ * alguém que já pagou.
+ */
+export async function receberEmDinheiro(
+  cred: { chave: string; ambiente: AmbienteAsaas },
+  asaasId: string,
+  dados: { valor: number; data: string; avisarCliente?: boolean },
+): Promise<CobrancaAsaas> {
+  return chamar<CobrancaAsaas>(cred, `/payments/${asaasId}/receiveInCash`, {
+    method: 'POST',
+    body: JSON.stringify({
+      paymentDate: dados.data,
+      value: dados.valor,
+      notifyCustomer: dados.avisarCliente ?? false,
+    }),
+  });
+}
+
+/** Saldo da conta Asaas da agência. */
+export async function saldoAsaas(cred: {
+  chave: string;
+  ambiente: AmbienteAsaas;
+}): Promise<number | null> {
+  try {
+    const r = await chamar<{ balance?: number }>(cred, '/finance/balance');
+    return typeof r.balance === 'number' ? r.balance : null;
+  } catch {
+    /* Saldo é informação de apoio. Se a chamada falhar, o resto da tela
+       continua valendo, e mostrar "—" é melhor que derrubar o módulo
+       inteiro por causa de um número decorativo. */
+    return null;
+  }
 }
 
 export async function consultarCobranca(

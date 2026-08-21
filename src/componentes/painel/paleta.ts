@@ -58,6 +58,25 @@ export const COR_RECEITA = '#EC2E6B';
 export const COR_INVESTIMENTO = '#2E8BE0';
 
 /**
+ * Faturado e recebido, no financeiro.
+ *
+ * O MESMO par já validado acima, e não duas cores novas escolhidas no
+ * olho. Também são duas medidas em reais na mesma ordem de grandeza,
+ * então também dividem um eixo, e a separação para daltonismo já está
+ * medida: ΔE 19,4 em protanopia.
+ *
+ * Nomes próprios porque "receita" e "investimento" não descrevem o que
+ * este gráfico mostra: aqui a comparação é entre o que foi EMITIDO e o
+ * que ENTROU, que é a diferença entre faturamento e caixa.
+ */
+export const COR_FATURADO = COR_RECEITA;
+export const COR_RECEBIDO = COR_INVESTIMENTO;
+
+/** Despesa desenha sozinha, num gráfico só dela: série de uma medida
+    é magnitude, e magnitude é uma cor só. */
+export const COR_DESPESA = '#B87D1A';
+
+/**
  * Semáforo de saúde.
  *
  * Reservadas: nunca reutilizar como "série 4". E nunca sozinhas: todo

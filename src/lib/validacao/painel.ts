@@ -335,3 +335,66 @@ export const esquemaEncerrar = z.object({
   fim: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a data de encerramento.'),
   motivo: textoOpcional,
 });
+
+/* ------------------------------------------------------------------ */
+/* Cobrança avulsa e despesa                                           */
+/* ------------------------------------------------------------------ */
+
+const dataObrigatoria = (msg: string) =>
+  z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, msg);
+
+const valorPositivo = (msg: string) =>
+  z
+    .string()
+    .trim()
+    .transform(paraNumero)
+    .refine((n) => Number.isFinite(n) && n > 0, msg);
+
+/**
+ * Cobrança fora do contrato mensal.
+ *
+ * A descrição é obrigatória de propósito: ela é o que o cliente lê no
+ * e-mail e no boleto. Cobrança que chega dizendo só "Psy Comunic" e um
+ * valor gera uma mensagem no WhatsApp perguntando o que é.
+ */
+export const esquemaCobrancaAvulsa = z.object({
+  conta_id: z.uuid('Escolha a loja.'),
+  descricao: textoObrigatorio(3, 'Diga o que está sendo cobrado.'),
+  valor: valorPositivo('O valor precisa ser maior que zero.'),
+  vencimento: dataObrigatoria('Informe o vencimento.'),
+  parcelas: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? 1 : Math.trunc(paraNumero(v))))
+    .refine((n) => Number.isFinite(n) && n >= 1 && n <= 24, 'Entre 1 e 24 parcelas.'),
+});
+
+export const esquemaBaixaManual = z.object({
+  fatura_id: z.uuid('Fatura inválida.'),
+  data: dataObrigatoria('Informe a data em que o dinheiro entrou.'),
+});
+
+export const esquemaDespesa = z.object({
+  descricao: textoObrigatorio(3, 'Diga qual é a despesa.'),
+  categoria: textoOpcional,
+  valor: valorPositivo('O valor precisa ser maior que zero.'),
+  vencimento: dataObrigatoria('Informe o vencimento.'),
+  /* Loja opcional: a maior parte da despesa é da agência inteira, mas
+     "verba de mídia da loja X paga por nós" precisa de dono. */
+  conta_id: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .refine(
+      (v) => v === null || /^[0-9a-f-]{36}$/i.test(v),
+      'Loja inválida.',
+    ),
+});
+
+export const esquemaPagarDespesa = z.object({
+  id: z.uuid('Despesa inválida.'),
+  pago_em: dataObrigatoria('Informe a data do pagamento.'),
+});
+
+export const esquemaId = z.object({ id: z.uuid('Registro inválido.') });

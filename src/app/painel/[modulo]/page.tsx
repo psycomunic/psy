@@ -16,13 +16,13 @@ import { Metricas } from '@/componentes/painel/modulos/Metricas';
 import {
   Crm,
   Contas,
-  Financeiro,
   Tarefas,
   Equipe,
   Auditoria,
   EmConstrucao,
 } from '@/componentes/painel/modulos/Outros';
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
+import { Financeiro, abaFinanceiro } from '@/componentes/painel/modulos/Financeiro';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { MenuLateral } from '@/componentes/painel/MenuLateral';
@@ -190,7 +190,7 @@ export default async function PainelModulo({
               ) : moduloAtual === 'contas' ? (
                 <Contas papel={papel} />
               ) : null}
-              {moduloAtual === 'financeiro' ? <Financeiro /> : null}
+              {moduloAtual === 'financeiro' ? <Financeiro aba={abaFinanceiro(aba)} /> : null}
               {moduloAtual === 'tarefas' ? <Tarefas /> : null}
               {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
               {moduloAtual === 'auditoria' ? (

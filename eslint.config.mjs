@@ -24,6 +24,32 @@ const eslintConfig = defineConfig([
     */
     "public/paginas-que-vendem/**",
   ]),
+
+  {
+    rules: {
+      /*
+        Underscore quer dizer "não uso, e é de propósito".
+
+        Server Action tem assinatura fixa: `(estadoAnterior, formData)`.
+        Uma ação que não precisa do estado anterior — faturar o mês
+        inteiro, conferir todas as cobranças — ainda tem de declarar o
+        primeiro parâmetro, e a regra padrão reclamava dele.
+
+        As opções eram pior: comentário de `eslint-disable` espalhado, ou
+        inventar uso para um argumento que não serve. O prefixo já é a
+        convenção do repositório inteiro (`_anterior` em toda ação); isto
+        só faz o lint concordar com ela.
+      */
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

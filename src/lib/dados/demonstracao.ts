@@ -198,9 +198,14 @@ export function financeiroDemo(): FinanceiroMes {
   return {
     receitaRecorrente: 24800,
     contratosAtivos: contas.length,
+    faturadoMes: 24800,
     recebidoMes: 19400,
+    recebidoLiquidoMes: 18960,
     aReceberMes: 5400,
     inadimplencia: 3200,
+    faturasVencidas: 2,
+    despesaMes: 8700,
+    despesaPrevistaMes: 2400,
     verbaSobGestao: contas.reduce((s, c) => s + c.investimento, 0),
   };
 }

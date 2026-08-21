@@ -25,6 +25,8 @@ import type {
   PropostaResumo,
   FaturaResumo,
   ContratoAtivo,
+  MesFinanceiro,
+  Despesa,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -284,11 +286,108 @@ export async function financeiroDoMes(): Promise<Resposta<FinanceiroMes>> {
   return doBanco({
     receitaRecorrente: Number(data?.receita_recorrente ?? 0),
     contratosAtivos: Number(data?.contratos_ativos ?? 0),
+    faturadoMes: Number(data?.faturado_mes ?? 0),
     recebidoMes: Number(data?.recebido_mes ?? 0),
+    recebidoLiquidoMes: Number(data?.recebido_liquido_mes ?? 0),
     aReceberMes: Number(data?.a_receber_mes ?? 0),
     inadimplencia: Number(data?.inadimplencia ?? 0),
+    faturasVencidas: Number(data?.faturas_vencidas ?? 0),
+    despesaMes: Number(data?.despesa_mes ?? 0),
+    despesaPrevistaMes: Number(data?.despesa_prevista_mes ?? 0),
     verbaSobGestao: Number(data?.verba_sob_gestao ?? 0),
   });
+}
+
+/**
+ * Doze meses de faturado, recebido e despesa.
+ *
+ * A view devolve sempre 12 linhas, inclusive as vazias. Mês sem
+ * movimento é informação: uma série que pula os meses parados desenha
+ * uma linha subindo onde na verdade houve um buraco.
+ */
+export async function serieFinanceira(): Promise<Resposta<MesFinanceiro[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('serie_financeira')
+    .select('*')
+    .order('mes', { ascending: true });
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((m) => ({
+      mes: m.mes as string,
+      faturado: Number(m.faturado ?? 0),
+      recebido: Number(m.recebido ?? 0),
+      despesa: Number(m.despesa ?? 0),
+    })),
+  );
+}
+
+/**
+ * O WhatsApp de quem paga, por loja.
+ *
+ * A régua de cobrança da agência é o WhatsApp, e não o e-mail que o
+ * Asaas dispara — que é onde ele costuma morrer. Sem o número aqui,
+ * cobrar um atraso vira "abre a ficha da loja, copia o telefone, volta".
+ */
+export async function whatsappDeCobranca(): Promise<Resposta<Record<string, string>>> {
+  if (!bancoConfigurado) return semBanco({});
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('contato')
+    .select('conta_id, whatsapp, telefone, principal')
+    .order('principal', { ascending: false });
+
+  if (faltamTabelas(error)) return semBanco({});
+
+  const porConta: Record<string, string> = {};
+  for (const c of data ?? []) {
+    const numero = ((c.whatsapp as string) || (c.telefone as string) || '').trim();
+    /* O primeiro que aparece vence, e a ordenação põe o contato
+       principal na frente. Contato secundário só entra quando não há
+       principal com número. */
+    if (numero && !porConta[c.conta_id as string]) {
+      porConta[c.conta_id as string] = numero;
+    }
+  }
+
+  return doBanco(porConta);
+}
+
+/** As despesas da agência. Receita não mora aqui: mora em `fatura`. */
+export async function listarDespesas(limite = 80): Promise<Resposta<Despesa[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('lancamento')
+    .select('id, descricao, categoria, valor, vencimento, pago_em, status, conta:conta_id(nome)')
+    .order('vencimento', { ascending: false })
+    .limit(limite);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const hoje = hojeBR();
+
+  return doBanco(
+    (data ?? []).map((l) => ({
+      id: l.id as string,
+      descricao: l.descricao as string,
+      categoria: (l.categoria as string) ?? null,
+      valor: Number(l.valor ?? 0),
+      vencimento: l.vencimento as string,
+      pagoEm: (l.pago_em as string) ?? null,
+      status: l.status as Despesa['status'],
+      conta: (l.conta as unknown as { nome: string } | null)?.nome ?? null,
+      diasAteVencer: Math.round(
+        (Date.parse(`${l.vencimento}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86400000,
+      ),
+    })),
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -839,7 +938,7 @@ export async function listarFaturas(limite = 60): Promise<Resposta<FaturaResumo[
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('fatura')
-    .select('id, numero, contrato_id, status, valor, competencia, vencimento, paga_em, asaas_id, link_pagamento, forma_pagamento, conta:conta_id(nome)')
+    .select('id, numero, conta_id, contrato_id, status, valor, valor_liquido, descricao, parcelas, competencia, vencimento, paga_em, asaas_id, link_pagamento, pix_copia_cola, forma_pagamento, conta:conta_id(nome)')
     .order('vencimento', { ascending: false })
     .limit(limite);
 
@@ -852,14 +951,19 @@ export async function listarFaturas(limite = 60): Promise<Resposta<FaturaResumo[
       id: f.id as string,
       numero: f.numero as string,
       conta: (f.conta as unknown as { nome: string } | null)?.nome ?? null,
+      contaId: f.conta_id as string,
       contratoId: (f.contrato_id as string) ?? null,
       status: f.status as FaturaResumo['status'],
       valor: Number(f.valor ?? 0),
+      valorLiquido: f.valor_liquido === null || f.valor_liquido === undefined ? null : Number(f.valor_liquido),
+      descricao: (f.descricao as string) ?? null,
+      parcelas: Number(f.parcelas ?? 1),
       competencia: f.competencia as string,
       vencimento: f.vencimento as string,
       pagaEm: (f.paga_em as string) ?? null,
       asaasId: (f.asaas_id as string) ?? null,
       linkPagamento: (f.link_pagamento as string) ?? null,
+      pixCopiaCola: (f.pix_copia_cola as string) ?? null,
       formaPagamento: (f.forma_pagamento as string) ?? null,
       /* Calculado na camada de dados, e não no render: contar dias
          exige saber que dia é hoje, e Date.now() durante o render é
