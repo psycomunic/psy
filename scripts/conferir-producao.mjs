@@ -97,7 +97,33 @@ try {
   ok(/Conferir cobran[çc]as/i.test(fin), 'e o "Conferir cobranças"');
   ok(/Resultado do m[eê]s/i.test(fin), 'o resultado do mês aparece');
   ok(/Saldo no Asaas/i.test(fin), 'e o saldo do Asaas');
-  ok(/sandbox/i.test(fin), 'com o aviso de que o Asaas está em sandbox');
+
+  /*
+    O aviso de sandbox tem de bater com o ambiente REAL, nos dois
+    sentidos.
+
+    A primeira versão simplesmente exigia o aviso. Quando o Asaas virou
+    para produção o aviso sumiu — correto — e o conferidor acusou falha
+    apontando para o comportamento certo. Teste que só sabe verificar um
+    dos estados vira alarme falso no dia em que o estado muda, e alarme
+    falso ensina a ignorar alarme.
+
+    Nos dois lados importa: aviso faltando em sandbox faz alguém achar
+    que cobrou de verdade; aviso sobrando em produção faz alguém achar
+    que não cobrou.
+  */
+  const amb = await fetch(`${APP}/api/asaas`)
+    .then((r) => r.json())
+    .then((j) => j.ambiente)
+    .catch(() => null);
+
+  const temAviso = /O Asaas está em/i.test(fin);
+  ok(
+    amb === 'sandbox' ? temAviso : !temAviso,
+    amb === 'sandbox'
+      ? 'com o aviso de que o Asaas está em sandbox'
+      : `sem aviso de sandbox, porque o ambiente é ${amb ?? 'desconhecido'}`,
+  );
 
   const cob = await texto('/painel/financeiro?aba=cobrancas');
   ok(/Nova cobran[çc]a/i.test(cob), 'a aba Cobranças tem "Nova cobrança"');
