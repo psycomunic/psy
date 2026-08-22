@@ -34,7 +34,19 @@ export const rotuloProvedorApi: Record<ProvedorApi, string> = {
  */
 export const CAMPOS_DO_PROVEDOR: Record<
   ProvedorApi,
-  { chave: string; rotulo: string; segredo: boolean; obrigatorio: boolean; ajuda: string }[]
+  {
+    chave: string;
+    rotulo: string;
+    segredo: boolean;
+    obrigatorio: boolean;
+    ajuda: string;
+    /* Lista fechada vira <select> na tela. Existe para o campo
+       'ambiente': ele era texto livre, e qualquer coisa diferente de
+       'producao' cai em sandbox. Quem digitava 'produção' com acento
+       continuava em sandbox sem nenhum aviso, achando que tinha
+       virado a chave. */
+    opcoes?: { valor: string; rotulo: string }[];
+  }[]
 > = {
   meta_ads: [
     {
@@ -67,10 +79,14 @@ export const CAMPOS_DO_PROVEDOR: Record<
     },
     {
       chave: 'ambiente',
-      rotulo: 'Ambiente: sandbox ou producao',
+      rotulo: 'Ambiente',
       segredo: false,
       obrigatorio: true,
-      ajuda: 'Comece em sandbox. Chave de sandbox apontada para produção responde 401, e o contrário emite cobrança de verdade.',
+      opcoes: [
+        { valor: 'sandbox', rotulo: 'Sandbox (teste, ninguém recebe cobrança)' },
+        { valor: 'producao', rotulo: 'Produção (cobrança de verdade)' },
+      ],
+      ajuda: 'Chave de sandbox apontada para produção responde 401. O contrário emite cobrança de verdade.',
     },
     {
       chave: 'webhook_token',

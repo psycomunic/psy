@@ -9,12 +9,17 @@ const campo =
   'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
 const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
+/* Espelha `CAMPOS_DO_PROVEDOR`, em `credenciais.ts`. Duplicado porque
+   aquele arquivo é `server-only` e este é componente de cliente:
+   importar de lá faria o build falhar, que é exatamente o que o
+   `server-only` existe para fazer. */
 type Campo = {
   chave: string;
   rotulo: string;
   segredo: boolean;
   obrigatorio: boolean;
   ajuda: string;
+  opcoes?: { valor: string; rotulo: string }[];
 };
 
 function Aviso({ r }: { r: Resultado | null }) {
@@ -112,6 +117,33 @@ export function FormCredencial({
           <label htmlFor={`${provedor}-${c.chave}`} className={rotuloCss}>
             {c.rotulo} {c.obrigatorio && !jaExiste ? '*' : ''}
           </label>
+          {c.opcoes ? (
+            /*
+              Lista fechada em vez de texto livre.
+
+              O "ambiente" do Asaas era digitado à mão, e a aplicação
+              trata qualquer coisa diferente de `producao` como sandbox
+              — de propósito, para um erro de digitação não emitir
+              cobrança de verdade. Só que a queda era silenciosa: quem
+              escrevia "produção", com acento, continuava em sandbox
+              achando que tinha virado a chave, e descobria pela
+              cobrança que nunca chegou no cliente.
+            */
+            <select
+              id={`${provedor}-${c.chave}`}
+              name={c.chave}
+              required={c.obrigatorio && !jaExiste}
+              defaultValue={jaExiste ? '' : (c.opcoes[0]?.valor ?? '')}
+              className={`mt-2 ${campo}`}
+            >
+              {jaExiste ? <option value="">Manter o que está guardado</option> : null}
+              {c.opcoes.map((o) => (
+                <option key={o.valor} value={o.valor}>
+                  {o.rotulo}
+                </option>
+              ))}
+            </select>
+          ) : (
           <input
             id={`${provedor}-${c.chave}`}
             name={c.chave}
@@ -134,6 +166,7 @@ export function FormCredencial({
             spellCheck={false}
             className={`mt-2 ${campo}`}
           />
+          )}
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">{c.ajuda}</p>
         </div>
       ))}
