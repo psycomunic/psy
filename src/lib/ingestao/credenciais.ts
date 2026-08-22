@@ -108,11 +108,33 @@ export function criptoConfigurada(): boolean {
 }
 
 /**
- * Grava (ou substitui) a credencial de um provedor.
+ * Grava a credencial de um provedor.
  *
  * Recebe os valores em claro, separa segredo de configuração, cifra o
  * primeiro e guarda uma pista do último token para dar para reconhecer
  * na tela sem exibi-lo.
+ *
+ * ============================================================
+ * CAMPO EM BRANCO MANTÉM O QUE JÁ ESTAVA LÁ
+ * ============================================================
+ * Os segredos não voltam para a tela — é isso que faz a tela não ser
+ * um lugar de onde se copia token. Mas a primeira versão desta função
+ * SUBSTITUÍA o conjunto inteiro, e campo não preenchido virava campo
+ * apagado.
+ *
+ * O estrago aparecia no pior momento possível. Trocar o Asaas de
+ * sandbox para produção é preencher chave e ambiente; quem deixasse o
+ * "token do webhook" em branco — por não ter o valor à mão, já que a
+ * tela não o mostra — apagava o token sem nenhum aviso. As cobranças
+ * continuariam saindo, e a confirmação de pagamento pararia de chegar:
+ * a rota de retorno passaria a recusar tudo por falta de token, e o
+ * painel diria que ninguém pagou.
+ *
+ * Falha silenciosa, com dinheiro de verdade, exatamente na virada.
+ *
+ * Agora branco significa "não mexi neste", que é o que qualquer um
+ * assume ao olhar um formulário cujos valores não aparecem. Para
+ * apagar de fato existe "Desligar e apagar token".
  */
 export async function guardarCredencial({
   provedor,
@@ -125,16 +147,43 @@ export async function guardarCredencial({
 }) {
   const k = chave();
 
+  /* O que já está guardado, para poder preservar o que não foi
+     preenchido de novo. */
+  const supabaseLeitura = clienteServico();
+  const { data: atual } = await supabaseLeitura
+    .from('credencial_agencia')
+    .select('segredo, configuracao')
+    .eq('provedor', provedor)
+    .eq('rotulo', rotulo)
+    .maybeSingle();
+
+  let segredosAntigos: Record<string, string> = {};
+  if (atual?.segredo) {
+    try {
+      segredosAntigos = abrirSegredo(atual.segredo as string);
+    } catch {
+      /* Segredo ilegível (chave de cifra trocada, por exemplo). Não dá
+         para preservar o que não se consegue ler, e travar aqui
+         impediria justamente de gravar a credencial nova que
+         consertaria a situação. */
+      segredosAntigos = {};
+    }
+  }
+  const configAntiga = (atual?.configuracao ?? {}) as Record<string, string>;
+
+  const jaExiste = (chaveCampo: string) =>
+    Boolean(segredosAntigos[chaveCampo]?.trim() || configAntiga[chaveCampo]?.trim());
+
   const faltando = CAMPOS_DO_PROVEDOR[provedor]
-    .filter((c) => c.obrigatorio && !valores[c.chave]?.trim())
+    .filter((c) => c.obrigatorio && !valores[c.chave]?.trim() && !jaExiste(c.chave))
     .map((c) => c.rotulo);
 
   if (faltando.length > 0) {
     throw new Error(`Faltou preencher: ${faltando.join(', ')}.`);
   }
 
-  const segredos: Record<string, string> = {};
-  const configuracao: Record<string, string> = {};
+  const segredos: Record<string, string> = { ...segredosAntigos };
+  const configuracao: Record<string, string> = { ...configAntiga };
 
   for (const campo of CAMPOS_DO_PROVEDOR[provedor]) {
     const v = valores[campo.chave]?.trim();

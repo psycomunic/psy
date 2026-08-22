@@ -85,6 +85,16 @@ export function FormCredencial({
         você. Para trocar, cole de novo.
       </p>
 
+      {/* A regra do campo em branco, dita onde a dúvida nasce. Sem
+          isto, quem troca só a chave fica sem saber se o resto
+          sobreviveu — e a resposta importa: é o token do webhook que
+          faz a confirmação de pagamento voltar. */}
+      <p className="text-sm leading-relaxed text-cinza">
+        <strong className="text-neve">Campo em branco mantém o que já está guardado.</strong>{' '}
+        Dá para trocar só a chave sem mexer no resto. Para apagar de verdade, use
+        &ldquo;Desligar e apagar token&rdquo;.
+      </p>
+
       <div>
         <label htmlFor={`${provedor}-rotulo`} className={rotuloCss}>
           Apelido
@@ -100,12 +110,22 @@ export function FormCredencial({
       {campos.map((c) => (
         <div key={c.chave}>
           <label htmlFor={`${provedor}-${c.chave}`} className={rotuloCss}>
-            {c.rotulo} {c.obrigatorio ? '*' : ''}
+            {c.rotulo} {c.obrigatorio && !jaExiste ? '*' : ''}
           </label>
           <input
             id={`${provedor}-${c.chave}`}
             name={c.chave}
-            required={c.obrigatorio}
+            /*
+              Obrigatório só na PRIMEIRA vez.
+
+              Com uma credencial já guardada, campo em branco significa
+              "não mexi neste" — e o `required` do HTML tornava isso
+              impossível de expressar: o navegador barrava o envio antes
+              de o servidor ver qualquer coisa. Trocar só a chave do
+              Asaas exigiria redigitar o token do webhook, que a tela
+              não mostra e ninguém tem à mão.
+            */
+            required={c.obrigatorio && !jaExiste}
             /* `password` não é sobre esconder de quem está digitando: é
                para o navegador não guardar no autofill e para a captura
                de tela de suporte não levar o token junto. */
