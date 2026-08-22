@@ -26,7 +26,8 @@
     "testar-contratos": "node scripts/testar-contratos.mjs",
     "testar-financeiro": "node scripts/testar-financeiro.mjs",
     "testar-recorrencia": "node scripts/testar-recorrencia.mjs",
-    "testar-tarefas": "node scripts/testar-tarefas.mjs"
+    "testar-tarefas": "node scripts/testar-tarefas.mjs",
+    "conferir-producao": "node scripts/conferir-producao.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
