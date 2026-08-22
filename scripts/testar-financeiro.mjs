@@ -50,6 +50,10 @@ const EMAIL = `${marca}@teste.local`;
 const SENHA = 'Financeiro-Teste-2026-xyz';
 
 let falhas = 0;
+
+/* Sentinela de "pular", e nao de erro. Ver a guarda de producao. */
+const PULAR = "__pular_producao__";
+let pulado = false;
 let usuarioId = null;
 let contaId = null;
 let navegador = null;
@@ -215,10 +219,22 @@ try {
     console.log('\nAsaas não conectado. Conecte a chave em Configurações e rode de novo.\n');
     process.exit(1);
   }
+  /*
+    PULA quando o Asaas está em produção — e pular não é falhar.
+
+    Rodar aqui emitiria cobrança de verdade para um cliente inventado.
+    Recusar é obrigatório. Mas devolver erro derrubaria `testar-banco`
+    neste ponto: os testes seguintes nunca rodariam, e a saída natural
+    para quem quer a suíte verde seria apagar a guarda. Guarda que
+    atrapalha vira guarda removida.
+  */
   if (asaas.producao) {
-    console.error('\nA credencial do Asaas está em PRODUÇÃO. Este teste emite cobrança de verdade.');
-    console.error('Recusando rodar. Troque para sandbox antes.\n');
-    process.exit(1);
+    console.log('\n' + '='.repeat(66));
+    console.log('PULADO: o Asaas está em PRODUÇÃO.');
+    console.log('Este teste emite cobrança de verdade, então não roda contra produção.');
+    console.log('Para exercê-lo, troque o ambiente para sandbox em Configurações.');
+    console.log('='.repeat(66));
+    throw new Error(PULAR);
   }
   console.log('\nAsaas: sandbox');
 
@@ -496,8 +512,12 @@ try {
     'o banco recusa lançar RECEITA em `lancamento`: ela é fatura, e duas autoridades para o mesmo número foi o defeito que a 0020 consertou',
   );
 } catch (e) {
-  console.error(`\nErro no teste: ${e.message}`);
-  falhas++;
+  if (e.message === PULAR) {
+    pulado = true;
+  } else {
+    console.error(`\nErro no teste: ${e.message}`);
+    falhas++;
+  }
 } finally {
   if (navegador) await navegador.close().catch(() => {});
   if (usuarioId) await admin.auth.admin.deleteUser(usuarioId).catch(() => {});
@@ -535,9 +555,22 @@ try {
     console.error(`  SOBRARAM ${sobrou} loja(s) de teste no banco.`);
     falhas++;
   } else {
-    console.log('\nDados de teste removidos, aqui e no Asaas.');
+    /* Só quando houve teste. Anunciar limpeza depois de um pulo diria
+       que algo foi criado e desfeito, e nada foi. */
+    if (!pulado) console.log('\nDados de teste removidos, aqui e no Asaas.');
   }
 }
 
-console.log(falhas === 0 ? '\nFINANCEIRO OK\n' : `\n${falhas} FALHA(S) NO FINANCEIRO\n`);
-process.exit(falhas === 0 ? 0 : 1);
+console.log(
+  pulado
+    ? '\nFINANCEIRO PULADO (Asaas em produção)\n'
+    : falhas === 0
+      ? '\nFINANCEIRO OK\n'
+      : `\n${falhas} FALHA(S) NO FINANCEIRO\n`,
+);
+
+/* `exitCode` em vez de `process.exit`: sair no meio deixa handles
+   abertos, e no Windows isso derruba o processo com uma asserção do
+   libuv depois da mensagem final. Deixar o Node terminar sozinho dá o
+   mesmo código de saída sem o barulho. */
+process.exitCode = falhas === 0 ? 0 : 1;

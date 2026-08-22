@@ -53,6 +53,10 @@ const SENHA = 'Recorrencia-Teste-2026-xyz';
 const CHALE = `${marca}-Chales Recanto`;
 
 let falhas = 0;
+
+/* Sentinela de "pular", e nao de erro. Ver a guarda de producao. */
+const PULAR = "__pular_producao__";
+let pulado = false;
 let usuarioId = null;
 let contaId = null;
 let navegador = null;
@@ -201,9 +205,15 @@ try {
     console.log('\nAsaas não conectado. Conecte a chave em Configurações.\n');
     process.exit(1);
   }
+  /* Mesma guarda de `testar-financeiro`: pular, e não falhar. Uma
+     assinatura criada aqui cobraria todo mês, de verdade. */
   if (asaas.producao) {
-    console.error('\nCredencial em PRODUÇÃO. Este teste cria assinatura de verdade. Recusando.\n');
-    process.exit(1);
+    console.log('\n' + '='.repeat(66));
+    console.log('PULADO: o Asaas está em PRODUÇÃO.');
+    console.log('Este teste cria assinatura mensal de verdade, então não roda aqui.');
+    console.log('Para exercê-lo, troque o ambiente para sandbox em Configurações.');
+    console.log('='.repeat(66));
+    throw new Error(PULAR);
   }
   console.log('\nAsaas: sandbox');
 
@@ -551,8 +561,12 @@ try {
     'e as cobranças já emitidas continuam de pé: desligar não perdoa o que o cliente já deve',
   );
 } catch (e) {
-  console.error(`\nErro no teste: ${e.message}`);
-  falhas++;
+  if (e.message === PULAR) {
+    pulado = true;
+  } else {
+    console.error(`\nErro no teste: ${e.message}`);
+    falhas++;
+  }
 } finally {
   if (navegador) await navegador.close().catch(() => {});
   if (usuarioId) await admin.auth.admin.deleteUser(usuarioId).catch(() => {});
@@ -585,9 +599,19 @@ try {
     console.error(`  SOBRARAM ${sobrou} cliente(s) de teste no banco.`);
     falhas++;
   } else {
-    console.log('\nDados de teste removidos, aqui e no Asaas.');
+    /* Só quando houve teste. Anunciar limpeza depois de um pulo diria
+       que algo foi criado e desfeito, e nada foi. */
+    if (!pulado) console.log('\nDados de teste removidos, aqui e no Asaas.');
   }
 }
 
-console.log(falhas === 0 ? '\nRECORRENCIA OK\n' : `\n${falhas} FALHA(S) NA RECORRENCIA\n`);
-process.exit(falhas === 0 ? 0 : 1);
+console.log(
+  pulado
+    ? '\nRECORRENCIA PULADA (Asaas em produção)\n'
+    : falhas === 0
+      ? '\nRECORRENCIA OK\n'
+      : `\n${falhas} FALHA(S) NA RECORRENCIA\n`,
+);
+
+/* `exitCode` em vez de `process.exit`: ver a nota em testar-financeiro. */
+process.exitCode = falhas === 0 ? 0 : 1;
