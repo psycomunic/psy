@@ -56,6 +56,7 @@ let usuarioId = null;
 let contaId = null;
 let outraId = null;
 let navegador = null;
+let podeFaturar = true;
 
 const ok = (b, t) => {
   console.log(`  ${b ? 'PASSA' : 'FALHA'}  ${t}`);
@@ -81,6 +82,22 @@ function diaAnterior(iso) {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * O Asaas está em produção?
+ *
+ * Este teste não fala com o Asaas em quase nada — mas "Faturar o mês"
+ * fala, por dentro, e é fácil não perceber. A resposta decide se aquele
+ * bloco roda.
+ */
+async function asaasEmProducao() {
+  const { data } = await admin
+    .from('credencial_agencia')
+    .select('configuracao')
+    .eq('provedor', 'asaas')
+    .maybeSingle();
+  return (data?.configuracao ?? {}).ambiente === 'producao';
 }
 
 const contratosDa = (id) =>
@@ -237,6 +254,11 @@ async function esperarAviso(pagina, contem, nome = null, ms = 20000) {
 }
 
 try {
+  podeFaturar = !(await asaasEmProducao());
+  if (!podeFaturar) {
+    console.log('\nAsaas em PRODUÇÃO: o bloco de faturamento não roda.');
+  }
+
   /* Duas lojas: uma para o ciclo completo, outra para provar que a
      trava é por loja e não global. */
   const { data: contas, error: eConta } = await admin
@@ -422,24 +444,47 @@ try {
   const naTela = await pagina.evaluate(() => document.body.innerText);
   ok(/agendado/i.test(naTela), 'o contrato agendado aparece na tela, marcado como tal');
 
-  /* A fatura deste mês tem de sair pelo contrato ANTIGO, com o fee
-     antigo, mesmo com o reajuste já registrado. O cartão do agendado
-     nem tem botão de faturar, então "o cartão da loja A que tem o
-     botão" é justamente o certo. */
-  ok(await clicarNoCartao(pagina, LOJA_A, 'Faturar o mês'), 'existe o botão de faturar');
-  await esperarAviso(pagina, 'fatura', LOJA_A);
+  /*
+    ============================================================
+    O BOTÃO DE FATURAR FALA COM O ASAAS. EM PRODUÇÃO, NÃO SE CLICA.
+    ============================================================
+    Este trecho já rodou uma vez contra a conta de produção, antes desta
+    guarda existir. Não chegou a emitir cobrança — a criação do
+    pagamento falhou —, mas CRIOU UM CLIENTE de teste na conta de
+    verdade, com CNPJ inventado, no meio dos clientes reais da agência.
 
-  const { data: faturas } = await admin
-    .from('fatura')
-    .select('valor, competencia, contrato_id')
-    .eq('conta_id', contaId);
+    A trava existia em `testar-financeiro` e em `testar-recorrencia`, e
+    faltava justamente aqui, onde o Asaas entra por um caminho indireto:
+    "Faturar o mês" não parece uma chamada de API, e por isso passou.
 
-  ok(faturas?.length === 1, `saiu UMA fatura (saíram ${faturas?.length ?? 0})`);
-  ok(
-    Number(faturas?.[0]?.valor) === 5000,
-    `a fatura do mês corrente saiu por 5000, e não pelo fee reajustado (saiu ${faturas?.[0]?.valor})`,
-  );
-  ok(faturas?.[0]?.contrato_id === antigo?.id, 'e aponta para o contrato que a originou');
+    O resto do teste — reajuste, vigência, encerramento — não toca no
+    Asaas e continua rodando. Pular só o que precisa ser pulado, e
+    DIZER o que ficou de fora: bloco silenciosamente ignorado vira
+    cobertura que ninguém sabe que perdeu.
+  */
+  if (podeFaturar) {
+    /* A fatura deste mês tem de sair pelo contrato ANTIGO, com o fee
+       antigo, mesmo com o reajuste já registrado. O cartão do agendado
+       nem tem botão de faturar, então "o cartão da loja A que tem o
+       botão" é justamente o certo. */
+    ok(await clicarNoCartao(pagina, LOJA_A, 'Faturar o mês'), 'existe o botão de faturar');
+    await esperarAviso(pagina, 'fatura', LOJA_A);
+
+    const { data: faturas } = await admin
+      .from('fatura')
+      .select('valor, competencia, contrato_id')
+      .eq('conta_id', contaId);
+
+    ok(faturas?.length === 1, `saiu UMA fatura (saíram ${faturas?.length ?? 0})`);
+    ok(
+      Number(faturas?.[0]?.valor) === 5000,
+      `a fatura do mês corrente saiu por 5000, e não pelo fee reajustado (saiu ${faturas?.[0]?.valor})`,
+    );
+    ok(faturas?.[0]?.contrato_id === antigo?.id, 'e aponta para o contrato que a originou');
+  } else {
+    console.log('  PULADO  o botão "Faturar o mês" — ele emite cobrança no Asaas de produção');
+    console.log('          (o reajuste, a vigência e o encerramento continuam sendo testados)');
+  }
 
   /* ---------------------------------------------------------------- */
   console.log('\nA vigência limita a emissão');
@@ -494,11 +539,16 @@ try {
     'o contrato ganhou data de fim',
   );
 
-  const { count: aindaTemFatura } = await admin
-    .from('fatura')
-    .select('id', { count: 'exact', head: true })
-    .eq('conta_id', contaId);
-  ok(aindaTemFatura === 1, 'a fatura emitida continua no histórico');
+  /* Só faz sentido quando houve emissão. Sem o bloco de faturamento não
+     existe fatura para sobreviver ao encerramento, e cobrar isso aqui
+     acusaria o código de um defeito que é do próprio teste. */
+  if (podeFaturar) {
+    const { count: aindaTemFatura } = await admin
+      .from('fatura')
+      .select('id', { count: 'exact', head: true })
+      .eq('conta_id', contaId);
+    ok(aindaTemFatura === 1, 'a fatura emitida continua no histórico');
+  }
 } catch (e) {
   console.error(`\nErro no teste: ${e.message}`);
   falhas++;

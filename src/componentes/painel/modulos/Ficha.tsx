@@ -10,6 +10,8 @@ import {
   sincronizacoesDaConta,
 } from '@/lib/dados/consultas';
 import { AvisoProcedencia, Secao, Kpi, Tabela, th, td } from '../base';
+import { FormContrato, AcoesContrato } from '../FormContrato';
+import { FormCobrancaAvulsa } from '../FormFinanceiro';
 import { FormInteracao } from '../FormInteracao';
 import { FormImportar } from '../FormImportar';
 import { FormFonte, BotaoSincronizar, BotaoDesvincular } from '../FormFonte';
@@ -187,7 +189,9 @@ export async function Ficha({
           <AbaDiario contaId={conta.id} podeRegistrar={podeRegistrar} />
         ) : null}
         {aba === 'dados' ? <AbaDados contaId={conta.id} papel={papel} /> : null}
-        {aba === 'contrato' ? <AbaContrato contaId={conta.id} papel={papel} /> : null}
+        {aba === 'contrato' ? (
+          <AbaContrato contaId={conta.id} nomeDaConta={conta.nome} papel={papel} />
+        ) : null}
       </div>
     </>
   );
@@ -485,7 +489,15 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
   );
 }
 
-async function AbaContrato({ contaId, papel }: { contaId: string; papel: Papel }) {
+async function AbaContrato({
+  contaId,
+  nomeDaConta,
+  papel,
+}: {
+  contaId: string;
+  nomeDaConta: string;
+  papel: Papel;
+}) {
   const podeVer = ['administrador', 'financeiro'].includes(papel);
 
   /* A checagem de papel aqui é para dar a MENSAGEM certa. Quem impede de
@@ -502,39 +514,105 @@ async function AbaContrato({ contaId, papel }: { contaId: string; papel: Papel }
   }
 
   const { dados: contratos } = await contratosDaConta(contaId);
+  const conta = { id: contaId, nome: nomeDaConta };
 
-  if (contratos.length === 0) {
-    return <p className="cartao p-6 text-sm text-cinza">Nenhum contrato cadastrado.</p>;
-  }
+  const podeEscrever = papel === 'administrador' || papel === 'financeiro';
+  const semVigenciaAberta = !contratos.some((c) => !c.fim);
 
   return (
-    <ul className="grid gap-4 md:grid-cols-2">
-      {contratos.map((c) => (
-        <li key={c.id} className="cartao p-6">
-          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-            {c.plano}
-          </p>
-          <p className="tabular mt-3 font-display text-2xl font-extrabold tracking-[-0.03em]">
-            {dinheiro(c.feeMensal)}
-            <span className="ml-1 text-sm font-normal text-cinza">/mês</span>
-          </p>
-          <dl className="mt-5 space-y-2 border-t border-fio pt-4 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-cinza">Vencimento</dt>
-              <dd className="tabular">dia {c.diaVencimento}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-cinza">Início</dt>
-              <dd className="tabular">{diaLongo(c.inicio)}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-cinza">Fim</dt>
-              <dd className="tabular">{c.fim ? diaLongo(c.fim) : 'sem prazo'}</dd>
-            </div>
-          </dl>
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-8">
+      {contratos.length === 0 ? (
+        <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
+          Nenhum contrato cadastrado. É o contrato que diz quanto cobrar todo mês — sem
+          ele, este cliente não aparece na tela de cobrança.
+        </p>
+      ) : (
+        <ul className="grid gap-4 md:grid-cols-2">
+          {contratos.map((c) => (
+            <li key={c.id} className="cartao space-y-4 p-6">
+              <div>
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
+                  {c.plano}
+                </p>
+                <p className="tabular mt-3 font-display text-2xl font-extrabold tracking-[-0.03em]">
+                  {dinheiro(c.feeMensal)}
+                  <span className="ml-1 text-sm font-normal text-cinza">/mês</span>
+                </p>
+              </div>
+
+              <dl className="space-y-2 border-t border-fio pt-4 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-cinza">Vencimento</dt>
+                  <dd className="tabular">dia {c.diaVencimento}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-cinza">Início</dt>
+                  <dd className="tabular">{diaLongo(c.inicio)}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-cinza">Fim</dt>
+                  <dd className="tabular">{c.fim ? diaLongo(c.fim) : 'sem prazo'}</dd>
+                </div>
+              </dl>
+
+              {podeEscrever ? (
+                <div className="border-t border-fio pt-4">
+                  <AcoesContrato
+                    contratoId={c.id}
+                    feeAtual={c.feeMensal}
+                    encerrado={Boolean(c.fim)}
+                    automatica={c.cobrancaAutomatica}
+                    diaVencimento={c.diaVencimento}
+                  />
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/*
+        Os dois jeitos de cobrar, um ao lado do outro.
+
+        A pergunta que traz alguém a esta aba é "quanto este cliente
+        paga, e com que frequência". Ter só a mensalidade aqui e a
+        cobrança única escondida noutro módulo obriga a pessoa a
+        descobrir sozinha que são coisas diferentes — e a sair da ficha
+        que ela estava lendo para achar a outra.
+      */}
+      {podeEscrever ? (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="space-y-3">
+            <h3 className="font-display text-base font-bold tracking-[-0.02em]">
+              Todo mês, sempre o mesmo valor
+            </h3>
+            <p className="max-w-[52ch] text-sm leading-relaxed text-cinza">
+              É o fee de gestão. Vira contrato, e o painel passa a cobrar todo mês — no
+              clique ou sozinho, se você ligar a cobrança automática.
+            </p>
+            <FormContrato
+              contaFixa={conta}
+              bloqueado={
+                semVigenciaAberta
+                  ? undefined
+                  : 'Já existe um contrato sem data de fim. Para mudar o valor, use "Reajustar" no contrato acima: ele encerra o atual e abre outro, para as faturas já emitidas continuarem explicáveis.'
+              }
+            />
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-display text-base font-bold tracking-[-0.02em]">
+              Uma vez só
+            </h3>
+            <p className="max-w-[52ch] text-sm leading-relaxed text-cinza">
+              Setup, projeto, criativo extra, reembolso de mídia. Sai no Asaas na hora e
+              não se repete. Dá para parcelar.
+            </p>
+            <FormCobrancaAvulsa contaFixa={conta} rotuloBotao="Cobrança única" />
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -58,7 +58,29 @@ function primeiroDoMesQueVem() {
 
 export type LojaParaContrato = { id: string; nome: string; comContrato: boolean };
 
-export function FormContrato({ lojas }: { lojas: LojaParaContrato[] }) {
+/**
+ * @param lojas    lista para escolher. Ignorada quando `contaFixa` vem.
+ * @param contaFixa quando o formulário abre DENTRO da ficha de um
+ *   cliente, não há o que escolher: o cliente é aquele. Um seletor ali
+ *   só cria a chance de cadastrar contrato na loja errada enquanto se
+ *   olha para a ficha de outra.
+ */
+export function FormContrato({
+  lojas = [],
+  contaFixa,
+  bloqueado,
+}: {
+  lojas?: LojaParaContrato[];
+  contaFixa?: { id: string; nome: string };
+  /*
+    Por que "bloqueado" em vez de simplesmente não renderizar o
+    componente: cadastrar o contrato faz o motivo do bloqueio passar a
+    valer, e sumir com o formulário no mesmo instante levaria embora a
+    confirmação que ele acabou de produzir. A pessoa veria a tela mudar
+    sem uma palavra dizendo se deu certo.
+  */
+  bloqueado?: string;
+}) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
     criarContrato,
     null,
@@ -69,6 +91,22 @@ export function FormContrato({ lojas }: { lojas: LojaParaContrato[] }) {
   if (estado !== ultimo) {
     setUltimo(estado);
     if (estado?.ok) setAberto(false);
+  }
+
+  const confirmacao = estado?.ok ? (
+    <p role="status" className="text-sm font-semibold leading-relaxed text-[#4ADE80]">
+      <span aria-hidden className="mr-1.5">●</span>
+      {estado.mensagem}
+    </p>
+  ) : null;
+
+  if (bloqueado) {
+    return (
+      <div className="space-y-3">
+        {confirmacao}
+        <p className="max-w-[62ch] text-sm leading-relaxed text-cinza">{bloqueado}</p>
+      </div>
+    );
   }
 
   if (!aberto) {
@@ -82,12 +120,7 @@ export function FormContrato({ lojas }: { lojas: LojaParaContrato[] }) {
           <span aria-hidden className="text-base leading-none">+</span>
           Novo contrato
         </button>
-        {estado?.ok ? (
-          <p role="status" className="text-sm font-semibold text-[#4ADE80]">
-            <span aria-hidden className="mr-1.5">●</span>
-            {estado.mensagem}
-          </p>
-        ) : null}
+        {confirmacao}
       </div>
     );
   }
@@ -105,18 +138,27 @@ export function FormContrato({ lojas }: { lojas: LojaParaContrato[] }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="ct-loja" className={rotuloCss}>Cliente *</label>
-          <select id="ct-loja" name="conta_id" required className={`mt-2 ${campo}`}>
-            <option value="">Escolha</option>
-            {lojas.map((l) => (
-              /* Cliente que já tem vigência aberta aparece, mas travado.
-                 Sumir com ele faria a pessoa procurar quem não está na
-                 lista; assim a própria opção diz por quê. */
-              <option key={l.id} value={l.id} disabled={l.comContrato}>
-                {l.nome}
-                {l.comContrato ? ' — já tem contrato' : ''}
-              </option>
-            ))}
-          </select>
+          {contaFixa ? (
+            <>
+              <input type="hidden" name="conta_id" value={contaFixa.id} />
+              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-branco">
+                {contaFixa.nome}
+              </p>
+            </>
+          ) : (
+            <select id="ct-loja" name="conta_id" required className={`mt-2 ${campo}`}>
+              <option value="">Escolha</option>
+              {lojas.map((l) => (
+                /* Cliente que já tem vigência aberta aparece, mas travado.
+                   Sumir com ele faria a pessoa procurar quem não está na
+                   lista; assim a própria opção diz por quê. */
+                <option key={l.id} value={l.id} disabled={l.comContrato}>
+                  {l.nome}
+                  {l.comContrato ? ' — já tem contrato' : ''}
+                </option>
+              ))}
+            </select>
+          )}
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             O cliente precisa ter CNPJ ou CPF cadastrado: o Asaas exige documento para emitir.
           </p>

@@ -217,6 +217,8 @@ export type ContratoResumo = {
   diaVencimento: number;
   inicio: string;
   fim: string | null;
+  /** Ligada: quem emite a fatura do mês é o Asaas. */
+  cobrancaAutomatica: boolean;
 };
 
 export const PRIORIDADES = ['baixa', 'media', 'alta', 'urgente'] as const;

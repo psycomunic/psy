@@ -110,10 +110,19 @@ export function AcoesDoMes() {
 /* Cobrança avulsa                                                    */
 /* ================================================================== */
 
+/**
+ * @param contaFixa quando o formulário abre dentro da ficha de um
+ *   cliente. Ver a nota em `FormContrato`: seletor ali só cria a chance
+ *   de cobrar quem não era.
+ */
 export function FormCobrancaAvulsa({
-  lojas,
+  lojas = [],
+  contaFixa,
+  rotuloBotao = 'Nova cobrança',
 }: {
-  lojas: { id: string; nome: string; temDocumento: boolean }[];
+  lojas?: { id: string; nome: string; temDocumento: boolean }[];
+  contaFixa?: { id: string; nome: string };
+  rotuloBotao?: string;
 }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
     criarCobranca,
@@ -130,7 +139,7 @@ export function FormCobrancaAvulsa({
       <div className="space-y-3">
         <button type="button" onClick={() => setAberto(true)} className={principal}>
           <span aria-hidden className="text-sm leading-none">+</span>
-          Nova cobrança
+          {rotuloBotao}
         </button>
         {estado?.ok ? <Aviso r={estado} /> : null}
       </div>
@@ -160,15 +169,24 @@ export function FormCobrancaAvulsa({
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="cb-loja" className={rotuloCss}>Cliente *</label>
-          <select id="cb-loja" name="conta_id" required className={`mt-2 ${campo}`}>
-            <option value="">Escolha</option>
-            {lojas.map((l) => (
-              <option key={l.id} value={l.id} disabled={!l.temDocumento}>
-                {l.nome}
-                {l.temDocumento ? '' : ' — sem CNPJ'}
-              </option>
-            ))}
-          </select>
+          {contaFixa ? (
+            <>
+              <input type="hidden" name="conta_id" value={contaFixa.id} />
+              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-branco">
+                {contaFixa.nome}
+              </p>
+            </>
+          ) : (
+            <select id="cb-loja" name="conta_id" required className={`mt-2 ${campo}`}>
+              <option value="">Escolha</option>
+              {lojas.map((l) => (
+                <option key={l.id} value={l.id} disabled={!l.temDocumento}>
+                  {l.nome}
+                  {l.temDocumento ? '' : ' — sem CNPJ'}
+                </option>
+              ))}
+            </select>
+          )}
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Cliente sem CNPJ ou CPF fica travado: o Asaas exige documento para emitir.
           </p>

@@ -546,7 +546,7 @@ export async function contratosDaConta(
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('contrato')
-    .select('id, plano, fee_mensal, dia_vencimento, inicio, fim')
+    .select('id, plano, fee_mensal, dia_vencimento, inicio, fim, asaas_assinatura_id')
     .eq('conta_id', contaId)
     .order('inicio', { ascending: false });
 
@@ -563,6 +563,7 @@ export async function contratosDaConta(
       diaVencimento: Number(c.dia_vencimento ?? 10),
       inicio: c.inicio as string,
       fim: (c.fim as string) ?? null,
+      cobrancaAutomatica: Boolean(c.asaas_assinatura_id),
     })),
   );
 }
