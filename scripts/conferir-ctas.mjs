@@ -124,7 +124,66 @@ for (const rota of PAGINAS) {
   }
 }
 
+/*
+  A passagem PELO MENU, que é como as pessoas navegam de verdade.
+
+  `Revelar` vive no layout, que não remonta quando se troca de página
+  por link. Com dependência vazia, ele observava só os elementos da
+  primeira página carregada: quem entrava pela home e clicava no menu
+  chegava numa página com `data-animar` já ligado, escondendo todo
+  `.revelar`, e sem observador para revelá-los.
+
+  O conteúdo ficava invisível para sempre. Sem erro no console, sem
+  nada quebrado na tela: só espaço vazio abaixo de cada título. Sete
+  blocos na página de tráfego, doze em Trabalhos.
+
+  Carga direta funcionava, que é o pior jeito de um defeito se esconder:
+  é assim que se testa, e não é assim que se navega.
+*/
+console.log('\nNavegando pelo menu');
+await p.goto(`${APP}/`, { waitUntil: 'networkidle0', timeout: 60000 });
+await new Promise((r) => setTimeout(r, 700));
+
+for (const rota of ['/trafego-pago', '/cases', '/servicos', '/sobre']) {
+  const clicou = await p.evaluate((c) => {
+    const alvo = [...document.querySelectorAll('a')].find((x) => x.getAttribute('href') === c);
+    if (!alvo) return false;
+    alvo.click();
+    return true;
+  }, rota);
+  if (!clicou) {
+    await p.goto(`${APP}${rota}`, { waitUntil: 'networkidle0', timeout: 60000 });
+  }
+  await new Promise((r) => setTimeout(r, 1400));
+
+  /* Rola a página inteira, porque a revelação depende de o elemento
+     entrar na tela. Sem rolar, tudo pareceria invisível e o teste
+     mentiria para o outro lado. */
+  await p.evaluate(async () => {
+    for (let y = 0; y < document.body.scrollHeight; y += 500) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 90));
+    }
+  });
+  await new Promise((r) => setTimeout(r, 600));
+
+  const vis = await p.evaluate(() => {
+    const t = [...document.querySelectorAll('.revelar')];
+    const inv = t.filter((e) => parseFloat(getComputedStyle(e).opacity) < 0.05);
+    return { url: location.pathname, total: t.length, inv: inv.length };
+  });
+
+  if (vis.inv > 0) {
+    console.log(`  FALHA  ${vis.url}: ${vis.inv} de ${vis.total} blocos invisíveis depois de rolar`);
+    falhas++;
+  } else {
+    console.log(`  ok     ${vis.url}: ${vis.total} blocos, todos visíveis`);
+  }
+  await p.evaluate(() => window.scrollTo(0, 0));
+}
+
 await nav.close();
+
 
 console.log(
   falhas === 0

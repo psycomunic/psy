@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
  * Revelação ao rolar.
@@ -15,6 +16,29 @@ import { useEffect } from 'react';
  * observador nenhum, e a página fica estática desde o primeiro quadro.
  */
 export function Revelar() {
+  /*
+    ============================================================
+    O BUG QUE ISTO CONSERTA
+    ============================================================
+    Este componente vive no layout, que NÃO remonta quando se troca de
+    página por link. Com a lista de dependências vazia, ele observava
+    apenas os elementos da primeira página carregada.
+
+    Quem entrava pela home e clicava no menu chegava numa página onde
+    `data-animar="sim"` já estava no documento, escondendo todo
+    `.revelar`, e o observador que os revelaria nunca chegou a existir
+    para eles. O conteúdo ficava invisível PARA SEMPRE, sem erro no
+    console e sem nada quebrado na tela: só espaço vazio abaixo de cada
+    título.
+
+    Carga direta funcionava, que é o pior jeito de um defeito se
+    esconder: é assim que se testa, e não é assim que se navega.
+
+    Medido: chegando pela home e clicando em "Tráfego pago", 7 de 7
+    blocos ficavam invisíveis mesmo depois de rolar a página inteira.
+  */
+  const rota = usePathname();
+
   useEffect(() => {
     const menosMovimento = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (menosMovimento.matches) return;
@@ -45,7 +69,9 @@ export function Revelar() {
       observador.disconnect();
       delete raiz.dataset.animar;
     };
-  }, []);
+    /* A rota entra na lista: a cada troca de página, um observador novo
+       para os elementos novos. */
+  }, [rota]);
 
   return null;
 }
