@@ -17,6 +17,7 @@ import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornad
 import { SlideCusto, SlideLancamento, SlideInclusoes } from '@/componentes/proposta/Custo';
 import { marca } from '@/conteudo/marca';
 import { linkWhatsapp } from '@/conteudo/navegacao';
+import { urlAbsoluta } from '@/conteudo/site';
 
 /*
   Proposta comercial: documento privado, um link por cliente,
@@ -28,10 +29,57 @@ import { linkWhatsapp } from '@/conteudo/navegacao';
 */
 export const dynamic = 'force-dynamic';
 
-/* Nenhum buscador indexa proposta. */
-export const metadata: Metadata = {
-  robots: { index: false, follow: false, nocache: true },
-};
+/**
+ * A previa do link, montada com o conteudo DESTA proposta.
+ *
+ * Sem isto o WhatsApp caia nas meta tags da home, e quem recebia via
+ * "Sua loja nao precisa de mais uma agencia" no lugar do documento que
+ * acabaram de mandar para ela. A primeira impressao do link era de
+ * mensagem em massa.
+ *
+ * O noindex continua: og:title nao faz buscador indexar, e a
+ * protecao da proposta e o link, que ninguem adivinha.
+ *
+ * PRECO NAO ENTRA NA PREVIA. Ela aparece na lista de conversas e no
+ * encaminhamento para grupo. O valor esta dentro da proposta, que e
+ * onde ele tem contexto.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const p = await buscarPropostaExibida(slug);
+
+  const robots = { index: false, follow: false, nocache: true } as const;
+
+  /* Rascunho e link inventado caem aqui. A pagina responde 404 de todo
+     jeito; a previa nao pode adiantar que existe alguma coisa. */
+  if (!p) return { title: 'Proposta', robots };
+
+  const titulo = `Proposta para ${p.cliente}`;
+
+  return {
+    title: titulo,
+    description: p.resumo,
+    robots,
+    openGraph: {
+      type: 'article',
+      locale: 'pt_BR',
+      siteName: marca.nome,
+      title: titulo,
+      description: p.resumo,
+      url: urlAbsoluta(`/proposta/${slug}`),
+      /* A imagem vem de opengraph-image.tsx, ao lado deste arquivo. */
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titulo,
+      description: p.resumo,
+    },
+  };
+}
 
 /* `viewportFit: cover` deixa o fundo ir até a borda em telefone com
    entalhe. Os controles compensam com `env(safe-area-inset-bottom)`. */

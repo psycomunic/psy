@@ -332,6 +332,62 @@ try {
   );
 
 
+
+  /* ---------------------------------------------------------------- */
+  console.log('\nA previa do link no WhatsApp');
+
+  const meta = (html, prop) => {
+    const m = html.match(
+      new RegExp(`<meta[^>]+(?:property|name)="${prop}"[^>]+content="([^"]*)"`, 'i'),
+    ) ?? html.match(
+      new RegExp(`<meta[^>]+content="([^"]*)"[^>]+(?:property|name)="${prop}"`, 'i'),
+    );
+    return m ? m[1] : null;
+  };
+
+  const htmlDaProposta = await fetch(`${APP}/proposta/${slug}`).then((r) => r.text());
+
+  const ogTitulo = meta(htmlDaProposta, 'og:title');
+  const ogDescricao = meta(htmlDaProposta, 'og:description');
+  const ogImagem = meta(htmlDaProposta, 'og:image');
+
+  ok(
+    (ogTitulo ?? '').includes(CLIENTE),
+    `o título da prévia nomeia o cliente ("${ogTitulo}")`,
+  );
+  ok(
+    !/E-commerce, tráfego pago e performance/i.test(ogTitulo ?? ''),
+    'e não é mais o título da home',
+  );
+  ok(
+    (ogDescricao ?? '').length > 20 && !/Diagnóstico gratuito nas quatro frentes/i.test(ogDescricao ?? ''),
+    'a descrição é o resumo desta proposta, e não o do site',
+  );
+  ok(
+    (ogImagem ?? '').includes(`/proposta/${slug}/opengraph-image`),
+    `a imagem é a desta proposta ("${(ogImagem ?? '').slice(-60)}")`,
+  );
+
+  /* PREÇO NÃO VAZA PARA A PRÉVIA. Ela aparece na lista de conversas e
+     no encaminhamento para grupo, onde qualquer um lê por cima do
+     ombro. O valor está dentro da proposta, que tem contexto. */
+  ok(
+    !/1\.800|2\.500|4\.300|R\$/.test(`${ogTitulo} ${ogDescricao}`),
+    'e nenhum valor aparece na prévia',
+  );
+
+  const imagem = await fetch(new URL(ogImagem, APP));
+  ok(imagem.status === 200, `a imagem responde 200 (${imagem.status})`);
+  ok(
+    (imagem.headers.get('content-type') ?? '').includes('image/'),
+    `e é uma imagem de verdade (${imagem.headers.get('content-type')})`,
+  );
+
+  /* O buscador continua fora. og:title nao indexa nada, mas a regra
+     precisa continuar valendo. */
+  const robots = meta(htmlDaProposta, 'robots');
+  ok(/noindex/i.test(robots ?? ''), `a proposta segue fora dos buscadores ("${robots}")`);
+
   /* ---------------------------------------------------------------- */
   console.log('\nEditar');
 
