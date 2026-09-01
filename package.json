@@ -32,7 +32,8 @@
     "testar-credencial-tela": "node scripts/testar-credencial-tela.mjs",
     "testar-ficha-contrato": "node scripts/testar-ficha-contrato.mjs",
     "testar-proposta-servico": "node scripts/testar-proposta-servico.mjs",
-    "testar-lead-do-site": "node scripts/testar-lead-do-site.mjs"
+    "testar-lead-do-site": "node scripts/testar-lead-do-site.mjs",
+    "conferir-ctas": "node scripts/conferir-ctas.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

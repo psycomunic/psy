@@ -4,7 +4,7 @@ import { Botao } from '@/componentes/Botao';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { frentes, metodologia } from '@/conteudo/frentes';
 import { linkWhatsapp } from '@/conteudo/navegacao';
-import { urlAbsoluta, site } from '@/conteudo/site';
+import { urlAbsoluta } from '@/conteudo/site';
 
 export const metadata: Metadata = {
   title: 'Diagnóstico gratuito de e-commerce',
@@ -28,12 +28,22 @@ export default function Diagnostico() {
           rolar a página inteira para achar o botão custa conversão. */}
       <section className="pb-8">
         <div className={secao}>
+          {/*
+            Dois caminhos, e os dois chegam em alguém.
+
+            Havia aqui um "Prefiro por e-mail" que abria o programa de
+            e-mail da máquina. No celular, onde está a maior parte das
+            visitas, isso costuma abrir nada ou um aplicativo que a
+            pessoa não usa — e o pedido morre sem ninguém saber que
+            existiu. O formulário registra o lead mesmo quando ninguém
+            chama no WhatsApp.
+          */}
           <div className="flex flex-wrap gap-4">
             <Botao href={linkWhatsapp} externo>
               Pedir meu diagnóstico no WhatsApp
             </Botao>
-            <Botao href={`mailto:${site.contato.email}`} variante="secundario" externo>
-              Prefiro por e-mail
+            <Botao href="/trafego-pago#analise" variante="secundario">
+              Prefiro preencher um formulário
             </Botao>
           </div>
           <p className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em] text-cinza">

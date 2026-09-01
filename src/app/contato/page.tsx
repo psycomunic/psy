@@ -24,13 +24,26 @@ const canais = [
     detalhe: telefoneVisivel,
     texto: 'O caminho mais rápido. Manda o link da loja que a leitura começa por ali.',
     href: linkWhatsapp,
+    externo: true,
     principal: true,
   },
+  /*
+    O e-mail saiu daqui como CANAL clicável.
+
+    `mailto:` no celular, que é de onde vem a maior parte das visitas,
+    abre o aplicativo de e-mail que a pessoa talvez não use, ou não abre
+    nada. O pedido morre sem ninguém saber que existiu.
+
+    No lugar entra o formulário, que registra o lead mesmo quando
+    ninguém chama. O endereço continua no rodapé, como informação de
+    contato: lá ele é referência, e não promessa de resposta.
+  */
   {
-    nome: 'E-mail',
-    detalhe: site.contato.email,
-    texto: 'Para proposta, contrato e o que precisa ficar registrado por escrito.',
-    href: `mailto:${site.contato.email}`,
+    nome: 'Formulário',
+    detalhe: 'Análise da sua conta',
+    texto: 'Deixa os dados e a equipe abre a sua conta de anúncio antes de falar com você.',
+    href: '/trafego-pago#analise',
+    externo: false,
     principal: false,
   },
   {
@@ -38,6 +51,7 @@ const canais = [
     detalhe: '@reysonmkt',
     texto: 'Bastidor da operação e o que a Psy Comunic vem construindo.',
     href: site.contato.instagram,
+    externo: true,
     principal: false,
   },
 ];
@@ -59,8 +73,10 @@ export default function Contato() {
               <a
                 key={c.nome}
                 href={c.href}
-                target="_blank"
-                rel="noopener"
+                /* Aba nova só para o que sai do site. Link interno
+                   abrindo noutra aba deixa a pessoa com duas abas do
+                   mesmo site e o botão voltar sem efeito. */
+                {...(c.externo ? { target: '_blank', rel: 'noopener' } : {})}
                 className={
                   'cartao group flex flex-col p-8 transition-all duration-500 hover:-translate-y-1 md:p-9 ' +
                   (c.principal ? 'border-magenta/45' : 'hover:border-magenta/35')
@@ -87,8 +103,18 @@ export default function Contato() {
             <Botao href={linkWhatsapp} externo>
               Pedir diagnóstico gratuito
             </Botao>
-            <Botao href="/planos" variante="secundario">
-              Ver os planos
+            {/*
+              Era "Ver os planos", apontando para /planos.
+
+              O botão não dava 404: existe um redirecionamento que joga
+              /planos em /servicos. Mas /servicos não mostra plano
+              nenhum, porque preço não vai para o site público. O clique
+              funcionava e entregava outra coisa, que é pior que o erro
+              honesto: a pessoa procura o que foi prometido, não acha, e
+              conclui que o site está quebrado.
+            */}
+            <Botao href="/servicos" variante="secundario">
+              Ver os serviços
             </Botao>
           </div>
 
