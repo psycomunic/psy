@@ -1,6 +1,7 @@
 import { listarPropostas, leadPorId } from '@/lib/dados/consultas';
 import { rotuloStatusProposta } from '@/lib/dados/tipos';
 import { PLANOS, fichas, feeEmReais } from '@/dados/planos';
+import { SERVICOS, fichasDeServico } from '@/dados/servicos';
 import { AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { FormProposta, CopiarLink, BotaoStatus } from '../FormProposta';
 import { CORES_SITUACAO } from '../paleta';
@@ -52,6 +53,15 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
     paraQuem: fichas[p].paraQuem,
   }));
 
+  /* O catálogo de serviços não leva preço: o valor é campo da proposta.
+     Ver a explicação em `src/dados/servicos.ts`. */
+  const opcoesDeServico = SERVICOS.map((s) => ({
+    id: s,
+    nome: fichasDeServico[s].nome,
+    papel: fichasDeServico[s].papel,
+    paraQuem: fichasDeServico[s].paraQuem,
+  }));
+
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
@@ -68,6 +78,7 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
         <div className="mt-8">
           <FormProposta
             planos={opcoes}
+            servicos={opcoesDeServico}
             lead={
               lead
                 ? {
@@ -93,8 +104,8 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
             <caption className="sr-only">Propostas geradas, com status e validade</caption>
             <thead>
               <tr>
-                <th scope="col" className={th}>Loja</th>
-                <th scope="col" className={th}>Plano</th>
+                <th scope="col" className={th}>Cliente</th>
+                <th scope="col" className={th}>O que foi proposto</th>
                 <th scope="col" className={th}>Status</th>
                 <th scope="col" className={th}>Validade</th>
                 <th scope="col" className={th}>Link</th>
@@ -117,7 +128,13 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
                     </th>
                     <td className={td}>
                       <span className="text-sm text-neve">
-                        {p.plano ? (fichas[p.plano as keyof typeof fichas]?.nome ?? p.plano) : '—'}
+                        {p.plano
+                          ? (fichas[p.plano as keyof typeof fichas]?.nome ?? p.plano)
+                          : p.servicos.length > 0
+                            ? p.servicos
+                                .map((s2) => fichasDeServico[s2.id as keyof typeof fichasDeServico]?.nome ?? s2.id)
+                                .join(" + ")
+                            : '—'}
                       </span>
                     </td>
                     <td className={td}>

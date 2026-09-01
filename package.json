@@ -15,7 +15,7 @@
     "auditar-rls": "node scripts/auditar-rls.mjs",
     "verificar": "npm run lint && npx tsc --noEmit && npm run teste && npm run build",
     "testar-conversao": "node scripts/testar-conversao.mjs",
-    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao && npm run testar-cobranca && npm run testar-contratos && npm run testar-financeiro && npm run testar-recorrencia && npm run testar-tarefas && npm run testar-credencial-tela && npm run testar-ficha-contrato",
+    "testar-banco": "npm run auditar-rls && npm run conferir-consultas && npm run testar-isolamento && npm run testar-conversao && npm run testar-ingestao && npm run testar-cobranca && npm run testar-contratos && npm run testar-financeiro && npm run testar-recorrencia && npm run testar-tarefas && npm run testar-credencial-tela && npm run testar-ficha-contrato && npm run testar-proposta-servico",
     "testar-ingestao": "node scripts/testar-ingestao.mjs",
     "testar-credenciais": "node scripts/testar-credenciais.mjs",
     "medir-proposta": "node scripts/medir-proposta.mjs",
@@ -30,7 +30,8 @@
     "conferir-producao": "node scripts/conferir-producao.mjs",
     "conferir-webhook": "node scripts/conferir-webhook.mjs",
     "testar-credencial-tela": "node scripts/testar-credencial-tela.mjs",
-    "testar-ficha-contrato": "node scripts/testar-ficha-contrato.mjs"
+    "testar-ficha-contrato": "node scripts/testar-ficha-contrato.mjs",
+    "testar-proposta-servico": "node scripts/testar-proposta-servico.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { sessaoAtual, clienteServidor } from '@/lib/supabase/servidor';
 import { pode } from '@/lib/papeis';
 import { PLANOS, type Plano } from '@/dados/planos';
+import { SERVICOS, fichaDoServico, type ServicoEscolhido } from '@/dados/servicos';
+import { paraNumero } from '@/lib/numero';
 import type { Resultado } from './acoes';
 
 /**
@@ -74,16 +76,45 @@ export async function gerarProposta(
 
     const cliente = String(fd.get('cliente') ?? '').trim();
     const contato = String(fd.get('contato') ?? '').trim();
+    const modo = String(fd.get('modo') ?? 'plano');
     const plano = String(fd.get('plano') ?? '') as Plano;
     const resumo = String(fd.get('resumo') ?? '').trim();
     const validade = Number(String(fd.get('validade_dias') ?? VALIDADE_PADRAO));
     const leadId = String(fd.get('lead_id') ?? '') || null;
 
-    if (cliente.length < 2) return { ok: false, mensagem: 'Diga o nome da loja.' };
+    if (cliente.length < 2) return { ok: false, mensagem: 'Diga o nome do cliente.' };
     if (contato.length < 2) return { ok: false, mensagem: 'Diga com quem você está falando.' };
-    if (!PLANOS.includes(plano)) return { ok: false, mensagem: 'Escolha o plano recomendado.' };
     if (!Number.isFinite(validade) || validade < 1 || validade > 90) {
       return { ok: false, mensagem: 'A validade precisa ficar entre 1 e 90 dias.' };
+    }
+
+    /*
+      Uma proposta é OU um pacote OU uma lista de serviços.
+
+      Nunca as duas: seriam dois preços para a mesma coisa, e o cliente
+      perguntaria qual vale. A pergunta é justa, e a resposta seria
+      constrangedora.
+    */
+    const servicos: ServicoEscolhido[] = [];
+
+    if (modo === 'servicos') {
+      for (const s of SERVICOS) {
+        if (fd.get(`servico_${s}`) !== 'on') continue;
+        const fee = paraNumero(String(fd.get(`fee_${s}`) ?? ''));
+        if (!Number.isFinite(fee) || fee <= 0) {
+          return {
+            ok: false,
+            mensagem: `Informe o valor mensal de ${fichaDoServico(s).nome}.`,
+          };
+        }
+        servicos.push({ id: s, fee });
+      }
+
+      if (servicos.length === 0) {
+        return { ok: false, mensagem: 'Escolha pelo menos um serviço.' };
+      }
+    } else if (!PLANOS.includes(plano)) {
+      return { ok: false, mensagem: 'Escolha o plano recomendado.' };
     }
 
     const supabase = await clienteServidor();
@@ -98,14 +129,20 @@ export async function gerarProposta(
         status: 'rascunho',
         resumo:
           resumo ||
-          `Proposta de operação de crescimento para ${cliente}, cobrindo as quatro frentes: gestão, tecnologia, marketing e atendimento com logística.`,
+          (servicos.length > 0
+            ? `Proposta de ${servicos
+                .map((x) => fichaDoServico(x.id).nome.toLowerCase())
+                .join(' e ')} para ${cliente}.`
+            : `Proposta de operação de crescimento para ${cliente}, cobrindo as quatro frentes: gestão, tecnologia, marketing e atendimento com logística.`),
         corpo: {
           /* O plano recomendado é o único campo que a tabela de planos
              precisa. O escopo de cada plano NÃO é copiado para dentro
              da proposta: ele vive em `src/dados/planos.ts`, e duplicar
              faria a proposta de ontem contradizer a de hoje na primeira
-             vez que um item mudar. */
-          plano,
+             vez que um item mudar. Vale igual para os serviços: aqui
+             fica só o id e o valor negociado. */
+          plano: servicos.length > 0 ? null : plano,
+          servicos,
           diagnostico: linhas(fd.get('diagnostico')),
           proximosPassos: linhas(fd.get('proximos_passos')),
         },

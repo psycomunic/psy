@@ -928,6 +928,8 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
         contato: p.contato as string,
         status: p.status as PropostaResumo['status'],
         plano: ((p.corpo as { plano?: string })?.plano) ?? null,
+        servicos:
+          ((p.corpo as { servicos?: { id: string; fee: number }[] })?.servicos) ?? [],
         emitidaEm: emitida,
         validadeDias: Number(p.validade_dias ?? 15),
         /* Calculado AQUI, na camada de dados, e não no render: contar

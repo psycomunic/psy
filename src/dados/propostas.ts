@@ -67,6 +67,7 @@ export function venceEm(p: Proposta) {
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { clienteServidor } from '@/lib/supabase/servidor';
 import type { Plano } from './planos';
+import type { ServicoEscolhido } from './servicos';
 
 /**
  * O formato unificado que a página consome.
@@ -115,6 +116,14 @@ export type PropostaExibida = {
   proximosPassos: string[];
   /** Presente na proposta gerada pelo painel. */
   plano: Plano | null;
+  /**
+   * Serviços avulsos, quando a proposta não é um pacote.
+   *
+   * Exclui o plano: uma proposta é OU um pacote de e-commerce OU uma
+   * lista de serviços. As duas coisas juntas dariam dois preços para a
+   * mesma coisa, e o cliente perguntaria, com razão, qual vale.
+   */
+  servicos: ServicoEscolhido[];
 
   /*
     O que muda DESTA proposta em relação ao plano padrão.
@@ -161,6 +170,7 @@ export type PropostaExibida = {
 
 /** Os campos novos, com o padrão de quem não os tem. */
 const semExtras = {
+  servicos: [] as ServicoEscolhido[],
   etapas: [] as EtapaCusto[],
   prazoTexto: null,
   linhasIncluidas: [] as string[],
@@ -207,6 +217,7 @@ export async function buscarPropostaExibida(
     if (linha) {
       const corpo = (linha.corpo ?? {}) as {
         plano?: Plano;
+        servicos?: ServicoEscolhido[];
         diagnostico?: string[];
         proximosPassos?: string[];
         etapas?: EtapaCusto[];
@@ -227,6 +238,7 @@ export async function buscarPropostaExibida(
         diagnostico: corpo.diagnostico ?? [],
         proximosPassos: corpo.proximosPassos ?? [],
         plano: corpo.plano ?? null,
+        servicos: corpo.servicos ?? [],
         etapas: corpo.etapas ?? [],
         prazoTexto: corpo.prazoTexto ?? null,
         linhasIncluidas: corpo.linhasIncluidas ?? [],

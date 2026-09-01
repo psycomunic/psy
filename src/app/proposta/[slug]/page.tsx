@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buscarPropostaExibida, venceEmExibida } from '@/dados/propostas';
 import { condicoesPadrao, PLANOS } from '@/dados/planos';
+import { fichaDoServico, sempreNoAvulso, somaDosServicos, emReais } from '@/dados/servicos';
 import { Deck } from '@/componentes/proposta/Deck';
 import { Slide, Bloco } from '@/componentes/proposta/Slide';
 import {
@@ -11,6 +12,7 @@ import {
   SlideSempreIncluso,
 } from '@/componentes/proposta/Planos';
 import { SlideMarcas } from '@/componentes/proposta/Marcas';
+import { SlideServicos } from '@/componentes/proposta/Servicos';
 import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornada';
 import { SlideCusto, SlideLancamento, SlideInclusoes } from '@/componentes/proposta/Custo';
 import { marca } from '@/conteudo/marca';
@@ -234,6 +236,34 @@ export default async function PaginaProposta({
 
       {p.plano && p.mostrarComparativo ? <SlideDiferencas recomendado={recomendado} /> : null}
       {p.plano ? <SlideSempreIncluso comparativo={p.mostrarComparativo} /> : null}
+
+      {/* ---------------------------------------------------------- */}
+      {/* Serviço avulso: a proposta que não é pacote                 */}
+      {/*                                                             */}
+      {/* Exclui o plano por construção — a action grava um OU outro. */}
+      {/* Metade da carteira não é loja virtual, e empurrar um pacote */}
+      {/* de e-commerce para um chalé seria vender o que não serve.   */}
+      {/* ---------------------------------------------------------- */}
+      {p.servicos.length > 0 ? (
+        <SlideServicos
+          precoNaConta={p.etapas.length > 0}
+          totalTexto={emReais(somaDosServicos(p.servicos))}
+          sempre={sempreNoAvulso}
+          servicos={p.servicos.map((s) => {
+            const f = fichaDoServico(s.id);
+            return {
+              id: f.id,
+              nome: f.nome,
+              papel: f.papel,
+              paraQuem: f.paraQuem,
+              promessa: f.promessa,
+              entregas: f.entregas,
+              naoInclui: f.naoInclui,
+              feeTexto: emReais(s.fee),
+            };
+          })}
+        />
+      ) : null}
 
       {/* ---------------------------------------------------------- */}
       {/* O que esta proposta dá além do plano                        */}

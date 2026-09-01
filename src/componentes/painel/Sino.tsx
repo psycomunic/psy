@@ -24,6 +24,7 @@ const CORES: Record<Notificacao['tipo'], string> = {
   tarefa_vence: '#FBBF24',
   tarefa_atrasada: '#FF7A7A',
   fatura_vencida: '#FF7A7A',
+  lead_novo: '#4ADE80',
   aviso: '#93A0BC',
 };
 
@@ -31,6 +32,7 @@ const FORMAS: Record<Notificacao['tipo'], string> = {
   tarefa_vence: '▲',
   tarefa_atrasada: '■',
   fatura_vencida: '■',
+  lead_novo: '●',
   aviso: '●',
 };
 

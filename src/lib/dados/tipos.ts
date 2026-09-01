@@ -262,7 +262,7 @@ export type Tarefa = {
 
 export type Notificacao = {
   id: number;
-  tipo: 'tarefa_vence' | 'tarefa_atrasada' | 'fatura_vencida' | 'aviso';
+  tipo: 'tarefa_vence' | 'tarefa_atrasada' | 'fatura_vencida' | 'lead_novo' | 'aviso';
   titulo: string;
   corpo: string | null;
   link: string | null;
@@ -397,6 +397,8 @@ export type PropostaResumo = {
   contato: string;
   status: 'rascunho' | 'enviada' | 'em_analise' | 'aceita' | 'recusada' | 'expirada';
   plano: string | null;
+  /** Serviços avulsos, quando a proposta não é um pacote. */
+  servicos: { id: string; fee: number }[];
   emitidaEm: string;
   validadeDias: number;
   /** Dias que faltam para vencer. Negativo já venceu. */

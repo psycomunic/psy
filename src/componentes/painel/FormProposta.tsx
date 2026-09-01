@@ -32,6 +32,15 @@ function Aviso({ r }: { r: Resultado | null }) {
     importar `@/dados/planos`, que é server-only. */
 export type OpcaoPlano = { id: string; nome: string; fee: string; paraQuem: string };
 
+/** Serviço avulso do catálogo. Sem preço: o valor de gestão de tráfego
+    muda por cliente, e é campo desta proposta, não do catálogo. */
+export type OpcaoServico = {
+  id: string;
+  nome: string;
+  papel: 'principal' | 'complemento';
+  paraQuem: string;
+};
+
 /** O lead de origem, quando a proposta nasce do funil. */
 export type LeadDeOrigem = {
   id: string;
@@ -42,9 +51,11 @@ export type LeadDeOrigem = {
 
 export function FormProposta({
   planos,
+  servicos,
   lead = null,
 }: {
   planos: OpcaoPlano[];
+  servicos: OpcaoServico[];
   lead?: LeadDeOrigem | null;
 }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
@@ -69,6 +80,25 @@ export function FormProposta({
   })();
 
   const [escolhido, setEscolhido] = useState(sugerido);
+
+  /*
+    O modo começa em "pacote" porque é o caso mais antigo e o que já
+    tinha fluxo. Um lead cujo fee negociado fica abaixo do menor pacote
+    quase certamente não é loja virtual: começar em pacote ali obrigaria
+    a corrigir a tela toda vez.
+  */
+  const [modo, setModo] = useState<'plano' | 'servicos'>(() => {
+    const menorPacote = Math.min(
+      ...planos.map((p) => Number(p.fee.replace(/\D/g, '')) || Infinity),
+    );
+    return lead?.fee && lead.fee < menorPacote ? 'servicos' : 'plano';
+  });
+
+  const [escolhidos, setEscolhidos] = useState<Record<string, boolean>>(() =>
+    /* O principal já vem marcado: é o que a pessoa quase sempre quer, e
+       o complemento é decisão consciente. */
+    Object.fromEntries(servicos.map((s) => [s.id, s.papel === 'principal'])),
+  );
 
   return (
     <form action={acao} className="cartao space-y-6 p-6 md:p-8">
@@ -110,7 +140,122 @@ export function FormProposta({
         </div>
       </div>
 
+      {/*
+        As duas formas de propor, e nunca as duas juntas.
+
+        Pacote é para loja virtual e começa em R$ 5.000. Serviço avulso
+        é para quem compra uma coisa só — chalé, concessionária, clínica
+        —, e aí o valor é desta negociação, não de uma tabela.
+
+        O seletor é um radio, e não duas abas independentes, justamente
+        para o formulário não conseguir enviar as duas coisas.
+      */}
       <fieldset>
+        <legend className={rotuloCss}>O que você está propondo *</legend>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              k: 'plano' as const,
+              t: 'Pacote de e-commerce',
+              d: 'Saturno, Falcon ou Apollo. Para loja virtual, com as quatro frentes.',
+            },
+            {
+              k: 'servicos' as const,
+              t: 'Serviço avulso',
+              d: 'Gestão de tráfego, com social media por cima se o cliente precisar. Valor desta proposta.',
+            },
+          ].map((m) => (
+            <label
+              key={m.k}
+              className={
+                'cursor-pointer rounded-xl border p-4 transition-colors ' +
+                (modo === m.k
+                  ? 'border-magenta bg-magenta/10'
+                  : 'border-fio bg-white/[0.02] hover:bg-white/[0.05]')
+              }
+            >
+              <input
+                type="radio"
+                name="modo"
+                value={m.k}
+                checked={modo === m.k}
+                onChange={() => setModo(m.k)}
+                className="sr-only"
+              />
+              <span className="font-display text-base font-bold">{m.t}</span>
+              <span className="mt-2 block text-xs leading-relaxed text-cinza">{m.d}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {modo === 'servicos' ? (
+        <fieldset>
+          <legend className={rotuloCss}>Serviços e valores *</legend>
+          <p className="mt-2 max-w-[70ch] text-xs leading-relaxed text-cinza">
+            O que cada serviço entrega está no catálogo e aparece igual em toda proposta. O
+            valor é desta: gestão de tráfego para um chalé e para uma concessionária não
+            custam o mesmo, e uma tabela fixa aqui viraria preço que ninguém cumpre.
+          </p>
+
+          <div className="mt-3 space-y-3">
+            {servicos.map((s) => {
+              const marcado = escolhidos[s.id] ?? false;
+              return (
+                <div
+                  key={s.id}
+                  className={
+                    'rounded-xl border p-4 transition-colors ' +
+                    (marcado ? 'border-magenta bg-magenta/10' : 'border-fio bg-white/[0.02]')
+                  }
+                >
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      name={`servico_${s.id}`}
+                      checked={marcado}
+                      onChange={(e) =>
+                        setEscolhidos((a) => ({ ...a, [s.id]: e.target.checked }))
+                      }
+                      className="mt-1 h-4 w-4 flex-none accent-[var(--magenta)]"
+                    />
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-display text-base font-bold">{s.nome}</span>
+                        {s.papel === 'complemento' ? (
+                          <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                            complemento
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mt-1.5 block text-xs leading-relaxed text-cinza">
+                        {s.paraQuem}
+                      </span>
+                    </span>
+                  </label>
+
+                  {marcado ? (
+                    <div className="mt-3.5 border-t border-fio pt-3.5">
+                      <label htmlFor={`fee-${s.id}`} className={rotuloCss}>
+                        Valor mensal
+                      </label>
+                      <input
+                        id={`fee-${s.id}`}
+                        name={`fee_${s.id}`}
+                        inputMode="decimal"
+                        placeholder="1.800"
+                        className={`mt-2 ${campo}`}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
+
+      <fieldset className={modo === 'servicos' ? 'hidden' : ''}>
         <legend className={rotuloCss}>Plano recomendado *</legend>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {planos.map((p) => (
