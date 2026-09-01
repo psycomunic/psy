@@ -331,6 +331,153 @@ try {
     `o texto não assume que o cliente é loja (achei: ${achadas.join(', ') || 'nada'})`,
   );
 
+
+  /* ---------------------------------------------------------------- */
+  console.log('\nEditar');
+
+  await pagina.goto(`${APP}/painel/propostas?editar=${prop.id}`, {
+    waitUntil: 'networkidle0',
+    timeout: 60000,
+  });
+
+  const preenchido = await pagina.evaluate(() => ({
+    cliente: document.querySelector('input[name="cliente"]')?.value ?? null,
+    contato: document.querySelector('input[name="contato"]')?.value ?? null,
+    feeTrafego: document.querySelector('input[name="fee_trafego"]')?.value ?? null,
+    feeSocial: document.querySelector('input[name="fee_social"]')?.value ?? null,
+    diagnostico: document.querySelector('textarea[name="diagnostico"]')?.value ?? null,
+    modo: document.querySelector('input[name="modo"][value="servicos"]')?.checked ?? null,
+    id: document.querySelector('input[name="id"]')?.value ?? null,
+  }));
+
+  ok(preenchido.cliente === CLIENTE, 'o formulário abre com o cliente preenchido');
+  ok(preenchido.id === prop.id, 'e carrega o id da proposta que está sendo editada');
+  ok(preenchido.modo === true, 'já no modo serviço avulso, que era o dela');
+  ok(preenchido.feeTrafego === '1.800', `com o valor do tráfego (${preenchido.feeTrafego})`);
+  ok(preenchido.feeSocial === '2.500', `e o do conteúdo (${preenchido.feeSocial})`);
+  ok(
+    /convers[ãa]o configurada/i.test(preenchido.diagnostico ?? ''),
+    'e o diagnóstico que tinha sido escrito',
+  );
+
+  await preencher(pagina, 'input[name="fee_trafego"]', '2.200');
+  await clicar(pagina, 'Salvar alterações');
+  ok(await esperarTexto(pagina, 'atualizada'), 'a edição foi salva');
+
+  const { data: depois } = await admin
+    .from('proposta')
+    .select('slug, versao, corpo')
+    .eq('id', prop.id)
+    .maybeSingle();
+
+  ok(
+    depois?.corpo?.servicos?.find((s) => s.id === 'trafego')?.fee === 2200,
+    `o valor novo foi gravado (${depois?.corpo?.servicos?.find((s) => s.id === 'trafego')?.fee})`,
+  );
+  ok(Number(depois?.versao) === 2, `a versão subiu para 2 (é ${depois?.versao})`);
+  ok(depois?.slug === slug, 'e o link NÃO mudou: ele já foi mandado para alguém');
+
+  const noDeck2 = await fetch(`${APP}/proposta/${slug}`).then((r) => r.text());
+  ok(/2\.200/.test(noDeck2), 'o link já mostra o valor novo');
+
+  /* ---------------------------------------------------------------- */
+  console.log('\nProposta aceita não se edita nem se apaga');
+
+  await admin.from('proposta').update({ status: 'aceita' }).eq('id', prop.id);
+
+  await pagina.goto(`${APP}/painel/propostas?editar=${prop.id}`, {
+    waitUntil: 'networkidle0',
+    timeout: 60000,
+  });
+  await preencher(pagina, 'input[name="fee_trafego"]', '9.999');
+  await clicar(pagina, 'Salvar alterações');
+  ok(
+    await esperarTexto(pagina, 'já foi aceita'),
+    'editar uma proposta aceita é recusado, com o motivo',
+  );
+
+  const { data: intacta } = await admin
+    .from('proposta')
+    .select('corpo')
+    .eq('id', prop.id)
+    .maybeSingle();
+  ok(
+    intacta?.corpo?.servicos?.find((s) => s.id === 'trafego')?.fee === 2200,
+    'e o valor continua o que estava',
+  );
+
+  await pagina.goto(`${APP}/painel/propostas`, { waitUntil: 'networkidle0', timeout: 60000 });
+  const semBotoes = await pagina.evaluate(
+    (c) => {
+      const linha = [...document.querySelectorAll('tr')].find((t) =>
+        (t.textContent ?? '').includes(c),
+      );
+      if (!linha) return null;
+      const textos = [...linha.querySelectorAll('a,button')].map((b) =>
+        (b.textContent ?? '').trim(),
+      );
+      return { temEditar: textos.includes('Editar'), temRemover: textos.includes('Remover') };
+    },
+    CLIENTE,
+  );
+  ok(semBotoes?.temEditar === false, 'a linha de uma proposta aceita não oferece Editar');
+  ok(semBotoes?.temRemover === false, 'nem Remover');
+
+  /* ---------------------------------------------------------------- */
+  console.log('\nApagar');
+
+  await admin.from('proposta').update({ status: 'rascunho' }).eq('id', prop.id);
+  await pagina.goto(`${APP}/painel/propostas`, { waitUntil: 'networkidle0', timeout: 60000 });
+
+  const pediuConfirmacao = await pagina.evaluate(
+    (c) => {
+      const linha = [...document.querySelectorAll('tr')].find((t) =>
+        (t.textContent ?? '').includes(c),
+      );
+      const b = [...(linha?.querySelectorAll('button') ?? [])].find(
+        (x) => (x.textContent ?? '').trim() === 'Remover',
+      );
+      if (!b) return false;
+      b.click();
+      return true;
+    },
+    CLIENTE,
+  );
+  ok(pediuConfirmacao === true, 'existe o botão Remover');
+
+  await new Promise((r) => setTimeout(r, 500));
+  const aindaExiste = await admin
+    .from('proposta')
+    .select('id', { count: 'exact', head: true })
+    .eq('id', prop.id);
+  ok(aindaExiste.count === 1, 'o primeiro clique NÃO apaga: ele pede confirmação');
+
+  const confirmou = await pagina.evaluate(
+    (c) => {
+      const linha = [...document.querySelectorAll('tr')].find((t) =>
+        (t.textContent ?? '').includes(c),
+      );
+      const b = [...(linha?.querySelectorAll('button') ?? [])].find((x) =>
+        (x.textContent ?? '').includes('Sim, apagar'),
+      );
+      if (!b) return false;
+      b.click();
+      return true;
+    },
+    CLIENTE,
+  );
+  ok(confirmou === true, 'e o segundo pede "Sim, apagar"');
+
+  await new Promise((r) => setTimeout(r, 2500));
+  const { count: sumiu } = await admin
+    .from('proposta')
+    .select('id', { count: 'exact', head: true })
+    .eq('id', prop.id);
+  ok(sumiu === 0, 'aí sim ela sai do banco');
+
+  const linkMorto = await fetch(`${APP}/proposta/${slug}`);
+  ok(linkMorto.status === 404, `e o link para de abrir (${linkMorto.status})`);
+
   /* ---------------------------------------------------------------- */
   console.log('\nO pacote continua funcionando');
 

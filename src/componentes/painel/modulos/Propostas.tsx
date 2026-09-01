@@ -1,9 +1,15 @@
+import Link from 'next/link';
 import { listarPropostas, leadPorId } from '@/lib/dados/consultas';
 import { rotuloStatusProposta } from '@/lib/dados/tipos';
 import { PLANOS, fichas, feeEmReais } from '@/dados/planos';
 import { SERVICOS, fichasDeServico } from '@/dados/servicos';
 import { AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { FormProposta, CopiarLink, BotaoStatus } from '../FormProposta';
+import {
+  FormProposta,
+  CopiarLink,
+  BotaoStatus,
+  BotaoApagarProposta,
+} from '../FormProposta';
 import { CORES_SITUACAO } from '../paleta';
 import { diaLongo } from '@/lib/formato';
 import { pode, type Papel } from '@/lib/papeis';
@@ -35,7 +41,15 @@ const FORMAS: Record<string, string> = {
   expirada: '■',
 };
 
-export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: string }) {
+export async function Propostas({
+  papel,
+  leadId,
+  editarId,
+}: {
+  papel: Papel;
+  leadId?: string;
+  editarId?: string;
+}) {
   const { dados: propostas, procedencia } = await listarPropostas();
 
   /* Proposta a partir do lead: o funil manda o id e o formulário nasce
@@ -44,7 +58,13 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
      e "Aurora Store" na proposta viram dois clientes na cabeça de quem
      lê o relatório depois. */
   const lead = leadId ? await leadPorId(leadId) : null;
+
+  /* A proposta que está sendo editada vem da mesma lista que a tela já
+     carregou. Uma consulta a mais por id seria trabalho para buscar o
+     que já está na memória. */
+  const emEdicao = editarId ? propostas.find((x) => x.id === editarId) : null;
   const podeEditar = pode(papel, 'propostas', 'editar') && procedencia === 'banco';
+  const podeExcluir = papel === 'administrador' && procedencia === 'banco';
 
   const opcoes = PLANOS.map((p) => ({
     id: p,
@@ -82,6 +102,22 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
           <FormProposta
             planos={opcoes}
             servicos={opcoesDeServico}
+            editando={
+              emEdicao
+                ? {
+                    id: emEdicao.id,
+                    cliente: emEdicao.cliente,
+                    contato: emEdicao.contato,
+                    resumo: emEdicao.resumo,
+                    validadeDias: emEdicao.validadeDias,
+                    plano: emEdicao.plano,
+                    servicos: emEdicao.servicos,
+                    diagnostico: emEdicao.diagnostico,
+                    proximosPassos: emEdicao.proximosPassos,
+                    status: emEdicao.status,
+                  }
+                : null
+            }
             lead={
               lead
                 ? {
@@ -166,7 +202,7 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
                     </td>
                     {podeEditar ? (
                       <td className={td}>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {p.status === 'rascunho' ? (
                             <BotaoStatus id={p.id} status="enviada" rotulo="Publicar" />
                           ) : (
@@ -174,6 +210,22 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
                           )}
                           {p.status !== 'aceita' && p.status !== 'rascunho' ? (
                             <BotaoStatus id={p.id} status="aceita" rotulo="Marcar aceita" />
+                          ) : null}
+
+                          {/* Aceita não edita nem apaga: é o documento do
+                              que foi combinado. As duas ações somem, e a
+                              ação recusaria de todo jeito. */}
+                          {p.status !== 'aceita' ? (
+                            <Link
+                              href={`/painel/propostas?editar=${p.id}`}
+                              className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+                            >
+                              Editar
+                            </Link>
+                          ) : null}
+
+                          {podeExcluir && p.status !== 'aceita' ? (
+                            <BotaoApagarProposta id={p.id} cliente={p.cliente} />
                           ) : null}
                         </div>
                       </td>

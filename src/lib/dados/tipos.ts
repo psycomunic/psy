@@ -404,6 +404,12 @@ export type PropostaResumo = {
   /** Dias que faltam para vencer. Negativo já venceu. */
   diasParaVencer: number;
   autor: string | null;
+  /* Os campos que a edição precisa devolver ao formulário. Vêm da
+     mesma consulta da lista: buscar de novo por id seria ir ao banco
+     atrás do que já está na memória. */
+  resumo: string;
+  diagnostico: string[];
+  proximosPassos: string[];
 };
 
 export const rotuloStatusProposta: Record<PropostaResumo['status'], string> = {

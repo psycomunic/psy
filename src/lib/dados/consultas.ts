@@ -908,7 +908,7 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('proposta')
-    .select('id, slug, cliente, contato, status, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
+    .select('id, slug, cliente, contato, status, resumo, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
     .order('criada_em', { ascending: false })
     .limit(60);
 
@@ -930,6 +930,10 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
         plano: ((p.corpo as { plano?: string })?.plano) ?? null,
         servicos:
           ((p.corpo as { servicos?: { id: string; fee: number }[] })?.servicos) ?? [],
+        resumo: (p.resumo as string) ?? '',
+        diagnostico: ((p.corpo as { diagnostico?: string[] })?.diagnostico) ?? [],
+        proximosPassos:
+          ((p.corpo as { proximosPassos?: string[] })?.proximosPassos) ?? [],
         emitidaEm: emitida,
         validadeDias: Number(p.validade_dias ?? 15),
         /* Calculado AQUI, na camada de dados, e não no render: contar

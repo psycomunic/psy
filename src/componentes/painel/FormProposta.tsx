@@ -1,7 +1,12 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { gerarProposta, mudarStatusProposta } from '@/app/painel/acoes-proposta';
+import {
+  gerarProposta,
+  editarProposta,
+  apagarProposta,
+  mudarStatusProposta,
+} from '@/app/painel/acoes-proposta';
 import type { Resultado } from '@/app/painel/acoes';
 
 const campo =
@@ -43,6 +48,20 @@ export type OpcaoServico = {
   precoSugerido: number | null;
 };
 
+/** A proposta que está sendo editada. Ausente quando é uma nova. */
+export type PropostaEmEdicao = {
+  id: string;
+  cliente: string;
+  contato: string;
+  resumo: string;
+  validadeDias: number;
+  plano: string | null;
+  servicos: { id: string; fee: number }[];
+  diagnostico: string[];
+  proximosPassos: string[];
+  status: string;
+};
+
 /** O lead de origem, quando a proposta nasce do funil. */
 export type LeadDeOrigem = {
   id: string;
@@ -55,13 +74,18 @@ export function FormProposta({
   planos,
   servicos,
   lead = null,
+  editando = null,
 }: {
   planos: OpcaoPlano[];
   servicos: OpcaoServico[];
   lead?: LeadDeOrigem | null;
+  editando?: PropostaEmEdicao | null;
 }) {
+  /* Um formulário só para criar e editar. Dois divergiriam na primeira
+     vez que um campo mudasse, e a divergência apareceria como campo que
+     existe na criação e some na edição. */
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
-    gerarProposta,
+    editando ? editarProposta : gerarProposta,
     null,
   );
 
@@ -81,7 +105,7 @@ export function FormProposta({
     ).id;
   })();
 
-  const [escolhido, setEscolhido] = useState(sugerido);
+  const [escolhido, setEscolhido] = useState(editando?.plano ?? sugerido);
 
   /*
     O modo começa em "pacote" porque é o caso mais antigo e o que já
@@ -93,27 +117,44 @@ export function FormProposta({
     const menorPacote = Math.min(
       ...planos.map((p) => Number(p.fee.replace(/\D/g, '')) || Infinity),
     );
+    if (editando) return editando.servicos.length > 0 ? 'servicos' : 'plano';
     return lead?.fee && lead.fee < menorPacote ? 'servicos' : 'plano';
   });
 
   const [escolhidos, setEscolhidos] = useState<Record<string, boolean>>(() =>
     /* O principal já vem marcado: é o que a pessoa quase sempre quer, e
        o complemento é decisão consciente. */
-    Object.fromEntries(servicos.map((s) => [s.id, s.papel === 'principal'])),
+    Object.fromEntries(
+      servicos.map((s) => [
+        s.id,
+        editando
+          ? editando.servicos.some((x) => x.id === s.id)
+          : s.papel === 'principal',
+      ]),
+    ),
   );
 
   return (
     <form action={acao} className="cartao space-y-6 p-6 md:p-8">
       {lead ? <input type="hidden" name="lead_id" value={lead.id} /> : null}
+      {editando ? <input type="hidden" name="id" value={editando.id} /> : null}
 
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">
-          {lead ? `Proposta para ${lead.cliente}` : 'Gerar link de proposta'}
+          {editando
+            ? `Editando a proposta de ${editando.cliente}`
+            : lead
+              ? `Proposta para ${lead.cliente}`
+              : 'Gerar link de proposta'}
         </h3>
         <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-cinza">
-          {lead
-            ? 'Veio do funil, então os dados já estão preenchidos e a proposta fica ligada ao lead. O link nasce como rascunho e não abre para ninguém até você publicar.'
-            : 'O link nasce como rascunho e não abre para ninguém até você publicar. Por padrão a página mostra só o plano recomendado.'}
+          {editando
+            ? editando.status === 'rascunho'
+              ? 'O link continua fechado enquanto for rascunho. Salvar aqui não publica nada.'
+              : 'Esta proposta já está publicada. O que você salvar aqui passa a ser o que o cliente vê no mesmo link.'
+            : lead
+              ? 'Veio do funil, então os dados já estão preenchidos e a proposta fica ligada ao lead. O link nasce como rascunho e não abre para ninguém até você publicar.'
+              : 'O link nasce como rascunho e não abre para ninguém até você publicar. Por padrão a página mostra só o plano recomendado.'}
         </p>
       </div>
 
@@ -124,7 +165,7 @@ export function FormProposta({
             id="pr-cliente"
             name="cliente"
             required
-            defaultValue={lead?.cliente ?? ''}
+            defaultValue={editando?.cliente ?? lead?.cliente ?? ''}
             placeholder="Carol Abreu Advocacia"
             className={`mt-2 ${campo}`}
           />
@@ -135,7 +176,7 @@ export function FormProposta({
             id="pr-contato"
             name="contato"
             required
-            defaultValue={lead?.contato ?? ''}
+            defaultValue={editando?.contato ?? lead?.contato ?? ''}
             placeholder="Mariana, sócia"
             className={`mt-2 ${campo}`}
           />
@@ -247,11 +288,13 @@ export function FormProposta({
                         id={`fee-${s.id}`}
                         name={`fee_${s.id}`}
                         inputMode="decimal"
-                        defaultValue={
-                          s.precoSugerido
+                        defaultValue={(() => {
+                          const jaTem = editando?.servicos.find((x) => x.id === s.id);
+                          if (jaTem) return jaTem.fee.toLocaleString('pt-BR');
+                          return s.precoSugerido
                             ? s.precoSugerido.toLocaleString('pt-BR')
-                            : ''
-                        }
+                            : '';
+                        })()}
                         placeholder="1.800"
                         className={`mt-2 ${campo}`}
                       />
@@ -303,6 +346,7 @@ export function FormProposta({
           id="pr-diag"
           name="diagnostico"
           rows={4}
+          defaultValue={editando?.diagnostico.join('\n') ?? ''}
           placeholder={'Tráfego chega, mas a conversão fica abaixo da média do segmento.\nCheckout com etapas demais e sem recuperação de carrinho.\nMídia sem leitura de ROI por canal.'}
           className={`mt-2 ${campo}`}
         />
@@ -319,6 +363,7 @@ export function FormProposta({
             id="pr-passos"
             name="proximos_passos"
             rows={4}
+            defaultValue={editando?.proximosPassos.join('\n') ?? ''}
             placeholder={'Aprovação desta proposta.\nKick off e briefing da operação.\nPlano de mídia com projeção.\nEstruturação das contas e início das campanhas.'}
             className={`mt-2 ${campo}`}
           />
@@ -331,7 +376,7 @@ export function FormProposta({
             type="number"
             min={1}
             max={90}
-            defaultValue={15}
+            defaultValue={editando?.validadeDias ?? 15}
             className={`mt-2 ${campo}`}
           />
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
@@ -353,7 +398,13 @@ export function FormProposta({
         disabled={pendente}
         className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
       >
-        {pendente ? 'Gerando...' : 'Gerar rascunho'}
+        {pendente
+          ? editando
+            ? 'Salvando...'
+            : 'Gerando...'
+          : editando
+            ? 'Salvar alterações'
+            : 'Gerar rascunho'}
       </button>
     </form>
   );
@@ -410,6 +461,63 @@ export function BotaoStatus({
       {estado && !estado.ok ? (
         <span className="ml-2 text-xs text-magenta-texto">{estado.mensagem}</span>
       ) : null}
+    </form>
+  );
+}
+
+/**
+ * Remover, com confirmação em dois passos.
+ *
+ * Botão de apagar que apaga no primeiro clique é como se apaga por
+ * engano. O segundo clique não é burocracia: é o intervalo em que dá
+ * para perceber que era a linha de cima.
+ */
+export function BotaoApagarProposta({ id, cliente }: { id: string; cliente: string }) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    apagarProposta,
+    null,
+  );
+  const [confirmando, setConfirmando] = useState(false);
+
+  if (estado && !estado.ok) {
+    return (
+      <span role="status" className="text-xs font-semibold leading-relaxed text-magenta-texto">
+        <span aria-hidden className="mr-1.5">■</span>
+        {estado.mensagem}
+      </span>
+    );
+  }
+
+  if (!confirmando) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto"
+      >
+        Remover
+      </button>
+    );
+  }
+
+  return (
+    <form action={acao} className="inline-flex flex-wrap items-center gap-2">
+      <input type="hidden" name="id" value={id} />
+      <span className="text-xs text-cinza">Apagar a de {cliente}?</span>
+      <button
+        type="submit"
+        disabled={pendente}
+        className="rounded-full bg-magenta px-3 py-1.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+      >
+        {pendente ? 'Apagando...' : 'Sim, apagar'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirmando(false)}
+        className="rounded-full border border-fio px-3 py-1.5 text-xs text-neve transition-colors hover:bg-white/5"
+      >
+        Não
+      </button>
     </form>
   );
 }

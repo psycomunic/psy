@@ -67,6 +67,91 @@ const linhas = (v: FormDataEntryValue | null) =>
     .map((l) => l.trim())
     .filter(Boolean);
 
+type CamposDaProposta = {
+  cliente: string;
+  contato: string;
+  resumo: string;
+  validade: number;
+  leadId: string | null;
+  plano: Plano | null;
+  servicos: ServicoEscolhido[];
+  diagnostico: string[];
+  proximosPassos: string[];
+};
+
+/**
+ * Lê e valida o formulário.
+ *
+ * Compartilhado entre criar e editar de propósito. Duas cópias divergem
+ * na primeira vez que uma regra muda, e a divergência aqui seria a
+ * pior: criar aceitando o que editar recusa faz a pessoa achar que
+ * perdeu o trabalho.
+ */
+function lerCampos(
+  fd: FormData,
+): { ok: true; dados: CamposDaProposta } | { ok: false; mensagem: string } {
+  const cliente = String(fd.get('cliente') ?? '').trim();
+  const contato = String(fd.get('contato') ?? '').trim();
+  const modo = String(fd.get('modo') ?? 'plano');
+  const plano = String(fd.get('plano') ?? '') as Plano;
+  const resumo = String(fd.get('resumo') ?? '').trim();
+  const validade = Number(String(fd.get('validade_dias') ?? VALIDADE_PADRAO));
+  const leadId = String(fd.get('lead_id') ?? '') || null;
+
+  if (cliente.length < 2) return { ok: false, mensagem: 'Diga o nome do cliente.' };
+  if (contato.length < 2) return { ok: false, mensagem: 'Diga com quem você está falando.' };
+  if (!Number.isFinite(validade) || validade < 1 || validade > 90) {
+    return { ok: false, mensagem: 'A validade precisa ficar entre 1 e 90 dias.' };
+  }
+
+  /*
+    Uma proposta é OU um pacote OU uma lista de serviços.
+
+    Nunca as duas: seriam dois preços para a mesma coisa, e o cliente
+    perguntaria qual vale. A pergunta é justa, e a resposta seria
+    constrangedora.
+  */
+  const servicos: ServicoEscolhido[] = [];
+
+  if (modo === 'servicos') {
+    for (const s of SERVICOS) {
+      if (fd.get(`servico_${s}`) !== 'on') continue;
+      const fee = paraNumero(String(fd.get(`fee_${s}`) ?? ''));
+      if (!Number.isFinite(fee) || fee <= 0) {
+        return { ok: false, mensagem: `Informe o valor mensal de ${fichaDoServico(s).nome}.` };
+      }
+      servicos.push({ id: s, fee });
+    }
+
+    if (servicos.length === 0) {
+      return { ok: false, mensagem: 'Escolha pelo menos um serviço.' };
+    }
+  } else if (!PLANOS.includes(plano)) {
+    return { ok: false, mensagem: 'Escolha o plano recomendado.' };
+  }
+
+  return {
+    ok: true,
+    dados: {
+      cliente,
+      contato,
+      validade,
+      leadId,
+      servicos,
+      plano: servicos.length > 0 ? null : plano,
+      diagnostico: linhas(fd.get('diagnostico')),
+      proximosPassos: linhas(fd.get('proximos_passos')),
+      resumo:
+        resumo ||
+        (servicos.length > 0
+          ? `Proposta de ${servicos
+              .map((x) => fichaDoServico(x.id).nome.toLowerCase())
+              .join(' e ')} para ${cliente}.`
+          : `Proposta de operação de crescimento para ${cliente}, cobrindo as quatro frentes: gestão, tecnologia, marketing e atendimento com logística.`),
+    },
+  };
+}
+
 export async function gerarProposta(
   _anterior: Resultado | null,
   fd: FormData,
@@ -74,79 +159,34 @@ export async function gerarProposta(
   try {
     const sessao = await exigirComercial();
 
-    const cliente = String(fd.get('cliente') ?? '').trim();
-    const contato = String(fd.get('contato') ?? '').trim();
-    const modo = String(fd.get('modo') ?? 'plano');
-    const plano = String(fd.get('plano') ?? '') as Plano;
-    const resumo = String(fd.get('resumo') ?? '').trim();
-    const validade = Number(String(fd.get('validade_dias') ?? VALIDADE_PADRAO));
-    const leadId = String(fd.get('lead_id') ?? '') || null;
-
-    if (cliente.length < 2) return { ok: false, mensagem: 'Diga o nome do cliente.' };
-    if (contato.length < 2) return { ok: false, mensagem: 'Diga com quem você está falando.' };
-    if (!Number.isFinite(validade) || validade < 1 || validade > 90) {
-      return { ok: false, mensagem: 'A validade precisa ficar entre 1 e 90 dias.' };
-    }
-
-    /*
-      Uma proposta é OU um pacote OU uma lista de serviços.
-
-      Nunca as duas: seriam dois preços para a mesma coisa, e o cliente
-      perguntaria qual vale. A pergunta é justa, e a resposta seria
-      constrangedora.
-    */
-    const servicos: ServicoEscolhido[] = [];
-
-    if (modo === 'servicos') {
-      for (const s of SERVICOS) {
-        if (fd.get(`servico_${s}`) !== 'on') continue;
-        const fee = paraNumero(String(fd.get(`fee_${s}`) ?? ''));
-        if (!Number.isFinite(fee) || fee <= 0) {
-          return {
-            ok: false,
-            mensagem: `Informe o valor mensal de ${fichaDoServico(s).nome}.`,
-          };
-        }
-        servicos.push({ id: s, fee });
-      }
-
-      if (servicos.length === 0) {
-        return { ok: false, mensagem: 'Escolha pelo menos um serviço.' };
-      }
-    } else if (!PLANOS.includes(plano)) {
-      return { ok: false, mensagem: 'Escolha o plano recomendado.' };
-    }
+    const v = lerCampos(fd);
+    if (!v.ok) return v;
+    const d = v.dados;
 
     const supabase = await clienteServidor();
 
     const { data, error } = await supabase
       .from('proposta')
       .insert({
-        slug: gerarSlug(cliente),
-        lead_id: leadId,
-        cliente,
-        contato,
+        slug: gerarSlug(d.cliente),
+        lead_id: d.leadId,
+        cliente: d.cliente,
+        contato: d.contato,
         status: 'rascunho',
-        resumo:
-          resumo ||
-          (servicos.length > 0
-            ? `Proposta de ${servicos
-                .map((x) => fichaDoServico(x.id).nome.toLowerCase())
-                .join(' e ')} para ${cliente}.`
-            : `Proposta de operação de crescimento para ${cliente}, cobrindo as quatro frentes: gestão, tecnologia, marketing e atendimento com logística.`),
+        resumo: d.resumo,
         corpo: {
           /* O plano recomendado é o único campo que a tabela de planos
              precisa. O escopo de cada plano NÃO é copiado para dentro
-             da proposta: ele vive em `src/dados/planos.ts`, e duplicar
+             da proposta: ele vive na tabela de planos, e duplicar
              faria a proposta de ontem contradizer a de hoje na primeira
              vez que um item mudar. Vale igual para os serviços: aqui
              fica só o id e o valor negociado. */
-          plano: servicos.length > 0 ? null : plano,
-          servicos,
-          diagnostico: linhas(fd.get('diagnostico')),
-          proximosPassos: linhas(fd.get('proximos_passos')),
+          plano: d.plano,
+          servicos: d.servicos,
+          diagnostico: d.diagnostico,
+          proximosPassos: d.proximosPassos,
         },
-        validade_dias: validade,
+        validade_dias: d.validade,
         criada_por: sessao.id,
       })
       .select('slug')
@@ -158,7 +198,7 @@ export async function gerarProposta(
 
     return {
       ok: true,
-      mensagem: `Rascunho criado: /proposta/${data.slug} — publique para o link começar a abrir.`,
+      mensagem: `Rascunho criado: /proposta/${data.slug}. Publique para o link começar a abrir.`,
     };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
@@ -211,6 +251,162 @@ export async function mudarStatusProposta(
           : status === 'enviada'
             ? 'Publicada. O link já abre para quem receber.'
             : 'Status atualizado.',
+    };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Edita uma proposta que já existe.
+ *
+ * ============================================================
+ * O SLUG NÃO MUDA
+ * ============================================================
+ * Mesmo quando o nome do cliente muda. O link já foi mandado, e trocar
+ * o endereço quebraria o que está na conversa do WhatsApp da pessoa. O
+ * nome no slug é conforto de quem procura na lista, não identidade.
+ *
+ * ============================================================
+ * PROPOSTA ACEITA NÃO SE EDITA
+ * ============================================================
+ * Ela é o documento por trás de um acordo. Mudar valor ou escopo depois
+ * do sim reescreve o que foi combinado, e quem abrir o link de novo vai
+ * ler outra coisa sem saber que mudou.
+ *
+ * Para renegociar existe caminho: recolher para rascunho, editar e
+ * publicar de novo. São três atos deliberados, e é assim que tem de ser.
+ */
+export async function editarProposta(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirComercial();
+
+    const id = String(fd.get('id') ?? '');
+    if (!id) return { ok: false, mensagem: 'Proposta não informada.' };
+
+    const v = lerCampos(fd);
+    if (!v.ok) return v;
+    const d = v.dados;
+
+    const supabase = await clienteServidor();
+
+    const { data: atual } = await supabase
+      .from('proposta')
+      .select('id, status, versao, corpo, slug')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!atual) return { ok: false, mensagem: 'Proposta não encontrada.' };
+
+    if (atual.status === 'aceita') {
+      return {
+        ok: false,
+        mensagem:
+          'Esta proposta já foi aceita e não se edita: ela é o documento do que foi combinado. Para renegociar, recolha para rascunho antes.',
+      };
+    }
+
+    /*
+      MESCLA o corpo, não substitui.
+
+      `etapas`, `notaPlataforma` e as inclusões concedidas não passam
+      por este formulário. Gravar um objeto novo apagaria tudo isso em
+      silêncio, e a proposta perderia a tabela de custo por período que
+      alguém escreveu à mão. É o mesmo erro que a credencial já cometeu
+      uma vez.
+    */
+    const corpoAntigo = (atual.corpo ?? {}) as Record<string, unknown>;
+
+    const { error } = await supabase
+      .from('proposta')
+      .update({
+        cliente: d.cliente,
+        contato: d.contato,
+        resumo: d.resumo,
+        validade_dias: d.validade,
+        /* A versão sobe a cada edição. Sem isso, "a proposta que eu vi"
+           e "a proposta que está no ar" não têm como ser distinguidas
+           numa conversa. */
+        versao: Number(atual.versao ?? 1) + 1,
+        corpo: {
+          ...corpoAntigo,
+          plano: d.plano,
+          servicos: d.servicos,
+          diagnostico: d.diagnostico,
+          proximosPassos: d.proximosPassos,
+        },
+      })
+      .eq('id', id);
+
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/propostas');
+    revalidatePath(`/proposta/${atual.slug}`);
+
+    return {
+      ok: true,
+      mensagem:
+        atual.status === 'rascunho'
+          ? 'Proposta atualizada. Continua como rascunho.'
+          : 'Proposta atualizada. O link já mostra a versão nova para quem abrir.',
+    };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Apaga a proposta.
+ *
+ * Só administrador, pela política `proposta_admin_exclui`.
+ *
+ * Proposta ACEITA não sai: é o documento por trás de um contrato, e
+ * apagar some com a resposta de "o que exatamente foi combinado?". Para
+ * tirar do ar existe "Recolher", que faz o link parar de abrir sem
+ * destruir o registro.
+ */
+export async function apagarProposta(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await exigirComercial();
+    if (sessao.papel !== 'administrador') {
+      return { ok: false, mensagem: 'Só o administrador exclui proposta.' };
+    }
+
+    const id = String(fd.get('id') ?? '');
+    if (!id) return { ok: false, mensagem: 'Proposta não informada.' };
+
+    const supabase = await clienteServidor();
+
+    const { data: atual } = await supabase
+      .from('proposta')
+      .select('id, status, cliente')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!atual) return { ok: false, mensagem: 'Proposta não encontrada.' };
+
+    if (atual.status === 'aceita') {
+      return {
+        ok: false,
+        mensagem:
+          'Proposta aceita não é apagada: ela explica o que foi combinado. Use "Recolher" para o link parar de abrir.',
+      };
+    }
+
+    const { error } = await supabase.from('proposta').delete().eq('id', id);
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/propostas');
+
+    return {
+      ok: true,
+      mensagem: `Proposta de ${atual.cliente} removida. O link parou de existir.`,
     };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
