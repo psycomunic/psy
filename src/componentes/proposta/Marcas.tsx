@@ -30,7 +30,21 @@ import { Slide } from './Slide';
 /* Um slide devolve UM elemento, e nunca um fragmento: `Children.toArray`
    achata fragmentos e cada pedaço viraria uma tela. */
 
-export function SlideMarcas() {
+/**
+ * @param apoio a linha sob o título.
+ *
+ * Ela muda com o tipo de proposta. As marcas SÃO operações de
+ * e-commerce, e dizer isso é verdade — mas numa proposta de tráfego
+ * para quem vende curso, ou para uma clínica, a frase descreve o
+ * negócio de outra pessoa e faz a proposta parecer modelo
+ * reaproveitado. O padrão aqui é a versão que serve a qualquer nicho
+ * sem deixar de ser verdadeira.
+ */
+export function SlideMarcas({
+  apoio = 'Marcas que já passaram pela operação da Psy Comunic, de portes e segmentos diferentes.',
+}: {
+  apoio?: string;
+} = {}) {
   return (
     <Slide
       rotulo="Quem já passou por aqui"
@@ -39,7 +53,7 @@ export function SlideMarcas() {
           Marcas que <span className="text-magenta-texto">confiaram.</span>
         </>
       }
-      apoio="Operações de e-commerce de portes e segmentos diferentes, do primeiro milhão à escala de marketplace."
+      apoio={apoio}
     >
       <div className="flex min-h-full flex-col">
         {/* Quatro colunas no telefone, não três: com 28 logos, três

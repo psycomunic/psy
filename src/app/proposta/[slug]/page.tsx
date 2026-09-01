@@ -121,8 +121,22 @@ export default async function PaginaProposta({
       {/* loja, emenda em plano mensal, e o leitor conclui sozinho que */}
       {/* a Psy Comunic é mais uma agência de mídia com mensalidade.   */}
       {/* ---------------------------------------------------------- */}
-      <SlideJornada />
-      <SlidePorQueCompleta />
+      {/*
+        SÓ na proposta de pacote.
+
+        Estes dois slides dizem "construímos a loja e ficamos para fazer
+        ela vender". É o enquadramento certo para e-commerce e o errado
+        para todo o resto: numa proposta de gestão de tráfego para quem
+        vende curso, ou para uma clínica, eles descrevem o negócio de
+        outra pessoa. A proposta passa a parecer modelo reaproveitado, e
+        é exatamente a impressão que ela existe para evitar.
+      */}
+      {p.plano ? (
+        <>
+          <SlideJornada />
+          <SlidePorQueCompleta />
+        </>
+      ) : null}
 
       {/* ---------------------------------------------------------- */}
       {/* Diagnóstico                                                 */}
@@ -163,7 +177,13 @@ export default async function PaginaProposta({
       {/* diagnóstico soa como apresentação de agência; depois do     */}
       {/* preço, chega tarde para ajudar a decidir.                   */}
       {/* ---------------------------------------------------------- */}
-      <SlideMarcas />
+      <SlideMarcas
+        apoio={
+          p.plano
+            ? 'Operações de e-commerce de portes e segmentos diferentes, do primeiro milhão à escala de marketplace.'
+            : undefined
+        }
+      />
 
       {/* ---------------------------------------------------------- */}
       {/* Escopo das propostas antigas, escritas à mão                */}

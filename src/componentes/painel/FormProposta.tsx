@@ -117,13 +117,13 @@ export function FormProposta({
 
       <div className="grid gap-5 md:grid-cols-2">
         <div>
-          <label htmlFor="pr-cliente" className={rotuloCss}>Loja *</label>
+          <label htmlFor="pr-cliente" className={rotuloCss}>Cliente *</label>
           <input
             id="pr-cliente"
             name="cliente"
             required
             defaultValue={lead?.cliente ?? ''}
-            placeholder="Loja Aurora"
+            placeholder="Carol Abreu Advocacia"
             className={`mt-2 ${campo}`}
           />
         </div>
@@ -144,8 +144,9 @@ export function FormProposta({
         As duas formas de propor, e nunca as duas juntas.
 
         Pacote é para loja virtual e começa em R$ 5.000. Serviço avulso
-        é para quem compra uma coisa só — chalé, concessionária, clínica
-        —, e aí o valor é desta negociação, não de uma tabela.
+        é para quem compra uma coisa só, em qualquer nicho: advogada que
+        vende curso, clínica, chalé, concessionária. Aí o valor é desta
+        negociação, e não de uma tabela.
 
         O seletor é um radio, e não duas abas independentes, justamente
         para o formulário não conseguir enviar as duas coisas.
@@ -162,7 +163,7 @@ export function FormProposta({
             {
               k: 'servicos' as const,
               t: 'Serviço avulso',
-              d: 'Gestão de tráfego, com social media por cima se o cliente precisar. Valor desta proposta.',
+              d: 'Gestão de tráfego, com criação de conteúdo por cima se o cliente precisar. Serve para qualquer nicho. Valor desta proposta.',
             },
           ].map((m) => (
             <label
@@ -194,8 +195,9 @@ export function FormProposta({
           <legend className={rotuloCss}>Serviços e valores *</legend>
           <p className="mt-2 max-w-[70ch] text-xs leading-relaxed text-cinza">
             O que cada serviço entrega está no catálogo e aparece igual em toda proposta. O
-            valor é desta: gestão de tráfego para um chalé e para uma concessionária não
-            custam o mesmo, e uma tabela fixa aqui viraria preço que ninguém cumpre.
+            valor é desta: gestão de tráfego para quem vende curso e para uma
+            concessionária não custam o mesmo, e uma tabela fixa aqui viraria preço que
+            ninguém cumpre.
           </p>
 
           <div className="mt-3 space-y-3">
@@ -298,7 +300,7 @@ export function FormProposta({
           className={`mt-2 ${campo}`}
         />
         <p className="mt-1.5 text-xs leading-relaxed text-cinza">
-          É a parte que faz a proposta parecer feita para esta loja, e não um modelo. Vale
+          É a parte que faz a proposta parecer feita para este cliente, e não um modelo. Vale
           mais que o resto junto.
         </p>
       </div>

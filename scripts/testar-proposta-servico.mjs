@@ -182,7 +182,7 @@ try {
   const socialMarcado = await pagina.evaluate(
     () => document.querySelector('input[name="servico_social"]')?.checked ?? null,
   );
-  ok(socialMarcado === false, 'social media começa DESMARCADO: é complemento, não padrão');
+  ok(socialMarcado === false, 'criação de conteúdo começa DESMARCADA: é complemento, não padrão');
 
   const trafegoMarcado = await pagina.evaluate(
     () => document.querySelector('input[name="servico_trafego"]')?.checked ?? null,
@@ -194,7 +194,10 @@ try {
   await preencher(pagina, 'input[name="fee_trafego"]', '1.800');
 
   await marcar(pagina, 'servico_social');
-  ok(await esperarSeletor(pagina, 'input[name="fee_social"]'), 'marcar social abre o valor dele');
+  ok(
+    await esperarSeletor(pagina, 'input[name="fee_social"]'),
+    'marcar o complemento abre o valor dele',
+  );
   await preencher(pagina, 'input[name="fee_social"]', '900');
 
   await preencher(
@@ -224,7 +227,7 @@ try {
   ok(trafego?.fee === 1800, `o valor do tráfego é 1800 (é ${trafego?.fee})`);
   ok(social?.fee === 900, `e o do social é 900 (é ${social?.fee})`);
   ok(
-    /gest[ãa]o de tr[áa]fego pago e social media/i.test(prop?.resumo ?? ''),
+    /gest[ãa]o de tr[áa]fego pago e cria[çc][ãa]o de conte[úu]do/i.test(prop?.resumo ?? ''),
     `o resumo padrão nomeia os serviços ("${(prop?.resumo ?? '').slice(0, 60)}...")`,
   );
 
@@ -266,7 +269,7 @@ try {
   const noDeck = await pagina.evaluate(() => document.body.innerText);
 
   ok(/Gest[ãa]o de tr[áa]fego pago/i.test(noDeck), 'o deck mostra o serviço principal');
-  ok(/Social media/i.test(noDeck), 'e o complemento');
+  ok(/Cria[çc][ãa]o de conte[úu]do/i.test(noDeck), 'e o complemento');
   ok(/complemento/i.test(noDeck), 'marcado como complemento, e não como igual');
   ok(/1\.800/.test(noDeck), 'com o valor do tráfego');
   ok(/900/.test(noDeck), 'e o do social');
@@ -279,6 +282,16 @@ try {
   ok(
     !/Saturno|Falcon|Apollo/.test(noDeck),
     'e não mostra nenhum pacote de e-commerce junto',
+  );
+
+  /* O catálogo é lido por advogada que vende curso, clínica e chalé.
+     Palavra que só faz sentido em loja faz a proposta parecer modelo
+     reaproveitado do negócio de outro. */
+  const soDeLoja = ['loja virtual', 'e-commerce', 'carrinho', 'checkout', 'lojista'];
+  const achadas = soDeLoja.filter((t) => new RegExp(t, 'i').test(noDeck));
+  ok(
+    achadas.length === 0,
+    `o texto não assume que o cliente é loja (achei: ${achadas.join(', ') || 'nada'})`,
   );
 
   /* ---------------------------------------------------------------- */
