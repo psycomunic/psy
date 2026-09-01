@@ -20,6 +20,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const paginas: { caminho: string; prioridade: number; frequencia: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
     { caminho: '/', prioridade: 1.0, frequencia: 'weekly' },
+    /* Prioridade alta: é a página que recebe anúncio, e a que responde
+       pela busca de 'gestão de tráfego' na região. */
+    { caminho: '/trafego-pago', prioridade: 0.95, frequencia: 'monthly' },
     { caminho: '/diagnostico', prioridade: 0.9, frequencia: 'monthly' },
     { caminho: '/servicos', prioridade: 0.9, frequencia: 'monthly' },
     ...frentes.map((f) => ({

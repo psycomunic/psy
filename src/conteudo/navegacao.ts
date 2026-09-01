@@ -13,6 +13,7 @@
  * src/app/sitemap.ts, que precisa continuar de acordo com esta lista.
  */
 export const navPrincipal = [
+  { href: '/trafego-pago', rotulo: 'Tráfego pago' },
   { href: '/servicos', rotulo: 'Serviços' },
   { href: '/como-trabalhamos', rotulo: 'Como trabalhamos' },
   { href: '/cases', rotulo: 'Trabalhos' },
@@ -23,6 +24,7 @@ export const navRodape = [
   {
     titulo: 'Serviços',
     itens: [
+      { href: '/trafego-pago', rotulo: 'Tráfego pago' },
       { href: '/servicos/gestao', rotulo: 'Gestão' },
       { href: '/servicos/tecnologia', rotulo: 'Tecnologia' },
       { href: '/servicos/marketing', rotulo: 'Marketing' },
