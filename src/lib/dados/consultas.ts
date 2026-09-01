@@ -908,7 +908,7 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('proposta')
-    .select('id, slug, cliente, contato, status, resumo, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
+    .select('id, slug, cliente, contato, status, resumo, versao, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
     .order('criada_em', { ascending: false })
     .limit(60);
 
@@ -931,6 +931,7 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
         servicos:
           ((p.corpo as { servicos?: { id: string; fee: number }[] })?.servicos) ?? [],
         resumo: (p.resumo as string) ?? '',
+        versao: Number(p.versao ?? 1),
         diagnostico: ((p.corpo as { diagnostico?: string[] })?.diagnostico) ?? [],
         proximosPassos:
           ((p.corpo as { proximosPassos?: string[] })?.proximosPassos) ?? [],

@@ -410,6 +410,9 @@ export type PropostaResumo = {
   resumo: string;
   diagnostico: string[];
   proximosPassos: string[];
+  /* Sobe a cada edição. Vai no link copiado, para o WhatsApp remontar
+     a prévia em vez de servir a antiga do cache dele. */
+  versao: number;
 };
 
 export const rotuloStatusProposta: Record<PropostaResumo['status'], string> = {

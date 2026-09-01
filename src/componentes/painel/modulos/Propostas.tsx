@@ -197,7 +197,7 @@ export async function Propostas({
                       {p.status === 'rascunho' ? (
                         <span className="text-xs text-cinza">não publicado</span>
                       ) : (
-                        <CopiarLink slug={p.slug} />
+                        <CopiarLink slug={p.slug} versao={p.versao} />
                       )}
                     </td>
                     {podeEditar ? (

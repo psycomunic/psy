@@ -412,7 +412,25 @@ export function FormProposta({
 
 /* ------------------------------------------------------------------ */
 
-export function CopiarLink({ slug }: { slug: string }) {
+/**
+ * Copia o link, com a versão junto.
+ *
+ * ============================================================
+ * POR QUE O `?v=` EXISTE
+ * ============================================================
+ * O WhatsApp guarda a prévia do link nos servidores dele, e a chave
+ * desse cache é a URL exata. Editada a proposta, quem recebe o mesmo
+ * endereço continua vendo o cartão antigo: o título de antes, o valor
+ * de antes, às vezes o nome do cliente errado.
+ *
+ * A versão sobe a cada edição, então o link copiado muda junto e a
+ * prévia é remontada. É uma URL diferente para o cache deles e a mesma
+ * página para o servidor, que ignora o parâmetro.
+ *
+ * Também resolve o caso de agora: um link já compartilhado antes de a
+ * prévia existir sai daqui com `?v=1` e é tratado como novo.
+ */
+export function CopiarLink({ slug, versao = 1 }: { slug: string; versao?: number }) {
   const [copiado, setCopiado] = useState(false);
 
   return (
@@ -422,7 +440,9 @@ export function CopiarLink({ slug }: { slug: string }) {
         /* `window.location.origin` em vez de uma URL fixa: em
            pré-visualização da Vercel o domínio é outro, e um link
            copiado com o domínio de produção abriria a proposta errada. */
-        await navigator.clipboard.writeText(`${window.location.origin}/proposta/${slug}`);
+        await navigator.clipboard.writeText(
+          `${window.location.origin}/proposta/${slug}?v=${versao}`,
+        );
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2500);
       }}

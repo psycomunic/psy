@@ -479,6 +479,60 @@ try {
   ok(semBotoes?.temEditar === false, 'a linha de uma proposta aceita não oferece Editar');
   ok(semBotoes?.temRemover === false, 'nem Remover');
 
+
+  /* ---------------------------------------------------------------- */
+  console.log('\nO link copiado carrega a versao');
+
+  await pagina.goto(`${APP}/painel/propostas`, { waitUntil: 'networkidle0', timeout: 60000 });
+
+  /*
+    Espiona o que vai para a area de transferencia, em vez de ler dela.
+
+    Ler o clipboard no headless depende de permissao e de foco na
+    janela, e devolve vazio quando qualquer um dos dois falta. Trocar o
+    writeText por um que anota o argumento mede a MESMA coisa: o que
+    o botao copia - sem depender do ambiente.
+  */
+  await pagina.evaluate(() => {
+    window.__copiado = null;
+    navigator.clipboard.writeText = async (t) => {
+      window.__copiado = t;
+    };
+  });
+
+  const copiou = await pagina.evaluate((c) => {
+    const linha = [...document.querySelectorAll('tr')].find((t) =>
+      (t.textContent ?? '').includes(c),
+    );
+    const b = [...(linha?.querySelectorAll('button') ?? [])].find((x) =>
+      (x.textContent ?? '').includes('copiar link'),
+    );
+    if (!b) return false;
+    b.click();
+    return true;
+  }, CLIENTE);
+  ok(copiou === true, 'existe o botao de copiar link');
+
+  await new Promise((r) => setTimeout(r, 600));
+  const copiado = await pagina.evaluate(() => window.__copiado ?? '');
+
+  ok(copiado.includes(slug), 'o link copiado aponta para esta proposta');
+  ok(/\?v=\d+/.test(copiado), `e carrega a versao (${copiado.split('/').pop()})`);
+
+  /*
+    O WhatsApp guarda a previa nos servidores dele, com a URL como
+    chave. Sem o `?v=`, editar a proposta e reenviar o mesmo endereco
+    mostraria o cartao antigo: titulo de antes, valor de antes.
+  */
+  const comVersao = await fetch(copiado.replace(APP, APP));
+  ok(comVersao.status === 200, `a pagina responde com o parametro (${comVersao.status})`);
+
+  const htmlComVersao = await comVersao.text();
+  ok(
+    htmlComVersao.includes(`Proposta para ${CLIENTE}`),
+    'e a previa continua sendo a desta proposta',
+  );
+
   /* ---------------------------------------------------------------- */
   console.log('\nApagar');
 
