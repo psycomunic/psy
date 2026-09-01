@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buscarPropostaExibida, venceEmExibida } from '@/dados/propostas';
 import { condicoesPadrao, PLANOS } from '@/dados/planos';
-import { fichaDoServico, sempreNoAvulso, somaDosServicos, emReais } from '@/dados/servicos';
+import { fichaDoServico, sempreNoAvulso, emReais } from '@/dados/servicos';
 import { Deck } from '@/componentes/proposta/Deck';
 import { Slide, Bloco } from '@/componentes/proposta/Slide';
 import {
@@ -267,8 +267,8 @@ export default async function PaginaProposta({
       {p.servicos.length > 0 ? (
         <SlideServicos
           precoNaConta={p.etapas.length > 0}
-          totalTexto={emReais(somaDosServicos(p.servicos))}
           sempre={sempreNoAvulso}
+          linkWhatsapp={linkWhatsapp}
           servicos={p.servicos.map((s) => {
             const f = fichaDoServico(s.id);
             return {
@@ -279,6 +279,7 @@ export default async function PaginaProposta({
               promessa: f.promessa,
               entregas: f.entregas,
               naoInclui: f.naoInclui,
+              fee: s.fee,
               feeTexto: emReais(s.fee),
             };
           })}

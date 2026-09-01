@@ -26,15 +26,19 @@ import 'server-only';
  * isso é definido com o cliente, não presumido aqui.
  *
  * ============================================================
- * POR QUE NÃO HÁ PREÇO NESTE ARQUIVO
+ * PREÇO SÓ ONDE ELE NÃO MUDA
  * ============================================================
- * De propósito. O catálogo diz o que CADA serviço entrega — que é o
- * que não pode mudar de cliente para cliente. O valor é campo da
- * proposta, preenchido no gerador, porque é negociação.
+ * Criação de conteúdo tem valor sugerido: a entrega é a mesma para
+ * todo mundo e o trabalho não muda com o porte do cliente.
  *
- * Uma tabela fixa aqui viraria preço que ninguém cumpre: bastaria o
- * segundo cliente pagar diferente para o arquivo passar a mentir. E
- * arquivo que mente sobre preço é pior que arquivo sem preço.
+ * Gestão de tráfego não tem. Conta com uma campanha e conta com doze
+ * não dão o mesmo trabalho, e cravar um número aqui viraria preço que
+ * ninguém cumpre: bastaria o segundo cliente pagar diferente para o
+ * arquivo passar a mentir. E arquivo que mente sobre preço é pior que
+ * arquivo sem preço.
+ *
+ * Onde existe, o número é SUGERIDO: preenche o campo do gerador e
+ * continua editável. A negociação manda.
  */
 
 export type Servico = 'trafego' | 'social';
@@ -52,6 +56,19 @@ export type FichaServico = {
   papel: 'principal' | 'complemento';
   paraQuem: string;
   promessa: string;
+  /**
+   * Valor sugerido, quando o serviço TEM tabela.
+   *
+   * Criação de conteúdo tem: a entrega é a mesma para todo mundo, e o
+   * trabalho não muda com o porte do cliente. Gestão de tráfego não
+   * tem, porque muda - conta com uma campanha e conta com doze não dão
+   * o mesmo trabalho, e cravar um número aqui viraria preço que
+   * ninguém cumpre.
+   *
+   * Sugerido, e não fixo: o campo do gerador vem preenchido com ele e
+   * continua editável. A negociação manda.
+   */
+  precoSugerido?: number;
   entregas: string[];
   /** O que este serviço NÃO cobre. Dito antes, e não na primeira
       cobrança de algo que o cliente achava incluso. */
@@ -66,7 +83,7 @@ export const fichasDeServico: Record<Servico, FichaServico> = {
     paraQuem:
       'Quem precisa de cliente entrando com previsibilidade, e não de sorte no algoritmo',
     promessa:
-      'Google e Meta operados por quem responde pelo resultado. A primeira decisão é definir o que conta como conversão no seu negócio — matrícula, orçamento, reserva, consulta ou pedido — e daí para frente tudo é medido contra isso.',
+      'Google e Meta operados por quem responde pelo resultado. A primeira decisão é definir o que conta como conversão no seu negócio: matrícula, orçamento, reserva, consulta ou pedido. Daí para frente, tudo é medido contra isso.',
     entregas: [
       'Definição do que conta como conversão, antes de subir campanha',
       'Conferência e correção do rastreamento: evento que não dispara ou que conta duas vezes invalida qualquer decisão tomada depois',
@@ -90,12 +107,12 @@ export const fichasDeServico: Record<Servico, FichaServico> = {
     nome: 'Criação de conteúdo',
     papel: 'complemento',
     paraQuem: 'Quem anuncia e manda a pessoa para um perfil parado',
+    precoSugerido: 2500,
     promessa:
       'O criativo que roda no anúncio e o perfil que a pessoa encontra depois de clicar, cuidados juntos. Quem está decidindo procura o seu nome antes de comprar, e perfil abandonado responde essa busca do jeito errado.',
     entregas: [
       'Criativos para as campanhas, em variações feitas para serem testadas uma contra a outra',
       'Calendário de conteúdo alinhado ao que a campanha está promovendo',
-      'Edição e finalização dos vídeos, com a direção do que gravar',
       'Artes e carrosséis para o feed',
       'Legendas escritas para o público que o anúncio traz',
       'Publicação e leitura do que rendeu',

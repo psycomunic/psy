@@ -154,7 +154,7 @@ export function FormContrato({
                    lista; assim a própria opção diz por quê. */
                 <option key={l.id} value={l.id} disabled={l.comContrato}>
                   {l.nome}
-                  {l.comContrato ? ' — já tem contrato' : ''}
+                  {l.comContrato ? ' (já tem contrato)' : ''}
                 </option>
               ))}
             </select>

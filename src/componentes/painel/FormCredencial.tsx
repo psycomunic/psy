@@ -86,7 +86,7 @@ export function FormCredencial({
 
       <p className="text-sm leading-relaxed text-cinza">
         Cole os valores uma vez. Eles são cifrados antes de ir para o banco e{' '}
-        <strong className="text-neve">não voltam a aparecer nesta tela</strong> — nem para
+        <strong className="text-neve">não voltam a aparecer nesta tela</strong>, nem para
         você. Para trocar, cole de novo.
       </p>
 

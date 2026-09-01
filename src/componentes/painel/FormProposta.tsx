@@ -39,6 +39,8 @@ export type OpcaoServico = {
   nome: string;
   papel: 'principal' | 'complemento';
   paraQuem: string;
+  /** Preenche o campo de valor quando o servico tem tabela. */
+  precoSugerido: number | null;
 };
 
 /** O lead de origem, quando a proposta nasce do funil. */
@@ -245,6 +247,11 @@ export function FormProposta({
                         id={`fee-${s.id}`}
                         name={`fee_${s.id}`}
                         inputMode="decimal"
+                        defaultValue={
+                          s.precoSugerido
+                            ? s.precoSugerido.toLocaleString('pt-BR')
+                            : ''
+                        }
                         placeholder="1.800"
                         className={`mt-2 ${campo}`}
                       />

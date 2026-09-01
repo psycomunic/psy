@@ -182,7 +182,7 @@ export function FormCobrancaAvulsa({
               {lojas.map((l) => (
                 <option key={l.id} value={l.id} disabled={!l.temDocumento}>
                   {l.nome}
-                  {l.temDocumento ? '' : ' — sem CNPJ'}
+                  {l.temDocumento ? '' : ' (sem CNPJ)'}
                 </option>
               ))}
             </select>

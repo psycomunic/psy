@@ -60,6 +60,9 @@ export async function Propostas({ papel, leadId }: { papel: Papel; leadId?: stri
     nome: fichasDeServico[s].nome,
     papel: fichasDeServico[s].papel,
     paraQuem: fichasDeServico[s].paraQuem,
+    /* Sugerido, e nao fixo: o campo abre preenchido e continua
+       editavel. A negociacao manda. */
+    precoSugerido: fichasDeServico[s].precoSugerido ?? null,
   }));
 
   return (

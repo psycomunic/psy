@@ -198,7 +198,7 @@ try {
     await esperarSeletor(pagina, 'input[name="fee_social"]'),
     'marcar o complemento abre o valor dele',
   );
-  await preencher(pagina, 'input[name="fee_social"]', '900');
+  /* Nao preenche: o campo ja vem com o valor sugerido de tabela. */
 
   await preencher(
     pagina,
@@ -225,7 +225,7 @@ try {
   const trafego = (corpo.servicos ?? []).find((s) => s.id === 'trafego');
   const social = (corpo.servicos ?? []).find((s) => s.id === 'social');
   ok(trafego?.fee === 1800, `o valor do tráfego é 1800 (é ${trafego?.fee})`);
-  ok(social?.fee === 900, `e o do social é 900 (é ${social?.fee})`);
+  ok(social?.fee === 2500, `e o do conteudo veio da tabela, 2500 (veio ${social?.fee})`);
   ok(
     /gest[ãa]o de tr[áa]fego pago e cria[çc][ãa]o de conte[úu]do/i.test(prop?.resumo ?? ''),
     `o resumo padrão nomeia os serviços ("${(prop?.resumo ?? '').slice(0, 60)}...")`,
@@ -272,8 +272,33 @@ try {
   ok(/Cria[çc][ãa]o de conte[úu]do/i.test(noDeck), 'e o complemento');
   ok(/complemento/i.test(noDeck), 'marcado como complemento, e não como igual');
   ok(/1\.800/.test(noDeck), 'com o valor do tráfego');
-  ok(/900/.test(noDeck), 'e o do social');
-  ok(/2\.700/.test(noDeck), 'e a soma dos dois, para o cliente não somar errado');
+  ok(/2.500/.test(noDeck), 'e o do conteudo');
+  /*
+    O total começa SEM o opcional.
+
+    Complemento que já vem somado é empurrar: a pessoa lê um número
+    maior do que pediu e descobre o motivo depois, se descobrir. Aqui
+    ela vê o essencial, e o total sobe só quando ela marca.
+  */
+  ok(
+    /1\.800/.test(noDeck) && !/4\.300/.test(noDeck),
+    'o total abre sem o opcional, em R$ 1.800',
+  );
+
+  const somou = await pagina.evaluate(() => {
+    const caixas = [...document.querySelectorAll('input[type="checkbox"]')];
+    if (caixas.length === 0) return null;
+    caixas[0].click();
+    return true;
+  });
+  ok(somou === true, 'quem lê consegue marcar o opcional');
+
+  await new Promise((r) => setTimeout(r, 400));
+  const comOpcional = await pagina.evaluate(() => document.body.innerText);
+  ok(
+    /4\.300/.test(comOpcional),
+    'e o total sobe sozinho para R$ 4.300, sem o cliente somar',
+  );
   ok(/O que n[ãa]o entra/i.test(noDeck), 'diz o que NÃO está incluso, antes de assinar');
   ok(
     /verba de m[íi]dia/i.test(noDeck),
@@ -289,6 +314,18 @@ try {
      reaproveitado do negócio de outro. */
   const soDeLoja = ['loja virtual', 'e-commerce', 'carrinho', 'checkout', 'lojista'];
   const achadas = soDeLoja.filter((t) => new RegExp(t, 'i').test(noDeck));
+  /* Travessao no meio da frase e a marca registrada de texto de IA,
+     e o cliente le esta proposta inteira. */
+  const comTravessao = (noDeck.match(/ — /g) ?? []).length;
+  ok(comTravessao === 0, `nenhum travessao no meio de frase (achei ${comTravessao})`);
+
+  ok(!/edi[çc][ãa]o.{0,20}v[íi]deo/i.test(noDeck), 'edicao de video saiu da proposta');
+  ok(/opcional/i.test(noDeck), 'o complemento aparece marcado como opcional');
+  ok(
+    /Quero incluir na proposta/i.test(noDeck),
+    'e quem le pode selecionar se quiser',
+  );
+
   ok(
     achadas.length === 0,
     `o texto não assume que o cliente é loja (achei: ${achadas.join(', ') || 'nada'})`,

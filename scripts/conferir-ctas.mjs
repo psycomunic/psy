@@ -46,6 +46,17 @@ for (const rota of PAGINAS) {
     continue;
   }
 
+  /* Travessao no meio da frase e a marca registrada de texto de IA.
+     A regra vale para o site inteiro, e o unico jeito de ela nao voltar
+     e alguem medir. */
+  const travessoes = await p.evaluate(
+    () => (document.body.innerText.match(/ — /g) ?? []).length,
+  );
+  if (travessoes > 0) {
+    console.log(`  FALHA  ${rota} tem ${travessoes} travessao(oes) no meio de frase`);
+    falhas++;
+  }
+
   const links = await p.evaluate(() =>
     [...document.querySelectorAll('a[href]')].map((a) => ({
       href: a.getAttribute('href'),
