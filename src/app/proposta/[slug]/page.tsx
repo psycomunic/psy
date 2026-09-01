@@ -12,7 +12,8 @@ import {
   SlideSempreIncluso,
 } from '@/componentes/proposta/Planos';
 import { SlideMarcas } from '@/componentes/proposta/Marcas';
-import { SlideServicos } from '@/componentes/proposta/Servicos';
+import { SlideDeUmServico, SlideSempre } from '@/componentes/proposta/Servicos';
+import { SlideDaConta } from '@/componentes/proposta/ContaDaProposta';
 import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornada';
 import { SlideCusto, SlideLancamento, SlideInclusoes } from '@/componentes/proposta/Custo';
 import { marca } from '@/conteudo/marca';
@@ -312,27 +313,67 @@ export default async function PaginaProposta({
       {/* Metade da carteira não é loja virtual, e empurrar um pacote */}
       {/* de e-commerce para um chalé seria vender o que não serve.   */}
       {/* ---------------------------------------------------------- */}
-      {p.servicos.length > 0 ? (
-        <SlideServicos
-          precoNaConta={p.etapas.length > 0}
-          sempre={sempreNoAvulso}
-          linkWhatsapp={linkWhatsapp}
-          servicos={p.servicos.map((s) => {
-            const f = fichaDoServico(s.id);
-            return {
-              id: f.id,
-              nome: f.nome,
-              papel: f.papel,
-              paraQuem: f.paraQuem,
-              promessa: f.promessa,
-              entregas: f.entregas,
-              naoInclui: f.naoInclui,
-              fee: s.fee,
-              feeTexto: emReais(s.fee),
-            };
-          })}
-        />
-      ) : null}
+      {/*
+        Um ARRAY, e nao um componente que devolve varios slides.
+
+        O Deck fatia a apresentacao pelos filhos diretos: um fragmento
+        com quatro slides dentro conta como UM filho, e os quatro viram
+        uma tela so - foi o que aconteceu, com quase tres mil pixels de
+        altura no telefone. Array funciona porque Children.toArray
+        achata array aninhado.
+      */}
+      {p.servicos.length > 0
+        ? [
+            ...p.servicos.map((s) => {
+              const f = fichaDoServico(s.id);
+              return (
+                <SlideDeUmServico
+                  key={`servico-${f.id}`}
+                  precoNaConta={p.etapas.length > 0}
+                  s={{
+                    id: f.id,
+                    nome: f.nome,
+                    papel: f.papel,
+                    paraQuem: f.paraQuem,
+                    promessa: f.promessa,
+                    entregas: f.entregas,
+                    naoInclui: f.naoInclui,
+                    fee: s.fee,
+                    feeTexto: emReais(s.fee),
+                  }}
+                />
+              );
+            }),
+            p.etapas.length > 0 ? null : (
+              <SlideDaConta
+                key="conta"
+                linkWhatsapp={linkWhatsapp}
+                servicos={p.servicos.map((s) => {
+                  const f = fichaDoServico(s.id);
+                  return {
+                    id: f.id,
+                    nome: f.nome,
+                    papel: f.papel,
+                    paraQuem: f.paraQuem,
+                    promessa: f.promessa,
+                    entregas: f.entregas,
+                    naoInclui: f.naoInclui,
+                    fee: s.fee,
+                    feeTexto: emReais(s.fee),
+                  };
+                })}
+              />
+            ),
+            <SlideSempre
+              key="sempre"
+              sempre={sempreNoAvulso}
+              complementos={p.servicos
+                .map((s) => fichaDoServico(s.id))
+                .filter((f) => f.papel === 'complemento')
+                .map((f) => f.nome)}
+            />,
+          ].filter(Boolean)
+        : null}
 
       {/* ---------------------------------------------------------- */}
       {/* O que esta proposta dá além do plano                        */}

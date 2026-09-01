@@ -56,14 +56,19 @@ export function SlideMarcas({
       apoio={apoio}
     >
       <div className="flex min-h-full flex-col">
-        {/* Quatro colunas no telefone, não três: com 28 logos, três
-            colunas dão dez fileiras e a grade sai da tela. Quatro
-            fecham em sete, e cabe sem rolar. */}
-        <ul className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-2.5 lg:grid-cols-7">
+        {/*
+          Cinco colunas no telefone, e não quatro.
+
+          Com 28 logos, quatro colunas dão sete fileiras e a grade
+          estourava 283px para fora da tela - medido, não estimado. Cinco
+          fecham em seis fileiras, e a caixa mais baixa (3/2 em vez de
+          4/3) tira o resto.
+        */}
+        <ul className="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-6 sm:gap-2.5 lg:grid-cols-7">
           {logosMarcas.map((arquivo) => (
             <li
               key={arquivo}
-              className="flex aspect-[4/3] items-center justify-center rounded-xl border border-fio bg-white/[0.05] p-2 transition-colors sm:p-2.5"
+              className="flex aspect-[3/2] items-center justify-center rounded-lg border border-fio bg-white/[0.05] p-1.5 transition-colors sm:aspect-[4/3] sm:rounded-xl sm:p-2.5"
             >
               <Image
                 src={`/imagens/marcas/${arquivo}`}

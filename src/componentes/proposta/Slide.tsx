@@ -92,7 +92,7 @@ export function Bloco({
   return (
     <div
       className={
-        'cartao p-5 sm:p-6 ' +
+        'cartao p-4 sm:p-6 ' +
         (destaque ? 'border-magenta/50 shadow-[0_24px_60px_-30px_rgba(228,21,95,0.6)] ' : '') +
         className
       }

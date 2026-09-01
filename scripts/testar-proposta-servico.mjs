@@ -321,10 +321,14 @@ try {
 
   ok(!/edi[çc][ãa]o.{0,20}v[íi]deo/i.test(noDeck), 'edicao de video saiu da proposta');
   ok(/opcional/i.test(noDeck), 'o complemento aparece marcado como opcional');
-  ok(
-    /Quero incluir na proposta/i.test(noDeck),
-    'e quem le pode selecionar se quiser',
+  /* A escolha mora na tela da conta, e nao no slide do complemento:
+     foi o que permitiu separar os quatro slides que antes vinham
+     grudados num fragmento. Aqui basta existir a caixa; que ela some
+     ao total e coisa que o conferir-deck prova, tocando nela. */
+  const temEscolha = await pagina.evaluate(
+    () => document.querySelectorAll('input[type="checkbox"]').length > 0,
   );
+  ok(temEscolha, 'e quem le pode selecionar o complemento');
 
   ok(
     achadas.length === 0,

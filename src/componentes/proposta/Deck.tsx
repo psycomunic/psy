@@ -80,6 +80,41 @@ export function Deck({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  /*
+    Marca a tela que TEM mais coisa abaixo.
+
+    Slide com muito item nao cabe no telefone, e a secao rola por dentro
+    de proposito: o overflow-y-auto esta ali para isso. O problema
+    nunca foi a rolagem: era ela ser invisivel. Quem nao sabe que ha
+    mais desliza para o lado e perde metade do que estava escrito.
+  */
+  useEffect(() => {
+    const el = trilho.current;
+    if (!el) return;
+
+    const conferir = () => {
+      for (const secao of Array.from(el.children)) {
+        const rola = secao.scrollHeight > secao.clientHeight + 8;
+        const noFim = secao.scrollTop + secao.clientHeight >= secao.scrollHeight - 12;
+        secao.toggleAttribute('data-tem-mais', rola && !noFim);
+      }
+    };
+
+    conferir();
+    const t = setTimeout(conferir, 400);
+    window.addEventListener('resize', conferir);
+    for (const secao of Array.from(el.children)) {
+      secao.addEventListener('scroll', conferir, { passive: true });
+    }
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', conferir);
+      for (const secao of Array.from(el.children)) {
+        secao.removeEventListener('scroll', conferir);
+      }
+    };
+  }, [total]);
+
   /* Setas do teclado, porque quem abre no computador tenta isso antes
      de procurar botão. Só quando o foco não está num campo. */
   useEffect(() => {
@@ -127,7 +162,7 @@ export function Deck({ children }: { children: ReactNode }) {
             {/* Faixas: topo para o cabeçalho fixo, base para os
                 controles. Sem elas o conteúdo passa por baixo dos dois
                 e some justamente onde o polegar fica. */}
-            <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col px-6 pb-32 pt-20 sm:px-10 sm:pb-32 md:pt-24 print:pb-8 print:pt-8">
+            <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col px-6 pb-28 pt-14 sm:px-10 sm:pb-32 sm:pt-20 md:pt-24 print:pb-8 print:pt-8">
               {slide}
             </div>
           </section>
@@ -226,6 +261,34 @@ export function Deck({ children }: { children: ReactNode }) {
 
       <style>{`
         .deck-trilho::-webkit-scrollbar { display: none; }
+        .deck-trilho > section::-webkit-scrollbar { display: none; }
+        .deck-trilho > section { scrollbar-width: none; }
+
+        /*
+          O aviso de que a tela continua abaixo.
+
+          Slide com muitos itens nao cabe no telefone e rola por dentro,
+          que e o comportamento desenhado. O que faltava era alguem
+          saber disso: sem sinal, a pessoa desliza para o lado e perde
+          metade do que estava escrito.
+
+          Um veu curto na base, so enquanto houver o que ver, e so no
+          telefone. No desktop tudo cabe e o veu seria enfeite.
+        */
+        @media (max-width: 767px) {
+          .deck-trilho > section[data-tem-mais]::after {
+            content: '';
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 118px;
+            height: 56px;
+            pointer-events: none;
+            z-index: 15;
+            background: linear-gradient(to top, var(--marinho) 12%, transparent);
+          }
+        }
+
         @media print { .deck-trilho { display: block !important; } }
       `}</style>
     </div>
