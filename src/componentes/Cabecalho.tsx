@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Marca } from './Marca';
 import { Botao } from './Botao';
 import { navPrincipal } from '@/conteudo/navegacao';
@@ -20,6 +20,35 @@ import { navPrincipal } from '@/conteudo/navegacao';
 export function Cabecalho() {
   const [rolou, setRolou] = useState(false);
   const [aberto, setAberto] = useState(false);
+  const caixa = useRef<HTMLElement>(null);
+
+  /*
+    Publica a altura real do cabeçalho em `--cabecalho`.
+
+    Ele é `sticky`, então ocupa espaço no fluxo: uma seção de `100svh`
+    logo abaixo termina exatamente uma altura de cabeçalho abaixo da
+    dobra. Foi o que aconteceu com a abertura de /trafego-pago, e o que
+    ficava cortado era justamente a dica de que a imagem responde ao
+    cursor.
+
+    Medido em vez de fixado porque a altura muda com a largura: 77px no
+    telefone, 101px em 1024 (onde o menu completo entra e o botão de
+    diagnóstico estica a barra) e 81px em 1440. Qualquer número
+    escrito à mão erra em pelo menos um desses.
+  */
+  useEffect(() => {
+    const alvo = caixa.current;
+    if (!alvo) return;
+    const publicar = () =>
+      document.documentElement.style.setProperty(
+        '--cabecalho',
+        `${Math.round(alvo.getBoundingClientRect().height)}px`,
+      );
+    publicar();
+    const observador = new ResizeObserver(publicar);
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, []);
 
   useEffect(() => {
     const aoRolar = () => setRolou(window.scrollY > 24);
@@ -49,6 +78,7 @@ export function Cabecalho() {
 
   return (
     <header
+      ref={caixa}
       className={
         'sticky top-0 z-50 transition-all duration-300 ' +
         (rolou

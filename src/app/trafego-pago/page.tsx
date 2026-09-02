@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Casca, secao, canonical } from '@/componentes/Casca';
 import { Botao } from '@/componentes/Botao';
+import { HeroTrafego } from '@/componentes/HeroTrafego';
 import { FitaMarcas } from '@/componentes/FitaMarcas';
 import { FormAnalise } from '@/componentes/FormAnalise';
 import { linkWhatsapp } from '@/conteudo/navegacao';
@@ -16,6 +17,7 @@ import {
   quemOpera,
   perguntas,
   formulario,
+  oQueAnaliseCobre,
 } from '@/conteudo/trafego';
 
 /**
@@ -59,44 +61,37 @@ export default function PaginaTrafego() {
   return (
     <Casca>
       {/* ============================================================ */}
-      {/* Abertura                                                     */}
+      {/* Abertura em tela cheia                                       */}
+      {/*                                                              */}
+      {/* O formulário SAIU da primeira dobra e virou destino do botão. */}
+      {/* É a troca que este formato pede: a abertura passa a fazer um  */}
+      {/* argumento em vez de pedir dados de quem ainda não sabe por    */}
+      {/* que daria. Quem chegou decidido tem o botão à mão, e ele rola */}
+      {/* direto para o formulário logo abaixo.                        */}
       {/* ============================================================ */}
-      <section className="relative isolate overflow-hidden pb-16 pt-12 md:pb-24 md:pt-16">
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="grade absolute inset-0" />
-          <div className="brilho-magenta absolute -right-[14%] -top-[38%] h-[760px] w-[760px] opacity-40" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-marinho" />
-        </div>
+      <HeroTrafego
+        rotulo={heroi.rotulo}
+        titulo={heroi.linhas}
+        texto={heroi.texto}
+        apoio={heroi.apoio}
+        acao={heroi.acao}
+        linkWhatsapp={linkWhatsapp}
+        especificacoes={oQueAnaliseCobre}
+      />
 
+      {/* O formulário, logo depois da abertura. */}
+      <section id="analise" className="scroll-mt-20 border-t border-fio py-16 md:py-24">
         <div className={secao}>
-          <div className="grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
+          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
             <div>
-              <p className={`mt-4 ${rotuloSecao}`}>
+              <p className={rotuloSecao}>
                 <span aria-hidden className="h-px w-8 bg-magenta" />
-                {heroi.rotulo}
+                Sem custo
               </p>
-
-              <h1 className={`mt-6 max-w-[19ch] ${tituloSecao}`}>{heroi.titulo}</h1>
-
-              <p className="mt-8 max-w-[58ch] text-guia text-neve">{heroi.texto}</p>
-
-              <div className="mt-10 flex flex-wrap items-center gap-4">
-                <Botao href="#analise">{heroi.acao}</Botao>
-                <Botao href={linkWhatsapp} variante="secundario" externo>
-                  Falar no WhatsApp
-                </Botao>
-              </div>
-
-              <p className="mt-6 max-w-[46ch] text-sm leading-relaxed text-cinza">
-                {heroi.apoio}
-              </p>
+              <h2 className={`mt-6 max-w-[16ch] ${tituloSecao}`}>{formulario.titulo}</h2>
+              <p className="mt-7 max-w-[50ch] text-guia text-neve">{formulario.texto}</p>
             </div>
-
-            {/* O formulário na primeira dobra, no desktop. Quem chegou
-                decidido não deve precisar rolar para agir. */}
-            <div id="analise" className="scroll-mt-24">
-              <FormAnalise />
-            </div>
+            <FormAnalise />
           </div>
         </div>
       </section>

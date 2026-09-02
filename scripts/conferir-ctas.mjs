@@ -165,12 +165,24 @@ for (const rota of ['/trafego-pago', '/cases', '/servicos', '/sobre']) {
       await new Promise((r) => setTimeout(r, 90));
     }
   });
-  await new Promise((r) => setTimeout(r, 600));
+  /* Espera a revelacao ASSENTAR, em vez de dormir um tempo fixo.
 
-  const vis = await p.evaluate(() => {
+     A transicao dura 700ms e o ultimo bloco revelado pode estar em
+     opacidade 0,02 na hora da medicao. Com espera fixa isso dava uma
+     falha a cada tres rodadas: barulho que ensina a ignorar o teste, e
+     teste ignorado nao protege nada.
+
+     Bloco de verdade preso nunca assenta, entao o limite de 3s abaixo
+     ainda pega o defeito que este teste existe para pegar. */
+  const vis = await p.evaluate(async () => {
     const t = [...document.querySelectorAll('.revelar')];
-    const inv = t.filter((e) => parseFloat(getComputedStyle(e).opacity) < 0.05);
-    return { url: location.pathname, total: t.length, inv: inv.length };
+    const escondidos = () =>
+      t.filter((e) => parseFloat(getComputedStyle(e).opacity) < 0.05).length;
+    const limite = Date.now() + 3000;
+    while (escondidos() > 0 && Date.now() < limite) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    return { url: location.pathname, total: t.length, inv: escondidos() };
   });
 
   if (vis.inv > 0) {

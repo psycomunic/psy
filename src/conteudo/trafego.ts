@@ -27,12 +27,30 @@
 
 export const heroi = {
   rotulo: 'Tráfego pago de alta performance',
+  /* Uma linha por entrada: cada uma sobe separada na abertura. Quebrar
+     no lugar certo é o que faz a frase ter ritmo em vez de virar um
+     bloco que o navegador parte onde quiser. */
+  linhas: ['Você investe', 'todo mês.', 'Sabe o que voltou?'],
   titulo: 'Sua empresa investe em anúncio todo mês. Sabe dizer quanto voltou?',
   texto:
     'A maior parte das empresas que chega até a Psy Comunic já anuncia. O problema quase nunca é falta de verba: é não saber qual campanha traz cliente, qual só gasta, e ninguém conseguir responder isso sem abrir uma planilha.',
   acao: 'Quero uma análise da minha conta',
   apoio: 'Sem custo e sem compromisso. Em 48 horas você recebe o que encontramos.',
 };
+
+/**
+ * O que a análise cobre, na abertura.
+ *
+ * Quatro linhas curtas, do jeito que ficha técnica se lê. Elas existem
+ * para a promessa de "análise gratuita" ter conteúdo antes de a pessoa
+ * rolar: oferta sem escopo soa como isca.
+ */
+export const oQueAnaliseCobre = [
+  { rotulo: 'Rastreamento', valor: 'O que a conta registra é verdade?' },
+  { rotulo: 'Estrutura', valor: 'Dá para saber qual campanha funcionou?' },
+  { rotulo: 'Criativo', valor: 'O que está rodando e há quanto tempo' },
+  { rotulo: 'Prazo', valor: 'Resposta em até 48 horas' },
+];
 
 /**
  * O diagnóstico da dor, em três sintomas reconhecíveis.
