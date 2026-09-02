@@ -8,6 +8,7 @@ import { Vitrine } from '@/componentes/Vitrine';
 import { PainelDiagnostico } from '@/componentes/PainelDiagnostico';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
+import { ParedeHolofote } from '@/componentes/ParedeHolofote';
 import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
@@ -47,9 +48,19 @@ export default function Home() {
         <section className="relative isolate overflow-hidden pb-20 pt-14 md:pb-28 md:pt-20">
           {/* Camadas de fundo, do mais distante ao mais próximo. */}
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="grade absolute inset-0" />
+            {/* A parede de trabalhos com o holofote. Fica atrás de tudo:
+                é fundo, e some sem script sem levar nada junto. */}
+            <ParedeHolofote prioridade />
+
+            <div className="grade absolute inset-0 opacity-40" />
             <div className="brilho-magenta absolute -right-[18%] -top-[38%] h-[820px] w-[820px] opacity-45" />
             <div className="brilho-frio absolute -left-[24%] top-[24%] h-[680px] w-[680px] opacity-30" />
+
+            {/* Escurece o lado do texto e larga o resto para a luz.
+                Vertical no telefone, onde o texto atravessa a tela. */}
+            <div className="absolute inset-0 bg-marinho/35 md:hidden" />
+            <div className="absolute inset-0 hidden md:block md:bg-[linear-gradient(100deg,var(--marinho)_10%,color-mix(in_oklab,var(--marinho)_72%,transparent)_34%,transparent_60%)]" />
+
             {/* Corta a barriga do brilho para a seção seguinte não herdar. */}
             <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-marinho" />
           </div>
@@ -61,7 +72,11 @@ export default function Home() {
                   display estica a coluna além da fração do grid e empurra
                   o painel para fora da tela. O padrão de item de grid é
                   min-width:auto, que se recusa a encolher. */}
-              <div className="revelar min-w-0">
+              {/* `data-fora-da-luz`: o holofote recorta este bloco da
+                  máscara para nunca lavar o texto. Sem a marca ele
+                  ilumina por cima das palavras, e medido isso derruba o
+                  contraste para 2,71:1. */}
+              <div data-fora-da-luz className="revelar min-w-0">
                 <Rotulo>Do zero ao lançamento, e todo mês depois</Rotulo>
 
                 <h1 className="mt-7 max-w-[15ch] font-display text-mostro font-extrabold tracking-[-0.045em]">

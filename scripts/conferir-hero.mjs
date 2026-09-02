@@ -1,6 +1,6 @@
 /**
- * A abertura de /trafego-pago tem uma troca embutida, e este script
- * mede os dois lados dela.
+ * A abertura da home tem uma troca embutida, e este script mede os
+ * dois lados dela.
  *
  *   npm run dev            (noutro terminal)
  *   npm run conferir-hero
@@ -31,13 +31,80 @@ const APP = process.env.APP_URL ?? 'http://localhost:3000';
 const GANHO_MINIMO = 25;
 const CONTRASTE_MINIMO = 4.5;
 
-/* Onde ha parede a mostra, em cada largura: fora do bloco de texto e
-   dentro da primeira tela. */
+/*
+  `holofote` diz se AQUELA largura tem parede a mostra na primeira tela.
+
+  Na home o texto e o painel preenchem a largura do telefone, e o que
+  sobra de parede acima deles tem 56px: nao cabe medicao ali, e fingir
+  que cabe seria inventar numero. Holofote e afordancia de cursor de
+  qualquer jeito.
+
+  O CONTRASTE e medido em toda largura, porque texto ilegivel nao tem
+  desculpa de tamanho de tela.
+*/
 const TELAS = [
-  { nome: '1440x900', w: 1440, h: 900, x: 1080, y: 420 },
-  { nome: '390x844', w: 390, h: 844, x: 200, y: 140 },
-  { nome: '360x740', w: 360, h: 740, x: 180, y: 120 },
+  { nome: '1440x900', w: 1440, h: 900, holofote: true },
+  { nome: '1280x800', w: 1280, h: 800, holofote: true },
+  { nome: '390x844', w: 390, h: 844, holofote: false },
+  { nome: '360x740', w: 360, h: 740, holofote: false },
 ];
+
+/*
+  ACHA sozinho onde a parede aparece, em vez de levar coordenadas
+  escritas a mao.
+
+  Ponto fixo envelhece com o layout: os que este script usava eram da
+  abertura antiga, e na home caem em cima do painel de diagnostico, que
+  e opaco. O teste continuaria rodando e mediria um cartao, nao a luz.
+
+  Aqui ele pergunta ao navegador quem esta na frente em cada ponto de
+  uma malha. Serve o ponto onde o elemento de cima e a camada de fundo,
+  e nao um pedaco de interface. Sem ponto assim, o teste FALHA em vez de
+  medir qualquer coisa.
+*/
+const acharParede = (p) =>
+  p.evaluate(() => {
+    const h1 = document.querySelector('main h1');
+    const secao = h1.closest('section');
+    const r = secao.getBoundingClientRect();
+    const texto = secao.querySelector('[data-fora-da-luz]');
+
+    /*
+      `elementFromPoint` nao serve aqui: a camada de fundo e
+      `pointer-events-none`, entao ela nunca e devolvida e a busca nao
+      achava ponto nenhum. Quem decide e a geometria.
+
+      Ocupado = o bloco de texto, o painel ao lado dele e a faixa de
+      prova. Tudo o mais na secao e fundo.
+    */
+    /* O bloco de texto leva folga do tamanho do esfumado do recorte,
+       porque ali a luz e cortada de proposito. O painel e a faixa de
+       prova levam folga minima: sao so conteudo por cima. O painel
+       ainda e de vidro, e medido atras dele a luz rende 11% contra 171%
+       na margem, entao medir ali seria medir o borrao. */
+    const ocupados = [
+      [texto, innerWidth >= 1024 ? 70 : 34],
+      [texto?.nextElementSibling, 8],
+      [secao.querySelector('dl'), 8],
+    ]
+      .filter(([e]) => e)
+      .map(([e, folga]) => ({ r: e.getBoundingClientRect(), folga }));
+
+    const meio = 48;
+    let melhor = null;
+    for (let y = Math.max(meio, r.top + meio); y < Math.min(innerHeight, r.bottom) - meio; y += 16) {
+      for (let x = meio; x < innerWidth - meio; x += 16) {
+        const colide = ocupados.some(
+          ({ r: o, folga }) =>
+            x > o.left - folga && x < o.right + folga && y > o.top - folga && y < o.bottom + folga,
+        );
+        if (colide) continue;
+        const dist = Math.hypot(x - innerWidth / 2, y - (r.top + r.bottom) / 2);
+        if (!melhor || dist < melhor.dist) melhor = { x, y, dist };
+      }
+    }
+    return melhor && { x: melhor.x, y: melhor.y };
+  });
 
 const canal = (v) => {
   const n = v / 255;
@@ -75,29 +142,40 @@ const nav = await puppeteer.launch({ executablePath, headless: true, args: ['--n
 for (const t of TELAS) {
   const p = await nav.newPage();
   await p.setViewport({ width: t.w, height: t.h, deviceScaleFactor: 1 });
-  await p.goto(`${APP}/trafego-pago`, { waitUntil: 'networkidle0', timeout: 60000 });
+  await p.goto(`${APP}/`, { waitUntil: 'networkidle0', timeout: 60000 });
   await new Promise((r) => setTimeout(r, 1500));
 
-  const caixa = { x: Math.max(0, t.x - 48), y: Math.max(0, t.y - 48), width: 96, height: 96 };
+  const ponto = t.holofote ? await acharParede(p) : null;
+  if (t.holofote && !ponto) {
+    console.log(`  FALHA  ${t.nome}: nao achei parede a mostra fora do bloco de texto`);
+    falhas++;
+    await p.close();
+    continue;
+  }
+  if (ponto) {
+    const caixa = { x: ponto.x - 48, y: ponto.y - 48, width: 96, height: 96 };
 
-  await p.mouse.move(4, 4);
-  await new Promise((r) => setTimeout(r, 400));
-  const apagado = await analisar(p, caixa);
+    await p.mouse.move(4, 4);
+    await new Promise((r) => setTimeout(r, 400));
+    const apagado = await analisar(p, caixa);
 
-  await p.mouse.move(t.x, t.y);
-  await new Promise((r) => setTimeout(r, 400));
-  const aceso = await analisar(p, caixa);
+    await p.mouse.move(ponto.x, ponto.y);
+    await new Promise((r) => setTimeout(r, 400));
+    const aceso = await analisar(p, caixa);
 
-  const ganho = apagado.media > 0 ? (aceso.media / apagado.media - 1) * 100 : 0;
-  const bom = ganho >= GANHO_MINIMO;
-  if (!bom) falhas++;
-  console.log(
-    `  ${bom ? 'ok    ' : 'FALHA '} ${t.nome} holofote: ${apagado.media} -> ${aceso.media} (${ganho.toFixed(0)}% de ganho)`,
-  );
+    const ganho = apagado.media > 0 ? (aceso.media / apagado.media - 1) * 100 : 0;
+    const bom = ganho >= GANHO_MINIMO;
+    if (!bom) falhas++;
+    console.log(
+      `  ${bom ? 'ok    ' : 'FALHA '} ${t.nome} holofote em (${ponto.x},${ponto.y}): ${apagado.media} -> ${aceso.media} (${ganho.toFixed(0)}% de ganho)`,
+    );
+  } else {
+    console.log(`  -      ${t.nome} sem parede a mostra na primeira tela, holofote nao medido`);
+  }
 
   /* Agora o preco: luz parada em cima do titulo, interface escondida. */
   const cx = await p.evaluate(() => {
-    const h1 = document.querySelector('section[aria-label="Abertura"] h1');
+    const h1 = document.querySelector('main h1');
     const b = h1.getBoundingClientRect();
     return {
       meioX: Math.round(b.left + b.width / 2),
@@ -115,10 +193,20 @@ for (const t of TELAS) {
      letras brancas em cima, dando 1,00:1 e reprovando tudo. Falhou para
      o lado certo, mas falhou. */
   const escondeu = await p.evaluate(() => {
-    const d = document.querySelector('section[aria-label="Abertura"] > div:last-of-type');
-    if (!d || !d.contains(document.querySelector('section[aria-label="Abertura"] h1'))) return false;
-    d.style.visibility = 'hidden';
-    return true;
+    const h1 = document.querySelector('main h1');
+    const secao = h1.closest('section');
+    /* Esconde TODO filho da seção menos a camada de fundo. Sem isso a
+       foto sai com as próprias letras brancas dentro, a média sobe e o
+       teste reprova sozinho com 1,00:1. Já aconteceu: um `>` perdido no
+       seletor. */
+    const fundo = secao.querySelector('[aria-hidden]');
+    let achou = false;
+    for (const filho of secao.children) {
+      if (filho === fundo) continue;
+      filho.style.visibility = 'hidden';
+      achou = true;
+    }
+    return achou && !fundo.contains(h1);
   });
   if (!escondeu) {
     console.log(`  FALHA  ${t.nome}: nao achei a camada de interface para esconder`);
