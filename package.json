@@ -34,7 +34,8 @@
     "testar-proposta-servico": "node scripts/testar-proposta-servico.mjs",
     "testar-lead-do-site": "node scripts/testar-lead-do-site.mjs",
     "conferir-ctas": "node scripts/conferir-ctas.mjs",
-    "conferir-deck": "node scripts/conferir-deck.mjs"
+    "conferir-deck": "node scripts/conferir-deck.mjs",
+    "conferir-hero": "node scripts/conferir-hero.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

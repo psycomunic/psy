@@ -17,7 +17,6 @@ import {
   quemOpera,
   perguntas,
   formulario,
-  oQueAnaliseCobre,
 } from '@/conteudo/trafego';
 
 /**
@@ -76,7 +75,6 @@ export default function PaginaTrafego() {
         apoio={heroi.apoio}
         acao={heroi.acao}
         linkWhatsapp={linkWhatsapp}
-        especificacoes={oQueAnaliseCobre}
       />
 
       {/* O formulário, logo depois da abertura. */}

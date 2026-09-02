@@ -64,7 +64,6 @@ export function HeroTrafego({
   apoio,
   acao,
   linkWhatsapp,
-  especificacoes,
 }: {
   rotulo: string;
   /** Uma linha por entrada. Cada uma sobe separada, como no original. */
@@ -73,9 +72,9 @@ export function HeroTrafego({
   apoio: string;
   acao: string;
   linkWhatsapp: string;
-  especificacoes: { rotulo: string; valor: string }[];
 }) {
   const luz = useRef<HTMLDivElement>(null);
+  const palavras = useRef<HTMLDivElement>(null);
   const id = useId().replace(/:/g, '');
 
   useEffect(() => {
@@ -87,9 +86,50 @@ export function HeroTrafego({
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       alvo.style.maskImage = 'none';
       alvo.style.webkitMaskImage = 'none';
-      alvo.style.opacity = '0.55';
+      alvo.style.opacity = '0.45';
       return;
     }
+
+    /*
+      A LUZ NÃO PASSA POR CIMA DAS PALAVRAS.
+
+      Com o holofote fraco isso não importava. Forte, importa: medido com
+      o cursor parado em cima do título, o pixel mais claro do fundo dava
+      2,71:1 contra o texto branco num telefone de 390. Texto ilegível
+      não é preço aceitável por um efeito.
+
+      A máscara passou a ser DUAS, cruzadas com `intersect`: o círculo do
+      holofote e um recorte que exclui o bloco de texto. O recorte é
+      calculado da posição real do bloco, não de um palpite em
+      porcentagem, porque essa posição muda com a largura, com o tamanho
+      da fonte e com o texto que vier a ser escrito ali.
+
+      Na tela larga o texto ocupa a esquerda, então o recorte é
+      horizontal e sobra a metade da direita inteira para a luz. No
+      telefone o texto atravessa a tela, então o recorte é uma faixa
+      horizontal e sobram o topo e o pé, que é justamente onde a parede
+      aparece.
+    */
+    const recorte = () => {
+      const r = alvo.getBoundingClientRect();
+      const t = palavras.current?.getBoundingClientRect();
+      if (!t) return null;
+      /* Pena mais curta no telefone: ali o recorte é horizontal e a
+         faixa de parede que sobra acima do título tem 68px numa tela de
+         360. Com 70px de esfumado ela sumia inteira e o toque não
+         acendia nada. */
+      const pena = window.innerWidth >= 1024 ? 70 : 34;
+      if (window.innerWidth >= 1024) {
+        const borda = t.right - r.left;
+        return `linear-gradient(to right, transparent ${borda}px, #fff ${borda + pena}px)`;
+      }
+      const topo = t.top - r.top;
+      const base = t.bottom - r.top;
+      return (
+        `linear-gradient(to bottom, #fff ${Math.max(0, topo - pena)}px, ` +
+        `transparent ${topo}px, transparent ${base}px, #fff ${base + pena}px)`
+      );
+    };
 
     let pedido = 0;
     const mover = (px: number, py: number) => {
@@ -98,15 +138,19 @@ export function HeroTrafego({
         const r = alvo.getBoundingClientRect();
         const x = px - r.left;
         const y = py - r.top;
-        /* Raio menor no telefone: um círculo de 260px numa tela de 360
+        /* Raio menor no telefone: um círculo de 340px numa tela de 360
            acende quase tudo e o efeito deixa de revelar. */
-        const raio = window.innerWidth < 480 ? 130 : window.innerWidth < 900 ? 180 : 300;
-        const g =
-          `radial-gradient(circle ${raio}px at ${x}px ${y}px, #fff 0%, #fff 38%, ` +
-          `rgba(255,255,255,0.72) 58%, rgba(255,255,255,0.36) 76%, ` +
-          `rgba(255,255,255,0.1) 89%, transparent 100%)`;
+        const raio = window.innerWidth < 480 ? 150 : window.innerWidth < 900 ? 210 : 340;
+        const circulo =
+          `radial-gradient(circle ${raio}px at ${x}px ${y}px, #fff 0%, #fff 64%, ` +
+          `rgba(255,255,255,0.86) 78%, rgba(255,255,255,0.45) 90%, ` +
+          `transparent 100%)`;
+        const fora = recorte();
+        const g = fora ? `${circulo}, ${fora}` : circulo;
         alvo.style.webkitMaskImage = g;
         alvo.style.maskImage = g;
+        alvo.style.webkitMaskComposite = 'source-in';
+        alvo.style.maskComposite = 'intersect';
       });
     };
 
@@ -137,8 +181,10 @@ export function HeroTrafego({
           className={
             'relative overflow-hidden rounded-lg border sm:rounded-xl ' +
             (acesa && i === ACESA
-              ? 'border-magenta shadow-[0_0_60px_-6px_rgba(228,21,95,0.85)]'
-              : 'border-fio')
+              ? 'border-magenta shadow-[0_0_90px_-4px_rgba(228,21,95,1)] ring-1 ring-magenta'
+              : acesa
+                ? 'border-white/30'
+                : 'border-fio')
           }
         >
           <Image
@@ -157,10 +203,10 @@ export function HeroTrafego({
             className={
               'absolute inset-0 ' +
               (acesa && i === ACESA
-                ? 'bg-marinho/25'
+                ? 'bg-magenta/10'
                 : acesa
-                  ? 'bg-marinho/75'
-                  : 'bg-marinho/85 backdrop-grayscale')
+                  ? 'bg-marinho/35'
+                  : 'bg-marinho/88 backdrop-grayscale backdrop-brightness-50')
             }
           />
         </li>
@@ -198,22 +244,30 @@ export function HeroTrafego({
       </div>
 
       {/* Cenário fixo: grade, brilho e um degradê que garante contraste
-          de texto sobre qualquer print que esteja por baixo. */}
+          de texto sobre qualquer print que esteja por baixo.
+
+          O degradê recua bem antes do meio. Ele cobria até 72% da
+          largura para proteger uma ficha que ficava à direita; sem ela,
+          aquilo virou um véu por cima justamente da metade onde o
+          holofote tem espaço para aparecer. Agora ele termina onde o
+          texto termina.
+
+          No telefone não há "metade da direita": o texto atravessa a
+          tela toda e o degradê na diagonal viraria um véu uniforme,
+          apagando o holofote (medido: 12% de ganho de brilho, contra
+          55% no computador). Lá entra uma lavagem leve, e quem escurece
+          o fundo é o véu de cada tela, que já é escuro. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-[2]">
-        <div className="grade absolute inset-0 opacity-60" />
+        <div className="grade absolute inset-0 opacity-40" />
         <div className="brilho-magenta absolute -right-[16%] -top-[34%] h-[720px] w-[720px] opacity-40" />
-        <div className="absolute inset-0 bg-[linear-gradient(105deg,var(--marinho)_18%,color-mix(in_oklab,var(--marinho)_82%,transparent)_46%,transparent_72%)]" />
+        <div className="absolute inset-0 bg-marinho/35 md:hidden" />
+        <div className="absolute inset-0 hidden md:block md:bg-[linear-gradient(100deg,var(--marinho)_10%,color-mix(in_oklab,var(--marinho)_72%,transparent)_32%,transparent_56%)]" />
         <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       {/* A interface por cima, em grade. */}
-      <div className="pointer-events-none relative z-10 mx-auto grid min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1320px] grid-rows-[auto_1fr_auto] gap-7 px-5 pb-9 pt-20 md:px-10 md:pb-10 md:pt-24 lg:grid-cols-2 lg:gap-6">
-        {/* `row-span-3` no computador: a coluna esquerda atravessa as três
-            linhas e é ela que define a altura. Atravessando só duas, a
-            ficha da direita entrava numa terceira linha por baixo dela e
-            o hero passava de 1049px numa janela de 900, jogando a ficha
-            para fora da primeira tela. */}
-        <div className="pointer-events-auto lg:col-span-1 lg:row-span-3 lg:self-center">
+      <div className="pointer-events-none relative z-10 mx-auto flex min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1320px] items-center px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">
+        <div ref={palavras} className="pointer-events-auto max-w-[min(700px,100%)]">
           <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
             <span aria-hidden className="h-px w-8 bg-magenta" />
             {rotulo}
@@ -257,38 +311,6 @@ export function HeroTrafego({
           <p className="mt-6 max-w-[42ch] text-sm leading-relaxed text-cinza">{apoio}</p>
         </div>
 
-        {/* A lista técnica, no canto de baixo. É o "specs" da referência,
-            e aqui ela diz o que a análise cobre. */}
-        <div className="pointer-events-auto self-end lg:col-start-2 lg:row-start-3 lg:justify-self-end lg:pb-2">
-          <div className="w-full rounded-2xl border border-fio bg-marinho-fundo/55 p-5 backdrop-blur-md sm:p-6 lg:w-[min(360px,100%)]">
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-cinza">
-              O que a análise cobre
-            </p>
-            <dl className="mt-4">
-              {especificacoes.map((e, i) => (
-                <div
-                  key={e.rotulo}
-                  className={
-                    'flex items-baseline justify-between gap-4 py-2.5 ' +
-                    (i > 0 ? 'border-t border-fio' : '')
-                  }
-                >
-                  <dt className="font-mono text-[0.7rem] uppercase tracking-[0.1em] text-cinza">
-                    {e.rotulo}
-                  </dt>
-                  <dd className="text-right text-sm text-neve">{e.valor}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          {/* A dica do holofote. Sem ela, quem não mexe o mouse nunca
-              descobre que a imagem responde. */}
-          <p className="mt-3.5 hidden items-center gap-2.5 text-xs text-cinza lg:flex">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-magenta" />
-            Passe o cursor sobre os anúncios para achar o que está funcionando
-          </p>
-        </div>
       </div>
 
       <style>{`

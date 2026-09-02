@@ -39,20 +39,6 @@ export const heroi = {
 };
 
 /**
- * O que a análise cobre, na abertura.
- *
- * Quatro linhas curtas, do jeito que ficha técnica se lê. Elas existem
- * para a promessa de "análise gratuita" ter conteúdo antes de a pessoa
- * rolar: oferta sem escopo soa como isca.
- */
-export const oQueAnaliseCobre = [
-  { rotulo: 'Rastreamento', valor: 'O que a conta registra é verdade?' },
-  { rotulo: 'Estrutura', valor: 'Dá para saber qual campanha funcionou?' },
-  { rotulo: 'Criativo', valor: 'O que está rodando e há quanto tempo' },
-  { rotulo: 'Prazo', valor: 'Resposta em até 48 horas' },
-];
-
-/**
  * O diagnóstico da dor, em três sintomas reconhecíveis.
  *
  * Cada um é uma frase que a pessoa já disse em voz alta. Reconhecer a
