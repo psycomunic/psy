@@ -28,7 +28,16 @@ const NAVEGADORES = [
 const executablePath = NAVEGADORES.find((c) => existsSync(c));
 const APP = process.env.APP_URL ?? 'http://localhost:3000';
 
-const GANHO_MINIMO = 25;
+/*
+  MUDANCA media por pixel, de 0 a 255, entre a area com a luz longe e a
+  mesma area com a luz em cima.
+
+  Media de brilho nao servia: onde o print por baixo e quase preto,
+  acender a imagem ESCURECE a area, e o teste reprovava um efeito que
+  se ve muito bem. O que "aparecer" quer dizer e a area MUDAR, para
+  qualquer lado, e e isso que se mede.
+*/
+const MUDANCA_MINIMA = 20;
 const CONTRASTE_MINIMO = 4.5;
 
 /*
@@ -90,26 +99,82 @@ const acharParede = (p) =>
       .filter(([e]) => e)
       .map(([e, folga]) => ({ r: e.getBoundingClientRect(), folga }));
 
+    /* `meio` e metade da caixa que sera fotografada, e a caixa INTEIRA
+       precisa estar livre, nao so o centro.
+
+       Validar o centro deu um ponto com metade atras do painel de
+       vidro, e ali a luz rende 11%: o teste reprovou a home com -15% e
+       o defeito era dele. */
     const meio = 48;
-    let melhor = null;
+    const candidatos = [];
     for (let y = Math.max(meio, r.top + meio); y < Math.min(innerHeight, r.bottom) - meio; y += 16) {
       for (let x = meio; x < innerWidth - meio; x += 16) {
         const colide = ocupados.some(
           ({ r: o, folga }) =>
-            x > o.left - folga && x < o.right + folga && y > o.top - folga && y < o.bottom + folga,
+            x + meio > o.left - folga &&
+            x - meio < o.right + folga &&
+            y + meio > o.top - folga &&
+            y - meio < o.bottom + folga,
         );
         if (colide) continue;
         const dist = Math.hypot(x - innerWidth / 2, y - (r.top + r.bottom) / 2);
-        if (!melhor || dist < melhor.dist) melhor = { x, y, dist };
+        candidatos.push({ x, y, dist });
       }
     }
-    return melhor && { x: melhor.x, y: melhor.y };
+
+    /* Vários pontos ESPALHADOS, e não o mais central.
+
+       Um ponto só é sorteio: em 1440 o mais central caiu sobre o topo
+       quase preto de um dos prints, mediu 10 de 255 e reprovou uma
+       abertura que muda 164 de 255 dez centímetros ao lado. Qual print
+       cai em cada quadrado ninguém escolhe.
+
+       O que a página promete é que a luz muda a parede onde ela passa,
+       não que muda em todo pixel dela. Por isso a cobrança é sobre a
+       MEDIANA de uma amostra espalhada: um canto teimoso não reprova, e
+       um efeito que não acontece também não passa. */
+    candidatos.sort((a, b) => a.dist - b.dist);
+    const escolhidos = [];
+    for (const c of candidatos) {
+      if (escolhidos.length >= 5) break;
+      if (escolhidos.every((e) => Math.hypot(e.x - c.x, e.y - c.y) >= 140)) escolhidos.push(c);
+    }
+    return escolhidos.map(({ x, y }) => ({ x, y }));
   });
 
 const canal = (v) => {
   const n = v / 255;
   return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
 };
+
+const fotografar = (p, caixa) => p.screenshot({ clip: caixa, encoding: 'base64' });
+
+/* Quanto os dois quadros diferem, pixel a pixel. */
+const diferenca = (p, a, b) =>
+  p.evaluate(
+    async (d1, d2) => {
+      const ler = async (d) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${d}`;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        return c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      };
+      const [x, y] = [await ler(d1), await ler(d2)];
+      let soma = 0;
+      let n = 0;
+      for (let i = 0; i < x.length; i += 4) {
+        soma += (Math.abs(x[i] - y[i]) + Math.abs(x[i + 1] - y[i + 1]) + Math.abs(x[i + 2] - y[i + 2])) / 3;
+        n++;
+      }
+      return +(soma / n).toFixed(1);
+    },
+    a,
+    b,
+  );
 
 const analisar = (p, caixa) =>
   p
@@ -142,32 +207,42 @@ const nav = await puppeteer.launch({ executablePath, headless: true, args: ['--n
 for (const t of TELAS) {
   const p = await nav.newPage();
   await p.setViewport({ width: t.w, height: t.h, deviceScaleFactor: 1 });
+  /* Sem cache, de propósito: o defeito de imagem `lazy` na camada
+     escondida só aparece na primeira visita, e com cache quente o teste
+     passava enquanto produção reprovava. */
+  await p.setCacheEnabled(false);
   await p.goto(`${APP}/`, { waitUntil: 'networkidle0', timeout: 60000 });
   await new Promise((r) => setTimeout(r, 1500));
 
-  const ponto = t.holofote ? await acharParede(p) : null;
-  if (t.holofote && !ponto) {
+  const pontos = t.holofote ? await acharParede(p) : null;
+  if (t.holofote && (!pontos || pontos.length === 0)) {
     console.log(`  FALHA  ${t.nome}: nao achei parede a mostra fora do bloco de texto`);
     falhas++;
     await p.close();
     continue;
   }
-  if (ponto) {
-    const caixa = { x: ponto.x - 48, y: ponto.y - 48, width: 96, height: 96 };
+  if (pontos) {
+    const mudancas = [];
+    for (const ponto of pontos) {
+      const caixa = { x: ponto.x - 48, y: ponto.y - 48, width: 96, height: 96 };
 
-    await p.mouse.move(4, 4);
-    await new Promise((r) => setTimeout(r, 400));
-    const apagado = await analisar(p, caixa);
+      await p.mouse.move(4, 4);
+      await new Promise((r) => setTimeout(r, 350));
+      const apagado = await fotografar(p, caixa);
 
-    await p.mouse.move(ponto.x, ponto.y);
-    await new Promise((r) => setTimeout(r, 400));
-    const aceso = await analisar(p, caixa);
+      await p.mouse.move(ponto.x, ponto.y);
+      await new Promise((r) => setTimeout(r, 350));
+      const aceso = await fotografar(p, caixa);
 
-    const ganho = apagado.media > 0 ? (aceso.media / apagado.media - 1) * 100 : 0;
-    const bom = ganho >= GANHO_MINIMO;
+      mudancas.push(await diferenca(p, apagado, aceso));
+    }
+
+    const ordem = [...mudancas].sort((a, b) => a - b);
+    const mediana = ordem[Math.floor(ordem.length / 2)];
+    const bom = mediana >= MUDANCA_MINIMA;
     if (!bom) falhas++;
     console.log(
-      `  ${bom ? 'ok    ' : 'FALHA '} ${t.nome} holofote em (${ponto.x},${ponto.y}): ${apagado.media} -> ${aceso.media} (${ganho.toFixed(0)}% de ganho)`,
+      `  ${bom ? 'ok    ' : 'FALHA '} ${t.nome} holofote em ${mudancas.length} pontos: muda ${ordem[0]} a ${ordem[ordem.length - 1]} de 255, mediana ${mediana} (minimo ${MUDANCA_MINIMA})`,
     );
   } else {
     console.log(`  -      ${t.nome} sem parede a mostra na primeira tela, holofote nao medido`);

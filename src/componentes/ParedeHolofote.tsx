@@ -139,10 +139,23 @@ export function ParedeHolofote({ prioridade = false }: { prioridade?: boolean })
     };
   }, []);
 
-  /* `priority` só na camada de BAIXO, e só nas primeiras. As duas
-     camadas usam as mesmas URLs, então o navegador baixa doze arquivos e
-     reaproveita; marcar as vinte e quatro como prioritárias geraria doze
-     preloads duplicados disputando a primeira pintura. */
+  /*
+    `priority` só na camada de BAIXO, e só nas primeiras. As duas camadas
+    usam as mesmas URLs, então o navegador baixa doze arquivos e
+    reaproveita; marcar as vinte e quatro como prioritárias geraria doze
+    preloads duplicados disputando a primeira pintura.
+
+    Mas NENHUMA delas pode ser `lazy`, e isso custou uma reprovação em
+    produção. A camada de cima nasce escondida atrás da máscara, então o
+    navegador decide que aquelas imagens não são necessárias e não as
+    busca. Ao mover o cursor, o que acendia era véu sem imagem por cima
+    do fundo escuro: medido, o ponto ficava 15% MAIS ESCURO do que sem a
+    luz. Um efeito que escurece.
+
+    Local passava porque o cache já tinha os doze arquivos das rodadas
+    anteriores. Só a primeira visita via o defeito, que é a visita de
+    todo mundo.
+  */
   const parede = (acesa: boolean) => (
     <ul className="grid h-full w-full grid-cols-3 gap-2 p-2 sm:grid-cols-4 sm:gap-3 sm:p-3 lg:grid-cols-6">
       {TELAS.map((arquivo, i) => (
@@ -164,18 +177,30 @@ export function ParedeHolofote({ prioridade = false }: { prioridade?: boolean })
             sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 17vw"
             className="object-cover object-top"
             priority={prioridade && !acesa && i < 4}
-            loading={prioridade && !acesa && i < 4 ? undefined : 'lazy'}
+            loading={prioridade && !acesa && i < 4 ? undefined : 'eager'}
           />
-          {/* Véu por cima de cada tela. Sem ele, doze prints coloridos
-              competem com o título e ninguém lê a frase. */}
+          {/*
+            Véu por cima de cada tela. Sem ele, doze prints coloridos
+            competem com o título e ninguém lê a frase.
+
+            Na camada revelada o véu CLAREIA e devolve a cor, em vez de
+            só descobrir a imagem. Medido: num ponto sobre um print de
+            topo quase preto, descobrir a imagem deixava a área 11% MAIS
+            escura que a camada apagada, e nenhum multiplicador conserta
+            preto multiplicado. O branco a 10% dá piso, e a saturação faz
+            a volta do cinza para a cor, que é o que se enxerga ali.
+
+            Qual print calha de cair em cada quadrado ninguém controla,
+            então o efeito não pode depender disso.
+          */}
           <span
             aria-hidden
             className={
               'absolute inset-0 ' +
               (acesa && i === ACESA
-                ? 'bg-magenta/10'
+                ? 'bg-magenta/14 backdrop-brightness-150 backdrop-saturate-200'
                 : acesa
-                  ? 'bg-marinho/35'
+                  ? 'bg-white/10 backdrop-brightness-125 backdrop-saturate-150'
                   : 'bg-marinho/88 backdrop-grayscale backdrop-brightness-50')
             }
           />
