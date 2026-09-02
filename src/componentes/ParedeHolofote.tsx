@@ -175,7 +175,17 @@ export function ParedeHolofote({ prioridade = false }: { prioridade?: boolean })
             alt=""
             fill
             sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 17vw"
-            className="object-cover object-top"
+            className={
+              'object-cover object-top ' +
+              /* No escuro a parede é TEXTURA, não um mural de prints.
+                 Doze telas nítidas atrás do título deixavam a abertura
+                 pesada e disputavam a leitura. O desfoque tira o detalhe
+                 e deixa o ritmo; a escala de 1,08 cobre a borda que o
+                 desfoque come. Sob a luz a imagem entra em foco, e a
+                 passagem de borrão cinza para print nítido e colorido é
+                 mais visível do que qualquer mudança de brilho. */
+              (acesa ? '' : 'scale-[1.08] blur-[3px]')
+            }
             priority={prioridade && !acesa && i < 4}
             loading={prioridade && !acesa && i < 4 ? undefined : 'eager'}
           />
@@ -201,7 +211,7 @@ export function ParedeHolofote({ prioridade = false }: { prioridade?: boolean })
                 ? 'bg-magenta/14 backdrop-brightness-150 backdrop-saturate-200'
                 : acesa
                   ? 'bg-white/10 backdrop-brightness-125 backdrop-saturate-150'
-                  : 'bg-marinho/88 backdrop-grayscale backdrop-brightness-50')
+                  : 'bg-marinho/90 backdrop-grayscale backdrop-brightness-50')
             }
           />
         </li>
