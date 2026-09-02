@@ -182,6 +182,27 @@ for (const rota of ['/trafego-pago', '/cases', '/servicos', '/sobre']) {
     while (escondidos() > 0 && Date.now() < limite) {
       await new Promise((r) => setTimeout(r, 100));
     }
+
+    /* Se ainda sobrou algum escondido, leva ele ate a tela antes de
+       desistir.
+
+       Com cache frio a pagina CRESCE durante a varredura: as imagens
+       chegam, o layout empurra tudo para baixo, e um bloco que a
+       varredura ja passou volta para fora da tela sem nunca ter
+       intersectado. Aconteceu na primeira visita a producao, e nas tres
+       seguintes nao aconteceu mais. E defeito da medicao, nao da
+       pagina: uma pessoa rolando ate la veria o bloco.
+
+       Bloco de verdade preso continua falhando, porque este passo
+       coloca ele na tela de proposito e ele mesmo assim nao aparece. */
+    for (const e of t) {
+      if (parseFloat(getComputedStyle(e).opacity) >= 0.05) continue;
+      e.scrollIntoView({ block: 'center' });
+      const ate = Date.now() + 1500;
+      while (parseFloat(getComputedStyle(e).opacity) < 0.05 && Date.now() < ate) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
     return { url: location.pathname, total: t.length, inv: escondidos() };
   });
 
