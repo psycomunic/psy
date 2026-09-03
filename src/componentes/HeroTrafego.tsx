@@ -4,15 +4,12 @@ import Link from 'next/link';
  * A abertura da página de tráfego, em tela cheia.
  *
  * ============================================================
- * O HOLOFOTE SAIU DAQUI
+ * SEM PAREDE DE PRINTS ATRÁS
  * ============================================================
- * A parede de trabalhos com a luz que segue o cursor mudou para a
- * abertura da home, que é a porta de entrada do site. Repetir o mesmo
- * efeito nas duas páginas o gastaria: na segunda vez ninguém mexe o
- * mouse de novo. Aqui ficou o fundo padrão do site, e quem argumenta é
- * o texto.
- *
- * O componente vive em `ParedeHolofote` e não depende desta página.
+ * Já teve, com um holofote seguindo o cursor. Saiu por peso visual: no
+ * escuro doze telas atrás do título disputam a leitura, e desfocá-las
+ * até parar de disputar deixa o efeito sem o que revelar. Aqui é o
+ * fundo padrão do site, e quem argumenta é o texto.
  *
  * ============================================================
  * O CABEÇALHO TEM ALTURA, E ELA ENTRA NA CONTA
