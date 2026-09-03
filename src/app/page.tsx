@@ -5,7 +5,7 @@ import { Rodape } from '@/componentes/Rodape';
 import { Botao } from '@/componentes/Botao';
 import { FitaMarcas } from '@/componentes/FitaMarcas';
 import { Vitrine } from '@/componentes/Vitrine';
-import { PainelDiagnostico } from '@/componentes/PainelDiagnostico';
+import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { marca } from '@/conteudo/marca';
@@ -84,9 +84,17 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* --- Painel --- */}
+              {/* --- Os sites, deslizando --- */}
+              {/*
+                Aqui estava o painel de diagnóstico. Ele mostrava
+                `frentes.duvidas[0]` das quatro frentes, que é exatamente
+                o que a seção "O diagnóstico" mostra logo abaixo, em
+                cartões e com mais espaço: era a mesma coisa duas vezes
+                na mesma página. O que a abertura não tinha era prova de
+                que a Psy Comunic entrega site, e agora tem.
+              */}
               <div className="revelar min-w-0 lg:pl-4">
-                <PainelDiagnostico />
+                <ColunasDeSites />
               </div>
             </div>
 
