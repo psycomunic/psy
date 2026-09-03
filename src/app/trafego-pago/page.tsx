@@ -60,13 +60,12 @@ export default function PaginaTrafego() {
   return (
     <Casca>
       {/* ============================================================ */}
-      {/* Abertura em tela cheia                                       */}
+      {/* Abertura em tela cheia, com o formulário ao lado             */}
       {/*                                                              */}
-      {/* O formulário SAIU da primeira dobra e virou destino do botão. */}
-      {/* É a troca que este formato pede: a abertura passa a fazer um  */}
-      {/* argumento em vez de pedir dados de quem ainda não sabe por    */}
-      {/* que daria. Quem chegou decidido tem o botão à mão, e ele rola */}
-      {/* direto para o formulário logo abaixo.                        */}
+      {/* A seção que existia aqui embaixo só para hospedar o          */}
+      {/* formulário saiu junto: ela repetia `formulario.titulo` e      */}
+      {/* `formulario.texto`, que são do CTA final. A mesma manchete    */}
+      {/* aparecia duas vezes na mesma página.                         */}
       {/* ============================================================ */}
       <HeroTrafego
         rotulo={heroi.rotulo}
@@ -75,24 +74,8 @@ export default function PaginaTrafego() {
         apoio={heroi.apoio}
         acao={heroi.acao}
         linkWhatsapp={linkWhatsapp}
+        formulario={<FormAnalise />}
       />
-
-      {/* O formulário, logo depois da abertura. */}
-      <section id="analise" className="scroll-mt-20 border-t border-fio py-16 md:py-24">
-        <div className={secao}>
-          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
-            <div>
-              <p className={rotuloSecao}>
-                <span aria-hidden className="h-px w-8 bg-magenta" />
-                Sem custo
-              </p>
-              <h2 className={`mt-6 max-w-[16ch] ${tituloSecao}`}>{formulario.titulo}</h2>
-              <p className="mt-7 max-w-[50ch] text-guia text-neve">{formulario.texto}</p>
-            </div>
-            <FormAnalise />
-          </div>
-        </div>
-      </section>
 
       {/* ============================================================ */}
       {/* Os sintomas: reconhecer a própria situação                   */}

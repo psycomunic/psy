@@ -131,8 +131,25 @@ try {
   const texto = await pagina.evaluate(() => document.body.innerText);
   ok(/tr[áa]fego pago/i.test(texto), 'fala de tráfego pago');
   ok(/social media/i.test(texto), 'e cita social media como complemento');
+  /*
+    A ABERTURA, e nao a pagina inteira.
+
+    Isto procurava a frase exata do titulo antigo em `body.innerText`, e
+    passou a falhar quando a abertura foi reescrita: a frase continuava
+    no payload do servidor, entao `textContent` a encontrava e
+    `innerText` nao. O teste acusava um defeito que nao existia, e por
+    uma palavra que ninguem prometeu manter.
+
+    Uma frase copiada e um contrato que ninguem assinou. O que a pagina
+    promete e falar com quem JA ANUNCIA, e essa promessa tem que estar
+    na abertura, nao enterrada no rodape: por isso a leitura e do texto
+    da propria secao de abertura.
+  */
+  const abertura = await pagina.evaluate(
+    () => document.querySelector('section[aria-label="Abertura"]')?.innerText ?? '',
+  );
   ok(
-    /Sabe dizer quanto voltou/i.test(texto),
+    /investe|anuncia|verba|campanha/i.test(abertura) && /volt|retorno|resultado/i.test(abertura),
     'a abertura fala com quem já anuncia, e não com quem nunca anunciou',
   );
   ok(/n[ãa]o serve para/i.test(texto), 'diz também para quem NÃO serve');

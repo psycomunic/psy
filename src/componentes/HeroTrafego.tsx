@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 
 /**
@@ -10,6 +11,16 @@ import Link from 'next/link';
  * escuro doze telas atrás do título disputam a leitura, e desfocá-las
  * até parar de disputar deixa o efeito sem o que revelar. Aqui é o
  * fundo padrão do site, e quem argumenta é o texto.
+ *
+ * ============================================================
+ * O FORMULÁRIO FICA NA PRIMEIRA DOBRA
+ * ============================================================
+ * Ele já esteve embaixo, como destino do botão. Voltou para cá porque
+ * quem chega decidido não deve precisar rolar para agir, e porque o
+ * botão que rolava até ele agora rola meio palmo: o alvo está ao lado.
+ *
+ * O `id="analise"` mora no formulário, então todo link `#analise` do
+ * site continua chegando no lugar certo.
  *
  * ============================================================
  * O CABEÇALHO TEM ALTURA, E ELA ENTRA NA CONTA
@@ -35,6 +46,7 @@ export function HeroTrafego({
   apoio,
   acao,
   linkWhatsapp,
+  formulario,
 }: {
   rotulo: string;
   /** Uma linha por entrada. Cada uma sobe separada. */
@@ -43,6 +55,9 @@ export function HeroTrafego({
   apoio: string;
   acao: string;
   linkWhatsapp: string;
+  /** O formulário, na primeira dobra. Entra como filho porque é
+      componente de cliente e esta abertura é de servidor. */
+  formulario: ReactNode;
 }) {
   return (
     <section
@@ -58,7 +73,8 @@ export function HeroTrafego({
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1320px] items-center px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">
-        <div className="max-w-[min(700px,100%)]">
+        <div className="grid w-full gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+          <div className="min-w-0 max-w-[min(640px,100%)]">
           <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
             <span aria-hidden className="h-px w-8 bg-magenta" />
             {rotulo}
@@ -94,6 +110,14 @@ export function HeroTrafego({
           </div>
 
           <p className="mt-6 max-w-[42ch] text-sm leading-relaxed text-cinza">{apoio}</p>
+          </div>
+
+          {/* `scroll-mt` do tamanho do cabeçalho: sem isso o link
+              `#analise` para com o topo do formulário debaixo da barra
+              fixa, e a pessoa chega numa tela que parece cortada. */}
+          <div id="analise" className="min-w-0 scroll-mt-28">
+            {formulario}
+          </div>
         </div>
       </div>
 
