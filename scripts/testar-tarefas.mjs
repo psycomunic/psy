@@ -196,11 +196,40 @@ try {
     pagina.click('button[type="submit"]'),
   ]);
 
-  const ir = (filtro = 'abertas') =>
-    pagina.goto(`${APP}/painel/tarefas?filtro=${filtro}`, {
+  /*
+    ESPERA A HIDRATACAO, e nao so a rede.
+
+    `networkidle0` diz que os arquivos chegaram, nao que o React assumiu
+    a pagina. Clicando antes disso, o botao dentro de <form action=...>
+    faz um POST NATIVO: a acao roda no servidor e a pagina recarrega
+    inteira. O efeito e traicoeiro, porque o trabalho ACONTECE, e some
+    apenas a resposta na tela, que vive em estado de cliente.
+
+    Foi exatamente o que enganou aqui: "o aviso diz que a proxima
+    nasceu" reprovava enquanto a asserção seguinte confirmava as duas
+    tarefas. Amostrando de 50 em 50ms por dois segundos, aviso nenhum
+    aparecia: nao era mensagem sumindo, era mensagem que nunca existiu
+    naquele carregamento.
+
+    A prova de hidratacao e o React ter anexado suas propriedades
+    internas ao DOM. Sem marcador na aplicacao so para teste ver.
+  */
+  const hidratou = () =>
+    pagina.waitForFunction(
+      () => {
+        const alvo = document.querySelector('main button, main a');
+        return !!alvo && Object.keys(alvo).some((k) => k.startsWith('__react'));
+      },
+      { timeout: 20000 },
+    );
+
+  const ir = async (filtro = 'abertas') => {
+    await pagina.goto(`${APP}/painel/tarefas?filtro=${filtro}`, {
       waitUntil: 'networkidle0',
       timeout: 60000,
     });
+    await hidratou();
+  };
 
   /* ---------------------------------------------------------------- */
   console.log('\nA tela');
@@ -274,7 +303,18 @@ try {
 
   await ir();
   ok(await clicarNoCartao(pagina, SEMANAL, 'Concluir'), 'existe o botão "Concluir"');
-  ok(await esperarTexto(pagina, 'próxima já está'), 'o aviso diz que a próxima nasceu');
+  const avisou = await esperarTexto(pagina, 'próxima já está');
+  if (!avisou) {
+    /* Diz O QUE apareceu, e nao so que o esperado nao apareceu.
+       "esperava X, nao achei" manda alguem reproduzir a mao para
+       descobrir se o botao nao respondeu, se a RPC recusou ou se a
+       recorrencia nao nasceu. A mensagem na tela ja separa os tres. */
+    const naTela = await pagina.evaluate(() =>
+      [...document.querySelectorAll('[role="status"]')].map((n) => n.textContent?.trim()).join(' | '),
+    );
+    console.log(`         na tela: ${naTela || '(nenhum aviso)'}`);
+  }
+  ok(avisou, 'o aviso diz que a próxima nasceu');
 
   linhas = await tarefasDe(SEMANAL);
   const feita = linhas.find((t) => t.status === 'concluida');

@@ -73,8 +73,26 @@ const emAberto = (t: Tarefa) => t.status === 'aberta' || t.status === 'fazendo';
  * O que se fez hoje é o registro do dia. Some amanhã, quando já não
  * disputa atenção com o que falta.
  */
+/*
+  "Hoje" é o dia de BRASÍLIA, dos dois lados da comparação.
+
+  `concluida_em` é `now()` do Postgres e chega em UTC. Cortar os dez
+  primeiros caracteres dá o dia UTC, e entre 21h e meia-noite de
+  Brasília isso já é AMANHÃ: a tarefa que a pessoa acabou de concluir
+  saía da lista de abertas no mesmo instante, levando junto a mensagem
+  de confirmação, que vive no cartão. Quem concluísse uma tarefa que se
+  repete nunca era avisado de que a próxima tinha nascido.
+
+  Medido às 22h05 de Brasília, com o teste reprovando por isso e a
+  recorrência funcionando perfeitamente no banco: o defeito só aparecia
+  em três horas do dia, que é o pior tipo de defeito.
+
+  `hojeBR` já faz a conversão e tem teste próprio.
+*/
 const concluidaHoje = (t: Tarefa, hoje: string) =>
-  t.status === 'concluida' && (t.concluidaEm ?? '').slice(0, 10) === hoje;
+  t.status === 'concluida' &&
+  t.concluidaEm !== null &&
+  hojeBR(new Date(t.concluidaEm)) === hoje;
 const atrasada = (t: Tarefa) => emAberto(t) && t.prazo !== null && (t.diasAtePrazo ?? 0) < 0;
 const paraHoje = (t: Tarefa) => emAberto(t) && t.diasAtePrazo === 0;
 
