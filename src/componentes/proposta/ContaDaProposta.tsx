@@ -13,13 +13,29 @@ const emReais = (v: number) =>
  * Marcar não contrata nada, e a tela diz isso: não há botão de compra
  * numa proposta, e fingir que há seria mentir sobre o que o clique faz.
  * O que a marca muda é o total e o texto que vai no WhatsApp.
+ *
+ * ============================================================
+ * DOIS TOTAIS, NUNCA UM
+ * ============================================================
+ * Construir uma loja é obra com fim. Gerir tráfego recomeça todo mês.
+ * Somar os dois numa linha só e escrever "total por mês" embaixo
+ * apresentaria um projeto de entrega única como mensalidade, que é o
+ * pior erro possível num documento sobre dinheiro: quem lê acha que vai
+ * pagar aquilo doze vezes, e a proposta morre sem ninguém dizer por quê.
+ *
+ * Então o fechamento é separado por `cobranca`. Quando a proposta tem só
+ * um tipo, aparece só um total, e a tela continua tão simples quanto era.
  */
 export function SlideDaConta({
   servicos,
   linkWhatsapp,
+  avisoDeVerba,
 }: {
   servicos: ServicoNoSlide[];
   linkWhatsapp: string;
+  /** A nota sobre verba de mídia só faz sentido com tráfego dentro.
+      Numa proposta só de site, ela fala da operação de outra pessoa. */
+  avisoDeVerba: boolean;
 }) {
   const principais = servicos.filter((s) => s.papel === 'principal');
   const complementos = servicos.filter((s) => s.papel === 'complemento');
@@ -29,8 +45,16 @@ export function SlideDaConta({
   const [querem, setQuerem] = useState<Record<string, boolean>>({});
 
   const escolhidos = complementos.filter((c) => querem[c.id]);
-  const total =
-    principais.reduce((s, x) => s + x.fee, 0) + escolhidos.reduce((s, x) => s + x.fee, 0);
+  const valendo = [...principais, ...escolhidos];
+
+  const soma = (tipo: 'projeto' | 'mensal') =>
+    valendo.filter((x) => x.cobranca === tipo).reduce((s, x) => s + x.fee, 0);
+
+  const doProjeto = soma('projeto');
+  const doMes = soma('mensal');
+  const doisTotais = doProjeto > 0 && doMes > 0;
+
+  const unidade = (s: ServicoNoSlide) => (s.cobranca === 'mensal' ? '/mês' : ' uma vez');
 
   const mensagem = encodeURIComponent(
     escolhidos.length > 0
@@ -56,6 +80,7 @@ export function SlideDaConta({
             <span className="text-neve sm:text-[1.05rem]">{s.nome}</span>
             <span className="tabular font-semibold text-branco sm:text-[1.05rem]">
               {s.feeTexto}
+              <span className="ml-0.5 text-sm font-normal text-cinza">{unidade(s)}</span>
             </span>
           </li>
         ))}
@@ -88,25 +113,51 @@ export function SlideDaConta({
                 }
               >
                 {querem[s.id] ? s.feeTexto : `+ ${s.feeTexto}`}
+                <span className="ml-0.5 text-sm font-normal text-cinza">{unidade(s)}</span>
               </span>
             </label>
           </li>
         ))}
       </ul>
 
-      <p className="mt-7 flex flex-wrap items-baseline justify-between gap-3">
-        <span className="font-display text-lg font-bold tracking-[-0.02em] sm:text-xl">
-          Total por mês
-        </span>
-        <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto sm:text-4xl">
-          {emReais(total)}
-        </span>
-      </p>
+      <div className={doisTotais ? 'mt-7 space-y-4' : 'mt-7'}>
+        {doProjeto > 0 ? (
+          <p className="flex flex-wrap items-baseline justify-between gap-3">
+            <span className="font-display text-lg font-bold tracking-[-0.02em] sm:text-xl">
+              {doisTotais ? 'Para construir, uma vez' : 'Total do projeto'}
+            </span>
+            <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto sm:text-4xl">
+              {emReais(doProjeto)}
+            </span>
+          </p>
+        ) : null}
 
-      <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-cinza">
-        A verba de mídia não está aqui e nunca entra nesta soma. Ela é sua, vai direto para o
-        Google e para a Meta, e você define quanto investir.
-      </p>
+        {doMes > 0 ? (
+          <p className="flex flex-wrap items-baseline justify-between gap-3">
+            <span className="font-display text-lg font-bold tracking-[-0.02em] sm:text-xl">
+              {doisTotais ? 'Depois, todo mês' : 'Total por mês'}
+            </span>
+            <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto sm:text-4xl">
+              {emReais(doMes)}
+            </span>
+          </p>
+        ) : null}
+      </div>
+
+      {doisTotais ? (
+        <p className="mt-5 max-w-[60ch] text-sm leading-relaxed text-cinza">
+          São duas contas diferentes e elas não se somam. A de cima é a construção, cobrada
+          uma vez. A de baixo é a operação, que recomeça todo mês e só começa depois que o
+          que foi construído está no ar.
+        </p>
+      ) : null}
+
+      {avisoDeVerba ? (
+        <p className="mt-5 max-w-[60ch] text-sm leading-relaxed text-cinza">
+          A verba de mídia não está aqui e nunca entra nesta soma. Ela é sua, vai direto para
+          o Google e para a Meta, e você define quanto investir.
+        </p>
+      ) : null}
 
       {/* O botão longe do texto: 40px de folga. Colado, o polegar que
           vai rolar a tela acaba clicando nele. */}
@@ -123,4 +174,3 @@ export function SlideDaConta({
     </Slide>
   );
 }
-

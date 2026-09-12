@@ -33,6 +33,10 @@ export type ServicoNoSlide = {
   id: string;
   nome: string;
   papel: 'principal' | 'complemento';
+  /** `projeto` cobra uma vez, `mensal` recomeça todo mês. Sem isto a
+      tela escrevia "por mês" embaixo de qualquer valor, e um site de
+      entrega única virava mensalidade na leitura de quem recebe. */
+  cobranca: 'projeto' | 'mensal';
   paraQuem: string;
   promessa: string;
   entregas: string[];
@@ -61,7 +65,13 @@ export function SlideDeUmServico({
 }) {
   return (
     <Slide
-      rotulo={s.papel === 'complemento' ? 'Complemento, se você quiser' : 'O serviço'}
+      rotulo={
+        s.papel === 'complemento'
+          ? 'Complemento, se você quiser'
+          : s.cobranca === 'projeto'
+            ? 'O projeto'
+            : 'O serviço'
+      }
       titulo={tituloDoServico(s.nome)}
     >
       <div className="grid gap-5 sm:gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
@@ -76,7 +86,9 @@ export function SlideDeUmServico({
           {precoNaConta ? null : (
             <p className="tabular mt-4 font-display text-2xl font-extrabold tracking-[-0.04em] text-branco sm:mt-6 sm:text-4xl">
               {s.feeTexto}
-              <span className="ml-2 text-sm font-normal text-cinza sm:text-base">por mês</span>
+              <span className="ml-2 text-sm font-normal text-cinza sm:text-base">
+                {s.cobranca === 'mensal' ? 'por mês' : 'valor do projeto'}
+              </span>
             </p>
           )}
 

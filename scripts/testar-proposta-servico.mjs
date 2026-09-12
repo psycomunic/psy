@@ -177,7 +177,23 @@ try {
   console.log('\nGerar uma proposta de tráfego mais social media');
 
   ok(await marcar(pagina, 'modo', 'servicos'), 'escolheu serviço avulso');
-  ok(await esperarSeletor(pagina, 'input[name="fee_trafego"]'), 'o campo de valor apareceu');
+  /*
+    NADA nasce marcado, e isto guarda essa decisão.
+
+    O formulário marcava todo `principal` por padrão, o que funcionava
+    com um principal só no catálogo. Com loja virtual, site de serviços,
+    institucional, landing e tráfego, a mesma regra abriria a tela com
+    cinco serviços marcados e pedindo valor em cada um.
+  */
+  const nascemMarcados = await pagina.evaluate(
+    () =>
+      [...document.querySelectorAll('input[name^="servico_"]')].filter((i) => i.checked)
+        .length,
+  );
+  ok(nascemMarcados === 0, `proposta nova não vem com serviço marcado (veio ${nascemMarcados})`);
+
+  await marcar(pagina, 'servico_trafego');
+  ok(await esperarSeletor(pagina, 'input[name="fee_trafego"]'), 'marcar abre o campo de valor');
 
   const socialMarcado = await pagina.evaluate(
     () => document.querySelector('input[name="servico_social"]')?.checked ?? null,
@@ -187,7 +203,7 @@ try {
   const trafegoMarcado = await pagina.evaluate(
     () => document.querySelector('input[name="servico_trafego"]')?.checked ?? null,
   );
-  ok(trafegoMarcado === true, 'e gestão de tráfego começa marcada, que é o principal');
+  ok(trafegoMarcado === true, 'e gestão de tráfego fica marcada depois do clique');
 
   await preencher(pagina, 'input[name="cliente"]', CLIENTE);
   await preencher(pagina, 'input[name="contato"]', 'Marina, proprietária');
@@ -236,6 +252,7 @@ try {
 
   await pagina.goto(`${APP}/painel/propostas`, { waitUntil: 'networkidle0', timeout: 60000 });
   await marcar(pagina, 'modo', 'servicos');
+  await marcar(pagina, 'servico_trafego');
   await esperarSeletor(pagina, 'input[name="fee_trafego"]');
   await preencher(pagina, 'input[name="cliente"]', `${marca} Sem Valor`);
   await preencher(pagina, 'input[name="contato"]', 'Alguém');
@@ -591,6 +608,62 @@ try {
 
   const linkMorto = await fetch(`${APP}/proposta/${slug}`);
   ok(linkMorto.status === 404, `e o link para de abrir (${linkMorto.status})`);
+
+  /* ---------------------------------------------------------------- */
+  /*
+    OBRA E MENSALIDADE NA MESMA PROPOSTA.
+
+    Construir uma loja cobra uma vez. Gerir trafego recomeca todo mes.
+    Somar os dois numa linha e escrever "total por mes" embaixo
+    apresentaria um projeto de entrega unica como mensalidade: quem le
+    acha que vai pagar aquilo doze vezes, e a proposta morre sem ninguem
+    dizer por que.
+
+    Os valores aqui sao escolhidos para a soma errada ser reconhecivel:
+    14.000 mais 1.500 da 15.500, que nao pode aparecer na pagina.
+  */
+  console.log('\nProjeto e mensalidade nao se somam');
+
+  await pagina.goto(`${APP}/painel/propostas`, { waitUntil: 'networkidle0', timeout: 60000 });
+  await marcar(pagina, 'modo', 'servicos');
+  await marcar(pagina, 'servico_ecommerce');
+  await marcar(pagina, 'servico_trafego');
+  await esperarSeletor(pagina, 'input[name="fee_ecommerce"]');
+  await preencher(pagina, 'input[name="cliente"]', `${marca} Obra E Operacao`);
+  await preencher(pagina, 'input[name="contato"]', 'Sócio');
+  await preencher(pagina, 'input[name="fee_ecommerce"]', '14.000');
+  await preencher(pagina, 'input[name="fee_trafego"]', '1.500');
+  await clicar(pagina, 'Gerar rascunho');
+  ok(await esperarTexto(pagina, 'rascunho criado'), 'proposta com obra e mensalidade foi gerada');
+
+  const { data: mista } = await admin
+    .from('proposta')
+    .select('id, slug, corpo')
+    .eq('cliente', `${marca} Obra E Operacao`)
+    .maybeSingle();
+
+  ok(
+    mista?.corpo?.servicos?.length === 2,
+    `gravou os dois servicos (gravou ${mista?.corpo?.servicos?.length})`,
+  );
+
+  await admin.from('proposta').update({ status: 'enviada' }).eq('id', mista.id);
+  await pagina.goto(`${APP}/proposta/${mista.slug}`, {
+    waitUntil: 'networkidle0',
+    timeout: 60000,
+  });
+  const misto = await pagina.evaluate(() => document.body.innerText);
+
+  ok(/14\.000/.test(misto), 'a pagina mostra o valor da obra');
+  ok(/1\.500/.test(misto), 'e o da mensalidade');
+  ok(/Para construir, uma vez/i.test(misto), 'fecha o total do que se paga uma vez');
+  ok(/Depois, todo m[êe]s/i.test(misto), 'e o do que recomeca todo mes');
+  ok(
+    !/Total por m[êe]s/i.test(misto),
+    'e NAO chama o conjunto de "total por mes", que faria a obra virar mensalidade',
+  );
+  ok(!/15\.500/.test(misto), 'a soma errada nao aparece em lugar nenhum da pagina');
+  ok(/uma vez/i.test(misto) && /\/mês/i.test(misto), 'cada linha diz se e uma vez ou todo mes');
 
   /* ---------------------------------------------------------------- */
   console.log('\nO pacote continua funcionando');

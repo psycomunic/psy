@@ -43,6 +43,9 @@ export type OpcaoServico = {
   id: string;
   nome: string;
   papel: 'principal' | 'complemento';
+  /** Decide o rótulo do campo de valor. Escrever "valor mensal" em cima
+      do preço de um site faria o contrato nascer errado. */
+  cobranca: 'projeto' | 'mensal';
   paraQuem: string;
   /** Preenche o campo de valor quando o servico tem tabela. */
   precoSugerido: number | null;
@@ -122,14 +125,22 @@ export function FormProposta({
   });
 
   const [escolhidos, setEscolhidos] = useState<Record<string, boolean>>(() =>
-    /* O principal já vem marcado: é o que a pessoa quase sempre quer, e
-       o complemento é decisão consciente. */
+    /*
+      Proposta nova começa com NADA marcado.
+
+      Antes vinha marcado todo `principal`, o que funcionava enquanto
+      havia um principal só. Com loja virtual, site de serviços,
+      institucional, landing e tráfego no catálogo, a mesma regra abria o
+      formulário com cinco serviços marcados e exigindo valor em cada um.
+
+      E não existe padrão honesto para escolher no lugar de quem vende:
+      esta proposta pode ser um site, pode ser tráfego, pode ser os dois.
+      Quem sabe é quem está escrevendo.
+    */
     Object.fromEntries(
       servicos.map((s) => [
         s.id,
-        editando
-          ? editando.servicos.some((x) => x.id === s.id)
-          : s.papel === 'principal',
+        editando ? editando.servicos.some((x) => x.id === s.id) : false,
       ]),
     ),
   );
@@ -237,10 +248,11 @@ export function FormProposta({
         <fieldset>
           <legend className={rotuloCss}>Serviços e valores *</legend>
           <p className="mt-2 max-w-[70ch] text-xs leading-relaxed text-cinza">
-            O que cada serviço entrega está no catálogo e aparece igual em toda proposta. O
-            valor é desta: gestão de tráfego para quem vende curso e para uma
+            O que cada serviço entrega está no catálogo e aparece igual em toda proposta.
+            O valor é desta: gestão de tráfego para quem vende curso e para uma
             concessionária não custam o mesmo, e uma tabela fixa aqui viraria preço que
-            ninguém cumpre.
+            ninguém cumpre. Projeto e mensalidade podem ir na mesma proposta, e a página
+            do cliente fecha os dois totais separados.
           </p>
 
           <div className="mt-3 space-y-3">
@@ -267,6 +279,9 @@ export function FormProposta({
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="font-display text-base font-bold">{s.nome}</span>
+                        <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                          {s.cobranca === 'projeto' ? 'projeto' : 'todo mês'}
+                        </span>
                         {s.papel === 'complemento' ? (
                           <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                             complemento
@@ -282,7 +297,7 @@ export function FormProposta({
                   {marcado ? (
                     <div className="mt-3.5 border-t border-fio pt-3.5">
                       <label htmlFor={`fee-${s.id}`} className={rotuloCss}>
-                        Valor mensal
+                        {s.cobranca === 'projeto' ? 'Valor do projeto' : 'Valor mensal'}
                       </label>
                       <input
                         id={`fee-${s.id}`}

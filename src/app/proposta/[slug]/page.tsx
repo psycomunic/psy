@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buscarPropostaExibida, venceEmExibida } from '@/dados/propostas';
 import { condicoesPadrao, PLANOS } from '@/dados/planos';
-import { fichaDoServico, sempreNoAvulso, emReais } from '@/dados/servicos';
+import { fichaDoServico, condicoesDoAvulso, emReais } from '@/dados/servicos';
 import { Deck } from '@/componentes/proposta/Deck';
 import { Slide, Bloco } from '@/componentes/proposta/Slide';
 import {
@@ -334,6 +334,7 @@ export default async function PaginaProposta({
                     id: f.id,
                     nome: f.nome,
                     papel: f.papel,
+                    cobranca: f.cobranca,
                     paraQuem: f.paraQuem,
                     promessa: f.promessa,
                     entregas: f.entregas,
@@ -348,12 +349,14 @@ export default async function PaginaProposta({
               <SlideDaConta
                 key="conta"
                 linkWhatsapp={linkWhatsapp}
+                avisoDeVerba={p.servicos.some((s) => s.id === 'trafego')}
                 servicos={p.servicos.map((s) => {
                   const f = fichaDoServico(s.id);
                   return {
                     id: f.id,
                     nome: f.nome,
                     papel: f.papel,
+                    cobranca: f.cobranca,
                     paraQuem: f.paraQuem,
                     promessa: f.promessa,
                     entregas: f.entregas,
@@ -366,7 +369,7 @@ export default async function PaginaProposta({
             ),
             <SlideSempre
               key="sempre"
-              sempre={sempreNoAvulso}
+              sempre={condicoesDoAvulso(p.servicos.map((s) => s.id))}
               complementos={p.servicos
                 .map((s) => fichaDoServico(s.id))
                 .filter((f) => f.papel === 'complemento')

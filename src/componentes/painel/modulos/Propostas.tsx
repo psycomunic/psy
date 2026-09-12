@@ -79,6 +79,7 @@ export async function Propostas({
     id: s,
     nome: fichasDeServico[s].nome,
     papel: fichasDeServico[s].papel,
+    cobranca: fichasDeServico[s].cobranca,
     paraQuem: fichasDeServico[s].paraQuem,
     /* Sugerido, e nao fixo: o campo abre preenchido e continua
        editavel. A negociacao manda. */
