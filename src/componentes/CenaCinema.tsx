@@ -146,6 +146,32 @@ export function CenaCinema({
     );
     obs.observe(cena);
 
+    /*
+      DESTRAVA O VÍDEO NO IPHONE. Mesma armadilha do HeroCinema.
+
+      O Safari do iOS não pinta quadro de vídeo que nunca tocou: mexer
+      em `currentTime` antes disso não mostra nada, e a cena fica parada
+      no poster enquanto a rolagem acontece. Um play() seguido de
+      pause() destrava, mas só dentro de um gesto, então mora no toque.
+
+      Restrito a aparelho de toque: no computador, tocar o vídeo no
+      primeiro clique adiantaria o quadro e brigaria com a rolagem. E o
+      catch é obrigatório, porque play() seguido de pause() rejeita com
+      AbortError.
+    */
+    const destravar = () => {
+      const pr = v.play();
+      if (pr && typeof pr.then === 'function') {
+        pr.then(() => {
+          v.pause();
+          if (v.duration) duration = v.duration;
+          markReady();
+        }).catch(() => {});
+      }
+    };
+    const toque = window.matchMedia('(hover: none)').matches;
+    if (toque) window.addEventListener('touchstart', destravar, { passive: true, once: true });
+
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     onScroll();

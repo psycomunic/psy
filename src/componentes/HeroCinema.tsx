@@ -301,6 +301,37 @@ export function HeroCinema() {
     v.addEventListener('canplaythrough', markReady);
     const timer = window.setTimeout(markReady, 6000);
 
+    /*
+      DESTRAVA O VÍDEO NO IPHONE.
+
+      O Safari do iOS não pinta quadro nenhum de um vídeo que nunca
+      tocou: mexer em `currentTime` antes disso não mostra nada, e a
+      cena fica preta ou parada no poster enquanto a rolagem acontece.
+      Ele também trata `preload="auto"` como sugestão e costuma não
+      buscar os dados sem um gesto da pessoa.
+
+      Um play() seguido de pause() resolve os dois, mas só vale DENTRO
+      de um gesto, então mora no primeiro toque. Fica restrito a
+      aparelho de toque de propósito: no computador, tocar o vídeo no
+      primeiro clique adiantaria o quadro e brigaria com a rolagem.
+
+      O catch não é decorativo. play() e pause() em sequência rejeitam a
+      promessa com AbortError, e sem tratar isso vira erro no console de
+      todo iPhone que abrir o site.
+    */
+    function destravar() {
+      const pr = v.play();
+      if (pr && typeof pr.then === 'function') {
+        pr.then(() => {
+          v.pause();
+          if (v.duration) duration = v.duration;
+          markReady();
+          apply();
+        }).catch(() => {});
+      }
+    }
+    if (toque) window.addEventListener('touchstart', destravar, { passive: true, once: true });
+
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     if (!toque) window.addEventListener('mousemove', onMouse, { passive: true });
