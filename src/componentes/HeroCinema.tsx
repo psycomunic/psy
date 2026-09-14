@@ -4,132 +4,236 @@ import { useEffect, useRef } from 'react';
 import { Botao } from './Botao';
 
 /**
- * Hero Scroll Cinema: o lançamento controlado pelo dedo do visitante.
+ * Hero Scroll Cinema: o astronauta, e a entrada pelo visor.
  *
  * ============================================================
- * O QUE ISTO É (E O QUE NÃO É)
+ * A JORNADA
  * ============================================================
- * Não é vídeo de fundo tocando sozinho. O arquivo hero.mp4 é um
- * flipbook: cada quadro está amarrado à posição da rolagem. Desce, o
- * foguete sobe; volta, o foguete volta. A jornada é uma só: começa no
- * foguete parado na plataforma à noite e termina com ele rompendo a
- * atmosfera, com a curva da Terra embaixo.
- *
- * Isso só funciona porque hero.mp4 foi reencodado com TODO quadro
- * sendo keyframe (x264 keyint=1). Um MP4 comum tem keyframe a cada 2 s
- * e o navegador só salta suave para keyframes: amarrar currentTime nele
- * engasga e parece quebrado. Se um dia o vídeo for trocado, reencode
- * com a receita em ARQUITETURA.md, seção Scroll Cinema.
+ * Começa num astronauta flutuando sobre a Terra, de corpo inteiro e
+ * pequeno no quadro. A câmera avança enquanto ele gira e vira o rosto
+ * para nós. Termina com o visor dourado ocupando a tela inteira,
+ * refletindo a Terra e uma luz magenta. Tudo comandado pela rolagem:
+ * desce, a câmera aproxima; volta, ela recua.
  *
  * ============================================================
- * COMO FUNCIONA
+ * AS QUATRO INTERAÇÕES QUE TIRAM ISTO DE "VÍDEO COM TEXTO POR CIMA"
  * ============================================================
- * A <section> tem 460vh de altura. Dentro dela, um contêiner sticky de
- * 100vh segura o vídeo parado na tela. Conforme a seção atravessa a
- * janela, um progresso p de 0 a 1 é calculado pelo getBoundingClientRect
- * e aplicado em video.currentTime = p × duração.
+ * 1. A MIRA. Quatro cantos em fio fino começam abertos nas bordas da
+ *    tela e fecham sobre o capacete conforme a câmera aproxima: a
+ *    câmera "travando o alvo". Quando o visor preenche a tela, a mira
+ *    solta e desaparece.
+ * 2. O TEXTO PROJETADO NO VIDRO. As três camadas de texto não fazem
+ *    fade: cada caractere é decodificado, passando por glifos
+ *    aleatórios até assentar, no ritmo da rolagem. Rolar para trás
+ *    "desdecodifica". É leitura de telemetria projetada no visor.
+ * 3. A ABERTURA. No fim, um círculo cresce a partir do centro do visor
+ *    e vira o fundo da seção seguinte. O visitante entra no site pelo
+ *    visor, sem corte.
+ * 4. A PARALAXE DO MOUSE. Vídeo, mira e texto respondem ao cursor em
+ *    intensidades diferentes. Parado, a cena continua respirando.
  *
- * O MESMO p alimenta tudo o mais: as três camadas de texto que se
- * revezam, o contador de altitude e a velocidade (o detalhe temático,
- * em vocabulário de telemetria, que é o vocabulário de painel que a
- * Psy Comunic vende) e a barra de progresso lateral. Uma variável só
- * comanda a cena inteira.
+ * O mesmo progresso p (0 a 1) comanda tudo: vídeo, mira, decodificação,
+ * telemetria, barra lateral e abertura. Uma variável só.
  *
  * ============================================================
  * ARMADILHAS QUE ESTE CÓDIGO JÁ EVITA (não regridam)
  * ============================================================
- * - Lê video.readyState no bind, além de escutar loadedmetadata. Em
- *   servidor local o evento dispara antes do listener existir e a
- *   duração ficaria 0 para sempre: o vídeo pareceria morto.
- * - document.hidden: painel de preview embutido não entrega
- *   requestAnimationFrame. Quando oculto, aplica direto.
- * - prefers-reduced-motion NUNCA colapsa a altura da seção. Colapsar
- *   zera o scrollable, o progresso trava em 0 e o site parece quebrado.
- *   Quem pediu menos movimento recebe o vídeo parado no frame A e o
- *   texto final, sem rolar 460vh à toa: a seção encurta para 100vh.
- * - Tela de carregamento obrigatória, liberada no canplaythrough com
- *   fallback de 6 s. Sem ela a pessoa rola, não vê nada e vai embora.
- * - Nenhum ancestral com overflow:hidden (mata o sticky). A seção usa
- *   overflow:clip. Ver CLAUDE.md.
+ * - hero.mp4 tem TODO quadro como keyframe (x264 keyint=1). Sem isso o
+ *   scroll engasga. Receita em ARQUITETURA.md, seção Scroll Cinema.
+ * - Lê video.readyState no bind, além de escutar loadedmetadata.
+ * - document.hidden: painel oculto não entrega requestAnimationFrame.
+ * - prefers-reduced-motion NÃO colapsa a altura (zera o scrollable e o
+ *   site parece quebrado): reduz a 100vh, mostra o frame final com o
+ *   texto completo, sem decodificação.
+ * - Tela de carregamento obrigatória, solta no canplaythrough, com
+ *   fallback de 6 s.
+ * - Nenhum ancestral com overflow:hidden (mata o sticky). É clip.
  */
 
-const ALTITUDE_MAX_KM = 400;
-const VELOCIDADE_MAX_KMH = 27600;
+/* Glifos usados na decodificação. Poucos e "de painel": números, barras
+   e colchetes. Letras aleatórias pareceriam erro de digitação. */
+const GLIFOS = '01<>/|[]{}=+*#';
 
 /* Janela de opacidade: 0 fora de [a, b], 1 no miolo, rampa nas pontas. */
-function janela(p: number, a: number, b: number, rampa = 0.08) {
+function janela(p: number, a: number, b: number, rampa = 0.06) {
   if (p <= a || p >= b) return 0;
-  const entrada = Math.min(1, (p - a) / rampa);
-  const saida = Math.min(1, (b - p) / rampa);
-  return Math.min(entrada, saida);
+  return Math.min(1, (p - a) / rampa, (b - p) / rampa);
 }
+
+/* Ruído determinístico: o mesmo (índice, tique) sempre dá o mesmo
+   glifo. Assim rolar para trás refaz exatamente o mesmo caminho, em vez
+   de piscar diferente a cada quadro. */
+function glifo(i: number, tique: number) {
+  const n = Math.abs(Math.sin(i * 12.9898 + tique * 78.233) * 43758.5453);
+  return GLIFOS[Math.floor(n) % GLIFOS.length];
+}
+
+/**
+ * Decodifica um texto até a fração f (0 a 1): os caracteres antes da
+ * fronteira estão assentados, os 3 seguintes ainda giram, o resto está
+ * em branco. Espaços e quebras nunca viram glifo: a largura da linha
+ * ficaria pulando.
+ */
+function decodificar(texto: string, f: number, tique: number) {
+  const total = texto.length;
+  const fronteira = Math.floor(f * (total + 3));
+  let saida = '';
+  for (let i = 0; i < total; i++) {
+    const c = texto[i];
+    if (c === ' ' || c === '\n') saida += c;
+    else if (i < fronteira) saida += c;
+    else if (i < fronteira + 3) saida += glifo(i, tique);
+    else saida += ' ';
+  }
+  return saida;
+}
+
+type Camada = {
+  /* Faixa do progresso em que a camada está visível. */
+  faixa: [number, number];
+  /* Quanto do início da faixa é gasto decodificando. */
+  entrada: number;
+};
+
+const CAMADAS: Camada[] = [
+  { faixa: [-0.2, 0.3], entrada: 0.12 },
+  { faixa: [0.3, 0.62], entrada: 0.12 },
+  { faixa: [0.62, 1.2], entrada: 0.12 },
+];
 
 export function HeroCinema() {
   const secao = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const loader = useRef<HTMLDivElement>(null);
+  const palco = useRef<HTMLDivElement>(null);
   const camadas = useRef<(HTMLDivElement | null)[]>([]);
-  const altitude = useRef<HTMLSpanElement>(null);
-  const velocidade = useRef<HTMLSpanElement>(null);
+  const mira = useRef<HTMLDivElement>(null);
+  const abertura = useRef<HTMLDivElement>(null);
+  const distancia = useRef<HTMLSpanElement>(null);
+  const rotacao = useRef<HTMLSpanElement>(null);
   const relogio = useRef<HTMLSpanElement>(null);
+  const sinal = useRef<HTMLSpanElement>(null);
   const barra = useRef<HTMLSpanElement>(null);
   const dica = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    /* Cópias tipadas: as funções abaixo são declaradas fora do
-       estreitamento do `if`, e o TypeScript não carrega o "não é nulo"
-       para dentro delas. */
-    if (!secao.current || !video.current || !loader.current) return;
+    if (!secao.current || !video.current || !loader.current || !palco.current) return;
     const hero: HTMLElement = secao.current;
     const v: HTMLVideoElement = video.current;
     const l: HTMLDivElement = loader.current;
+    const stage: HTMLDivElement = palco.current;
 
     const menosMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const toque = window.matchMedia('(hover: none)').matches;
 
     let duration = 0;
     let ready = false;
     let target = menosMovimento ? 1 : 0;
     let ticking = false;
 
-    /* Helpers declarados ANTES dos binds. "function" é içada inteira;
-       um "const" lido antes da linha seria TypeError silencioso. */
+    /* Mouse, normalizado de -1 a 1. Suavizado no apply para o
+       movimento não acompanhar o cursor de forma seca. */
+    let mx = 0, my = 0, sx = 0, sy = 0;
+    let animando = false;
+    let abrindo = false;
+
+    /* Textos originais de cada elemento decodificável, lidos uma vez. */
+    const decodificaveis = Array.from(
+      stage.querySelectorAll<HTMLElement>('[data-decodifica]'),
+    ).map((el) => ({ el, texto: el.textContent || '' }));
+
     function apply() {
       ticking = false;
       const p = target;
 
       if (duration && !menosMovimento) v.currentTime = p * duration;
 
-      /* Três camadas de texto se revezando ao longo do lançamento. */
-      const faixas: [number, number][] = [
-        [-0.2, 0.34],
-        [0.32, 0.66],
-        [0.64, 1.2],
-      ];
+      /* Suavização da paralaxe do mouse. */
+      sx += (mx - sx) * 0.08;
+      sy += (my - sy) * 0.08;
+      const precisaContinuar = Math.abs(mx - sx) > 0.002 || Math.abs(my - sy) > 0.002;
+
+      if (!toque && !menosMovimento) {
+        v.style.transform = `translate3d(${sx * -10}px, ${sy * -8}px, 0) scale(1.04)`;
+      }
+
+      /* 1. A mira. Vai das bordas até um quadro em volta do capacete.
+         O capacete começa à direita e acima do centro (frame A) e
+         termina centrado (frame B): o centro da mira anda junto. */
+      if (mira.current) {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const fecha = Math.min(1, p / 0.66);
+        const suave = 1 - Math.pow(1 - fecha, 3);
+        /* Tamanho final em px, ancorado na ALTURA da tela: o vídeo é
+           16:9 em object-fit:cover, então no celular ele é cortado nas
+           laterais e o capacete mantém a proporção com a altura. Uma
+           caixa em % da largura ficaria estreita e alta no telefone. */
+        const fim = Math.min(0.36 * vh, 0.82 * vw);
+        const w = 0.92 * vw - (0.92 * vw - fim) * suave;
+        const h = 0.88 * vh - (0.88 * vh - fim) * suave;
+        const cx = (50 + (58 - 50) * (1 - suave)) / 100 * vw;
+        const cy = (50 + (36 - 50) * (1 - suave)) / 100 * vh;
+        const solta = p > 0.8 ? Math.max(0, 1 - (p - 0.8) / 0.07) : 1;
+        const m = mira.current;
+        m.style.left = `${(cx - w / 2).toFixed(1)}px`;
+        m.style.top = `${(cy - h / 2).toFixed(1)}px`;
+        m.style.width = `${w.toFixed(1)}px`;
+        m.style.height = `${h.toFixed(1)}px`;
+        m.style.opacity = String(menosMovimento ? 0 : solta * (p < 0.02 ? 0.55 : 1));
+        m.style.transform = `translate3d(${sx * 14}px, ${sy * 10}px, 0)`;
+        m.dataset.travada = fecha > 0.88 ? 'sim' : 'nao';
+      }
+
+      /* 2. Texto decodificado por camada. */
       camadas.current.forEach((el, i) => {
         if (!el) return;
-        const o = menosMovimento ? (i === 2 ? 1 : 0) : janela(p, faixas[i][0], faixas[i][1]);
-        el.style.opacity = String(o);
-        el.style.transform = `translateY(${(1 - o) * 14}px)`;
-        el.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
-        el.setAttribute('aria-hidden', o > 0.5 ? 'false' : 'true');
+        const c = CAMADAS[i];
+        const vis = menosMovimento ? (i === 2 ? 1 : 0) : janela(p, c.faixa[0], c.faixa[1]);
+        el.style.opacity = String(vis);
+        el.style.pointerEvents = vis > 0.5 ? 'auto' : 'none';
+        el.setAttribute('aria-hidden', vis > 0.5 ? 'false' : 'true');
+        el.style.transform = `translate3d(${sx * 18}px, ${sy * 12}px, 0)`;
+        if (vis === 0) return;
+        if (i === 0 && abrindo) return;
+        const f = menosMovimento ? 1 : Math.min(1, Math.max(0, (p - c.faixa[0]) / c.entrada));
+        const tique = Math.floor(p * 400);
+        decodificaveis
+          .filter((d) => el.contains(d.el))
+          .forEach((d) => {
+            d.el.textContent = f >= 1 ? d.texto : decodificar(d.texto, f, tique);
+          });
       });
 
-      /* Telemetria: o detalhe temático. Curva quadrática para a
-         altitude, que sobe devagar e depois dispara, como um lançamento. */
-      const curva = p * p;
-      if (altitude.current) {
-        altitude.current.textContent = String(Math.round(curva * ALTITUDE_MAX_KM)).padStart(3, '0');
+      /* 3. A abertura: círculo que cresce do centro do visor. */
+      if (abertura.current) {
+        const a = Math.max(0, (p - 0.9) / 0.1);
+        const r = a * 160;
+        abertura.current.style.clipPath = `circle(${r}% at 50% 50%)`;
+        abertura.current.style.setProperty('--r', `${r}%`);
+        abertura.current.style.opacity = a > 0 ? '1' : '0';
       }
-      if (velocidade.current) {
-        velocidade.current.textContent = Math.round(Math.sqrt(p) * VELOCIDADE_MAX_KMH)
-          .toLocaleString('pt-BR');
+
+      /* Telemetria: distância até o visor, rotação, relógio, sinal. */
+      if (distancia.current) {
+        distancia.current.textContent = (120 * Math.pow(1 - p, 1.6)).toFixed(1).replace('.', ',');
       }
+      if (rotacao.current) rotacao.current.textContent = String(Math.round(p * 38)).padStart(2, '0');
       if (relogio.current) {
-        const s = Math.round(p * 540);
+        const s = Math.round(p * 300);
         relogio.current.textContent = `T+${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
       }
+      if (sinal.current) sinal.current.textContent = `${Math.round(40 + p * 60)}%`;
       if (barra.current) barra.current.style.transform = `scaleY(${p})`;
-      if (dica.current) dica.current.style.opacity = String(p < 0.04 ? 1 : 0);
+      if (dica.current) dica.current.style.opacity = String(p < 0.03 ? 1 : 0);
+
+      if (precisaContinuar && !animando) {
+        animando = true;
+        requestAnimationFrame(() => {
+          animando = false;
+          apply();
+        });
+      }
     }
 
     function onScroll() {
@@ -144,6 +248,40 @@ export function HeroCinema() {
       }
     }
 
+    function onMouse(e: MouseEvent) {
+      mx = (e.clientX / window.innerWidth) * 2 - 1;
+      my = (e.clientY / window.innerHeight) * 2 - 1;
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(apply);
+      }
+    }
+
+    /* Decodificação de abertura: a primeira camada não faz fade ao
+       carregar, ela se escreve. Só roda se a pessoa ainda está no topo;
+       quem chegou já rolado recebe o texto pronto pelo apply. */
+    function decodificarAbertura() {
+      if (menosMovimento || target > 0.05 || !camadas.current[0]) return;
+      const alvo = camadas.current[0];
+      const itens = decodificaveis.filter((d) => alvo.contains(d.el));
+      const inicio = performance.now();
+      abrindo = true;
+      const passo = (t: number) => {
+        const f = Math.min(1, (t - inicio) / 1500);
+        const tique = Math.floor(t / 40);
+        itens.forEach((d, i) => {
+          const fi = Math.min(1, Math.max(0, (f - i * 0.12) / 0.7));
+          d.el.textContent = fi >= 1 ? d.texto : decodificar(d.texto, fi, tique);
+        });
+        if (f < 1 && target <= 0.05) requestAnimationFrame(passo);
+        else {
+          abrindo = false;
+          itens.forEach((d) => { d.el.textContent = d.texto; });
+        }
+      };
+      requestAnimationFrame(passo);
+    }
+
     function markReady() {
       if (ready) return;
       ready = true;
@@ -151,12 +289,11 @@ export function HeroCinema() {
       v.classList.add('is-ready');
       l.classList.add('is-gone');
       onScroll();
+      decodificarAbertura();
     }
 
-    /* Lê o estado atual E escuta o evento. */
     if (v.readyState >= 1 && v.duration) duration = v.duration;
     if (v.readyState >= 4) markReady();
-
     const aoMeta = () => {
       duration = v.duration;
     };
@@ -166,6 +303,7 @@ export function HeroCinema() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
+    if (!toque) window.addEventListener('mousemove', onMouse, { passive: true });
     onScroll();
 
     return () => {
@@ -174,19 +312,13 @@ export function HeroCinema() {
       window.clearTimeout(timer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      window.removeEventListener('mousemove', onMouse);
     };
   }, []);
 
   return (
-    <section
-      ref={secao}
-      id="lancamento"
-      aria-label="Abertura"
-      className="sc-hero relative"
-    >
-      <div className="sc-sticky">
-        {/* O vídeo. muted + playsInline são obrigatórios: sem eles o
-            iOS abre o player em tela cheia no primeiro toque. */}
+    <section ref={secao} id="lancamento" aria-label="Abertura" className="sc-hero relative">
+      <div ref={palco} className="sc-sticky">
         <video
           ref={video}
           className="sc-video"
@@ -199,68 +331,65 @@ export function HeroCinema() {
           tabIndex={-1}
         />
 
-        {/* Véu para o texto ler sobre a imagem sem matar o foguete. */}
         <div aria-hidden className="sc-veu" />
 
-        {/* Tela de carregamento: some no canplaythrough. */}
         <div ref={loader} className="sc-loader" role="status" aria-live="polite">
           <span className="sc-loader-anel" aria-hidden />
           <span className="font-mono text-[0.68rem] uppercase tracking-[0.26em] text-cinza">
-            Preparando o lançamento
+            Sincronizando com o traje
           </span>
         </div>
 
-        {/* ---------- Conteúdo sobre o vídeo ---------- */}
+        {/* 1. A mira */}
+        <div ref={mira} aria-hidden className="sc-mira">
+          <span className="sc-mira-canto sc-mira-canto--a" />
+          <span className="sc-mira-canto sc-mira-canto--b" />
+          <span className="sc-mira-canto sc-mira-canto--c" />
+          <span className="sc-mira-canto sc-mira-canto--d" />
+          <span className="sc-mira-centro" />
+          <span className="sc-mira-rotulo">
+            <span className="sc-mira-rotulo--busca">Rastreando</span>
+            <span className="sc-mira-rotulo--trava">Alvo travado</span>
+          </span>
+        </div>
+
+        {/* 2. As três camadas de texto, projetadas no visor */}
         <div className="sc-conteudo mx-auto w-full max-w-[1320px] px-5 md:px-10">
-          {/* Camada 1: a abertura. */}
-          <div
-            ref={(el) => {
-              camadas.current[0] = el;
-            }}
-            className="sc-camada"
-          >
-            <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+          <div ref={(el) => { camadas.current[0] = el; }} className="sc-camada">
+            <p className="sc-rotulo">
               <span aria-hidden className="h-px w-8 bg-magenta" />
-              Do zero ao lançamento, e todo mês depois
+              <span data-decodifica>Do zero ao lançamento, e todo mês depois</span>
             </p>
             <h1 className="sc-titulo mt-7 font-display font-extrabold tracking-[-0.045em]">
-              Sua loja não precisa
+              <span data-decodifica>Sua loja não precisa</span>
               <br />
-              de mais uma agência.
+              <span data-decodifica>de mais uma agência.</span>
             </h1>
           </div>
 
-          {/* Camada 2: a virada. */}
-          <div
-            ref={(el) => {
-              camadas.current[1] = el;
-            }}
-            className="sc-camada"
-          >
-            <p className="sc-titulo font-display font-extrabold tracking-[-0.045em]">
-              Precisa de uma
+          <div ref={(el) => { camadas.current[1] = el; }} className="sc-camada">
+            <p className="sc-rotulo">
+              <span aria-hidden className="h-px w-8 bg-magenta" />
+              <span data-decodifica>Aproximando</span>
+            </p>
+            <p className="sc-titulo mt-7 font-display font-extrabold tracking-[-0.045em]">
+              <span data-decodifica>Precisa de uma</span>
               <br />
-              <span className="text-magenta-texto">operação.</span>
+              <span className="text-magenta-texto" data-decodifica>operação.</span>
             </p>
           </div>
 
-          {/* Camada 3: a promessa e os botões. */}
-          <div
-            ref={(el) => {
-              camadas.current[2] = el;
-            }}
-            className="sc-camada"
-          >
-            <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+          <div ref={(el) => { camadas.current[2] = el; }} className="sc-camada sc-camada--visor">
+            <p className="sc-rotulo">
               <span aria-hidden className="h-px w-8 bg-magenta" />
-              Em órbita
+              <span data-decodifica>Projeção no visor</span>
             </p>
             <p className="sc-titulo-p mt-6 font-display font-extrabold tracking-[-0.04em]">
-              Do zero ao lançamento.
+              <span data-decodifica>Construímos a loja.</span>
               <br />
-              E todo mês depois dele.
+              <span data-decodifica>E ficamos para fazer ela vender.</span>
             </p>
-            <p className="mt-7 max-w-[54ch] text-guia text-neve">
+            <p className="mt-7 max-w-[52ch] text-guia text-neve">
               A Psy Comunic <strong className="font-semibold text-branco">constrói a sua loja
               do zero até o lançamento</strong> e continua entregando todo mês depois dele.
               Gestão, tecnologia, marketing e logística rodando junto.
@@ -274,20 +403,32 @@ export function HeroCinema() {
           </div>
         </div>
 
-        {/* ---------- Telemetria (detalhe temático) ---------- */}
+        {/* 3. A abertura para a próxima seção */}
+        <div ref={abertura} aria-hidden className="sc-abertura">
+          <div className="estrelas absolute inset-0" />
+          <div className="brilho-magenta absolute -right-[18%] -top-[30%] h-[820px] w-[820px] opacity-35" />
+        </div>
+
+        {/* Telemetria */}
         <div aria-hidden className="sc-telemetria">
           <div className="sc-tele-item">
-            <span className="sc-tele-rotulo">Altitude</span>
+            <span className="sc-tele-rotulo">Distância</span>
             <span className="sc-tele-valor">
-              <span ref={altitude} className="tabular">000</span>
-              <span className="sc-tele-unidade">km</span>
+              <span ref={distancia} className="tabular">120,0</span>
+              <span className="sc-tele-unidade">m</span>
             </span>
           </div>
           <div className="sc-tele-item">
-            <span className="sc-tele-rotulo">Velocidade</span>
+            <span className="sc-tele-rotulo">Rotação</span>
             <span className="sc-tele-valor">
-              <span ref={velocidade} className="tabular">0</span>
-              <span className="sc-tele-unidade">km/h</span>
+              <span ref={rotacao} className="tabular">00</span>
+              <span className="sc-tele-unidade">°</span>
+            </span>
+          </div>
+          <div className="sc-tele-item">
+            <span className="sc-tele-rotulo">Sinal</span>
+            <span className="sc-tele-valor">
+              <span ref={sinal} className="tabular">40%</span>
             </span>
           </div>
           <div className="sc-tele-item">
@@ -298,16 +439,14 @@ export function HeroCinema() {
           </div>
         </div>
 
-        {/* Barra vertical de progresso, na lateral direita. */}
         <div aria-hidden className="sc-barra">
           <span ref={barra} className="sc-barra-fio" />
         </div>
 
-        {/* Dica de rolagem: some assim que a pessoa começa. */}
         <div ref={dica} aria-hidden className="sc-dica">
           <span className="sc-dica-seta" />
           <span className="font-mono text-[0.62rem] uppercase tracking-[0.26em] text-cinza">
-            Role para lançar
+            Role para aproximar
           </span>
         </div>
       </div>

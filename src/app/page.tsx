@@ -9,6 +9,7 @@ import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { HeroCinema } from '@/componentes/HeroCinema';
+import { Interacoes } from '@/componentes/Interacoes';
 import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
@@ -40,6 +41,9 @@ export default function Home() {
   return (
     <>
       <Cabecalho />
+      {/* Barra de progresso da página e o kit de interações por atributo. */}
+      <div id="progresso-pagina" aria-hidden />
+      <Interacoes />
       <main id="conteudo">
 
         {/* ==========================================================
@@ -62,8 +66,8 @@ export default function Home() {
             ========================================================== */}
         <section className="relative isolate overflow-clip pb-20 pt-6 md:pb-28 md:pt-10">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="estrelas absolute inset-0" />
-            <div className="brilho-magenta absolute -right-[18%] -top-[30%] h-[820px] w-[820px] opacity-35" />
+            <div className="estrelas absolute inset-0" data-paralaxe="0.08" />
+            <div className="brilho-magenta absolute -right-[18%] -top-[30%] h-[820px] w-[820px] opacity-35" data-paralaxe="-0.18" />
           </div>
 
           <div className={secao}>
@@ -88,7 +92,10 @@ export default function Home() {
                   ].map((item) => (
                     <div key={item.d} className="bg-marinho px-6 py-6 md:px-7 md:py-7">
                       <dt className="flex items-baseline gap-2.5">
-                        <span className="tabular font-display text-2xl font-extrabold tracking-[-0.04em] md:text-3xl">
+                        <span
+                          className="tabular font-display text-2xl font-extrabold tracking-[-0.04em] md:text-3xl"
+                          data-contar={/^\d+$/.test(item.n) ? item.n : undefined}
+                        >
                           {item.n}
                         </span>
                         {item.u ? (
@@ -159,11 +166,12 @@ export default function Home() {
           id="jornada"
           aria-labelledby="jornada-titulo"
           className="scroll-mt-24 relative overflow-clip py-24 md:py-32"
+          data-cena
         >
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="estrelas absolute inset-0" />
-            <div className="orbita absolute left-1/2 top-[58%] h-[900px] w-[1600px] -translate-x-1/2 opacity-70" />
-            <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" />
+            <div className="estrelas absolute inset-0" data-paralaxe="0.06" />
+            <div className="orbita absolute left-1/2 top-[58%] h-[900px] w-[1600px] -translate-x-1/2 opacity-70" data-paralaxe="-0.1" />
+            <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" data-paralaxe="-0.2" />
           </div>
 
           <div className={secao}>
@@ -180,9 +188,29 @@ export default function Home() {
                 entre elas; no telefone empilham, e a seta vira o
                 conector vertical. */}
             <div className="relative mt-16 grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
+              {/*
+                A órbita entre as fases. Um arco que se desenha conforme
+                a seção atravessa a tela, com um satélite viajando de
+                "Do zero ao lançamento" até "Entregas contínuas". É a
+                passagem de bastão que a copy diz não existir, desenhada
+                como o que ela é: uma trajetória contínua.
+              */}
+              <svg aria-hidden className="orbita-svg hidden lg:block" viewBox="0 0 1000 600" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="orbita-grad" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0" stopColor="#FF6B96" stopOpacity="0.2" />
+                    <stop offset="0.5" stopColor="#FF6B96" stopOpacity="1" />
+                    <stop offset="1" stopColor="#FF6B96" stopOpacity="0.2" />
+                  </linearGradient>
+                </defs>
+                <path data-desenha d="M 60 560 C 250 -80, 750 -80, 940 560" />
+              </svg>
+              <span aria-hidden className="satelite hidden lg:block" data-satelite />
+
               {jornada.map((fase, i) => (
                 <article
                   key={fase.id}
+                  data-inclina
                   className={
                     'revelar cartao relative flex flex-col p-8 md:p-10 ' +
                     (i === 1 ? 'border-magenta/40' : '')
@@ -256,7 +284,7 @@ export default function Home() {
             ========================================================== */}
         <section className="relative overflow-clip py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="brilho-frio absolute -left-[15%] top-1/4 h-[560px] w-[560px] opacity-20" />
+            <div className="brilho-frio absolute -left-[15%] top-1/4 h-[560px] w-[560px] opacity-20" data-paralaxe="-0.22" />
           </div>
 
           <div className={secao}>
@@ -283,7 +311,7 @@ export default function Home() {
                   key={f.slug}
                   className={'revelar' + (i % 2 === 1 ? ' md:mt-14' : '')}
                 >
-                  <div className="cartao h-full px-8 py-9 md:px-10 md:py-11">
+                  <div className="cartao h-full px-8 py-9 md:px-10 md:py-11" data-inclina>
                     <span aria-hidden className="absolute left-10 right-10 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                     <p className="font-display text-sub font-bold leading-tight tracking-[-0.03em] text-branco">
                       <span aria-hidden className="mr-1 text-magenta-texto">“</span>
@@ -305,7 +333,7 @@ export default function Home() {
             ========================================================== */}
         <section id="frentes" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="brilho-magenta absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 opacity-20" />
+            <div className="brilho-magenta absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 opacity-20" data-paralaxe="-0.15" />
           </div>
 
           <div className={secao}>
@@ -322,7 +350,8 @@ export default function Home() {
                 <Link
                   key={f.slug}
                   href={'/servicos/' + f.slug}
-                  className="revelar cartao group relative overflow-hidden p-9 transition-all duration-500 hover:-translate-y-1 hover:border-magenta/40 md:p-11"
+                  data-inclina
+                  className="revelar cartao group relative overflow-clip p-9 hover:border-magenta/40 md:p-11"
                 >
                   {/* Brilho de canto que só acende no hover. */}
                   <span
@@ -424,7 +453,7 @@ export default function Home() {
 
             <div className="mt-14 grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-14">
               {/* --- Retrato quadrado, à esquerda --- */}
-              <figure className="revelar relative overflow-hidden rounded-[var(--raio)] border border-fio">
+              <figure className="revelar relative overflow-clip rounded-[var(--raio)] border border-fio" data-inclina>
                 {/*
                   O arquivo é 3:2 deitado, então um quadro 1:1 corta 480px
                   de largura. ONDE cortar não é indiferente: a marca da
@@ -498,6 +527,7 @@ export default function Home() {
                     <div
                       key={item.t}
                       className="revelar cartao flex gap-6 p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9"
+                      data-inclina
                     >
                       <span className="tabular shrink-0 font-mono text-xs text-magenta-texto">
                         {item.i}
@@ -520,24 +550,23 @@ export default function Home() {
         {/* ==========================================================
             8. METODOLOGIA
             ========================================================== */}
-        <section id="metodologia" className="scroll-mt-24 py-24 md:py-32">
+        <section id="metodologia" className="scroll-mt-24 py-24 md:py-32" data-cena>
           <div className={secao}>
             <div className="revelar max-w-[46rem]">
               <Rotulo>Metodologia</Rotulo>
               <h2 className={tituloSecao}>Três processos. Zero achismo.</h2>
             </div>
 
-            <ol className="relative mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
-              {/* Linha que costura os três passos. Só no desktop: no
-                  celular os cards empilham e a linha horizontal mentiria
-                  sobre a direção da leitura. */}
-              <span
-                aria-hidden
-                className="absolute left-0 right-0 top-[1.1rem] hidden h-px bg-gradient-to-r from-magenta/60 via-fio to-transparent md:block"
-              />
+            <ol className="relative mt-16 grid gap-10 md:grid-cols-3 md:gap-8" data-etapas>
+              {/* Linha que costura os três passos e se desenha com a
+                  rolagem. Só no desktop: no celular os cards empilham e
+                  a linha horizontal mentiria sobre a direção da leitura. */}
+              <svg aria-hidden className="orbita-svg hidden md:block" viewBox="0 0 1000 10" preserveAspectRatio="none" style={{ height: '2.2rem' }}>
+                <path data-desenha d="M 0 5 L 1000 5" />
+              </svg>
               {metodologia.map((m, i) => (
                 <li key={m.nome} className="revelar relative">
-                  <span className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-magenta/50 bg-marinho font-mono text-xs text-magenta-texto">
+                  <span className="etapa-numero relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-magenta/50 bg-marinho font-mono text-xs text-magenta-texto transition-all duration-500">
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <h3 className="mt-7 font-display text-xl font-bold tracking-[-0.02em]">
@@ -564,8 +593,8 @@ export default function Home() {
             ========================================================== */}
         <section id="parceria" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="estrelas absolute inset-0" />
-            <div className="orbita absolute left-1/2 top-[40%] h-[700px] w-[1300px] -translate-x-1/2 opacity-60" />
+            <div className="estrelas absolute inset-0" data-paralaxe="0.06" />
+            <div className="orbita absolute left-1/2 top-[40%] h-[700px] w-[1300px] -translate-x-1/2 opacity-60" data-paralaxe="-0.12" />
             <div className="brilho-magenta absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.18]" />
           </div>
 
@@ -606,11 +635,12 @@ export default function Home() {
               ].map((nivel) => (
                 <li
                   key={nivel.n}
+                  data-inclina
                   className={
-                    'revelar cartao relative p-9 transition-transform duration-500 md:p-10 ' +
+                    'revelar cartao relative p-9 md:p-10 ' +
                     (nivel.destaque
-                      ? 'border-magenta/45 lg:-translate-y-5 lg:shadow-[0_30px_80px_-30px_rgba(228,21,95,0.55)]'
-                      : 'hover:-translate-y-1')
+                      ? 'border-magenta/45 lg:-mt-5 lg:shadow-[0_30px_80px_-30px_rgba(228,21,95,0.55)]'
+                      : '')
                   }
                 >
                   {nivel.destaque ? (
@@ -653,7 +683,7 @@ export default function Home() {
             ========================================================== */}
         <section id="cases" className="scroll-mt-24 relative overflow-clip py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="brilho-frio absolute -right-[12%] top-1/4 h-[600px] w-[600px] opacity-20" />
+            <div className="brilho-frio absolute -right-[12%] top-1/4 h-[600px] w-[600px] opacity-20" data-paralaxe="-0.2" />
           </div>
 
           <div className={secao}>
@@ -725,6 +755,7 @@ export default function Home() {
                 seção ao resto da página. */}
             <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(16,31,63,0.55))]" />
+            <div className="estrelas absolute inset-0 opacity-70" data-paralaxe="0.1" />
           </div>
 
           <div className={secao}>
@@ -737,10 +768,10 @@ export default function Home() {
                 ordem de impacto no faturamento.
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
-                <Botao href="/diagnostico" variante="claro">
+                <Botao href="/diagnostico" variante="claro" className="warp">
                   Começar o diagnóstico
                 </Botao>
-                <Botao href="#parceria" variante="secundario">
+                <Botao href="#parceria" variante="secundario" className="warp">
                   Ver os níveis de parceria
                 </Botao>
               </div>

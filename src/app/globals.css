@@ -357,7 +357,7 @@ body {
      o frame final com o texto completo.
    ================================================================= */
 .sc-hero {
-  height: 460vh;
+  height: 520vh;
   /* Fecha a cena em preto-marinho profundo, um degrau abaixo do
      marinho: o espaço é mais escuro que o site. */
   background: #06091A;
@@ -380,6 +380,8 @@ body {
   object-position: center;
   opacity: 0;
   transition: opacity .8s ease;
+  will-change: transform;
+  transform: scale(1.04);
 }
 .sc-video.is-ready { opacity: 1; }
 
@@ -390,13 +392,13 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(6, 9, 26, .72) 0%, rgba(6, 9, 26, .35) 38%, transparent 62%),
-    linear-gradient(180deg, rgba(6, 9, 26, .55) 0%, transparent 22%, transparent 70%, rgba(16, 31, 63, 1) 100%);
+    linear-gradient(90deg, rgba(6, 9, 26, .62) 0%, rgba(6, 9, 26, .22) 36%, transparent 58%),
+    linear-gradient(180deg, rgba(6, 9, 26, .5) 0%, transparent 18%, transparent 78%, rgba(6, 9, 26, .6) 100%);
 }
 @media (max-width: 1023px) {
   .sc-veu {
     background:
-      linear-gradient(180deg, rgba(6, 9, 26, .78) 0%, rgba(6, 9, 26, .35) 45%, rgba(6, 9, 26, .35) 70%, rgba(16, 31, 63, 1) 100%);
+      linear-gradient(180deg, rgba(6, 9, 26, .6) 0%, rgba(6, 9, 26, .2) 40%, rgba(6, 9, 26, .45) 70%, rgba(6, 9, 26, .8) 100%);
   }
 }
 
@@ -574,4 +576,226 @@ body {
   border-radius: 50%;
   transform: rotateX(72deg);
   mask-image: linear-gradient(180deg, #000, transparent 85%);
+}
+
+
+/* =================================================================
+   SCROLL CINEMA, versão astronauta: mira, visor, abertura.
+   ================================================================= */
+.sc-rotulo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--magenta-texto);
+}
+
+/* Texto "projetado no vidro": brilho frio e leve halo. Sem caixa. */
+.sc-camada [data-decodifica] {
+  font-variant-ligatures: none;
+}
+.sc-camada--visor .sc-titulo-p,
+.sc-camada--visor .sc-rotulo {
+  text-shadow:
+    0 0 24px rgba(255, 107, 150, .35),
+    0 0 2px rgba(255, 255, 255, .6),
+    0 2px 40px rgba(6, 9, 26, .8);
+}
+
+/* A mira: caixa posicionada em %, com quatro cantos. */
+.sc-mira {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  will-change: left, top, width, height, transform, opacity;
+}
+.sc-mira-canto {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, .7);
+  transition: border-color .3s ease;
+}
+.sc-mira-canto--a { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+.sc-mira-canto--b { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+.sc-mira-canto--c { left: 0; bottom: 0; border-right: 0; border-top: 0; }
+.sc-mira-canto--d { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+.sc-mira[data-travada='sim'] .sc-mira-canto { border-color: var(--magenta-texto); }
+.sc-mira-centro {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .8);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, .08);
+}
+.sc-mira[data-travada='sim'] .sc-mira-centro {
+  background: var(--magenta-texto);
+  box-shadow: 0 0 0 6px rgba(228, 21, 95, .25), 0 0 18px rgba(228, 21, 95, .6);
+}
+.sc-mira-rotulo {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--cinza);
+  white-space: nowrap;
+}
+.sc-mira-rotulo--trava { display: none; color: var(--magenta-texto); }
+.sc-mira[data-travada='sim'] .sc-mira-rotulo--busca { display: none; }
+.sc-mira[data-travada='sim'] .sc-mira-rotulo--trava { display: inline; }
+@media (max-width: 640px) { .sc-mira-rotulo { display: none; } }
+
+/* A abertura: o fundo da seção seguinte, recortado em círculo. */
+.sc-abertura {
+  --r: 0%;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /* Aro magenta na borda do círculo: a abertura lê como portal, não
+     como um disco chapado crescendo. O raio acompanha o clip-path. */
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      transparent calc(var(--r) - 3.5%),
+      color-mix(in oklab, var(--magenta) 55%, transparent) calc(var(--r) - 1%),
+      color-mix(in oklab, var(--magenta-texto) 85%, transparent) calc(var(--r) - 0.3%),
+      transparent var(--r)
+    ),
+    var(--marinho);
+  clip-path: circle(0% at 50% 50%);
+  opacity: 0;
+  pointer-events: none;
+  overflow: clip;
+}
+
+/* =================================================================
+   KIT DE INTERAÇÕES DA PÁGINA (ver Interacoes.tsx)
+   ================================================================= */
+
+/* Barra de progresso da página, colada no topo. */
+#progresso-pagina {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--magenta-texto));
+  transform-origin: left;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+/* Card que inclina e recebe holofote na borda. O estado sem mouse
+   (--rx/--ry em 0) é o card normal: sem JS, nada muda. */
+[data-inclina] {
+  --mx: 50%;
+  --my: 50%;
+  --rx: 0deg;
+  --ry: 0deg;
+  transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform .25s ease-out;
+  transform-style: preserve-3d;
+}
+[data-inclina]::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    240px circle at var(--mx) var(--my),
+    color-mix(in oklab, var(--magenta) 32%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity .35s ease;
+  /* -1 dentro do contexto criado pelo transform: pinta acima do fundo
+     do card e abaixo do conteúdo, sem mexer nos filhos. */
+  z-index: -1;
+}
+[data-inclina]:hover::after { opacity: 1; }
+
+/* Etapas que acendem uma a uma. */
+[data-etapas] > * {
+  transition: opacity .5s ease, transform .5s ease;
+}
+[data-animar='sim'] [data-etapas] > *:not(.ativa) {
+  opacity: .32;
+  transform: translateY(6px);
+}
+[data-etapas] > .ativa .etapa-numero {
+  background: var(--magenta);
+  border-color: var(--magenta);
+  color: var(--branco);
+  box-shadow: 0 0 24px rgba(228, 21, 95, .5);
+}
+
+/* Linha de órbita que se desenha, e o satélite que viaja nela. */
+.orbita-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.orbita-svg path {
+  fill: none;
+  stroke: url(#orbita-grad);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.satelite {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--branco);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, .12), 0 0 22px rgba(255, 107, 150, .9);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+  will-change: transform;
+}
+
+/* Botão "warp": riscos de luz que atravessam no hover. */
+.warp {
+  position: relative;
+  overflow: clip;
+}
+.warp::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 14px,
+    rgba(255, 255, 255, .18) 14px 15px
+  );
+  transform: translateX(-100%) skewX(-20deg);
+  transition: transform .7s cubic-bezier(.22, .61, .36, 1);
+  pointer-events: none;
+}
+.warp:hover::before { transform: translateX(100%) skewX(-20deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-inclina] { transform: none !important; }
+  [data-inclina]::after { display: none; }
+  .warp::before { display: none; }
+  [data-animar='sim'] [data-etapas] > *:not(.ativa) { opacity: 1; transform: none; }
 }

@@ -272,17 +272,33 @@ esconda as seções de cima por CSS e capture sem rolar.
 
 O hero da home é um vídeo amarrado à rolagem: `src/componentes/HeroCinema.tsx`
 lê o progresso da seção (0 a 1) e escreve em `video.currentTime`. O mesmo
-progresso comanda as três camadas de texto, a telemetria (altitude,
-velocidade, relógio de missão) e a barra lateral.
+progresso comanda a mira (quatro cantos que fecham sobre o capacete), a
+decodificação do texto caractere a caractere, a telemetria, a barra lateral
+e a abertura circular que vira o fundo da seção seguinte. Mouse dá paralaxe
+em três camadas (vídeo, mira, texto).
 
-Jornada: foguete parado na plataforma à noite → rompendo a atmosfera com a
-curva da Terra embaixo. Frame A e frame B gerados no Magnific (Seedream 5
-Pro; o B usando o A como referência única), vídeo de 5 s no Seedance 2.5 com
-os dois frames como primeiro e último quadro.
+Jornada: astronauta flutuando sobre a Terra, de corpo inteiro → a câmera
+avança enquanto ele gira e vira o rosto → o visor dourado preenche a tela,
+refletindo a Terra e uma luz magenta. Frame A e B gerados no Magnific
+(Seedream 5 Pro; o B usando o A como referência única), vídeo de 5 s no
+Seedance 2.5 com os dois frames como primeiro e último quadro.
+
+O cabeçalho fica transparente durante toda a cena (ver `Cabecalho.tsx`): o
+vidro só entra quando o `#lancamento` termina.
 
 Arquivos:
 - `public/video/hero.mp4` (1920×1080, 60 fps, 298 frames, TODOS keyframe, ~15 MB)
 - `public/imagens/hero-frame-a.jpg` (poster do hero, 1920 de largura)
+
+## Kit de interações da página
+
+`src/componentes/Interacoes.tsx` lê atributos `data-*` do JSX e anima com um
+ouvinte de rolagem só: `data-paralaxe` (fundos e brilhos), `data-contar`
+(números que sobem), `data-cena` + `data-desenha` + `data-satelite` (órbita
+SVG que se desenha, com satélite viajando), `data-etapas` (passos da
+metodologia acendendo), `data-inclina` (cards que inclinam em 3D e recebem
+holofote na borda) e `#progresso-pagina` (barra no topo). CSS em globals.css,
+seção "Kit de interações". Tudo respeita `prefers-reduced-motion`.
 
 ### Se trocar o vídeo, refaça esta receita inteira
 

@@ -50,11 +50,26 @@ export function Cabecalho() {
     return () => observador.disconnect();
   }, []);
 
+  /*
+    Sobre o hero cinematográfico (#lancamento) o cabeçalho fica
+    transparente do começo ao fim da cena: uma faixa de vidro em cima do
+    astronauta interferia na animação. O fundo só entra quando a cena
+    termina. Nas páginas sem hero, o comportamento é o de antes: vidro
+    a partir de 24px.
+  */
   useEffect(() => {
-    const aoRolar = () => setRolou(window.scrollY > 24);
+    const aoRolar = () => {
+      const cena = document.getElementById('lancamento');
+      const limite = cena ? cena.offsetTop + cena.offsetHeight - window.innerHeight - 8 : 24;
+      setRolou(window.scrollY > limite);
+    };
     aoRolar();
     window.addEventListener('scroll', aoRolar, { passive: true });
-    return () => window.removeEventListener('scroll', aoRolar);
+    window.addEventListener('resize', aoRolar);
+    return () => {
+      window.removeEventListener('scroll', aoRolar);
+      window.removeEventListener('resize', aoRolar);
+    };
   }, []);
 
   // Trava a rolagem do fundo enquanto o menu está aberto. Sem isso a
