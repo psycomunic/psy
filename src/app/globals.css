@@ -361,6 +361,24 @@ body {
   /* Fecha a cena em preto-marinho profundo, um degrau abaixo do
      marinho: o espaço é mais escuro que o site. */
   background: #06091A;
+
+  /*
+     SOBE POR TRÁS DO CABEÇALHO.
+
+     O cabeçalho já nasce transparente, mas é `sticky`, e sticky ocupa
+     lugar no fluxo: a cena começava DEPOIS dele, então o que aparecia
+     atrás do menu era o fundo da página, e não o astronauta. Menu
+     transparente sem nada atrás é menu opaco.
+
+     Puxar pela altura real resolve: a cena passa a começar em y=0 e o
+     vídeo preenche a tela inteira, com o menu flutuando por cima. A
+     altura vem de `--cabecalho`, que o próprio cabeçalho mede e publica,
+     porque ela muda com a largura (77px no telefone, 101px em 1024,
+     81px em 1440) e número escrito à mão erra em pelo menos uma.
+
+     O véu já escurece os 18% de cima, então o texto do menu continua
+     legível sobre o vídeo. */
+  margin-top: calc(-1 * var(--cabecalho, 81px));
 }
 .sc-sticky {
   position: sticky;
