@@ -290,6 +290,26 @@ Arquivos:
 - `public/video/hero.mp4` (1920×1080, 60 fps, 298 frames, TODOS keyframe, ~15 MB)
 - `public/imagens/hero-frame-a.jpg` (poster do hero, 1920 de largura)
 
+## Cenas contidas: a estação e a descida
+
+`src/componentes/CenaCinema.tsx` é o mesmo mecanismo do hero, reutilizável:
+seção de 340vh com sticky de 100vh, vídeo de fundo amarrado à rolagem, e o
+progresso publicado para os filhos por `--p`, `data-etapa`, `[data-acende]`,
+`[data-contagem]`, `[data-medidor]` e `[data-valor]`. Os vídeos só começam a
+baixar quando a cena se aproxima (IntersectionObserver), para não disputar
+banda com o hero.
+
+- `#estacao` (na Jornada): um módulo escuro vira a estação completa; o painel
+  troca de Fase 1 para Fase 2 na metade e os 15 itens acendem um a um
+  ("Módulos acoplados 00/15"). Arquivos: `public/video/estacao.mp4`,
+  `public/imagens/estacao-frame-a.jpg`.
+- `#descida` (nos Níveis de parceria): a câmera desce da órbita até a cidade;
+  o altímetro à direita marca Órbita / Atmosfera / Superfície e o painel
+  troca de nível junto com a agulha ("Altitude 400 → 0 km"). Arquivos:
+  `public/video/descida.mp4`, `public/imagens/descida-frame-a.jpg`.
+
+Todos os vídeos: 1920×1080, 60 fps, 298 frames, todos keyframe, 15 a 19 MB.
+
 ## Kit de interações da página
 
 `src/componentes/Interacoes.tsx` lê atributos `data-*` do JSX e anima com um

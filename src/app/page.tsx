@@ -10,6 +10,7 @@ import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { HeroCinema } from '@/componentes/HeroCinema';
 import { Interacoes } from '@/componentes/Interacoes';
+import { CenaCinema } from '@/componentes/CenaCinema';
 import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
@@ -184,82 +185,78 @@ export default function Home() {
               <p className="mt-7 max-w-[58ch] text-guia text-neve">{promessaCompleta}</p>
             </div>
 
-            {/* As duas fases. No desktop ficam lado a lado com a seta
-                entre elas; no telefone empilham, e a seta vira o
-                conector vertical. */}
-            <div className="relative mt-16 grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
-              {/*
-                A órbita entre as fases. Um arco que se desenha conforme
-                a seção atravessa a tela, com um satélite viajando de
-                "Do zero ao lançamento" até "Entregas contínuas". É a
-                passagem de bastão que a copy diz não existir, desenhada
-                como o que ela é: uma trajetória contínua.
-              */}
-              <svg aria-hidden className="orbita-svg hidden lg:block" viewBox="0 0 1000 600" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="orbita-grad" x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0" stopColor="#FF6B96" stopOpacity="0.2" />
-                    <stop offset="0.5" stopColor="#FF6B96" stopOpacity="1" />
-                    <stop offset="1" stopColor="#FF6B96" stopOpacity="0.2" />
-                  </linearGradient>
-                </defs>
-                <path data-desenha d="M 60 560 C 250 -80, 750 -80, 940 560" />
-              </svg>
-              <span aria-hidden className="satelite hidden lg:block" data-satelite />
+          </div>
+        </section>
 
-              {jornada.map((fase, i) => (
-                <article
-                  key={fase.id}
-                  data-inclina
-                  className={
-                    'revelar cartao relative flex flex-col p-8 md:p-10 ' +
-                    (i === 1 ? 'border-magenta/40' : '')
-                  }
-                >
-                  <span aria-hidden className="aresta absolute inset-x-10 top-0 h-px" />
+        {/* ==========================================================
+            3b. CENA: A ESTAÇÃO
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span
-                      className={
-                        'rounded-full px-3.5 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.16em] ' +
-                        (i === 1
-                          ? 'bg-magenta text-branco'
-                          : 'border border-fio text-magenta-texto')
-                      }
-                    >
-                      {fase.etiqueta}
-                    </span>
-                    <span className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
-                      {fase.entrega}
-                    </span>
-                  </div>
+            A jornada em vídeo comandado pela rolagem: um módulo escuro
+            e sozinho vira a estação inteira, acesa, com os módulos
+            acoplados. O painel à esquerda mostra a fase atual e cada
+            item da fase acende quando o módulo correspondente acopla.
+            O contador de módulos é o detalhe temático da cena.
+            ========================================================== */}
+        <CenaCinema
+          id="estacao"
+          src="/video/estacao.mp4"
+          poster="/imagens/estacao-frame-a.jpg"
+          etapas={2}
+          rotulo="A jornada, do módulo à estação"
+        >
+          <div className="cena-caixa">
+            <div className="cena-painel">
+              <p className="flex items-center justify-between gap-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cinza">
+                <span>Módulos acoplados</span>
+                <span className="tabular text-magenta-texto" data-contagem>00/15</span>
+              </p>
 
-                  <h3 className="mt-6 font-display text-sub font-extrabold tracking-[-0.035em]">
-                    {fase.titulo}
-                  </h3>
+              <div className="cena-etapas mt-6">
+                {jornada.map((fase, i) => (
+                  <article key={fase.id} className="cena-etapa" data-i={i}>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span
+                        className={
+                          'rounded-full px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.16em] ' +
+                          (i === 1 ? 'bg-magenta text-branco' : 'border border-fio text-magenta-texto')
+                        }
+                      >
+                        {fase.etiqueta}
+                      </span>
+                      <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+                        {fase.entrega}
+                      </span>
+                    </div>
+                    <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
+                      {fase.titulo}
+                    </h3>
+                    <p className="cena-resumo mt-3 text-sm leading-relaxed text-neve">{fase.resumo}</p>
+                  </article>
+                ))}
+              </div>
 
-                  <p className="mt-5 max-w-[46ch] text-guia leading-relaxed text-neve">
-                    {fase.resumo}
-                  </p>
-
-                  <ul className="mt-8 space-y-3.5 border-t border-fio pt-8">
-                    {fase.itens.map((item) => (
-                      <li key={item} className="flex gap-3.5 text-sm leading-relaxed text-neve">
-                        <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">
-                          ✓
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
+              {/* A lista completa das duas fases, acendendo em ordem: os
+                  8 itens da fase 1 e depois os 7 da fase 2. */}
+              <ul className="mt-6 space-y-2 border-t border-fio pt-5">
+                {jornada
+                  .flatMap((fase, f) => fase.itens.map((item) => ({ item, f })))
+                  .map(({ item, f }, i) => (
+                  <li key={item} className="text-[0.82rem] leading-snug" data-acende={i} data-fase={f}>
+                    <span aria-hidden className="acende-ponto" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
+          </div>
+        </CenaCinema>
 
+        <section aria-label="Por que a solução completa" className="relative overflow-clip py-20 md:py-28">
+          <div className={secao}>
             {/* Por que completa importa. "Solução completa" é o que toda
                 agência escreve; sem dizer o que a alternativa custa, a
                 frase não significa nada. */}
-            <div className="mt-16 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
+            <div className="grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
               {porQueCompleta.map((item) => (
                 <div key={item.titulo} className="revelar bg-marinho px-7 py-8 md:px-8 md:py-10">
                   <h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">
@@ -611,63 +608,88 @@ export default function Home() {
               </p>
             </div>
 
-            <ol className="mt-16 grid items-start gap-6 lg:grid-cols-3">
-              {[
-                {
-                  n: '01',
-                  t: 'Só a mídia',
-                  d: 'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
-                  q: 'Para quem já vende e quer parar de gastar no escuro.',
-                },
-                {
-                  n: '02',
-                  t: 'Mídia e canais próprios',
-                  d: 'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
-                  q: 'Para quem depende demais de comprar tráfego.',
-                  destaque: true,
-                },
-                {
-                  n: '03',
-                  t: 'A operação inteira',
-                  d: 'Tudo acima, mais plataforma, marketplaces, funil comercial, produto e mentoria do seu time. A agência dentro da operação.',
-                  q: 'Para quem quer crescer sem montar um time do zero.',
-                },
-              ].map((nivel) => (
-                <li
-                  key={nivel.n}
-                  data-inclina
-                  className={
-                    'revelar cartao relative p-9 md:p-10 ' +
-                    (nivel.destaque
-                      ? 'border-magenta/45 lg:-mt-5 lg:shadow-[0_30px_80px_-30px_rgba(228,21,95,0.55)]'
-                      : '')
-                  }
-                >
-                  {nivel.destaque ? (
-                    <span
-                      aria-hidden
-                      className="brilho-magenta pointer-events-none absolute -top-32 left-1/2 h-72 w-96 -translate-x-1/2 opacity-45"
-                    />
-                  ) : null}
+          </div>
+        </section>
 
-                  <span className="relative font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-                    {nivel.n}
-                  </span>
+        {/* ==========================================================
+            9b. CENA: A DESCIDA
 
-                  <h3 className="relative mt-5 font-display text-sub font-extrabold tracking-[-0.035em]">
-                    {nivel.t}
-                  </h3>
+            Três profundidades como três altitudes. A câmera desce da
+            órbita até a cidade acesa, e o altímetro à direita marca em
+            qual nível a operação está: Só a mídia (órbita), Mídia e
+            canais próprios (atmosfera), A operação inteira (superfície).
+            O painel troca de nível junto com a agulha.
+            ========================================================== */}
+        <CenaCinema
+          id="descida"
+          src="/video/descida.mp4"
+          poster="/imagens/descida-frame-a.jpg"
+          etapas={3}
+          rotulo="Os três níveis de parceria"
+        >
+          <div className="cena-caixa">
+            <div className="cena-painel">
+              <p className="flex items-center justify-between gap-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cinza">
+                <span>Altitude</span>
+                <span className="tabular text-magenta-texto">
+                  <span data-valor="400">400</span> km
+                </span>
+              </p>
 
-                  <p className="relative mt-6 border-t border-fio pt-6 text-guia leading-relaxed text-neve">
-                    {nivel.d}
-                  </p>
+              <div className="cena-etapas mt-6">
+                {[
+                  {
+                    n: '01',
+                    onde: 'Órbita',
+                    t: 'Só a mídia',
+                    d: 'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
+                    q: 'Para quem já vende e quer parar de gastar no escuro.',
+                  },
+                  {
+                    n: '02',
+                    onde: 'Atmosfera',
+                    t: 'Mídia e canais próprios',
+                    d: 'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
+                    q: 'Para quem depende demais de comprar tráfego.',
+                  },
+                  {
+                    n: '03',
+                    onde: 'Superfície',
+                    t: 'A operação inteira',
+                    d: 'Tudo acima, mais plataforma, marketplaces, funil comercial, produto e mentoria do seu time. A agência dentro da operação.',
+                    q: 'Para quem quer crescer sem montar um time do zero.',
+                  },
+                ].map((nivel, i) => (
+                  <article key={nivel.n} className="cena-etapa" data-i={i}>
+                    <p className="flex items-center gap-3 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-magenta-texto">
+                      <span>{nivel.n}</span>
+                      <span aria-hidden className="h-px w-6 bg-magenta" />
+                      <span className="text-cinza">{nivel.onde}</span>
+                    </p>
+                    <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
+                      {nivel.t}
+                    </h3>
+                    <p className="mt-4 border-t border-fio pt-4 text-guia leading-relaxed text-neve">
+                      {nivel.d}
+                    </p>
+                    <p className="mt-4 text-sm text-cinza">{nivel.q}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
 
-                  <p className="relative mt-6 text-sm text-cinza">{nivel.q}</p>
-                </li>
-              ))}
-            </ol>
+          <div aria-hidden className="altimetro" data-medidor>
+            <span className="altimetro-marca" data-i="0">Órbita</span>
+            <span className="altimetro-marca" data-i="1">Atmosfera</span>
+            <span className="altimetro-marca" data-i="2">Superfície</span>
+            <span className="altimetro-agulha" />
+          </div>
+        </CenaCinema>
 
-            <div className="revelar mt-14 flex flex-wrap items-center gap-4">
+        <section aria-label="Pedir uma proposta" className="border-b border-fio bg-marinho-fundo py-16 md:py-20">
+          <div className={secao}>
+            <div className="revelar flex flex-wrap items-center gap-4">
               <Botao href="/diagnostico" variante="primario">
                 Pedir uma proposta
               </Botao>

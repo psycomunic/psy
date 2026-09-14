@@ -361,24 +361,6 @@ body {
   /* Fecha a cena em preto-marinho profundo, um degrau abaixo do
      marinho: o espaço é mais escuro que o site. */
   background: #06091A;
-
-  /*
-     SOBE POR TRÁS DO CABEÇALHO.
-
-     O cabeçalho já nasce transparente, mas é `sticky`, e sticky ocupa
-     lugar no fluxo: a cena começava DEPOIS dele, então o que aparecia
-     atrás do menu era o fundo da página, e não o astronauta. Menu
-     transparente sem nada atrás é menu opaco.
-
-     Puxar pela altura real resolve: a cena passa a começar em y=0 e o
-     vídeo preenche a tela inteira, com o menu flutuando por cima. A
-     altura vem de `--cabecalho`, que o próprio cabeçalho mede e publica,
-     porque ela muda com a largura (77px no telefone, 101px em 1024,
-     81px em 1440) e número escrito à mão erra em pelo menos uma.
-
-     O véu já escurece os 18% de cima, então o texto do menu continua
-     legível sobre o vídeo. */
-  margin-top: calc(-1 * var(--cabecalho, 81px));
 }
 .sc-sticky {
   position: sticky;
@@ -816,4 +798,201 @@ body {
   [data-inclina]::after { display: none; }
   .warp::before { display: none; }
   [data-animar='sim'] [data-etapas] > *:not(.ativa) { opacity: 1; transform: none; }
+}
+
+
+/* =================================================================
+   CENAS CONTIDAS (CenaCinema.tsx): estação e descida.
+   ================================================================= */
+.cena {
+  height: var(--altura, 340vh);
+  background: #06091A;
+}
+.cena-sticky {
+  --p: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+  background: #06091A;
+  isolation: isolate;
+}
+.cena-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+.cena-video.is-ready { opacity: 1; }
+.cena-veu {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(6, 9, 26, .78) 0%, rgba(6, 9, 26, .4) 42%, transparent 66%),
+    linear-gradient(180deg, rgba(16, 31, 63, 1) 0%, transparent 14%, transparent 86%, rgba(16, 31, 63, 1) 100%);
+}
+@media (max-width: 1023px) {
+  .cena-veu {
+    background:
+      linear-gradient(180deg, rgba(16, 31, 63, 1) 0%, rgba(6, 9, 26, .55) 18%, rgba(6, 9, 26, .55) 82%, rgba(16, 31, 63, 1) 100%);
+  }
+}
+.cena-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  transition: opacity .6s ease;
+  pointer-events: none;
+}
+.cena-loader.is-gone { opacity: 0; }
+.cena-conteudo {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-items: center;
+}
+.cena-caixa {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+@media (min-width: 768px) { .cena-caixa { padding: 0 2.5rem; } }
+
+/* Painel de vidro que segura o conteúdo sobre o vídeo. */
+.cena-painel {
+  position: relative;
+  max-width: 34rem;
+  border: 1px solid var(--fio);
+  border-radius: var(--raio);
+  background: color-mix(in oklab, var(--marinho-fundo) 72%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 1.75rem;
+  max-height: calc(100svh - 7rem);
+  overflow: auto;
+}
+@media (min-width: 768px) { .cena-painel { padding: 2.25rem; } }
+
+/* Etapas: um bloco por vez, trocando com fade e leve subida. */
+.cena-etapa {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .45s ease, transform .45s ease;
+  pointer-events: none;
+}
+.cena-etapas { display: grid; }
+[data-etapa='0'] .cena-etapa[data-i='0'],
+[data-etapa='1'] .cena-etapa[data-i='1'],
+[data-etapa='2'] .cena-etapa[data-i='2'] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Itens que acendem um a um (módulos acoplando). */
+[data-acende] {
+  display: flex;
+  gap: .85rem;
+  align-items: flex-start;
+  color: var(--cinza);
+  opacity: .45;
+  transition: opacity .35s ease, color .35s ease, transform .35s ease;
+  transform: translateX(-4px);
+}
+[data-acende] .acende-ponto {
+  flex: none;
+  margin-top: .45rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--fio-forte);
+  transition: background .35s ease, box-shadow .35s ease, border-color .35s ease;
+}
+[data-acende].acesa {
+  opacity: 1;
+  color: var(--neve);
+  transform: none;
+}
+[data-acende].acesa .acende-ponto {
+  background: var(--magenta-texto);
+  border-color: var(--magenta-texto);
+  box-shadow: 0 0 12px rgba(255, 107, 150, .8);
+}
+
+/* Altímetro da descida: régua vertical com três marcas e a agulha. */
+.altimetro {
+  position: absolute;
+  right: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
+  top: 50%;
+  transform: translateY(-50%);
+  height: 56vh;
+  width: 1px;
+  background: var(--fio-forte);
+  z-index: 4;
+}
+.altimetro-marca {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-direction: row-reverse;
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--cinza);
+  white-space: nowrap;
+  transition: color .35s ease;
+}
+.altimetro-marca::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: var(--fio-forte);
+}
+.altimetro-marca[data-i='0'] { top: 0; }
+.altimetro-marca[data-i='1'] { top: 50%; }
+.altimetro-marca[data-i='2'] { top: 100%; }
+[data-etapa='0'] .altimetro-marca[data-i='0'],
+[data-etapa='1'] .altimetro-marca[data-i='1'],
+[data-etapa='2'] .altimetro-marca[data-i='2'] { color: var(--magenta-texto); }
+.altimetro-agulha {
+  position: absolute;
+  right: -5px;
+  top: calc(var(--p, 0) * 100%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--magenta-texto);
+  box-shadow: 0 0 0 5px rgba(228, 21, 95, .22), 0 0 18px rgba(255, 107, 150, .9);
+  transform: translateY(-50%);
+}
+@media (max-width: 1023px) { .altimetro { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cena { height: 100vh; height: 100svh; }
+  .cena-etapa { transition: none; }
+  [data-acende] { opacity: 1; color: var(--neve); transform: none; }
+}
+
+/* Celular: o painel da estação mostra só os itens da fase atual e
+   dispensa o resumo. Os 15 itens de uma vez não cabem em 844px. */
+@media (max-width: 767px) {
+  .cena-resumo { display: none; }
+  [data-etapa='0'] li[data-fase='1'],
+  [data-etapa='1'] li[data-fase='0'] { display: none; }
+  .cena-painel { padding: 1.25rem; }
 }
