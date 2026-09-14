@@ -346,3 +346,232 @@ body {
     padding-right: 0;
   }
 }
+
+/* =================================================================
+   SCROLL CINEMA: o hero do lançamento.
+
+   Regras que não se quebram (ver HeroCinema.tsx e CLAUDE.md):
+   - A seção é alta (460vh) e o contêiner interno é sticky de 100vh.
+   - overflow:clip, nunca hidden: hidden mata o sticky.
+   - prefers-reduced-motion NÃO zera a altura; reduz a 100vh e mostra
+     o frame final com o texto completo.
+   ================================================================= */
+.sc-hero {
+  height: 460vh;
+  /* Fecha a cena em preto-marinho profundo, um degrau abaixo do
+     marinho: o espaço é mais escuro que o site. */
+  background: #06091A;
+}
+.sc-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+  background: #06091A;
+  isolation: isolate;
+}
+.sc-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+.sc-video.is-ready { opacity: 1; }
+
+/* Véu: escurece só a faixa de leitura, à esquerda e embaixo, para o
+   foguete continuar limpo no centro. */
+.sc-veu {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(6, 9, 26, .72) 0%, rgba(6, 9, 26, .35) 38%, transparent 62%),
+    linear-gradient(180deg, rgba(6, 9, 26, .55) 0%, transparent 22%, transparent 70%, rgba(16, 31, 63, 1) 100%);
+}
+@media (max-width: 1023px) {
+  .sc-veu {
+    background:
+      linear-gradient(180deg, rgba(6, 9, 26, .78) 0%, rgba(6, 9, 26, .35) 45%, rgba(6, 9, 26, .35) 70%, rgba(16, 31, 63, 1) 100%);
+  }
+}
+
+.sc-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.25rem;
+  background: #06091A;
+  transition: opacity .6s ease;
+}
+.sc-loader.is-gone { opacity: 0; pointer-events: none; }
+.sc-loader-anel {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--fio-forte);
+  border-top-color: var(--magenta);
+  animation: sc-girar 1.1s linear infinite;
+}
+@keyframes sc-girar { to { transform: rotate(360deg); } }
+
+/* Conteúdo sobre o vídeo: as camadas empilham no mesmo lugar e se
+   revezam pela opacidade, comandada pelo progresso. */
+.sc-conteudo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  display: grid;
+}
+.sc-camada {
+  grid-area: 1 / 1;
+  /* min-width:0: item de grid não encolhe abaixo do conteúdo por
+     padrão, e a display em nowrap empurraria a camada para fora da
+     tela no celular, cortando o parágrafo junto. */
+  min-width: 0;
+  max-width: min(34rem, 100%);
+  opacity: 0;
+  will-change: opacity, transform;
+  pointer-events: none;
+}
+.sc-camada a { pointer-events: auto; }
+
+/* Escala própria do hero: vive na viewport inteira, não numa coluna,
+   então pode subir mais que --text-mostro. nowrap é carga estrutural:
+   a quebra de linha está no HTML, e a fonte encolhe para caber. */
+.sc-titulo {
+  font-size: clamp(2.1rem, 1.2rem + 4.2vw, 4.75rem);
+  line-height: 0.96;
+  white-space: nowrap;
+  text-shadow: 0 2px 40px rgba(6, 9, 26, .6);
+}
+.sc-titulo-p {
+  font-size: clamp(1.7rem, 1rem + 2.6vw, 3.1rem);
+  line-height: 1.02;
+  text-shadow: 0 2px 40px rgba(6, 9, 26, .6);
+}
+@media (max-width: 640px) {
+  /* Medido em 390px com fonte de sistema (mais larga que a Bricolage):
+     "de mais uma agência." cabe em 8.4vw sem quebrar. A segunda display
+     quebra livre no celular: duas linhas de 7vw leem melhor que uma
+     linha espremida. */
+  .sc-titulo { font-size: min(8.4vw, 2.4rem); }
+  .sc-titulo-p { font-size: clamp(1.4rem, 7vw, 2rem); white-space: normal; }
+  .sc-conteudo { top: auto; bottom: 21vh; transform: translate(-50%, 0); }
+}
+
+/* Telemetria: canto inferior esquerdo, vocabulário de painel. */
+.sc-telemetria {
+  position: absolute;
+  left: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
+  bottom: 2.25rem;
+  z-index: 4;
+  display: flex;
+  gap: 2.25rem;
+  pointer-events: none;
+}
+.sc-tele-item { display: grid; gap: .35rem; }
+.sc-tele-rotulo {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--cinza);
+}
+.sc-tele-valor {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--branco);
+  display: inline-flex;
+  align-items: baseline;
+  gap: .4rem;
+}
+.sc-tele-unidade { font-size: .62rem; color: var(--magenta-texto); letter-spacing: .12em; }
+@media (max-width: 640px) {
+  .sc-telemetria { left: 1.25rem; bottom: 1.25rem; gap: 1.25rem; }
+  .sc-tele-item:nth-child(3) { display: none; }
+  .sc-tele-valor { font-size: .9rem; }
+}
+
+/* Barra de progresso lateral. scaleY é composto na GPU: não reflui. */
+.sc-barra {
+  position: absolute;
+  right: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 34vh;
+  background: var(--fio);
+  z-index: 4;
+}
+.sc-barra-fio {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--magenta-texto), var(--magenta));
+  transform-origin: top;
+  transform: scaleY(0);
+}
+@media (max-width: 640px) { .sc-barra { display: none; } }
+
+.sc-dica {
+  position: absolute;
+  left: 50%;
+  bottom: 2.25rem;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: .75rem;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+.sc-dica-seta {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(180deg, transparent, var(--magenta-texto));
+  animation: sc-cair 1.8s ease-in-out infinite;
+}
+@keyframes sc-cair {
+  0%, 100% { transform: translateY(0); opacity: .4; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+@media (max-width: 640px) { .sc-dica { bottom: 5.5rem; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-hero { height: 100vh; height: 100svh; }
+  .sc-dica, .sc-loader-anel { animation: none; }
+}
+
+/* =================================================================
+   CÉU: estrelas e órbitas para as seções abaixo do hero.
+
+   Estrelas em SVG inline, em duas camadas com escalas diferentes, para
+   não parecer um padrão repetido. Custam zero requisição. A máscara
+   esmaece para o centro para o texto continuar limpo.
+   ================================================================= */
+@utility estrelas {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='23' cy='41' r='.9'/%3E%3Ccircle cx='137' cy='19' r='.6'/%3E%3Ccircle cx='211' cy='88' r='1.1'/%3E%3Ccircle cx='377' cy='63' r='.7'/%3E%3Ccircle cx='58' cy='167' r='.7'/%3E%3Ccircle cx='302' cy='151' r='.5'/%3E%3Ccircle cx='168' cy='233' r='.9'/%3E%3Ccircle cx='401' cy='214' r='.6'/%3E%3Ccircle cx='93' cy='301' r='1.2'/%3E%3Ccircle cx='254' cy='329' r='.6'/%3E%3Ccircle cx='349' cy='377' r='.8'/%3E%3Ccircle cx='31' cy='389' r='.5'/%3E%3Ccircle cx='190' cy='402' r='.7'/%3E%3Ccircle cx='276' cy='47' r='.5'/%3E%3Ccircle cx='118' cy='118' r='.5'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23ffffff' opacity='.55'%3E%3Ccircle cx='12' cy='77' r='.5'/%3E%3Ccircle cx='89' cy='23' r='.4'/%3E%3Ccircle cx='151' cy='131' r='.5'/%3E%3Ccircle cx='233' cy='58' r='.4'/%3E%3Ccircle cx='47' cy='201' r='.4'/%3E%3Ccircle cx='198' cy='219' r='.5'/%3E%3Ccircle cx='121' cy='249' r='.4'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 420px 420px, 260px 260px;
+  opacity: .55;
+  mask-image: radial-gradient(80% 70% at 50% 50%, transparent 20%, #000 100%);
+}
+
+/* Órbita: um anel fino, inclinado, que passa atrás do conteúdo. */
+@utility orbita {
+  border: 1px solid var(--fio);
+  border-radius: 50%;
+  transform: rotateX(72deg);
+  mask-image: linear-gradient(180deg, #000, transparent 85%);
+}

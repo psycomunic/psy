@@ -8,6 +8,7 @@ import { Vitrine } from '@/componentes/Vitrine';
 import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
+import { HeroCinema } from '@/componentes/HeroCinema';
 import { marca } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
@@ -42,95 +43,72 @@ export default function Home() {
       <main id="conteudo">
 
         {/* ==========================================================
-            1. HERO
+            1. HERO: SCROLL CINEMA
+
+            O lançamento controlado pela rolagem. O texto da abertura
+            (a mesma headline de antes, em três tempos) vive dentro do
+            componente, junto do vídeo, porque as camadas se revezam
+            pelo mesmo progresso que move o foguete. Ver HeroCinema.tsx.
             ========================================================== */}
-        <section className="relative isolate overflow-hidden pb-20 pt-14 md:pb-28 md:pt-20">
-          {/* Camadas de fundo, do mais distante ao mais próximo. */}
+        <HeroCinema />
+
+        {/* ==========================================================
+            1b. PROVA LOGO APÓS O POUSO
+
+            A faixa de prova e as colunas de sites saíram de dentro do
+            hero: ali disputariam a tela com o vídeo. Aqui elas são a
+            primeira coisa sólida depois da cena, e respondem a
+            pergunta que a abertura deixa: "e vocês entregam o quê?".
+            ========================================================== */}
+        <section className="relative isolate overflow-clip pb-20 pt-6 md:pb-28 md:pt-10">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="grade absolute inset-0" />
-            <div className="brilho-magenta absolute -right-[18%] -top-[38%] h-[820px] w-[820px] opacity-45" />
-            <div className="brilho-frio absolute -left-[24%] top-[24%] h-[680px] w-[680px] opacity-30" />
-            {/* Corta a barriga do brilho para a seção seguinte não herdar. */}
-            <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-marinho" />
+            <div className="estrelas absolute inset-0" />
+            <div className="brilho-magenta absolute -right-[18%] -top-[30%] h-[820px] w-[820px] opacity-35" />
           </div>
 
           <div className={secao}>
-            <div className="grid items-center gap-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
-              {/* --- Coluna de texto --- */}
-              {/* min-w-0 nos dois filhos: sem isso uma palavra longa na
-                  display estica a coluna além da fração do grid e empurra
-                  o painel para fora da tela. O padrão de item de grid é
-                  min-width:auto, que se recusa a encolher. */}
+            <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
               <div className="revelar min-w-0">
-                <Rotulo>Do zero ao lançamento, e todo mês depois</Rotulo>
-
-                <h1 className="mt-7 max-w-[15ch] font-display text-mostro font-extrabold tracking-[-0.045em]">
-                  Sua loja não precisa de mais uma agência.{' '}
-                  <span className="text-magenta-texto">Precisa de uma operação.</span>
-                </h1>
-
-                <p className="mt-8 max-w-[56ch] text-guia text-neve">
-                  A Psy Comunic <strong className="font-semibold text-branco">constrói a
-                  sua loja do zero até o lançamento</strong> e continua entregando todo mês
-                  depois dele. Gestão, tecnologia, marketing e logística rodando junto,
-                  porque é isso que faz um e-commerce vender.
+                <Rotulo>Missão cumprida, todo mês</Rotulo>
+                <h2 className={tituloSecao + ' max-w-[16ch]'}>
+                  O que a Psy Comunic coloca{' '}
+                  <span className="text-magenta-texto">em órbita.</span>
+                </h2>
+                <p className="mt-7 max-w-[54ch] text-guia text-neve">
+                  Lojas e sites que saíram daqui prontos para vender: plataforma, catálogo,
+                  checkout, rastreamento e a primeira campanha no ar. Passe o olho pela
+                  coluna ao lado e depois desça: o resto da página mostra como.
                 </p>
 
-                <div className="mt-10 flex flex-wrap items-center gap-4">
-                  <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
-                  <Botao href="/como-trabalhamos" variante="secundario">
-                    Ver como trabalhamos
-                  </Botao>
-                </div>
+                <dl className="mt-12 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  {[
+                    { n: '17', u: 'anos', d: 'de mercado em design, tecnologia e performance' },
+                    { n: 'Na frente', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
+                    { n: 'Do zero', u: 'ao lançamento', d: 'e as entregas contínuas depois dele, com o mesmo time' },
+                  ].map((item) => (
+                    <div key={item.d} className="bg-marinho px-6 py-6 md:px-7 md:py-7">
+                      <dt className="flex items-baseline gap-2.5">
+                        <span className="tabular font-display text-2xl font-extrabold tracking-[-0.04em] md:text-3xl">
+                          {item.n}
+                        </span>
+                        {item.u ? (
+                          <span className="font-mono text-[0.66rem] uppercase tracking-[0.18em] text-cinza">
+                            {item.u}
+                          </span>
+                        ) : null}
+                      </dt>
+                      <dd className="mt-2.5 max-w-[26ch] text-sm leading-relaxed text-cinza">
+                        {item.d}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
 
-              {/* --- Os sites, deslizando --- */}
-              {/*
-                Aqui estava o painel de diagnóstico. Ele mostrava
-                `frentes.duvidas[0]` das quatro frentes, que é exatamente
-                o que a seção "O diagnóstico" mostra logo abaixo, em
-                cartões e com mais espaço: era a mesma coisa duas vezes
-                na mesma página. O que a abertura não tinha era prova de
-                que a Psy Comunic entrega site, e agora tem.
-              */}
               <div className="revelar min-w-0 lg:pl-4">
                 <ColunasDeSites />
               </div>
             </div>
-
-            {/*
-              Faixa de prova.
-              EDITAR: confirmar os anos de mercado e a redação da linha de
-              ex-sócio. São as únicas afirmações da página sem fonte
-              pública.
-            */}
-            <dl className="revelar mt-20 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3">
-              {[
-                { n: '17', u: 'anos', d: 'de mercado em design, tecnologia e performance' },
-                { n: 'Na frente', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
-                /* Sem contagem de marcas: foram muitas, e um número
-                   fechado aqui envelheceria e ainda venderia menos do
-                   que a fita de nomes logo abaixo. As quatro frentes
-                   são um número que a Psy Comunic controla. */
-                { n: 'Do zero', u: 'ao lançamento', d: 'e as entregas contínuas depois dele, com o mesmo time' },
-              ].map((item) => (
-                <div key={item.d} className="bg-marinho px-7 py-8 md:px-9 md:py-10">
-                  <dt className="flex items-baseline gap-2.5">
-                    <span className="tabular font-display text-sub font-extrabold tracking-[-0.04em]">
-                      {item.n}
-                    </span>
-                    {item.u ? (
-                      <span className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-cinza">
-                        {item.u}
-                      </span>
-                    ) : null}
-                  </dt>
-                  <dd className="mt-3 max-w-[28ch] text-sm leading-relaxed text-cinza">
-                    {item.d}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </section>
 
@@ -180,9 +158,11 @@ export default function Home() {
         <section
           id="jornada"
           aria-labelledby="jornada-titulo"
-          className="scroll-mt-24 relative overflow-hidden py-24 md:py-32"
+          className="scroll-mt-24 relative overflow-clip py-24 md:py-32"
         >
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="estrelas absolute inset-0" />
+            <div className="orbita absolute left-1/2 top-[58%] h-[900px] w-[1600px] -translate-x-1/2 opacity-70" />
             <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" />
           </div>
 
@@ -274,7 +254,7 @@ export default function Home() {
         {/* ==========================================================
             4. O DIAGNÓSTICO
             ========================================================== */}
-        <section className="relative overflow-hidden py-24 md:py-32">
+        <section className="relative overflow-clip py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div className="brilho-frio absolute -left-[15%] top-1/4 h-[560px] w-[560px] opacity-20" />
           </div>
@@ -323,7 +303,7 @@ export default function Home() {
         {/* ==========================================================
             5. AS QUATRO FRENTES
             ========================================================== */}
-        <section id="frentes" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
+        <section id="frentes" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div className="brilho-magenta absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 opacity-20" />
           </div>
@@ -418,8 +398,9 @@ export default function Home() {
             aparece em terceira pessoa, e só porque a informação é sobre
             ele. Ver CLAUDE.md.
             ========================================================== */}
-        <section id="quem-somos" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
+        <section id="quem-somos" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="estrelas absolute inset-0" />
             <div className="brilho-magenta absolute -left-[10%] top-1/3 h-[620px] w-[620px] opacity-25" />
           </div>
 
@@ -581,8 +562,10 @@ export default function Home() {
             altura da pagina, sem transformar a home num cardapio que
             desconto nenhum consegue negociar depois.
             ========================================================== */}
-        <section id="parceria" className="scroll-mt-24 relative overflow-hidden border-y border-fio bg-marinho-fundo py-24 md:py-32">
+        <section id="parceria" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="estrelas absolute inset-0" />
+            <div className="orbita absolute left-1/2 top-[40%] h-[700px] w-[1300px] -translate-x-1/2 opacity-60" />
             <div className="brilho-magenta absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.18]" />
           </div>
 
@@ -668,7 +651,7 @@ export default function Home() {
         {/* ==========================================================
             10. CASES
             ========================================================== */}
-        <section id="cases" className="scroll-mt-24 relative overflow-hidden py-24 md:py-32">
+        <section id="cases" className="scroll-mt-24 relative overflow-clip py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div className="brilho-frio absolute -right-[12%] top-1/4 h-[600px] w-[600px] opacity-20" />
           </div>

@@ -61,3 +61,7 @@ next-env.d.ts
 .vercel
 *.tsbuildinfo
 _t.html
+
+# Saidas de ferramenta: previa de tela, rascunho de imagem.
+# Nao sao do projeto e pesam mais que o codigo inteiro.
+Claude outputs/

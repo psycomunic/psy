@@ -267,3 +267,44 @@ esconda as seções de cima por CSS e capture sem rolar.
   `America/Sao_Paulo`.
 - Texto de interface em português do Brasil.
 - Comentário explica **por quê**, não o quê.
+
+## Scroll Cinema (hero da home)
+
+O hero da home é um vídeo amarrado à rolagem: `src/componentes/HeroCinema.tsx`
+lê o progresso da seção (0 a 1) e escreve em `video.currentTime`. O mesmo
+progresso comanda as três camadas de texto, a telemetria (altitude,
+velocidade, relógio de missão) e a barra lateral.
+
+Jornada: foguete parado na plataforma à noite → rompendo a atmosfera com a
+curva da Terra embaixo. Frame A e frame B gerados no Magnific (Seedream 5
+Pro; o B usando o A como referência única), vídeo de 5 s no Seedance 2.5 com
+os dois frames como primeiro e último quadro.
+
+Arquivos:
+- `public/video/hero.mp4` (1920×1080, 60 fps, 298 frames, TODOS keyframe, ~15 MB)
+- `public/imagens/hero-frame-a.jpg` (poster do hero, 1920 de largura)
+
+### Se trocar o vídeo, refaça esta receita inteira
+
+```
+# 1. 60 fps por interpolação local (gratuito)
+ffmpeg -y -i raw.mp4 -vf "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:vsbmc=1:me_mode=bidir:search_param=32" -c:v libx264 -crf 16 -preset medium -pix_fmt yuv420p -an interp.mp4
+
+# 2. Todo frame vira keyframe (sem isso o scroll engasga)
+ffmpeg -y -i interp.mp4 -vf "scale=1920:-2:flags=lanczos" -c:v libx264 -x264-params keyint=1:min-keyint=1:scenecut=0 -g 1 -crf 18 -preset slow -pix_fmt yuv420p -movflags +faststart -an hero.mp4
+
+# 3. Confirmar: frames == keyframes
+TOTAL=$(ffmpeg -i hero.mp4 -f null - 2>&1 | grep -oE 'frame= *[0-9]+' | tail -1 | grep -oE '[0-9]+')
+KEYS=$(ffmpeg -i hero.mp4 -vf "select=eq(pict_type\,I)" -frames:v 99999 -f null - 2>&1 | grep -oE 'frame= *[0-9]+' | tail -1 | grep -oE '[0-9]+')
+echo "frames: $TOTAL | keyframes: $KEYS"
+```
+
+Regras que não se quebram: largura mínima 1920 (nunca reduzir para
+economizar peso; encurte o vídeo ou suba o CRF); nenhum ancestral do hero
+com `overflow:hidden` (mata o sticky, use `clip`); `prefers-reduced-motion`
+não colapsa a altura da seção (reduz para 100vh e mostra o frame final).
+
+Sintomas e causas: engasga → não reencodou com keyint=1; nada acontece ao
+rolar → duração ficou 0 (leia `readyState`, não só `loadedmetadata`);
+pixelado → resolução abaixo de 1920; funciona no navegador e não no preview
+→ painel oculto sem `requestAnimationFrame`, ou reduced-motion colapsou o hero.
