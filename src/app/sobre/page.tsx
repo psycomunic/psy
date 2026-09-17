@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Casca, TopoPagina, ChamadaFinal, secao, canonical } from '@/componentes/Casca';
-import { marca } from '@/conteudo/marca';
+import { marca, credenciais } from '@/conteudo/marca';
 import { urlAbsoluta, site } from '@/conteudo/site';
 
 export const metadata: Metadata = {
@@ -12,23 +12,6 @@ export const metadata: Metadata = {
   openGraph: { url: urlAbsoluta('/sobre'), type: 'profile' },
 };
 
-const credenciais = [
-  {
-    i: '01',
-    t: '17+ anos em design e web',
-    d: 'Angelo Garcia trabalha com design gráfico e web desde antes de e-commerce virar assunto de todo mundo. É a base de por que a Psy Comunic trata a loja como produto, e não como suporte de anúncio.',
-  },
-  {
-    i: '02',
-    t: 'Ex-sócio de e-commerces de milhões',
-    d: 'Ele foi sócio de e-commerces com faturamento na casa dos milhões. Já viveu o estoque parado, o boleto que não é pago e a entrega que atrasa, do lado de quem responde por eles.',
-  },
-  {
-    i: '03',
-    t: 'Mentorado na Vinci Society',
-    d: 'Mentoria com Tay Dantas, uma das maiores especialistas em marketing do Brasil. É de onde vem o método que a Psy Comunic aplica na aquisição.',
-  },
-];
 
 export default function Sobre() {
   return (

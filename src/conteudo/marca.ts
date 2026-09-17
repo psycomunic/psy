@@ -64,3 +64,42 @@ export const marca = {
     autor: 'Steve Jobs',
   },
 } as const;
+
+/**
+ * Por que Angelo Garcia é quem responde pela operação.
+ *
+ * ============================================================
+ * ESTAVA EM DOIS LUGARES, PALAVRA POR PALAVRA
+ * ============================================================
+ * A mesma lista vivia copiada dentro de `page.tsx` e de
+ * `sobre/page.tsx`. Duas cópias de um texto só sobrevivem até alguém
+ * editar uma delas, e aí o site passa a dizer duas coisas diferentes
+ * sobre a mesma pessoa, sem ninguém perceber. Foi exatamente o que
+ * quase aconteceu quando os nomes das lojas entraram aqui.
+ *
+ * Agora é uma lista só, e a regra do projeto volta a valer: texto do
+ * site mora em `src/conteudo`, não espalhado em JSX.
+ *
+ * ============================================================
+ * ELE, E NÃO EU
+ * ============================================================
+ * Quem fala no site é a empresa. Angelo aparece em terceira pessoa, e
+ * só quando a informação é sobre ele, que é o caso desta lista inteira.
+ */
+export const credenciais = [
+  {
+    i: '01',
+    t: '17+ anos em design e web',
+    d: 'Angelo Garcia trabalha com design gráfico e web desde antes de e-commerce virar assunto de todo mundo. É a base de por que a Psy Comunic trata a loja como produto, e não como suporte de anúncio.',
+  },
+  {
+    i: '02',
+    t: 'Ex-sócio de e-commerces de milhões',
+    d: 'Ele foi sócio da Casa Linda Decorações e da Lar e Vida, dois e-commerces com faturamento na casa dos milhões. Já viveu o estoque parado, o boleto que não é pago e a entrega que atrasa, do lado de quem responde por eles.',
+  },
+  {
+    i: '03',
+    t: 'Mentorado na Vinci Society',
+    d: 'Mentoria com Tay Dantas, uma das maiores especialistas em marketing do Brasil. É de onde vem o método que a Psy Comunic aplica na aquisição.',
+  },
+] as const;
