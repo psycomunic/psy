@@ -148,6 +148,32 @@ export default function Home() {
               <li key={m}>{m}</li>
             ))}
           </ul>
+
+          {/*
+            O cartaz das marcas, SÓ no celular.
+
+            No computador as duas fitas já ocupam a largura toda e o
+            cartaz seria a terceira vez que a mesma prova aparece na
+            mesma tela. No telefone a fita passa estreita e rápida, e o
+            cartaz é onde dá para parar e reconhecer os nomes.
+
+            `lazy` não é detalhe: com `md:hidden` o elemento some no
+            computador, e imagem escondida com lazy não chega a ser
+            baixada. Sem isso, todo visitante de desktop pagaria por um
+            arquivo que nunca vai ver. É a mesma conta da terceira coluna
+            em ColunasDeSites.
+          */}
+          <div className={`${secao} mt-12 md:hidden`}>
+            <Image
+              src="/site.png"
+              alt="Cartaz com os logos de vinte marcas atendidas pela Psy Comunic"
+              width={1080}
+              height={1350}
+              sizes="(max-width: 767px) 92vw, 1px"
+              loading="lazy"
+              className="mx-auto w-full max-w-[440px] rounded-[var(--raio)] border border-fio"
+            />
+          </div>
         </section>
 
         {/* ==========================================================
