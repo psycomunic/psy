@@ -81,6 +81,19 @@ export const marca = {
  * site mora em `src/conteudo`, não espalhado em JSX.
  *
  * ============================================================
+ * CARGO SE CONFERE ANTES DE PUBLICAR
+ * ============================================================
+ * O cartão 03 dizia só "uma das maiores especialistas em marketing do
+ * Brasil", que é superlativo e não se checa. Agora diz os cargos, que
+ * se checam, e por isso foram checados: ela é fundadora e CEO da Vinci
+ * Society, foi COO da Boca Rosa Company e foi SÓCIA E DIRETORA DE
+ * BRANDING do G4 Educação.
+ *
+ * Fundadora do G4 ela não é, e essa era a versão que quase entrou.
+ * Errar o cargo de uma pessoa real num site comercial é o tipo de coisa
+ * que qualquer um confere em trinta segundos.
+ *
+ * ============================================================
  * ELE, E NÃO EU
  * ============================================================
  * Quem fala no site é a empresa. Angelo aparece em terceira pessoa, e
@@ -100,6 +113,6 @@ export const credenciais = [
   {
     i: '03',
     t: 'Mentorado na Vinci Society',
-    d: 'Mentoria com Tay Dantas, uma das maiores especialistas em marketing do Brasil. É de onde vem o método que a Psy Comunic aplica na aquisição.',
+    d: 'Mentoria com Tay Dantas, fundadora da Vinci Society, ex-COO da Boca Rosa e ex-sócia e diretora de branding do G4 Educação. É de onde vem o método que a Psy Comunic aplica na aquisição.',
   },
 ] as const;
