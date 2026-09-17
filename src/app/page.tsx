@@ -533,13 +533,33 @@ export default function Home() {
                   {credenciais.map((item) => (
                     <div
                       key={item.t}
-                      className="revelar cartao flex gap-6 p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9"
+                      className="revelar cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9"
                       data-inclina
                     >
-                      <span className="tabular shrink-0 font-mono text-xs text-magenta-texto">
+                      {'bg' in item && item.bg ? (
+                        <>
+                          {/* A foto do evento, de fundo. `opacity` baixa e
+                              um degrade por cima: sem isso o verde claro
+                              da parede de plantas sobe atras do texto
+                              cinza e o contraste cai abaixo do legivel. O
+                              numero exato saiu de medicao, nao de gosto. */}
+                          <Image
+                            src={item.bg}
+                            alt=""
+                            fill
+                            sizes="(max-width: 768px) 92vw, 620px"
+                            className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.42]"
+                          />
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--marinho-fundo)_18%,color-mix(in_oklab,var(--marinho-fundo)_90%,transparent)_55%,color-mix(in_oklab,var(--marinho-fundo)_72%,transparent)_100%)]"
+                          />
+                        </>
+                      ) : null}
+                      <span className="tabular relative shrink-0 font-mono text-xs text-magenta-texto">
                         {item.i}
                       </span>
-                      <div className="min-w-0">
+                      <div className="relative min-w-0">
                         <dt className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
                           {item.t}
                         </dt>
@@ -602,7 +622,7 @@ export default function Home() {
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div className="estrelas absolute inset-0" data-paralaxe="0.06" />
             <div className="orbita absolute left-1/2 top-[40%] h-[700px] w-[1300px] -translate-x-1/2 opacity-60" data-paralaxe="-0.12" />
-            <div className="brilho-magenta absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.18]" />
+            <div className="brilho-magenta absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.42]" />
           </div>
 
           <div className={secao}>

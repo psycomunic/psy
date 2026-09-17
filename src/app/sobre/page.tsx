@@ -60,11 +60,31 @@ export default function Sobre() {
               </h2>
               <dl className="mt-10 grid gap-5">
                 {credenciais.map((c) => (
-                  <div key={c.t} className="cartao flex gap-6 p-7 md:p-8">
-                    <span className="tabular shrink-0 font-mono text-xs text-magenta-texto">
+                  <div key={c.t} className="cartao relative flex gap-6 overflow-hidden p-7 md:p-8">
+                    {'bg' in c && c.bg ? (
+                      <>
+                        {/* A foto do evento, de fundo. `opacity` baixa e
+                            um degrade por cima: sem isso o verde claro da
+                            parede de plantas sobe atras do texto cinza e
+                            o contraste cai abaixo do legivel. O numero
+                            exato saiu de medicao, nao de gosto. */}
+                        <Image
+                          src={c.bg}
+                          alt=""
+                          fill
+                          sizes="(max-width: 768px) 92vw, 620px"
+                          className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.42]"
+                        />
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--marinho-fundo)_18%,color-mix(in_oklab,var(--marinho-fundo)_90%,transparent)_55%,color-mix(in_oklab,var(--marinho-fundo)_72%,transparent)_100%)]"
+                        />
+                      </>
+                    ) : null}
+                    <span className="tabular relative shrink-0 font-mono text-xs text-magenta-texto">
                       {c.i}
                     </span>
-                    <div className="min-w-0">
+                    <div className="relative min-w-0">
                       <dt className="font-display text-xl font-bold tracking-[-0.02em]">
                         {c.t}
                       </dt>

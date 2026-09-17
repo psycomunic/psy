@@ -113,6 +113,9 @@ export const credenciais = [
   {
     i: '03',
     t: 'Mentorado na Vinci Society',
+    /* Foto da turma do evento, de fundo. Só este cartão tem: é o único
+       em que existe imagem de verdade do que a frase afirma. */
+    bg: '/imagens/mentoria-vinci.jpg',
     d: 'Mentoria com Tay Dantas, fundadora da Vinci Society, ex-COO da Boca Rosa e ex-sócia e diretora de branding do G4 Educação. É de onde vem o método que a Psy Comunic aplica na aquisição.',
   },
 ] as const;
