@@ -17,53 +17,145 @@
  * sobra orçamento para enfeite pesado.
  *
  * ============================================================
- * CADA UMA CONTA O QUE O SERVIÇO FAZ
+ * CADA UMA CONTA UMA HISTÓRIA, COM ORDEM
  * ============================================================
- * Não são formas abstratas se mexendo. O anúncio aparece e a conversa
- * cai no WhatsApp. A busca é digitada e a empresa surge no topo. O pino
- * cai no mapa e a ficha da empresa aparece com as avaliações. É a
- * promessa do bloco, em movimento.
+ * Não são formas abstratas se mexendo, e não é tudo aparecendo junto.
+ * O anúncio entra, o coração enche, o botão de mensagem pisca, a
+ * conversa desliza, a pessoa digita e a resposta sai com os dois tiques.
+ * A busca é escrita letra a letra e os resultados descem, com o anúncio
+ * no topo. A rua se desenha, o pino cai e a ficha da empresa sobe com
+ * as avaliações e os botões de ligar e traçar rota.
+ *
+ * ============================================================
+ * NADA AQUI AFIRMA NADA
+ * ============================================================
+ * Sem nome de cliente, sem nota, sem número de avaliações. O que tem
+ * texto é ou rótulo de interface ("Patrocinado", "Ligar", "Rota") ou o
+ * genérico "Sua empresa", que é justamente o convite. Nota inventada
+ * numa ilustração continua sendo nota inventada.
  *
  * Tudo `aria-hidden`: quem usa leitor de tela já recebeu a mesma coisa
- * no texto e na lista de entregas logo ao lado. Descrever a decoração
- * seria repetir.
+ * no texto e na lista de entregas ao lado. Descrever a decoração seria
+ * repetir.
  */
 
+/*
+  Retrato no telefone, paisagem daí para cima.
+
+  Medido: numa coluna de 292px o 4:3 dá uma caixa de 219px de altura, e a
+  cena do anúncio precisa de 391. Ela era cortada no meio da conversa,
+  que é justamente a parte que o bloco promete.
+
+  A imagem do entregável usa as MESMAS proporções: se divergissem,
+  trocar uma pela outra mudaria a altura do bloco.
+*/
 function Moldura({ children }: { children: React.ReactNode }) {
   return (
-    <div aria-hidden className="cena-servico aspect-[4/3] w-full">
-      <div className="absolute inset-0 grid place-items-center p-5 sm:p-6">{children}</div>
+    <div aria-hidden className="cena-servico aspect-[3/4] w-full sm:aspect-[4/3]">
+      <div className="absolute inset-0 grid place-items-center p-4 sm:p-5">{children}</div>
     </div>
   );
 }
 
-/** 1. O anúncio no feed, e a conversa que chega. */
+/** Barra cinza, o "texto" das telas. Repetida demais para ficar solta. */
+function Barra({ w, claro = false }: { w: string; claro?: boolean }) {
+  return (
+    <span
+      className={`block h-1.5 rounded-full ${claro ? 'bg-white/28' : 'bg-white/14'}`}
+      style={{ width: w }}
+    />
+  );
+}
+
+/* ================================================================
+   1. O anúncio no feed que vira conversa no WhatsApp
+   ================================================================ */
 function CenaAnuncio() {
   return (
     <Moldura>
-      <div className="relative w-full max-w-[320px]">
-        {/* O post patrocinado */}
-        <div className="cena-post rounded-xl border border-fio bg-marinho-alto/70 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-full bg-[linear-gradient(135deg,var(--magenta),#7C3AED)]" />
-            <span className="h-2 w-16 rounded-full bg-white/25" />
-            <span className="ml-auto rounded-full border border-magenta/50 px-2 py-0.5 font-mono text-[0.5rem] uppercase tracking-[0.1em] text-magenta-texto">
+      <div className="relative w-full max-w-[330px]">
+        <div className="cena-post overflow-hidden rounded-xl border border-fio bg-marinho-alto/80 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+          {/* Cabeçalho do post */}
+          <div className="flex items-center gap-2 px-3 py-2">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[conic-gradient(from_210deg,var(--magenta),#F59E0B,#7C3AED,var(--magenta))]">
+              <span className="h-[22px] w-[22px] rounded-full bg-marinho-alto" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[0.6rem] font-semibold leading-tight text-neve">
+                Sua empresa
+              </span>
+              <span className="block font-mono text-[0.5rem] leading-tight text-cinza">
+                Bragança, PA
+              </span>
+            </span>
+            <span className="ml-auto rounded-full border border-magenta/50 px-2 py-0.5 font-mono text-[0.46rem] uppercase tracking-[0.1em] text-magenta-texto">
               Patrocinado
             </span>
           </div>
-          <div className="mt-2.5 h-16 rounded-lg bg-[linear-gradient(135deg,color-mix(in_oklab,var(--magenta)_35%,transparent),color-mix(in_oklab,#2B6BFF_28%,transparent))]" />
-          <div className="mt-2.5 h-2 w-3/4 rounded-full bg-white/18" />
-          <div className="mt-1.5 h-2 w-1/2 rounded-full bg-white/12" />
+
+          {/* A arte do anúncio */}
+          <div className="relative h-[60px] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--magenta)_42%,transparent),color-mix(in_oklab,#2B6BFF_32%,transparent))]">
+            <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(6,9,26,0.55))]" />
+            <span className="absolute bottom-2 left-3 right-3 flex flex-col gap-1">
+              <Barra w="62%" claro />
+              <Barra w="40%" />
+            </span>
+          </div>
+
+          {/* Curtir, comentar, enviar */}
+          <div className="flex items-center gap-3 px-3 pt-2">
+            <svg viewBox="0 0 24 24" className="cena-curtir h-3.5 w-3.5" fill="currentColor">
+              <path d="M12 20.5s-7.5-4.6-7.5-9.4A4.1 4.1 0 0 1 12 8.6a4.1 4.1 0 0 1 7.5 2.5c0 4.8-7.5 9.4-7.5 9.4Z" />
+            </svg>
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 11.5a8 8 0 0 1-11.6 7.1L3 20.5l1.9-6.4A8 8 0 1 1 21 11.5Z" strokeLinejoin="round" />
+            </svg>
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21.5 3 2.5 10.2l7.2 2.7 2.7 7.2L21.5 3Z" strokeLinejoin="round" />
+            </svg>
+          </div>
+
+          {/* A legenda e o botão que leva para a conversa */}
+          <div className="px-3 pt-2">
+            <Barra w="78%" />
+          </div>
+          <div className="cena-cta mx-3 mb-2.5 mt-2.5 flex items-center justify-center gap-1.5 rounded-lg bg-magenta py-1.5">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 text-branco" fill="currentColor">
+              <path d="M12 2a10 10 0 0 0-8.7 15l-1.2 4.3 4.4-1.2A10 10 0 1 0 12 2Z" />
+            </svg>
+            <span className="text-[0.58rem] font-semibold text-branco">Enviar mensagem</span>
+          </div>
         </div>
 
-        {/* As mensagens caindo no WhatsApp */}
-        <div className="mt-3 space-y-1.5">
-          <div className="cena-balao ml-auto w-[78%] rounded-xl rounded-tr-sm bg-[#25D366]/85 px-3 py-2">
-            <span className="block h-1.5 w-full rounded-full bg-black/25" />
-            <span className="mt-1 block h-1.5 w-2/3 rounded-full bg-black/20" />
-          </div>
-          <div className="cena-balao-2 w-[60%] rounded-xl rounded-tl-sm border border-fio bg-marinho-alto/80 px-3 py-2">
-            <span className="block h-1.5 w-full rounded-full bg-white/20" />
+        {/* A conversa que chega */}
+        <div className="cena-zap mt-2 overflow-hidden rounded-xl border border-fio bg-marinho-fundo/95 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+          <div className="space-y-1.5 p-2">
+            {/* Quem chegou pelo anúncio */}
+            <div className="cena-balao w-[76%] rounded-lg rounded-tl-sm border border-fio bg-marinho-alto/80 px-2.5 py-1">
+              <span className="block text-[0.55rem] leading-snug text-neve">
+                Oi! Vi o anúncio, vocês atendem em Bragança?
+              </span>
+            </div>
+
+            {/* O "digitando", que é o instante entre a pergunta e a resposta */}
+            <div className="cena-digitando flex w-max items-center gap-1 rounded-lg bg-marinho-alto/60 px-2.5 py-2">
+              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
+              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
+              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
+            </div>
+
+            {/* A resposta */}
+            <div className="cena-balao-2 ml-auto w-[70%] rounded-lg rounded-tr-sm bg-[#25D366]/85 px-2.5 py-1">
+              <span className="block text-[0.55rem] leading-snug text-[#06210F]">
+                Atendemos sim. Pode me contar o que precisa?
+              </span>
+              <span className="mt-0.5 flex items-center justify-end gap-1">
+                <span className="font-mono text-[0.42rem] text-[#06210F]/60">agora</span>
+                <svg viewBox="0 0 24 24" className="cena-tique h-2.5 w-2.5 text-[#0B4FA8]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <path d="m2 13 4 4 8-9M10 17l8-9" />
+                </svg>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -71,13 +163,14 @@ function CenaAnuncio() {
   );
 }
 
-/** 2. A busca sendo digitada, e a empresa no topo. */
+/* ================================================================
+   2. A busca no Google, com a empresa no topo
+   ================================================================ */
 function CenaBusca() {
   return (
     <Moldura>
-      <div className="w-full max-w-[330px]">
-        {/* O campo de busca */}
-        <div className="flex items-center gap-2.5 rounded-full border border-fio bg-marinho-alto/70 px-4 py-2.5 shadow-[0_12px_30px_-14px_rgba(0,0,0,0.8)]">
+      <div className="w-full max-w-[340px]">
+        <div className="flex items-center gap-2.5 rounded-full border border-fio bg-marinho-alto/75 px-4 py-2.5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.85)]">
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 flex-none text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" strokeLinecap="round" />
@@ -88,23 +181,48 @@ function CenaBusca() {
           <span className="cena-cursor h-3 w-px flex-none bg-magenta" />
         </div>
 
-        {/* Os resultados, com o anúncio no topo */}
-        <div className="mt-3.5 space-y-2">
-          <div className="cena-linha-1 rounded-lg border border-magenta/45 bg-magenta/10 p-2.5">
-            <div className="flex items-center gap-2">
-              <span className="rounded border border-magenta/50 px-1.5 py-px font-mono text-[0.48rem] uppercase tracking-[0.08em] text-magenta-texto">
+        <div className="mt-3 space-y-2">
+          {/* O resultado patrocinado, que é o entregável */}
+          <div className="cena-linha-1 rounded-lg border border-magenta/45 bg-magenta/[0.08] p-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="rounded border border-magenta/50 px-1.5 py-px font-mono text-[0.44rem] uppercase tracking-[0.08em] text-magenta-texto">
                 Anúncio
               </span>
-              <span className="h-1.5 w-20 rounded-full bg-white/30" />
+              <span className="font-mono text-[0.46rem] text-cinza">suaempresa.com.br</span>
             </div>
-            <span className="mt-1.5 block h-1.5 w-full rounded-full bg-white/15" />
+            <span className="mt-1.5 block text-[0.62rem] font-semibold leading-snug text-neve">
+              Sua empresa · Atendimento em Bragança e região
+            </span>
+            <span className="mt-1 block space-y-1">
+              <Barra w="100%" />
+              <Barra w="72%" />
+            </span>
+            {/* As extensões de chamada, que é o que faz o telefone tocar */}
+            <div className="cena-acoes mt-2 flex gap-1.5">
+              {['Ligar', 'Como chegar', 'WhatsApp'].map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full border border-fio px-2 py-0.5 font-mono text-[0.44rem] uppercase tracking-[0.06em] text-cinza"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
+
+          {/* Os orgânicos, mais apagados: é o contraste que conta */}
           <div className="cena-linha-2 rounded-lg border border-fio p-2.5">
-            <span className="block h-1.5 w-2/3 rounded-full bg-white/14" />
-            <span className="mt-1.5 block h-1.5 w-full rounded-full bg-white/8" />
+            <Barra w="58%" claro />
+            <span className="mt-1.5 block space-y-1">
+              <Barra w="100%" />
+              <Barra w="45%" />
+            </span>
           </div>
           <div className="cena-linha-3 rounded-lg border border-fio p-2.5">
-            <span className="block h-1.5 w-1/2 rounded-full bg-white/14" />
+            <Barra w="44%" claro />
+            <span className="mt-1.5 block">
+              <Barra w="80%" />
+            </span>
           </div>
         </div>
       </div>
@@ -112,17 +230,32 @@ function CenaBusca() {
   );
 }
 
-/** 3. O pino no mapa, e a ficha da empresa. */
+/* ================================================================
+   3. O perfil no Google e no Maps
+   ================================================================ */
 function CenaMapa() {
   return (
     <Moldura>
-      <div className="relative w-full max-w-[300px]">
-        <div className="relative grid place-items-center pb-2">
-          {/* A onda que sai do pino quando ele encosta */}
-          <span className="cena-onda absolute h-14 w-14 rounded-full border border-magenta" />
+      <div className="relative w-full max-w-[320px]">
+        {/* As ruas, desenhando-se antes do pino cair */}
+        <svg
+          viewBox="0 0 320 120"
+          className="absolute inset-x-0 top-0 h-[120px] w-full text-magenta/25"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        >
+          <path className="cena-mapa-tracado" d="M-10 86 C60 86 76 40 140 40 S250 74 330 60" strokeDasharray="260" />
+          <path className="cena-mapa-tracado" d="M52 -10 C52 40 92 58 92 130" strokeDasharray="260" opacity=".6" />
+          <path className="cena-mapa-tracado" d="M230 -10 C230 34 200 52 214 130" strokeDasharray="260" opacity=".45" />
+        </svg>
+
+        <div className="relative grid place-items-center pb-1 pt-4">
+          <span className="cena-onda absolute h-16 w-16 rounded-full border border-magenta" />
           <svg
             viewBox="0 0 24 24"
-            className="cena-pino relative h-12 w-12 text-magenta drop-shadow-[0_6px_14px_rgba(228,21,95,0.55)]"
+            className="cena-pino relative h-14 w-14 text-magenta drop-shadow-[0_8px_16px_rgba(228,21,95,0.6)]"
             fill="currentColor"
           >
             <path d="M12 2c-3.9 0-7 3.1-7 7 0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7Z" />
@@ -130,22 +263,58 @@ function CenaMapa() {
           </svg>
         </div>
 
-        {/* A ficha da empresa */}
-        <div className="cena-ficha mt-1 rounded-xl border border-fio bg-marinho-alto/75 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-2">
-            <span className="h-7 w-7 rounded-lg bg-[linear-gradient(135deg,var(--magenta),#7C3AED)]" />
-            <div className="min-w-0 flex-1">
-              <span className="block h-2 w-24 rounded-full bg-white/28" />
-              <span className="mt-1.5 block h-1.5 w-16 rounded-full bg-white/14" />
-            </div>
+        {/* A ficha da empresa no Maps */}
+        <div className="cena-ficha rounded-xl border border-fio bg-marinho-alto/85 p-3 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[linear-gradient(135deg,var(--magenta),#7C3AED)]">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-branco" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z" />
+                <path d="M3 9l1.6-4.2A1 1 0 0 1 5.5 4h13a1 1 0 0 1 .9.8L21 9" />
+              </svg>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.64rem] font-semibold leading-tight text-neve">
+                Sua empresa
+              </span>
+              <span className="mt-1 block">
+                <Barra w="60%" />
+              </span>
+            </span>
+            <span className="cena-chip flex-none rounded-full border border-[#25D366]/45 bg-[#25D366]/10 px-2 py-0.5 font-mono text-[0.44rem] uppercase tracking-[0.06em] text-[#25D366]">
+              Aberto
+            </span>
           </div>
+
+          {/* As avaliações. Estrelas sem nota: nota inventada continua
+              inventada, mesmo dentro de um desenho. */}
           <div className="mt-2.5 flex items-center gap-1">
             {[0, 1, 2, 3, 4].map((i) => (
               <svg key={i} viewBox="0 0 24 24" className="cena-estrela h-3 w-3 text-magenta-texto" fill="currentColor">
                 <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1-4.5-4.2 6.1-.8L12 3Z" />
               </svg>
             ))}
-            <span className="ml-1.5 h-1.5 w-8 rounded-full bg-white/18" />
+            <span className="ml-1"><Barra w="34px" /></span>
+          </div>
+
+          {/* O que a pessoa faz a partir da ficha */}
+          <div className="cena-acoes mt-3 grid grid-cols-3 gap-1.5">
+            {[
+              { t: 'Ligar', d: 'M5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5L14 12l4 1.5V17a2 2 0 0 1-2.2 2A15 15 0 0 1 3 6.2 2 2 0 0 1 5 4Z' },
+              { t: 'Rota', d: 'M12 2 3 21l9-4 9 4L12 2Z' },
+              { t: 'Site', d: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 0c2.5 2.3 3.8 5.3 3.8 9S14.5 18.7 12 21m0-18C9.5 5.3 8.2 8.3 8.2 12S9.5 18.7 12 21M3.5 9h17M3.5 15h17' },
+            ].map((b) => (
+              <span
+                key={b.t}
+                className="flex flex-col items-center gap-1 rounded-lg border border-fio py-1.5 text-magenta-texto"
+              >
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+                  <path d={b.d} />
+                </svg>
+                <span className="font-mono text-[0.42rem] uppercase tracking-[0.06em] text-cinza">
+                  {b.t}
+                </span>
+              </span>
+            ))}
           </div>
         </div>
       </div>

@@ -1141,18 +1141,61 @@ body {
   opacity: .5;
 }
 
-/* ---------- 1. O anúncio que vira conversa ---------- */
-.cena-post { animation: cenaSobe 7s cubic-bezier(.22,.61,.36,1) infinite; }
-.cena-balao { animation: cenaBalao 7s cubic-bezier(.22,.61,.36,1) infinite; }
-.cena-balao-2 { animation: cenaBalao 7s cubic-bezier(.22,.61,.36,1) infinite; animation-delay: .6s; }
+/* ---------- 1. O anúncio que vira conversa ----------
+   A cena tem ordem: o post entra, o coração enche, o botão de mensagem
+   pisca, a conversa desliza, a pessoa escreve, e a resposta sai com os
+   dois tiques. É a promessa do bloco na sequência em que ela acontece.
+   Ciclo de 9s: mais curto que isso e a leitura vira pressa. */
+.cena-post   { animation: cenaSobe 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-curtir { animation: cenaCurtir 9s cubic-bezier(.34,1.56,.64,1) infinite; }
+.cena-cta    { animation: cenaCta 9s ease-in-out infinite; }
+.cena-zap    { animation: cenaZap 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-balao  { animation: cenaBalao 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-digitando { animation: cenaDigitando 9s ease-out infinite; }
+.cena-ponto  { animation: cenaPonto 1.2s ease-in-out infinite; }
+.cena-ponto:nth-child(2) { animation-delay: .15s; }
+.cena-ponto:nth-child(3) { animation-delay: .3s; }
+.cena-balao-2 { animation: cenaBalao2 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-tique  { animation: cenaTique 9s ease-out infinite; }
 
 @keyframes cenaSobe {
-  0%, 8%   { opacity: 0; transform: translateY(14px); }
-  18%, 100% { opacity: 1; transform: none; }
+  0%, 5%    { opacity: 0; transform: translateY(14px); }
+  14%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaCurtir {
+  0%, 20%   { transform: scale(1); color: var(--cinza); }
+  26%       { transform: scale(1.5); }
+  32%, 100% { transform: scale(1); color: var(--magenta); }
+}
+@keyframes cenaCta {
+  0%, 32%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--magenta) 60%, transparent); }
+  40%       { box-shadow: 0 0 0 7px color-mix(in oklab, var(--magenta) 0%, transparent); }
+  41%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--magenta) 0%, transparent); }
+}
+@keyframes cenaZap {
+  0%, 42%   { opacity: 0; transform: translateY(18px) scale(.97); }
+  52%, 100% { opacity: 1; transform: none; }
 }
 @keyframes cenaBalao {
-  0%, 34%  { opacity: 0; transform: translateY(10px) scale(.96); }
-  46%, 100% { opacity: 1; transform: none; }
+  0%, 54%   { opacity: 0; transform: translateY(8px); }
+  62%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaDigitando {
+  0%, 64%   { opacity: 0; }
+  68%, 78%  { opacity: 1; }
+  82%, 100% { opacity: 0; }
+}
+@keyframes cenaPonto {
+  0%, 100% { opacity: .3; transform: translateY(0); }
+  50%      { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes cenaBalao2 {
+  0%, 82%   { opacity: 0; transform: translateY(8px); }
+  90%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaTique {
+  0%, 90%   { opacity: 0; }
+  95%, 100% { opacity: 1; }
 }
 
 /* ---------- 2. A busca que traz a empresa ---------- */
@@ -1209,11 +1252,33 @@ body {
   58%, 100% { opacity: 1; transform: none; }
 }
 
+/* Peças que as três cenas compartilham: a fileira de ações que aparece
+   depois do conteúdo, e a etiqueta de estado. */
+.cena-acoes { animation: cenaAcoes 9s ease-out infinite; }
+.cena-chip  { animation: cenaChip 9s cubic-bezier(.34,1.56,.64,1) infinite; }
+.cena-mapa-tracado { animation: cenaTracado 9s ease-out infinite; }
+
+@keyframes cenaAcoes {
+  0%, 62%   { opacity: 0; transform: translateY(6px); }
+  72%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaChip {
+  0%, 52%   { opacity: 0; transform: scale(.8); }
+  60%, 100% { opacity: 1; transform: none; }
+}
+/* O traço da rua se desenhando: é o mapa "carregando" antes do pino. */
+@keyframes cenaTracado {
+  0%       { stroke-dashoffset: 260; }
+  22%, 100% { stroke-dashoffset: 0; }
+}
+
 /* Quem pediu menos movimento vê a cena montada, e parada. Não é tela
    vazia: é o último quadro, que é o que a animação queria mostrar. */
 @media (prefers-reduced-motion: reduce) {
   .cena-post, .cena-balao, .cena-balao-2, .cena-digita, .cena-cursor,
-  .cena-linha-1, .cena-linha-2, .cena-linha-3,
+  .cena-linha-1, .cena-linha-2, .cena-linha-3, .cena-curtir, .cena-cta,
+  .cena-zap, .cena-digitando, .cena-ponto, .cena-tique,
+  .cena-acoes, .cena-chip, .cena-mapa-tracado,
   .cena-pino, .cena-onda, .cena-ficha, .cena-estrela {
     animation: none;
     opacity: 1;
@@ -1227,4 +1292,9 @@ body {
   .cena-digita { width: 100%; }
   .cena-cursor { display: none; }
   .cena-onda { opacity: 0; }
+  /* Sem movimento, a conversa mostra o fim: a resposta ja enviada. O
+     "digitando" e um estado de passagem e nao faz sentido parado. */
+  .cena-digitando { display: none; }
+  .cena-curtir { color: var(--magenta); }
+  .cena-mapa-tracado { stroke-dashoffset: 0; }
 }

@@ -280,7 +280,7 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                     identifica uma tela mora em cima. */}
                 <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
                   {s.imagem ? (
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-marinho-fundo">
+                    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-marinho-fundo sm:aspect-[4/3]">
                       <Image
                         src={`/imagens/${s.imagem.arquivo}`}
                         alt={s.imagem.alt}
