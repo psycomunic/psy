@@ -30,6 +30,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       prioridade: 0.8,
       frequencia: 'monthly' as const,
     })),
+    /* Unidade local. Prioridade alta porque e pagina de conversao e
+       disputa busca por cidade, que e briga que se ganha com pagina
+       propria. Quando houver Capanema e Salinopolis, entram aqui. */
+    { caminho: '/braganca-pa', prioridade: 0.9, frequencia: 'monthly' },
+
     { caminho: '/cases', prioridade: 0.7, frequencia: 'monthly' },
     { caminho: '/como-trabalhamos', prioridade: 0.7, frequencia: 'monthly' },
     { caminho: '/sobre', prioridade: 0.6, frequencia: 'yearly' },

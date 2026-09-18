@@ -164,3 +164,71 @@ export function Trilha({ itens }: { itens: { nome: string; caminho: string }[] }
     />
   );
 }
+
+/**
+ * A unidade local, em ProfessionalService.
+ *
+ * ============================================================
+ * ENDERECO SEM RUA E DE PROPOSITO
+ * ============================================================
+ * O escritorio ainda nao abriu. `PostalAddress` aceita ficar so com
+ * cidade, estado e pais, e e isso que entra. Inventar rua para "ficar
+ * completo" e o erro caro aqui: o Google compara o endereco do site com
+ * o do Perfil da Empresa, e divergencia vira sinal de desconfianca
+ * justamente na busca local, que e a que esta pagina existe para ganhar.
+ *
+ * `parentOrganization` aponta para a entidade principal do site, com o
+ * mesmo `@id` que o grafo da home publica. E o que diz ao Google que
+ * esta unidade e a mesma empresa, e nao uma homonima.
+ */
+export function UnidadeLocal({
+  id,
+  nome,
+  caminho,
+  descricao,
+  telefone,
+  cidade,
+  estado,
+  pais,
+  atende,
+}: {
+  id: string;
+  nome: string;
+  caminho: string;
+  descricao: string;
+  telefone: string;
+  cidade: string;
+  estado: string;
+  pais: string;
+  atende: string[];
+}) {
+  const dados = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    '@id': urlAbsoluta(caminho) + id,
+    name: nome,
+    description: descricao,
+    url: urlAbsoluta(caminho),
+    telephone: telefone,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: cidade,
+      addressRegion: estado,
+      addressCountry: pais,
+    },
+    areaServed: atende.map((c) => ({
+      '@type': 'City',
+      name: c,
+      containedInPlace: { '@type': 'AdministrativeArea', name: estado },
+    })),
+    knowsLanguage: 'pt-BR',
+    parentOrganization: { '@id': ORG_ID },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(dados) }}
+    />
+  );
+}

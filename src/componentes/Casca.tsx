@@ -8,14 +8,30 @@ import { site, urlAbsoluta } from '@/conteudo/site';
 
 export const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
 
-/** Casca comum das páginas internas: cabeçalho, conteúdo, rodapé. */
-export function Casca({ children }: { children: ReactNode }) {
+/**
+ * Casca comum das páginas internas: cabeçalho, conteúdo, rodapé.
+ *
+ * `semZap` desliga o botão flutuante padrão. Existe para as páginas de
+ * unidade, que têm WhatsApp próprio: a de Bragança atende no (91), e o
+ * botão global leva para o número de Blumenau. Sem esta chave, a página
+ * ofereceria os dois números no mesmo canto da tela.
+ */
+export function Casca({
+  children,
+  semZap,
+  zapRodape,
+}: {
+  children: ReactNode;
+  semZap?: boolean;
+  /** Troca o WhatsApp do rodape. Ver o comentario em Rodape.tsx. */
+  zapRodape?: { link: string; visivel: string; pagina: string };
+}) {
   return (
     <>
       <Cabecalho />
       <main id="conteudo">{children}</main>
-      <Rodape />
-      <BotaoWhatsapp />
+      <Rodape zap={zapRodape} />
+      {semZap ? null : <BotaoWhatsapp />}
     </>
   );
 }

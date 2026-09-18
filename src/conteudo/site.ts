@@ -41,6 +41,18 @@ export const site = {
     pais: 'BR',
   } as { cidade?: string; estado?: string; pais: string },
 
+  /*
+    Medição do GA4.
+
+    Não é segredo e por isso não vai para variável de ambiente: o ID sai
+    no HTML de toda página e serve só para dizer em qual propriedade os
+    eventos caem. Guardá-lo como se fosse segredo daria a ilusão de
+    proteção e mais uma configuração para esquecer no deploy.
+
+    Vazio desliga o script inteiro, sem quebrar nada.
+  */
+  analytics: { ga4: 'G-BHXG065DTS' },
+
   contato: {
     email: 'psycomunic@gmail.com',
     telefone: '+5547992406661',

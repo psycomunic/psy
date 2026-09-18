@@ -6,6 +6,7 @@ import { marca } from '@/conteudo/marca';
 import { site } from '@/conteudo/site';
 import { Revelar } from '@/componentes/Revelar';
 import { DadosEstruturados } from '@/componentes/DadosEstruturados';
+import { Analytics } from '@/componentes/Analytics';
 
 /*
   Três fontes, três funções. Uma família só, variando o peso, é o que
@@ -140,6 +141,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* JSON-LD: quem é a empresa, o que ela vende e onde. É daqui
             que sai o painel de conhecimento e o nome do site na busca. */}
         <DadosEstruturados />
+        <Analytics />
 
         {children}
       </body>

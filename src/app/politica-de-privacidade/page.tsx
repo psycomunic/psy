@@ -19,9 +19,15 @@ export const metadata: Metadata = {
   campos dependem de dado que ainda não temos: razão social, CNPJ e
   endereço. Estão marcados no texto.
 
-  Enquanto o site não tiver formulário nem cookie de análise, esta
-  política precisa dizer exatamente isso. Política que promete tratar
-  dados que não são tratados é tão errada quanto a que esconde.
+  Política que promete tratar dados que não são tratados é tão errada
+  quanto a que esconde. Por isso ela mudou duas vezes: quando o
+  formulário de análise entrou, e quando o Google Analytics entrou.
+
+  PENDENTE: o aviso de consentimento na primeira visita. A versão
+  anterior desta política prometia que ele apareceria junto com a
+  primeira ferramenta de análise. O Google Analytics já está no ar e o
+  aviso não existe. É decisão de quem responde pela empresa, porque
+  envolve escolha jurídica e mexe em todas as páginas.
 */
 
 const secoes = [
@@ -35,8 +41,9 @@ const secoes = [
   {
     t: 'Quais dados são coletados',
     p: [
-      'Este site não possui formulário de cadastro, área de comentários nem carrinho de compras. Ele não coleta nome, e-mail ou telefone por conta própria.',
-      'Os dados que você envia chegam por canais externos que você mesmo escolhe abrir: WhatsApp, e-mail ou Instagram. Nesses casos, valem também as políticas de privacidade dessas plataformas.',
+      'O site tem um formulário de análise gratuita, na página de tráfego pago. Quem preenche informa nome, empresa, e-mail, telefone, endereço do site, canal onde já anuncia, faixa de verba e o que precisa. Esses dados ficam guardados no sistema da Psy Comunic e são usados para responder ao pedido e preparar a proposta.',
+      'O site não tem área de comentários nem carrinho de compras.',
+      'Os demais contatos chegam por canais externos que você mesmo escolhe abrir: WhatsApp, e-mail ou Instagram. Nesses casos, valem também as políticas de privacidade dessas plataformas.',
       'O provedor de hospedagem registra dados técnicos de acesso, como endereço IP, tipo de navegador e páginas visitadas. É registro operacional, usado para segurança e funcionamento do serviço.',
     ],
   },
@@ -50,8 +57,10 @@ const secoes = [
   {
     t: 'Cookies',
     p: [
-      'O site não utiliza cookies de publicidade nem de rastreamento de terceiros.',
-      'Se no futuro forem adicionadas ferramentas de análise ou de mídia, esta política será atualizada antes, e um aviso de consentimento passará a aparecer na primeira visita.',
+      'O site usa o Google Analytics para contar visitas e entender quais páginas são lidas. Ele grava cookies no seu navegador e registra dados como páginas visitadas, de onde veio o acesso, tipo de aparelho e localização aproximada por cidade.',
+      'Também é registrado quando alguém clica para abrir o WhatsApp, com a indicação de qual parte da página o clique saiu. Serve para saber o que é útil e o que não é, e nenhum desses registros identifica você pelo nome.',
+      'O site não usa cookies de publicidade nem de remarketing, e não compartilha esses dados com terceiros para fins de marketing.',
+      'Você pode bloquear cookies nas configurações do seu navegador, ou instalar o complemento de desativação do Google Analytics. O site continua funcionando normalmente.',
     ],
   },
   {

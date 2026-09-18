@@ -27,7 +27,7 @@ const APP = process.env.APP_URL ?? 'http://localhost:3000';
 const PAGINAS = [
   '/', '/servicos', '/servicos/gestao', '/servicos/tecnologia', '/servicos/marketing',
   '/servicos/atendimento-logistica', '/como-trabalhamos', '/cases', '/sobre',
-  '/contato', '/diagnostico', '/trafego-pago',
+  '/contato', '/diagnostico', '/trafego-pago', '/braganca-pa',
   '/politica-de-privacidade', '/termos-de-uso',
 ];
 
