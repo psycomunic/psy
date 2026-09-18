@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { secao } from '@/componentes/Casca';
 import { LinkWhatsapp } from './LinkWhatsapp';
 import { IconeSegmento } from './IconeSegmento';
+import { CenaServico } from './CenaServico';
 import { BotaoZap } from './BotaoZap';
 import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
 
@@ -217,14 +218,24 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                 `lg:` e não `md:`: em tablet as duas colunas deixariam a
                 lista de entregas com quatro palavras por linha.
               */}
+              {/* Todo bloco tem duas colunas agora: com print do
+                  entregável quando existir, e com a cena desenhada
+                  enquanto não existir. A caixa é a mesma nos dois casos,
+                  então trocar uma pela outra depois não mexe em nada. */}
               <div
                 className={
-                  s.imagem
-                    ? 'grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12'
-                    : ''
+                  'grid items-center gap-8 lg:gap-12 ' +
+                  /* A proporção acompanha o LADO, e não a ordem. Com uma
+                     única regra 1.1fr/0.9fr, o bloco invertido colocava a
+                     cena na coluna maior e espremia o texto: medido, 593
+                     para a imagem contra 485 no bloco anterior. O texto
+                     fica com a coluna maior sempre. */
+                  (i % 2 === 1
+                    ? 'lg:grid-cols-[0.9fr_1.1fr]'
+                    : 'lg:grid-cols-[1.1fr_0.9fr]')
                 }
               >
-                <div className={s.imagem && i % 2 === 1 ? 'lg:order-2' : ''}>
+                <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
               <div className="flex flex-wrap items-baseline gap-3">
                 <h3 className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
                   {s.nome}
@@ -242,11 +253,7 @@ export function ServicosLocal({ u }: { u: Unidade }) {
 
               <p className="mt-5 max-w-[62ch] leading-relaxed text-neve">{s.texto}</p>
 
-              <ul
-                className={
-                  'mt-6 grid gap-2.5 ' + (s.imagem ? 'sm:grid-cols-2 lg:grid-cols-1' : 'sm:grid-cols-2')
-                }
-              >
+              <ul className="mt-6 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
                 {s.entrega.map((e) => (
                   <li key={e} className="flex gap-3 text-sm leading-relaxed text-cinza">
                     <span aria-hidden className="mt-1 flex-none text-magenta-texto">
@@ -271,8 +278,8 @@ export function ServicosLocal({ u }: { u: Unidade }) {
 
                     `object-top` porque estes exemplos sao telas, e o que
                     identifica uma tela mora em cima. */}
-                {s.imagem ? (
-                  <div className={s.imagem && i % 2 === 1 ? 'lg:order-1' : ''}>
+                <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
+                  {s.imagem ? (
                     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-marinho-fundo">
                       <Image
                         src={`/imagens/${s.imagem.arquivo}`}
@@ -282,8 +289,10 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                         className="object-cover object-top"
                       />
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <CenaServico id={s.id} />
+                  )}
+                </div>
               </div>
             </article>
           ))}
@@ -446,15 +455,20 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
           {u.paraQuem.map((g) => (
             <div
               key={g.grupo}
-              className="group bg-marinho-fundo px-7 py-7 transition-colors duration-500 hover:bg-marinho-alto/40"
+              className="group bg-marinho-fundo px-7 py-8 transition-colors duration-500 hover:bg-marinho-alto/40"
             >
-              <span
-                aria-hidden
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-fio text-magenta-texto transition-colors duration-500 group-hover:border-magenta/50 group-hover:bg-magenta/10"
-              >
-                <IconeSegmento grupo={g.grupo} className="h-5 w-5" />
+              {/* A pastilha com volume. 68px contra os 44 de antes, e o
+                  traço do ícone em 34: o desenho vira o primeiro elemento
+                  do bloco, e não um detalhe ao lado do título. O relevo
+                  e a sombra estão em `icone-3d`, no globals.css. */}
+              <span aria-hidden className="icone-3d h-[68px] w-[68px] text-magenta-texto">
+                <span className="icone-3d-luz" />
+                <IconeSegmento
+                  grupo={g.grupo}
+                  className="relative h-[34px] w-[34px] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]"
+                />
               </span>
-              <dt className="mt-5 font-display text-lg font-bold tracking-[-0.02em]">{g.grupo}</dt>
+              <dt className="mt-6 font-display text-lg font-bold tracking-[-0.02em]">{g.grupo}</dt>
               <dd className="mt-2.5 text-sm leading-relaxed text-cinza">{g.exemplos}</dd>
             </div>
           ))}

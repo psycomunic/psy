@@ -177,6 +177,79 @@ body {
   mask-image: radial-gradient(75% 60% at 50% 40%, #000 0%, transparent 100%);
 }
 
+/* =================================================================
+   PASTILHA DE ICONE COM VOLUME.
+
+   O icone era um contorno de 20px dentro de um circulo de fio: legivel,
+   mas chapado, e do mesmo peso do texto ao lado. Aqui ele ganha corpo.
+
+   O volume vem de quatro camadas, e nenhuma custa requisicao:
+     1. gradiente diagonal, claro em cima e escuro embaixo, que e como
+        um objeto solido responde a uma luz vinda de cima;
+     2. `inset` branco na borda de cima e escuro na de baixo, que e o
+        chanfro: e ele que faz a pastilha parecer levantada da
+        superficie em vez de desenhada nela;
+     3. sombra projetada para baixo, que a descola do cartao;
+     4. `drop-shadow` no proprio traco do icone, para ele flutuar dentro
+        da pastilha.
+
+   No hover a pastilha gira em perspectiva e sobe no eixo Z. A rotacao e
+   pequena de proposito: passando de uns 12 graus o texto do icone
+   comeca a distorcer e o efeito vira brinquedo.
+   ================================================================= */
+@utility icone-3d {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(145deg,
+      color-mix(in oklab, var(--marinho-alto) 92%, var(--branco) 8%) 0%,
+      var(--marinho-alto) 38%,
+      var(--marinho-fundo) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--branco) 30%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, #000 45%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--branco) 8%, transparent),
+    0 10px 22px -10px rgba(0, 0, 0, 0.75),
+    0 2px 6px -2px rgba(0, 0, 0, 0.5);
+  transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateZ(0);
+  transition: transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .45s ease;
+}
+
+/* O brilho magenta que corre na diagonal de cima, como reflexo. */
+@utility icone-3d-luz {
+  content: '';
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 42%;
+  border-radius: 1.2rem 1.2rem 40% 40%;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--branco) 14%, transparent),
+    transparent);
+  pointer-events: none;
+}
+
+.group:hover .icone-3d {
+  transform: perspective(600px) rotateX(-9deg) rotateY(11deg) translateZ(14px);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--branco) 38%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, #000 45%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--magenta) 35%, transparent),
+    0 18px 34px -12px rgba(0, 0, 0, 0.8),
+    0 0 26px -6px color-mix(in oklab, var(--magenta) 45%, transparent);
+}
+
+/* Quem pediu menos movimento recebe a pastilha parada, com o volume
+   inteiro: o relevo e estatico, so a inclinacao some. */
+@media (prefers-reduced-motion: reduce) {
+  .icone-3d,
+  .group:hover .icone-3d {
+    transform: none;
+    transition: none;
+  }
+}
+
 /* Card com volume: gradiente + fio de contorno claro no topo. */
 @utility cartao {
   background: var(--superficie);
@@ -1024,4 +1097,134 @@ body {
   [data-etapa='0'] li[data-fase='1'],
   [data-etapa='1'] li[data-fase='0'] { display: none; }
   .cena-painel { padding: 1.25rem; }
+}
+
+/* =================================================================
+   CENAS DOS SERVIÇOS DA UNIDADE LOCAL.
+
+   Onde ainda não existe print do entregável, entra uma cena desenhada
+   em CSS: o anúncio virando conversa, a busca trazendo a empresa, o
+   perfil aparecendo no mapa.
+
+   POR QUE DESENHO, E NÃO VÍDEO OU GIF
+   Cada uma pesa alguns bytes de CSS numa página que já carrega uma cena
+   de vídeo de 17 MB. Um GIF por bloco custaria mais que tudo o que está
+   escrito nesta seção, e um vídeo por bloco seria absurdo.
+
+   Elas ocupam exatamente a mesma caixa 4:3 da imagem, então trocar a
+   cena por um print de verdade depois não mexe em layout nenhum.
+
+   Todas terminam no estado final e recomeçam. Nada pisca, nada some do
+   nada: o que entra, fica, e só então a volta começa.
+   ================================================================= */
+
+.cena-servico {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--raio-p);
+  border: 1px solid var(--fio);
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--marinho-alto) 60%, transparent), transparent 70%),
+    var(--marinho-fundo);
+}
+
+/* A grade de fundo, comum às três: dá escala sem competir. */
+.cena-servico::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--fio) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--fio) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(80% 70% at 50% 45%, #000, transparent);
+  opacity: .5;
+}
+
+/* ---------- 1. O anúncio que vira conversa ---------- */
+.cena-post { animation: cenaSobe 7s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-balao { animation: cenaBalao 7s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-balao-2 { animation: cenaBalao 7s cubic-bezier(.22,.61,.36,1) infinite; animation-delay: .6s; }
+
+@keyframes cenaSobe {
+  0%, 8%   { opacity: 0; transform: translateY(14px); }
+  18%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaBalao {
+  0%, 34%  { opacity: 0; transform: translateY(10px) scale(.96); }
+  46%, 100% { opacity: 1; transform: none; }
+}
+
+/* ---------- 2. A busca que traz a empresa ---------- */
+/* O texto digitado: a largura cresce em passos, que é como se escreve. */
+.cena-digita {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: cenaDigita 7s steps(22, end) infinite;
+}
+.cena-cursor { animation: cenaCursor 1s steps(1, end) infinite; }
+.cena-linha-1 { animation: cenaLinha 7s ease-out infinite; animation-delay: .1s; }
+.cena-linha-2 { animation: cenaLinha 7s ease-out infinite; animation-delay: .35s; }
+.cena-linha-3 { animation: cenaLinha 7s ease-out infinite; animation-delay: .6s; }
+
+@keyframes cenaDigita {
+  0%       { width: 0; }
+  32%, 100% { width: 100%; }
+}
+@keyframes cenaCursor {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes cenaLinha {
+  0%, 38%  { opacity: 0; transform: translateY(8px); }
+  50%, 100% { opacity: 1; transform: none; }
+}
+
+/* ---------- 3. O perfil que aparece no mapa ---------- */
+.cena-pino { animation: cenaPino 7s cubic-bezier(.34,1.56,.64,1) infinite; }
+.cena-onda { animation: cenaOnda 7s ease-out infinite; }
+.cena-ficha { animation: cenaFicha 7s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-estrela { animation: cenaEstrela 7s ease-out infinite; }
+.cena-estrela:nth-child(2) { animation-delay: .1s; }
+.cena-estrela:nth-child(3) { animation-delay: .2s; }
+.cena-estrela:nth-child(4) { animation-delay: .3s; }
+.cena-estrela:nth-child(5) { animation-delay: .4s; }
+
+@keyframes cenaPino {
+  0%, 6%   { opacity: 0; transform: translateY(-28px) scale(.8); }
+  20%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaOnda {
+  0%, 18%  { opacity: 0; transform: scale(.4); }
+  26%      { opacity: .55; }
+  42%, 100% { opacity: 0; transform: scale(1.9); }
+}
+@keyframes cenaFicha {
+  0%, 30%  { opacity: 0; transform: translateY(12px); }
+  42%, 100% { opacity: 1; transform: none; }
+}
+@keyframes cenaEstrela {
+  0%, 48%  { opacity: .18; transform: scale(.85); }
+  58%, 100% { opacity: 1; transform: none; }
+}
+
+/* Quem pediu menos movimento vê a cena montada, e parada. Não é tela
+   vazia: é o último quadro, que é o que a animação queria mostrar. */
+@media (prefers-reduced-motion: reduce) {
+  .cena-post, .cena-balao, .cena-balao-2, .cena-digita, .cena-cursor,
+  .cena-linha-1, .cena-linha-2, .cena-linha-3,
+  .cena-pino, .cena-onda, .cena-ficha, .cena-estrela {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* `width` SO no texto digitado. A versao anterior aplicava a todas as
+     classes da lista, e o cursor, que e uma barra de 1px, virava um
+     tarjao magenta atravessando o campo de busca por cima do texto.
+     So apareceu porque a tela foi olhada com "menos movimento" ligado. */
+  .cena-digita { width: 100%; }
+  .cena-cursor { display: none; }
+  .cena-onda { opacity: 0; }
 }
