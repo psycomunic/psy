@@ -89,6 +89,7 @@ export function HeroCinemaLocal({ u }: { u: Unidade }) {
     let ready = false;
     let target = menosMovimento ? 1 : 0;
     let ticking = false;
+    let avisou = false;
 
     function apply() {
       ticking = false;
@@ -120,6 +121,23 @@ export function HeroCinemaLocal({ u }: { u: Unidade }) {
       }
       if (barra.current) barra.current.style.transform = `scaleY(${p})`;
       if (dica.current) dica.current.style.opacity = String(p < 0.03 ? 1 : 0);
+
+      /*
+        AVISA QUE A CENA ACABOU.
+
+        Quem escuta é o `PopupApresentacao`. O aviso sai uma vez só: o
+        fim da cena é um ponto de rolagem, e a pessoa passa por ele toda
+        vez que sobe e desce a página. Sem esta trava, o evento
+        dispararia em rajada a cada quadro acima do limite.
+
+        0.985 e não 1: com rolagem suave e arredondamento de subpixel, o
+        progresso encosta em 0,99 e raramente fecha em 1 exato. Esperar
+        pelo 1 deixaria o popup sem abrir em parte dos aparelhos.
+      */
+      if (!avisou && p >= 0.985) {
+        avisou = true;
+        window.dispatchEvent(new CustomEvent('cena-terminou'));
+      }
     }
 
     function onScroll() {

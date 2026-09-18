@@ -12,6 +12,7 @@ import {
   ZapFlutuanteLocal,
 } from '@/componentes/local/Blocos';
 import { HeroCinemaLocal } from '@/componentes/local/HeroCinemaLocal';
+import { PopupApresentacao } from '@/componentes/local/PopupApresentacao';
 import {
   PerguntasFrequentes,
   Trilha,
@@ -127,6 +128,8 @@ export default function PaginaBraganca() {
       <FechamentoLocal u={u} />
 
       <ZapFlutuanteLocal u={u} />
+      {/* Abre sozinho quando a cena da abertura chega ao fim. */}
+      <PopupApresentacao u={u} />
     </Casca>
   );
 }

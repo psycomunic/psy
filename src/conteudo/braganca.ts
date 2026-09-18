@@ -78,6 +78,24 @@ export type Unidade = {
   cidades: string[];
   /** Frase que apresenta as cidades em texto corrido. */
   cidadesTexto: string;
+  /**
+   * O convite que abre no fim da cena da abertura.
+   *
+   * `video` e opcional de proposito. Hoje o popup abre so com texto e o
+   * botao de WhatsApp, que ja e um convite completo. No dia em que o
+   * arquivo existir, basta apontar `video` para ele em /public/video e
+   * o player entra no mesmo lugar, sem mexer em componente.
+   */
+  apresentacao: {
+    video?: string;
+    poster?: string;
+    titulo: string;
+    texto: string;
+    /** Os pontos que o convite promete cobrir. Viram lista sem o video. */
+    topicos: string[];
+    acao: string;
+    mensagem: string;
+  };
   perguntas: { pergunta: string; resposta: string }[];
   fechamento: { titulo: string; texto: string; acao: string; mensagem: string };
 };
@@ -239,6 +257,23 @@ export const braganca: Unidade = {
 
   cidadesTexto:
     'O atendimento sai de Bragança e alcança toda a região. Se a sua empresa fica em Tracuateua, Augusto Corrêa, Capanema, Primavera, Quatipuru ou Santa Luzia do Pará, atendemos. O mesmo vale para Peixe-Boi, Bonito, Nova Timboteua, Salinópolis, São João de Pirabas, Santarém Novo, Ourém, Capitão Poço, Viseu e Cachoeira do Piriá. A conversa acontece por WhatsApp e por chamada de vídeo, que é como a maior parte dos clientes prefere.',
+
+  apresentacao: {
+    /* AQUI entra o vídeo: aponte para o arquivo em /public/video e o
+       player aparece no lugar da lista, sem mexer em componente. */
+    poster: '/imagens/braganca-pa-frame-b.jpg',
+    titulo: 'Tudo o que a Psy Comunic faz aqui na região',
+    texto:
+      'Você chegou ao fim da apresentação. Em uma conversa de WhatsApp a gente olha como sua empresa aparece hoje e diz o que dá para melhorar primeiro.',
+    topicos: [
+      'Anúncios no Instagram e no Facebook para quem mora na sua área',
+      'Anúncios no Google para quem procura na hora que precisa',
+      'Criação de site que termina no seu WhatsApp',
+      'Perfil da empresa no Google e no Maps, que é por onde vale começar',
+    ],
+    acao: 'Quero minha análise gratuita',
+    mensagem: 'Olá! Vi a apresentação da unidade de Bragança e quero a análise gratuita.',
+  },
 
   perguntas: [
     {
