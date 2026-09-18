@@ -189,7 +189,7 @@ export function ServicosLocal({ u }: { u: Unidade }) {
       <FundoLocal
         u={u}
         bloco="servicos"
-        opacidade="opacity-[0.42]"
+        opacidade="opacity-[0.36]"
         posicao="center 45%"
         faixa="inset-x-0 top-0 h-[120vh] max-h-[1100px]"
         veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,rgba(11,23,48,0.35)_30%,rgba(11,23,48,0.7)_65%,var(--marinho-fundo)_100%)]"
@@ -308,7 +308,7 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
       <FundoLocal
         u={u}
         bloco="paraquem"
-        opacidade="opacity-[0.32]"
+        opacidade="opacity-[0.42]"
         posicao="center 60%"
         veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,transparent_30%,transparent_65%,var(--marinho-fundo)_100%)]"
       />
@@ -347,7 +347,7 @@ export function CidadesLocal({ u }: { u: Unidade }) {
       <FundoLocal
         u={u}
         bloco="cidades"
-        opacidade="opacity-90"
+        opacidade="opacity-[0.72]"
         posicao="center 30%"
         veu="bg-[linear-gradient(90deg,var(--marinho)_0%,rgba(16,31,63,0.82)_38%,rgba(16,31,63,0.15)_72%,transparent_100%),linear-gradient(180deg,var(--marinho)_0%,transparent_18%,transparent_82%,var(--marinho)_100%)]"
       />

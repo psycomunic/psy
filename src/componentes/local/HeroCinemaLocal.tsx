@@ -6,19 +6,21 @@ import { BotaoZap } from './BotaoZap';
 import type { Unidade } from '@/conteudo/braganca';
 
 /**
- * Hero Scroll Cinema da unidade local: o mangue, e a cidade acesa.
+ * Hero Scroll Cinema da unidade local: o drone sobe sobre a orla acesa.
  *
  * ============================================================
  * A JORNADA
  * ============================================================
- * Começa no chão do manguezal, à noite, entre as raízes e a névoa.
- * A câmera sobe em linha reta, atravessa a copa e sai por cima das
- * árvores: do outro lado do rio, Bragança acesa, com as luzes
- * refletidas na água e um brilho magenta no horizonte. É a promessa da
- * página sem dizer a palavra: a empresa que hoje está no escuro
- * aparecendo para a cidade inteira.
+ * Começa com um drone rente à água do Caeté, à noite, de frente para o
+ * calçadão da orla de Bragança: quiosques, postes acesos e a ciclovia
+ * vermelha bem perto. O drone sobe e recua sobre o rio, e a orla
+ * inteira aparece iluminada, com os casarões coloridos, a igreja e o
+ * resto do pôr do sol no horizonte. Os quadros vêm de fotos reais da
+ * orla (em `Claude outputs/braganca/ref/`) usadas como referência.
+ * É a promessa da página sem dizer a palavra: a cidade inteira à
+ * vista, e a empresa aparecendo nela.
  *
- * Tudo comandado pela rolagem: desce, a câmera sobe; volta, ela desce.
+ * Tudo comandado pela rolagem: desce, o drone sobe; volta, ele desce.
  *
  * ============================================================
  * O QUE ANDA COM O MESMO PROGRESSO
@@ -59,8 +61,8 @@ const CAMADAS: [number, number][] = [
   [0.52, 1.2],
 ];
 
-/* Altura aproximada da copa do mangue, em metros: o número que o
-   contador de altura alcança quando a câmera sai por cima. */
+/* Altura aproximada que o drone alcança no fim da subida, em metros:
+   o número que o contador de altura mostra quando a orla aparece. */
 const ALTURA_COPA = 32;
 
 export function HeroCinemaLocal({ u }: { u: Unidade }) {
@@ -224,7 +226,7 @@ export function HeroCinemaLocal({ u }: { u: Unidade }) {
         <div ref={loader} className="sc-loader" role="status" aria-live="polite">
           <span className="sc-loader-anel" aria-hidden />
           <span className="font-mono text-[0.68rem] uppercase tracking-[0.26em] text-cinza">
-            Entrando no mangue
+            Sobrevoando a orla
           </span>
         </div>
 

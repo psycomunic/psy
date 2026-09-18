@@ -314,9 +314,11 @@ Todos os vídeos: 1920×1080, 60 fps, 298 frames, todos keyframe, 15 a 19 MB.
 
 `src/componentes/local/HeroCinemaLocal.tsx` é o hero da página de unidade
 (`/braganca-pa`), com o mesmo mecanismo do hero da home e sem a
-decodificação de glifos. Jornada: câmera no chão do manguezal à noite →
-sobe em linha reta atravessando a copa → Bragança acesa do outro lado do
-rio, com brilho magenta no horizonte. Detalhe temático: o contador
+decodificação de glifos. Jornada: drone rente ao rio Caeté, à noite, de
+frente para o calçadão da orla → sobe e recua sobre a água → a orla
+inteira iluminada, com os casarões, a igreja e o fim do pôr do sol. Os
+frames foram gerados com fotos reais da orla como referência (guardadas
+em `Claude outputs/braganca/ref/`), e os quatro fundos também. Detalhe temático: o contador
 "Cidades no alcance 00/17" (o total vem de `u.cidades`) e a altura em
 metros, os dois presos ao mesmo progresso.
 
