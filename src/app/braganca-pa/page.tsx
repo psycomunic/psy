@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Casca, canonical } from '@/componentes/Casca';
 import {
-  HeroLocal,
   ProblemasLocal,
   ServicosLocal,
   PassosLocal,
@@ -12,6 +11,7 @@ import {
   FechamentoLocal,
   ZapFlutuanteLocal,
 } from '@/componentes/local/Blocos';
+import { HeroCinemaLocal } from '@/componentes/local/HeroCinemaLocal';
 import {
   PerguntasFrequentes,
   Trilha,
@@ -34,12 +34,19 @@ import { site, urlAbsoluta } from '@/conteudo/site';
  * vocabulário técnico fica no rodapé de cada bloco, nunca no título.
  *
  * ============================================================
- * SEM CENA DE VÍDEO
+ * UMA CENA DE VÍDEO, E SÓ UMA
  * ============================================================
- * A home carrega três cenas de vídeo somando dezenas de megabytes. Aqui
- * não entra nenhuma: quem abre esta página vem de anúncio, no celular,
- * com internet móvel. O clima do site fica por conta da grade e dos
- * brilhos, que são CSS e não custam requisição.
+ * A abertura é uma cena amarrada à rolagem (`HeroCinemaLocal`): a
+ * câmera sobe do chão do mangue até ver Bragança acesa do outro lado do
+ * rio. É a única cena da página, de propósito: quem abre vem de
+ * anúncio, no celular, e o hero da unidade é o único lugar em que o
+ * peso (~15 MB, todo quadro keyframe) se paga. O resto do clima é foto
+ * estática de fundo, abaixo de 300 KB cada, atrás de um véu.
+ *
+ * A decisão de carregar o vídeo também no celular foi tomada com o
+ * peso na mesa. Se o dado do GA4 mostrar queda de conversão no 4G, a
+ * volta é trocar `HeroCinemaLocal` por `HeroLocal` nesta rota, que
+ * continua em `Blocos.tsx` sem vídeo.
  *
  * ============================================================
  * O NÚMERO DAQUI É O (91)
@@ -102,7 +109,7 @@ export default function PaginaBraganca() {
       <PerguntasFrequentes perguntas={u.perguntas} />
       <Trilha itens={[{ nome: `${u.cidade}, ${u.estado}`, caminho: `/${u.slug}` }]} />
 
-      <HeroLocal u={u} />
+      <HeroCinemaLocal u={u} />
       <ProblemasLocal u={u} />
       <ServicosLocal u={u} />
       <PassosLocal u={u} />

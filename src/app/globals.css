@@ -568,6 +568,16 @@ body {
 }
 @media (max-width: 640px) { .sc-dica { bottom: 5.5rem; } }
 
+/* Hero da unidade local (HeroCinemaLocal): a subida do mangue é um
+   movimento só, mais curto que a aproximação do astronauta, então a
+   pista é menor. A camada de texto é mais larga porque o h1 leva a
+   palavra-chave inteira com a cidade. */
+.sc-hero--local { height: 460vh; }
+.sc-camada--local { max-width: min(38rem, 100%); }
+@media (max-width: 640px) {
+  .sc-camada--local .sc-titulo-p { font-size: clamp(1.5rem, 7.6vw, 2.1rem); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sc-hero { height: 100vh; height: 100svh; }
   .sc-dica, .sc-loader-anel { animation: none; }

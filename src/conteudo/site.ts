@@ -51,7 +51,7 @@ export const site = {
 
     Vazio desliga o script inteiro, sem quebrar nada.
   */
-  analytics: { ga4: 'G-BHXG065DTS' },
+  analytics: { ga4: 'G-X20YYMLKSV' },
 
   contato: {
     email: 'psycomunic@gmail.com',

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { secao } from '@/componentes/Casca';
 import { LinkWhatsapp } from './LinkWhatsapp';
+import { BotaoZap } from './BotaoZap';
 import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
 
 /**
@@ -15,57 +16,73 @@ import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
  * conteúdo novo e uma rota de três linhas, sem tocar aqui.
  *
  * ============================================================
- * SEM VÍDEO, DE PROPÓSITO
+ * O HERO DE VÍDEO MORA EM OUTRO ARQUIVO
  * ============================================================
- * O resto do site abre com cena de vídeo amarrada à rolagem, que pesa
- * dezenas de megabytes. Boa parte de quem vai abrir esta página está no
- * celular, com internet móvel, e veio de um anúncio: o custo de um
- * segundo a mais aqui é o cliente que não chega. O clima espacial fica
- * por conta da grade e dos brilhos, que já existem no CSS e não custam
- * requisição nenhuma.
+ * A abertura com cena amarrada à rolagem (o mangue que vira a cidade
+ * acesa) é `HeroCinemaLocal.tsx`, componente de cliente. `HeroLocal`
+ * abaixo é a versão sem vídeo, mantida para uma unidade que ainda não
+ * tenha cena própria: é só trocar o componente na rota.
+ *
+ * ============================================================
+ * FUNDOS DE IMAGEM: SEMPRE ATRÁS DE UM VÉU
+ * ============================================================
+ * Quatro blocos levam uma foto da região de fundo (rua comercial,
+ * balcão, litoral visto de cima, mangue ao amanhecer). Toda foto entra
+ * em `-z-10`, com `alt` vazio, `sizes="100vw"` e um degradê por cima
+ * que devolve o marinho nas bordas: o texto continua sobre fundo
+ * escuro e nenhuma seção vira "foto com letra em cima". O arquivo fica
+ * em `public/imagens/<slug>-<bloco>.jpg`, abaixo de 300 KB cada.
  */
 
 const rotuloCss =
   'flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto';
 const tituloCss = 'mt-5 font-display text-titulo font-extrabold tracking-[-0.035em]';
 
-/** Botão de WhatsApp com a cara do site e o evento do GA4 junto. */
-function BotaoZap({
+/**
+ * Foto de fundo de um bloco, já com o véu.
+ *
+ * `fill` + `object-cover` cobre a seção inteira; a opacidade e o
+ * degradê são do bloco, porque cada foto tem um brilho diferente. O
+ * `alt` vazio é de propósito: a imagem é clima, não informação, e o
+ * leitor de tela pula. Tudo em `-z-10` dentro de uma seção `isolate`,
+ * para ficar atrás do conteúdo e não vazar para a seção vizinha.
+ */
+function FundoLocal({
   u,
-  mensagem,
-  secao: nomeSecao,
-  children,
-  variante = 'primario',
+  bloco,
+  opacidade,
+  posicao = 'center',
+  veu,
+  faixa = 'inset-0',
 }: {
   u: Unidade;
-  mensagem: string;
-  secao: string;
-  children: string;
-  variante?: 'primario' | 'secundario' | 'claro';
+  bloco: string;
+  /** Classe de opacidade da foto, ex.: 'opacity-40'. */
+  opacidade: string;
+  posicao?: string;
+  /** Camadas de degradê por cima da foto, em classes do Tailwind. */
+  veu: string;
+  /**
+   * Onde a foto mora dentro da seção. `inset-0` cobre tudo; numa seção
+   * muito alta (a de serviços passa de 2000px) cobrir tudo esticaria a
+   * foto num recorte vertical irreconhecível, então ali ela vira uma
+   * faixa no topo, com o degradê fechando em marinho antes dos cartões.
+   */
+  faixa?: string;
 }) {
-  const estilos = {
-    primario:
-      'bg-magenta text-branco hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)]',
-    secundario:
-      'text-branco ring-1 ring-inset ring-white/20 backdrop-blur-sm hover:bg-white/5 hover:ring-white/45',
-    claro: 'bg-branco text-marinho hover:shadow-[0_10px_40px_-8px_rgba(0,0,0,0.45)]',
-  } as const;
-
   return (
-    <LinkWhatsapp
-      href={linkDaUnidade(u, mensagem)}
-      pagina={u.slug}
-      secao={nomeSecao}
-      className={
-        'inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full px-7 ' +
-        'text-sm font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 ' +
-        'active:scale-[0.98] ' +
-        estilos[variante]
-      }
-    >
-      {children}
-      <span aria-hidden>→</span>
-    </LinkWhatsapp>
+    <div aria-hidden className={`pointer-events-none absolute -z-10 ${faixa}`}>
+      <Image
+        src={`/imagens/${u.slug}-${bloco}.jpg`}
+        alt=""
+        fill
+        sizes="100vw"
+        quality={70}
+        className={`object-cover ${opacidade}`}
+        style={{ objectPosition: posicao }}
+      />
+      <div className={`absolute inset-0 ${veu}`} />
+    </div>
   );
 }
 
@@ -165,8 +182,18 @@ export function ServicosLocal({ u }: { u: Unidade }) {
     <section
       id="servicos"
       aria-labelledby="servicos-titulo"
-      className="scroll-mt-24 border-t border-fio bg-marinho-fundo py-16 md:py-24"
+      className="relative isolate scroll-mt-24 overflow-clip border-t border-fio bg-marinho-fundo py-16 md:py-24"
     >
+      {/* A rua comercial do centro, ao anoitecer. Bem escurecida: os
+          cartões de vidro por cima precisam de fundo quase liso. */}
+      <FundoLocal
+        u={u}
+        bloco="servicos"
+        opacidade="opacity-[0.42]"
+        posicao="center 45%"
+        faixa="inset-x-0 top-0 h-[120vh] max-h-[1100px]"
+        veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,rgba(11,23,48,0.35)_30%,rgba(11,23,48,0.7)_65%,var(--marinho-fundo)_100%)]"
+      />
       <div className={secao}>
         <p className={rotuloCss}>
           <span aria-hidden className="h-px w-8 bg-magenta" />O que a Psy Comunic faz em{' '}
@@ -274,8 +301,17 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
   return (
     <section
       aria-labelledby="para-quem"
-      className="border-t border-fio bg-marinho-fundo py-16 md:py-24"
+      className="relative isolate overflow-clip border-t border-fio bg-marinho-fundo py-16 md:py-24"
     >
+      {/* O balcão de um comércio de verdade, com o celular apagado em
+          cima: é o retrato de quem esta seção lista. */}
+      <FundoLocal
+        u={u}
+        bloco="paraquem"
+        opacidade="opacity-[0.32]"
+        posicao="center 60%"
+        veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,transparent_30%,transparent_65%,var(--marinho-fundo)_100%)]"
+      />
       <div className={secao}>
         <p className={rotuloCss}>
           <span aria-hidden className="h-px w-8 bg-magenta" />
@@ -301,7 +337,20 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
 
 export function CidadesLocal({ u }: { u: Unidade }) {
   return (
-    <section aria-labelledby="cidades" className="border-t border-fio py-16 md:py-20">
+    <section
+      aria-labelledby="cidades"
+      className="relative isolate overflow-clip border-t border-fio py-16 md:py-20"
+    >
+      {/* O litoral bragantino visto de cima, à noite: os pontos de luz
+          são as cidades da lista. Menos véu que nos outros, porque a
+          foto já nasce escura. */}
+      <FundoLocal
+        u={u}
+        bloco="cidades"
+        opacidade="opacity-90"
+        posicao="center 30%"
+        veu="bg-[linear-gradient(90deg,var(--marinho)_0%,rgba(16,31,63,0.82)_38%,rgba(16,31,63,0.15)_72%,transparent_100%),linear-gradient(180deg,var(--marinho)_0%,transparent_18%,transparent_82%,var(--marinho)_100%)]"
+      />
       <div className={secao}>
         <p className={rotuloCss}>
           <span aria-hidden className="h-px w-8 bg-magenta" />
@@ -437,7 +486,16 @@ export function AutoridadeLocal({
 
 export function FechamentoLocal({ u }: { u: Unidade }) {
   return (
-    <section className="relative isolate overflow-hidden bg-magenta py-20 md:py-24">
+    <section className="relative isolate overflow-clip bg-magenta py-20 md:py-24">
+      {/* O mangue ao amanhecer, já gerado em magenta: a silhueta das
+          raízes entra por baixo dos degradês que o bloco já tinha. */}
+      <FundoLocal
+        u={u}
+        bloco="fechamento"
+        opacidade="opacity-[0.55]"
+        posicao="center 35%"
+        veu="bg-[linear-gradient(90deg,var(--magenta)_0%,rgba(228,21,95,0.55)_40%,rgba(228,21,95,0.2)_100%)]"
+      />
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(16,31,63,0.55))]" />

@@ -310,6 +310,27 @@ banda com o hero.
 
 Todos os vídeos: 1920×1080, 60 fps, 298 frames, todos keyframe, 15 a 19 MB.
 
+## Hero da unidade local: o mangue e a cidade acesa
+
+`src/componentes/local/HeroCinemaLocal.tsx` é o hero da página de unidade
+(`/braganca-pa`), com o mesmo mecanismo do hero da home e sem a
+decodificação de glifos. Jornada: câmera no chão do manguezal à noite →
+sobe em linha reta atravessando a copa → Bragança acesa do outro lado do
+rio, com brilho magenta no horizonte. Detalhe temático: o contador
+"Cidades no alcance 00/17" (o total vem de `u.cidades`) e a altura em
+metros, os dois presos ao mesmo progresso.
+
+Frame A e B no Seedream 5 Pro (o B com o A como referência única), vídeo de
+5 s no Seedance 2.5 com os dois como primeiro e último quadro, depois a
+mesma receita de 60 fps e keyint=1.
+
+Os arquivos seguem o slug da unidade, para a próxima unidade só trocar o
+conteúdo:
+- `public/video/<slug>.mp4` e `public/imagens/<slug>-frame-a.jpg` (poster)
+- `public/imagens/<slug>-{servicos,paraquem,cidades,fechamento}.jpg`, os
+  fundos dos quatro blocos, abaixo de 300 KB cada, sempre atrás de um véu
+  (ver `FundoLocal` em `Blocos.tsx`).
+
 ## Kit de interações da página
 
 `src/componentes/Interacoes.tsx` lê atributos `data-*` do JSX e anima com um
