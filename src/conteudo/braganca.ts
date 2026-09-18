@@ -44,6 +44,17 @@ export type ServicoLocal = {
   /** Duas ou três frases: o que é, para quem serve, o que a pessoa recebe. */
   texto: string;
   entrega: string[];
+  /**
+   * A imagem que mostra o entregavel: o anuncio no feed, o resultado no
+   * Google, a tela do site, o perfil no Maps.
+   *
+   * Opcional. Sem ela o bloco fica como era, em largura inteira, e nao
+   * abre moldura vazia esperando arquivo.
+   *
+   * Formato: 4:3, algo como 1200x900. A caixa recorta pelo centro e
+   * ancora no topo, entao o que importa deve estar na metade de cima.
+   */
+  imagem?: { arquivo: string; alt: string };
   /** Texto do botão, sempre no benefício. */
   acao: string;
   /** Mensagem que abre no WhatsApp a partir deste bloco. */
@@ -197,6 +208,13 @@ export const braganca: Unidade = {
         'Botão de WhatsApp em toda a página',
         'Publicação, domínio e o básico para o Google encontrar',
       ],
+      /* Exemplo real, e nao ilustracao: e um site que saiu daqui e que
+         ja esta no portfolio do proprio site. Os outros tres blocos
+         esperam arquivo. */
+      imagem: {
+        arquivo: 'sites/torres-contabilidade.jpg',
+        alt: 'Site da Torres Contabilidade, criado pela Psy Comunic, aberto no topo da página inicial',
+      },
       acao: 'Quero um site para minha empresa',
       mensagem: 'Olá! Quero saber sobre criação de site para minha empresa em Bragança.',
     },

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { secao } from '@/componentes/Casca';
 import { LinkWhatsapp } from './LinkWhatsapp';
+import { IconeSegmento } from './IconeSegmento';
 import { BotaoZap } from './BotaoZap';
 import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
 
@@ -205,8 +206,25 @@ export function ServicosLocal({ u }: { u: Unidade }) {
         </h2>
 
         <div className="mt-12 space-y-5">
-          {u.servicos.map((s) => (
+          {u.servicos.map((s, i) => (
             <article key={s.id} className="revelar cartao p-7 md:p-9">
+              {/*
+                Com imagem, o bloco vira duas colunas. A imagem alterna de
+                lado a cada serviço: quatro cartões iguais empilhados com
+                a foto sempre à direita viram uma coluna monótona, e o
+                olho para de percorrer.
+
+                `lg:` e não `md:`: em tablet as duas colunas deixariam a
+                lista de entregas com quatro palavras por linha.
+              */}
+              <div
+                className={
+                  s.imagem
+                    ? 'grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12'
+                    : ''
+                }
+              >
+                <div className={s.imagem && i % 2 === 1 ? 'lg:order-2' : ''}>
               <div className="flex flex-wrap items-baseline gap-3">
                 <h3 className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
                   {s.nome}
@@ -224,7 +242,11 @@ export function ServicosLocal({ u }: { u: Unidade }) {
 
               <p className="mt-5 max-w-[62ch] leading-relaxed text-neve">{s.texto}</p>
 
-              <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
+              <ul
+                className={
+                  'mt-6 grid gap-2.5 ' + (s.imagem ? 'sm:grid-cols-2 lg:grid-cols-1' : 'sm:grid-cols-2')
+                }
+              >
                 {s.entrega.map((e) => (
                   <li key={e} className="flex gap-3 text-sm leading-relaxed text-cinza">
                     <span aria-hidden className="mt-1 flex-none text-magenta-texto">
@@ -239,6 +261,29 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                 <BotaoZap u={u} mensagem={s.mensagem} secao={s.id}>
                   {s.acao}
                 </BotaoZap>
+              </div>
+                </div>
+
+                {/* O exemplo do entregavel. Caixa de proporcao fixa com
+                    `object-cover`: assim qualquer arquivo que entrar fica
+                    do mesmo tamanho dos outros, e uma imagem fora do
+                    formato nao desalinha a fileira inteira.
+
+                    `object-top` porque estes exemplos sao telas, e o que
+                    identifica uma tela mora em cima. */}
+                {s.imagem ? (
+                  <div className={s.imagem && i % 2 === 1 ? 'lg:order-1' : ''}>
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-marinho-fundo">
+                      <Image
+                        src={`/imagens/${s.imagem.arquivo}`}
+                        alt={s.imagem.alt}
+                        fill
+                        sizes="(max-width: 1024px) 92vw, 40vw"
+                        className="object-cover object-top"
+                      />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </article>
           ))}
@@ -275,16 +320,76 @@ export function PassosLocal({ u }: { u: Unidade }) {
           <span className="text-magenta-texto">é só uma conversa.</span>
         </h2>
 
-        <ol className="mt-12 grid gap-5 md:grid-cols-3">
-          {u.passos.map((p) => (
-            <li key={p.n} className="revelar cartao p-7 md:p-8">
-              <span className="tabular font-mono text-xs text-magenta-texto">{p.n}</span>
-              <h3 className="mt-4 font-display text-lg font-bold tracking-[-0.02em]">
-                {p.titulo}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-cinza">{p.texto}</p>
-            </li>
-          ))}
+        {/*
+          A TRAJETORIA, E NAO TRES CAIXAS IGUAIS.
+
+          Antes eram tres cartoes chapados, do mesmo peso, com um numero
+          pequeno em cima. Nada dizia que um vem depois do outro: era uma
+          lista que por acaso estava na horizontal.
+
+          Agora a leitura tem direcao. Um fio atravessa os tres com um
+          marco em cada, o numero virou elemento grafico grande atras do
+          titulo, e o ultimo passo, que e o resultado, recebe a borda
+          magenta. O olho percorre do primeiro ao ultimo sem ninguem
+          precisar escrever "passo 1, passo 2".
+
+          Tudo em CSS. Nenhuma requisicao nova numa pagina que ja carrega
+          uma cena de video.
+        */}
+        <ol className="relative mt-14 grid gap-6 md:grid-cols-3 md:gap-5">
+          {/* O fio da trajetoria. Horizontal no computador, vertical no
+              telefone, onde os cartoes empilham. Fica atras de tudo e
+              nao intercepta toque. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[27px] top-4 -z-10 w-px bg-[linear-gradient(180deg,transparent,var(--magenta)_18%,var(--magenta)_82%,transparent)] opacity-40 md:left-0 md:right-0 md:top-[27px] md:h-px md:w-auto md:bg-[linear-gradient(90deg,transparent,var(--magenta)_18%,var(--magenta)_82%,transparent)]"
+            style={{ bottom: '1rem' }}
+          />
+
+          {u.passos.map((p, i) => {
+            const ultimo = i === u.passos.length - 1;
+            return (
+              <li
+                key={p.n}
+                className={
+                  'revelar cartao relative overflow-hidden p-7 pt-10 transition-all duration-500 md:p-8 md:pt-11 ' +
+                  'hover:-translate-y-1 ' +
+                  (ultimo ? 'border-magenta/45' : 'hover:border-magenta/30')
+                }
+              >
+                {/* O numero grande, atras do texto. E o que da escala e
+                    ritmo a fileira sem ocupar espaco de leitura. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-2 -top-4 font-display text-[5.5rem] font-extrabold leading-none tracking-[-0.06em] text-branco/[0.05] md:text-[6.5rem]"
+                >
+                  {p.n}
+                </span>
+
+                {/* O marco sobre o fio. */}
+                <span
+                  aria-hidden
+                  className={
+                    'absolute left-7 top-6 h-3 w-3 rounded-full md:left-8 ' +
+                    (ultimo
+                      ? 'bg-magenta shadow-[0_0_0_5px_rgba(228,21,95,0.18)]'
+                      : 'bg-magenta/60 shadow-[0_0_0_5px_rgba(228,21,95,0.1)]')
+                  }
+                />
+
+                <h3 className="relative mt-3 font-display text-lg font-bold tracking-[-0.02em]">
+                  {p.titulo}
+                </h3>
+                <p className="relative mt-3 text-sm leading-relaxed text-cinza">{p.texto}</p>
+
+                {ultimo ? (
+                  <p className="relative mt-5 font-mono text-[0.66rem] uppercase tracking-[0.16em] text-magenta-texto">
+                    E a decisão é sua
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
         </ol>
 
         <div className="mt-10">
@@ -322,10 +427,34 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
           <span className="text-magenta-texto">cliente da região.</span>
         </h2>
 
+        {/*
+          ICONE EM CADA SEGMENTO.
+
+          A grade era seis blocos de texto do mesmo peso, e o olho nao
+          tinha onde pousar: quem procura "pousada" precisava LER os seis
+          titulos para se achar. O icone da o ponto de entrada, e a
+          pessoa reconhece o proprio negocio antes de ler a palavra.
+
+          Desenhados em traco, no mesmo peso do fio dos cards, e inline:
+          seis arquivos de poucas centenas de bytes custariam seis
+          requisicoes numa pagina que ja carrega uma cena de video.
+
+          `group` no bloco para o icone acender junto no hover, que e o
+          que amarra o desenho ao cartao em vez de deixa-lo colado.
+        */}
         <dl className="mt-12 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-2 lg:grid-cols-3">
           {u.paraQuem.map((g) => (
-            <div key={g.grupo} className="bg-marinho-fundo px-7 py-7">
-              <dt className="font-display text-lg font-bold tracking-[-0.02em]">{g.grupo}</dt>
+            <div
+              key={g.grupo}
+              className="group bg-marinho-fundo px-7 py-7 transition-colors duration-500 hover:bg-marinho-alto/40"
+            >
+              <span
+                aria-hidden
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-fio text-magenta-texto transition-colors duration-500 group-hover:border-magenta/50 group-hover:bg-magenta/10"
+              >
+                <IconeSegmento grupo={g.grupo} className="h-5 w-5" />
+              </span>
+              <dt className="mt-5 font-display text-lg font-bold tracking-[-0.02em]">{g.grupo}</dt>
               <dd className="mt-2.5 text-sm leading-relaxed text-cinza">{g.exemplos}</dd>
             </div>
           ))}
