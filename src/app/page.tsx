@@ -11,11 +11,11 @@ import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { HeroCinema } from '@/componentes/HeroCinema';
 import { Interacoes } from '@/componentes/Interacoes';
 import { CenaCinema } from '@/componentes/CenaCinema';
-import { marca, credenciais } from '@/conteudo/marca';
+import { marca, credenciais, numerosDaCapa } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
-import { trabalhos, logosMarcas } from '@/conteudo/trabalhos';
-import { jornada, promessaCompleta, porQueCompleta } from '@/conteudo/jornada';
+import { trabalhos, lojas, outrosProjetos, logosMarcas } from '@/conteudo/trabalhos';
+import { jornada, promessaCompleta, porQueCompleta, niveisDeParceria } from '@/conteudo/jornada';
 
 const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
 const rotulo =
@@ -80,17 +80,17 @@ export default function Home() {
                   <span className="text-magenta-texto">em órbita.</span>
                 </h2>
                 <p className="mt-7 max-w-[54ch] text-guia text-neve">
-                  Lojas e sites que saíram daqui prontos para vender: plataforma, catálogo,
-                  checkout, rastreamento e a primeira campanha no ar. Passe o olho pela
-                  coluna ao lado e depois desça: o resto da página mostra como.
+                  Lojas de moda que saíram daqui prontas para vender: plataforma, catálogo
+                  com grade e medidas, checkout, rastreamento e a primeira campanha no ar.
+                  Passe o olho pela coluna ao lado e depois desça: o resto da página
+                  mostra como.
                 </p>
 
-                <dl className="mt-12 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                  {[
-                    { n: '17', u: 'anos', d: 'de mercado em design, tecnologia e performance' },
-                    { n: 'Na frente', u: null, d: 'de e-commerces com faturamento na casa dos milhões' },
-                    { n: 'Do zero', u: 'ao lançamento', d: 'e as entregas contínuas depois dele, com o mesmo time' },
-                  ].map((item) => (
+                {/* Quatro cartões, e por isso 2x2 e não uma fileira de
+                    três: em `sm` cabem dois por linha sem espremer o
+                    número, e em `xl` os quatro entram lado a lado. */}
+                <dl className="mt-12 grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {numerosDaCapa.map((item) => (
                     <div key={item.d} className="bg-marinho px-6 py-6 md:px-7 md:py-7">
                       <dt className="flex items-baseline gap-2.5">
                         <span
@@ -121,334 +121,17 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            2. FITA DE MARCAS
-            ========================================================== */}
-        <section aria-label="Marcas atendidas" className="border-y border-fio bg-marinho-fundo py-14">
-          <div className={secao}>
-            <p className="mb-10 text-center font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
-              Algumas das muitas marcas que já confiaram a operação à Psy Comunic
-            </p>
-          </div>
+            1c. QUEM ESTÁ POR TRÁS
 
-          {/* Duas fitas em sentidos opostos: o contramovimento é o que
-              faz o olho perceber as duas, em vez de uma esteira só. */}
-          <div className="space-y-8 md:space-y-10">
-            <FitaMarcas logos={logosMarcas.slice(0, metadeLogos)} duracao={64} />
-            <FitaMarcas logos={logosMarcas.slice(metadeLogos)} duracao={78} volta />
-          </div>
+            Estava no fim da página, depois da metodologia. Subiu para
+            cá, logo abaixo dos números, porque é o ativo de
+            credibilidade mais forte do site: quem escreve esta página
+            já respondeu por um e-commerce, e isso precisa ser lido
+            ANTES de qualquer descrição de serviço. Descrição de
+            serviço toda agência tem.
 
-          {/*
-            Os logos entram como decorativos porque não há mapeamento de
-            qual arquivo é qual marca. Os NOMES vivem aqui, em texto, para
-            quem usa leitor de tela não receber apenas silêncio no lugar
-            da prova social.
-          */}
-          <ul className="sr-only">
-            {marcasAtendidas.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-
-          {/*
-            O cartaz das marcas, SÓ no celular.
-
-            No computador as duas fitas já ocupam a largura toda e o
-            cartaz seria a terceira vez que a mesma prova aparece na
-            mesma tela. No telefone a fita passa estreita e rápida, e o
-            cartaz é onde dá para parar e reconhecer os nomes.
-
-            `lazy` não é detalhe: com `md:hidden` o elemento some no
-            computador, e imagem escondida com lazy não chega a ser
-            baixada. Sem isso, todo visitante de desktop pagaria por um
-            arquivo que nunca vai ver. É a mesma conta da terceira coluna
-            em ColunasDeSites.
-          */}
-          <div className={`${secao} mt-12 md:hidden`}>
-            <Image
-              src="/site.png"
-              alt="Cartaz com os logos de vinte marcas atendidas pela Psy Comunic"
-              width={1080}
-              height={1350}
-              sizes="(max-width: 767px) 92vw, 1px"
-              loading="lazy"
-              className="mx-auto w-full max-w-[440px] rounded-[var(--raio)] border border-fio"
-            />
-          </div>
-        </section>
-
-        {/* ==========================================================
-            3. A JORNADA COMPLETA
-
-            Vem logo depois da fita de marcas, e antes de qualquer
-            explicação de método. Motivo: a dúvida que faz alguém sair
-            desta página é "vocês fazem tudo ou só anunciam?", e ela
-            precisa ser respondida antes de a pessoa ter que procurar.
-
-            Duas fases lado a lado respondem dois medos opostos de uma
-            vez: quem vai começar teme ficar com a loja pronta e
-            ninguém para tocar; quem já vende teme contratar quem só
-            sabe anunciar e não mexe na loja.
-            ========================================================== */}
-        <section
-          id="jornada"
-          aria-labelledby="jornada-titulo"
-          className="scroll-mt-24 relative overflow-clip py-24 md:py-32"
-          data-cena
-        >
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="estrelas absolute inset-0" data-paralaxe="0.06" />
-            <div className="orbita absolute left-1/2 top-[58%] h-[900px] w-[1600px] -translate-x-1/2 opacity-70" data-paralaxe="-0.1" />
-            <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" data-paralaxe="-0.2" />
-          </div>
-
-          <div className={secao}>
-            <div className="revelar max-w-[52rem]">
-              <Rotulo>Solução completa</Rotulo>
-              <h2 id="jornada-titulo" className={tituloSecao + ' max-w-[19ch]'}>
-                Construímos a loja. E ficamos para{' '}
-                <span className="text-magenta-texto">fazer ela vender.</span>
-              </h2>
-              <p className="mt-7 max-w-[58ch] text-guia text-neve">{promessaCompleta}</p>
-            </div>
-
-          </div>
-        </section>
-
-        {/* ==========================================================
-            3b. CENA: A ESTAÇÃO
-
-            A jornada em vídeo comandado pela rolagem: um módulo escuro
-            e sozinho vira a estação inteira, acesa, com os módulos
-            acoplados. O painel à esquerda mostra a fase atual e cada
-            item da fase acende quando o módulo correspondente acopla.
-            O contador de módulos é o detalhe temático da cena.
-            ========================================================== */}
-        <CenaCinema
-          id="estacao"
-          src="/video/estacao.mp4"
-          poster="/imagens/estacao-frame-a.jpg"
-          etapas={2}
-          rotulo="A jornada, do módulo à estação"
-        >
-          <div className="cena-caixa">
-            <div className="cena-painel">
-              <p className="flex items-center justify-between gap-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cinza">
-                <span>Módulos acoplados</span>
-                <span className="tabular text-magenta-texto" data-contagem>00/15</span>
-              </p>
-
-              <div className="cena-etapas mt-6">
-                {jornada.map((fase, i) => (
-                  <article key={fase.id} className="cena-etapa" data-i={i}>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span
-                        className={
-                          'rounded-full px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.16em] ' +
-                          (i === 1 ? 'bg-magenta text-branco' : 'border border-fio text-magenta-texto')
-                        }
-                      >
-                        {fase.etiqueta}
-                      </span>
-                      <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
-                        {fase.entrega}
-                      </span>
-                    </div>
-                    <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
-                      {fase.titulo}
-                    </h3>
-                    <p className="cena-resumo mt-3 text-sm leading-relaxed text-neve">{fase.resumo}</p>
-                  </article>
-                ))}
-              </div>
-
-              {/* A lista completa das duas fases, acendendo em ordem: os
-                  8 itens da fase 1 e depois os 7 da fase 2. */}
-              <ul className="mt-6 space-y-2 border-t border-fio pt-5">
-                {jornada
-                  .flatMap((fase, f) => fase.itens.map((item) => ({ item, f })))
-                  .map(({ item, f }, i) => (
-                  <li key={item} className="text-[0.82rem] leading-snug" data-acende={i} data-fase={f}>
-                    <span aria-hidden className="acende-ponto" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </CenaCinema>
-
-        <section aria-label="Por que a solução completa" className="relative overflow-clip py-20 md:py-28">
-          <div className={secao}>
-            {/* Por que completa importa. "Solução completa" é o que toda
-                agência escreve; sem dizer o que a alternativa custa, a
-                frase não significa nada. */}
-            <div className="grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
-              {porQueCompleta.map((item) => (
-                <div key={item.titulo} className="revelar bg-marinho px-7 py-8 md:px-8 md:py-10">
-                  <h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">
-                    {item.titulo}
-                  </h3>
-                  <p className="mt-3.5 text-sm leading-relaxed text-cinza">{item.texto}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="revelar mt-14 flex flex-wrap items-center gap-4">
-              <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
-              <p className="text-sm text-cinza">
-                Começando do zero ou já vendendo, o diagnóstico é o mesmo primeiro passo.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ==========================================================
-            4. O DIAGNÓSTICO
-            ========================================================== */}
-        <section className="relative overflow-clip py-24 md:py-32">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="brilho-frio absolute -left-[15%] top-1/4 h-[560px] w-[560px] opacity-20" data-paralaxe="-0.22" />
-          </div>
-
-          <div className={secao}>
-            <div className="revelar max-w-[46rem]">
-              <Rotulo>O diagnóstico</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[18ch]'}>
-                Seu e-commerce recebe visitas e{' '}
-                <span className="text-magenta-texto">não converte?</span>
-              </h2>
-              <p className="mt-7 max-w-[60ch] text-guia text-neve">
-                Você investe em mídia, o tráfego sobe e a venda não acompanha. Na maioria
-                das vezes o problema não está no anúncio: está no checkout, no prazo de
-                entrega, na aprovação do pagamento ou no cadastro do produto. É por isso
-                que a Psy Comunic olha as quatro frentes.
-              </p>
-            </div>
-
-            {/* As perguntas em escada. O deslocamento vertical na coluna
-                da direita quebra a leitura em tabela e obriga o olho a
-                percorrer uma a uma. */}
-            <ul className="mt-16 grid gap-5 md:grid-cols-2 md:gap-7">
-              {frentes.map((f, i) => (
-                <li
-                  key={f.slug}
-                  className={'revelar' + (i % 2 === 1 ? ' md:mt-14' : '')}
-                >
-                  <div className="cartao h-full px-8 py-9 md:px-10 md:py-11" data-inclina>
-                    <span aria-hidden className="absolute left-10 right-10 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-                    <p className="font-display text-sub font-bold leading-tight tracking-[-0.03em] text-branco">
-                      <span aria-hidden className="mr-1 text-magenta-texto">“</span>
-                      {f.duvidas[0]}
-                    </p>
-                    <p className="mt-6 flex items-center gap-2.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-cinza">
-                      <IconeFrente slug={f.slug} className="h-4 w-4 text-magenta-texto" />
-                      Frente responsável: {f.nome}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ==========================================================
-            5. AS QUATRO FRENTES
-            ========================================================== */}
-        <section id="frentes" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <div className="brilho-magenta absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 opacity-20" data-paralaxe="-0.15" />
-          </div>
-
-          <div className={secao}>
-            <div className="revelar max-w-[46rem]">
-              <Rotulo>As quatro frentes</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[20ch]'}>
-                Quem contrata a Psy Comunic não contrata anúncios. Contrata a operação
-                inteira.
-              </h2>
-            </div>
-
-            <div className="mt-16 grid gap-6 lg:grid-cols-2">
-              {frentes.map((f, i) => (
-                <Link
-                  key={f.slug}
-                  href={'/servicos/' + f.slug}
-                  data-inclina
-                  className="revelar cartao group relative overflow-clip p-9 hover:border-magenta/40 md:p-11"
-                >
-                  {/* Brilho de canto que só acende no hover. */}
-                  <span
-                    aria-hidden
-                    className="brilho-magenta pointer-events-none absolute -right-24 -top-24 h-72 w-72 opacity-0 transition-opacity duration-500 group-hover:opacity-60"
-                  />
-
-                  <div className="relative flex items-start justify-between gap-6">
-                    <IconeFrente
-                      slug={f.slug}
-                      className="h-9 w-9 text-magenta-texto transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <span className="tabular font-mono text-xs text-cinza">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-
-                  <h3 className="relative mt-8 font-display text-sub font-extrabold tracking-[-0.035em]">
-                    {f.nome}
-                  </h3>
-                  <p className="relative mt-3 max-w-[42ch] text-neve">{f.resumo}</p>
-
-                  <ul className="relative mt-7 space-y-2.5 border-t border-fio pt-7">
-                    {f.contribuicoes.slice(0, 3).map((c) => (
-                      <li key={c} className="flex gap-3 text-sm leading-relaxed text-cinza">
-                        <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-magenta" />
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <span className="relative mt-8 inline-flex items-center gap-2 text-sm font-semibold text-magenta-texto">
-                    Ver a frente de {f.nome}
-                    <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
-                      →
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ==========================================================
-            6. RESULTADOS
-            ========================================================== */}
-        <section id="resultados" className="scroll-mt-24 py-24 md:py-28">
-          <div className={secao}>
-            <div className="revelar">
-              <Rotulo>O que fazemos</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[16ch]'}>
-                Quatro resultados, não quatro relatórios.
-              </h2>
-            </div>
-
-            <ol className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-              {resultados.map((r, i) => (
-                <li key={r} className="revelar border-t border-fio pt-7">
-                  <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <p className="mt-4 text-lg leading-snug text-neve">{r}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* ==========================================================
-            7. AUTORIDADE
-            A página não tinha uma linha sobre quem está por trás, que é
-            o ativo de credibilidade mais forte que existe aqui. Angelo
-            aparece em terceira pessoa, e só porque a informação é sobre
-            ele. Ver CLAUDE.md.
+            Angelo aparece em terceira pessoa, e só porque a informação
+            é sobre ele. Ver CLAUDE.md.
             ========================================================== */}
         <section id="quem-somos" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -575,6 +258,334 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
+            2. FITA DE MARCAS
+            ========================================================== */}
+        <section aria-label="Marcas atendidas" className="border-y border-fio bg-marinho-fundo py-14">
+          <div className={secao}>
+            <p className="mb-10 text-center font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
+              Algumas das muitas marcas que já confiaram a operação à Psy Comunic
+            </p>
+          </div>
+
+          {/* Duas fitas em sentidos opostos: o contramovimento é o que
+              faz o olho perceber as duas, em vez de uma esteira só. */}
+          <div className="space-y-8 md:space-y-10">
+            <FitaMarcas logos={logosMarcas.slice(0, metadeLogos)} duracao={64} />
+            <FitaMarcas logos={logosMarcas.slice(metadeLogos)} duracao={78} volta />
+          </div>
+
+          {/*
+            Os logos entram como decorativos porque não há mapeamento de
+            qual arquivo é qual marca. Os NOMES vivem aqui, em texto, para
+            quem usa leitor de tela não receber apenas silêncio no lugar
+            da prova social.
+          */}
+          <ul className="sr-only">
+            {marcasAtendidas.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+
+          {/*
+            O cartaz das marcas, SÓ no celular.
+
+            No computador as duas fitas já ocupam a largura toda e o
+            cartaz seria a terceira vez que a mesma prova aparece na
+            mesma tela. No telefone a fita passa estreita e rápida, e o
+            cartaz é onde dá para parar e reconhecer os nomes.
+
+            `lazy` não é detalhe: com `md:hidden` o elemento some no
+            computador, e imagem escondida com lazy não chega a ser
+            baixada. Sem isso, todo visitante de desktop pagaria por um
+            arquivo que nunca vai ver. É a mesma conta da terceira coluna
+            em ColunasDeSites.
+          */}
+          <div className={`${secao} mt-12 md:hidden`}>
+            <Image
+              src="/site.png"
+              alt="Cartaz com os logos de vinte marcas atendidas pela Psy Comunic"
+              width={1080}
+              height={1350}
+              sizes="(max-width: 767px) 92vw, 1px"
+              loading="lazy"
+              className="mx-auto w-full max-w-[440px] rounded-[var(--raio)] border border-fio"
+            />
+          </div>
+        </section>
+
+        {/* ==========================================================
+            3. A JORNADA COMPLETA
+
+            Vem logo depois da fita de marcas, e antes de qualquer
+            explicação de método. Motivo: a dúvida que faz alguém sair
+            desta página é "vocês fazem tudo ou só anunciam?", e ela
+            precisa ser respondida antes de a pessoa ter que procurar.
+
+            Duas fases lado a lado respondem dois medos opostos de uma
+            vez: quem vai começar teme ficar com a loja pronta e
+            ninguém para tocar; quem já vende teme contratar quem só
+            sabe anunciar e não mexe na loja.
+            ========================================================== */}
+        <section
+          id="jornada"
+          aria-labelledby="jornada-titulo"
+          className="scroll-mt-24 relative overflow-clip py-24 md:py-32"
+          data-cena
+        >
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="estrelas absolute inset-0" data-paralaxe="0.06" />
+            <div className="orbita absolute left-1/2 top-[58%] h-[900px] w-[1600px] -translate-x-1/2 opacity-70" data-paralaxe="-0.1" />
+            <div className="brilho-magenta absolute -left-[15%] top-1/3 h-[560px] w-[720px] opacity-25" data-paralaxe="-0.2" />
+          </div>
+
+          <div className={secao}>
+            <div className="revelar max-w-[52rem]">
+              <Rotulo>Solução completa</Rotulo>
+              <h2 id="jornada-titulo" className={tituloSecao + ' max-w-[19ch]'}>
+                Construímos a loja de moda. E ficamos para{' '}
+                <span className="text-magenta-texto">fazer ela vender.</span>
+              </h2>
+              <p className="mt-7 max-w-[58ch] text-guia text-neve">{promessaCompleta}</p>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ==========================================================
+            3b. CENA: A ESTAÇÃO
+
+            A jornada em vídeo comandado pela rolagem: um módulo escuro
+            e sozinho vira a estação inteira, acesa, com os módulos
+            acoplados. O painel à esquerda mostra a fase atual e cada
+            item da fase acende quando o módulo correspondente acopla.
+            O contador de módulos é o detalhe temático da cena.
+            ========================================================== */}
+        <CenaCinema
+          id="estacao"
+          src="/video/estacao.mp4"
+          poster="/imagens/estacao-frame-a.jpg"
+          etapas={2}
+          rotulo="A jornada, do módulo à estação"
+        >
+          <div className="cena-caixa">
+            <div className="cena-painel">
+              <p className="flex items-center justify-between gap-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cinza">
+                <span>Módulos acoplados</span>
+                {/* Só o texto de fallback sem JS: a cena recalcula
+                    "acesos/total" ao rolar. Derivado da lista para não
+                    mentir quando um item entrar ou sair dela. */}
+                <span className="tabular text-magenta-texto" data-contagem>
+                  {`00/${jornada.reduce((total, f) => total + f.itens.length, 0)}`}
+                </span>
+              </p>
+
+              <div className="cena-etapas mt-6">
+                {jornada.map((fase, i) => (
+                  <article key={fase.id} className="cena-etapa" data-i={i}>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span
+                        className={
+                          'rounded-full px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.16em] ' +
+                          (i === 1 ? 'bg-magenta text-branco' : 'border border-fio text-magenta-texto')
+                        }
+                      >
+                        {fase.etiqueta}
+                      </span>
+                      <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-cinza">
+                        {fase.entrega}
+                      </span>
+                    </div>
+                    <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
+                      {fase.titulo}
+                    </h3>
+                    <p className="cena-resumo mt-3 text-sm leading-relaxed text-neve">{fase.resumo}</p>
+                  </article>
+                ))}
+              </div>
+
+              {/* A lista completa das duas fases, acendendo em ordem: os
+                  8 itens da fase 1 e depois os 7 da fase 2. */}
+              <ul className="mt-6 space-y-2 border-t border-fio pt-5">
+                {jornada
+                  .flatMap((fase, f) => fase.itens.map((item) => ({ item, f })))
+                  .map(({ item, f }, i) => (
+                  <li key={item} className="text-[0.82rem] leading-snug" data-acende={i} data-fase={f}>
+                    <span aria-hidden className="acende-ponto" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </CenaCinema>
+
+        <section aria-label="Por que a solução completa" className="relative overflow-clip py-20 md:py-28">
+          <div className={secao}>
+            {/* Por que completa importa. "Solução completa" é o que toda
+                agência escreve; sem dizer o que a alternativa custa, a
+                frase não significa nada. */}
+            <div className="grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
+              {porQueCompleta.map((item) => (
+                <div key={item.titulo} className="revelar bg-marinho px-7 py-8 md:px-8 md:py-10">
+                  <h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">
+                    {item.titulo}
+                  </h3>
+                  <p className="mt-3.5 text-sm leading-relaxed text-cinza">{item.texto}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="revelar mt-14 flex flex-wrap items-center gap-4">
+              <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
+              <p className="text-sm text-cinza">
+                Começando do zero ou já vendendo, o diagnóstico é o mesmo primeiro passo.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ==========================================================
+            4. O DIAGNÓSTICO
+            ========================================================== */}
+        <section className="relative overflow-clip py-24 md:py-32">
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="brilho-frio absolute -left-[15%] top-1/4 h-[560px] w-[560px] opacity-20" data-paralaxe="-0.22" />
+          </div>
+
+          <div className={secao}>
+            <div className="revelar max-w-[46rem]">
+              <Rotulo>O diagnóstico</Rotulo>
+              <h2 className={tituloSecao + ' max-w-[18ch]'}>
+                Sua loja de moda recebe visitas e{' '}
+                <span className="text-magenta-texto">não converte?</span>
+              </h2>
+              <p className="mt-7 max-w-[60ch] text-guia text-neve">
+                Você investe em mídia, o tráfego sobe e a venda não acompanha. Na moda, o
+                problema quase nunca está no anúncio: está na dúvida do tamanho, na foto
+                que não mostra o caimento, no frete que aparece só no checkout ou na grade
+                cadastrada errada. É por isso que a Psy Comunic olha as quatro frentes.
+              </p>
+            </div>
+
+            {/* As perguntas em escada. O deslocamento vertical na coluna
+                da direita quebra a leitura em tabela e obriga o olho a
+                percorrer uma a uma. */}
+            <ul className="mt-16 grid gap-5 md:grid-cols-2 md:gap-7">
+              {frentes.map((f, i) => (
+                <li
+                  key={f.slug}
+                  className={'revelar' + (i % 2 === 1 ? ' md:mt-14' : '')}
+                >
+                  <div className="cartao h-full px-8 py-9 md:px-10 md:py-11" data-inclina>
+                    <span aria-hidden className="absolute left-10 right-10 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                    <p className="font-display text-sub font-bold leading-tight tracking-[-0.03em] text-branco">
+                      <span aria-hidden className="mr-1 text-magenta-texto">“</span>
+                      {f.duvidas[0]}
+                    </p>
+                    <p className="mt-6 flex items-center gap-2.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-cinza">
+                      <IconeFrente slug={f.slug} className="h-4 w-4 text-magenta-texto" />
+                      Frente responsável: {f.nome}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ==========================================================
+            5. AS QUATRO FRENTES
+            ========================================================== */}
+        <section id="frentes" className="scroll-mt-24 relative overflow-clip border-y border-fio bg-marinho-fundo py-24 md:py-32">
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="brilho-magenta absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 opacity-20" data-paralaxe="-0.15" />
+          </div>
+
+          <div className={secao}>
+            <div className="revelar max-w-[46rem]">
+              <Rotulo>As quatro frentes</Rotulo>
+              <h2 className={tituloSecao + ' max-w-[20ch]'}>
+                Quem contrata a Psy Comunic não contrata anúncios. Contrata a operação
+                inteira.
+              </h2>
+            </div>
+
+            <div className="mt-16 grid gap-6 lg:grid-cols-2">
+              {frentes.map((f, i) => (
+                <Link
+                  key={f.slug}
+                  href={'/servicos/' + f.slug}
+                  data-inclina
+                  className="revelar cartao group relative overflow-clip p-9 hover:border-magenta/40 md:p-11"
+                >
+                  {/* Brilho de canto que só acende no hover. */}
+                  <span
+                    aria-hidden
+                    className="brilho-magenta pointer-events-none absolute -right-24 -top-24 h-72 w-72 opacity-0 transition-opacity duration-500 group-hover:opacity-60"
+                  />
+
+                  <div className="relative flex items-start justify-between gap-6">
+                    <IconeFrente
+                      slug={f.slug}
+                      className="h-9 w-9 text-magenta-texto transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <span className="tabular font-mono text-xs text-cinza">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+
+                  <h3 className="relative mt-8 font-display text-sub font-extrabold tracking-[-0.035em]">
+                    {f.nome}
+                  </h3>
+                  <p className="relative mt-3 max-w-[42ch] text-neve">{f.resumo}</p>
+
+                  <ul className="relative mt-7 space-y-2.5 border-t border-fio pt-7">
+                    {f.contribuicoes.slice(0, 3).map((c) => (
+                      <li key={c} className="flex gap-3 text-sm leading-relaxed text-cinza">
+                        <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-magenta" />
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <span className="relative mt-8 inline-flex items-center gap-2 text-sm font-semibold text-magenta-texto">
+                    Ver a frente de {f.nome}
+                    <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
+                      →
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ==========================================================
+            6. RESULTADOS
+            ========================================================== */}
+        <section id="resultados" className="scroll-mt-24 py-24 md:py-28">
+          <div className={secao}>
+            <div className="revelar">
+              <Rotulo>O que fazemos</Rotulo>
+              <h2 className={tituloSecao + ' max-w-[16ch]'}>
+                Quatro resultados, não quatro relatórios.
+              </h2>
+            </div>
+
+            <ol className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+              {resultados.map((r, i) => (
+                <li key={r} className="revelar border-t border-fio pt-7">
+                  <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <p className="mt-4 text-lg leading-snug text-neve">{r}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ==========================================================
             8. METODOLOGIA
             ========================================================== */}
         <section id="metodologia" className="scroll-mt-24 py-24 md:py-32" data-cena>
@@ -667,29 +678,7 @@ export default function Home() {
               </p>
 
               <div className="cena-etapas mt-6">
-                {[
-                  {
-                    n: '01',
-                    onde: 'Órbita',
-                    t: 'Só a mídia',
-                    d: 'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
-                    q: 'Para quem já vende e quer parar de gastar no escuro.',
-                  },
-                  {
-                    n: '02',
-                    onde: 'Atmosfera',
-                    t: 'Mídia e canais próprios',
-                    d: 'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
-                    q: 'Para quem depende demais de comprar tráfego.',
-                  },
-                  {
-                    n: '03',
-                    onde: 'Superfície',
-                    t: 'A operação inteira',
-                    d: 'Tudo acima, mais plataforma, marketplaces, funil comercial, produto e mentoria do seu time. A agência dentro da operação.',
-                    q: 'Para quem quer crescer sem montar um time do zero.',
-                  },
-                ].map((nivel, i) => (
+                {niveisDeParceria.map((nivel, i) => (
                   <article key={nivel.n} className="cena-etapa" data-i={i}>
                     <p className="flex items-center gap-3 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-magenta-texto">
                       <span>{nivel.n}</span>
@@ -697,12 +686,12 @@ export default function Home() {
                       <span className="text-cinza">{nivel.onde}</span>
                     </p>
                     <h3 className="mt-4 font-display text-sub font-extrabold tracking-[-0.035em]">
-                      {nivel.t}
+                      {nivel.titulo}
                     </h3>
                     <p className="mt-4 border-t border-fio pt-4 text-guia leading-relaxed text-neve">
-                      {nivel.d}
+                      {nivel.texto}
                     </p>
-                    <p className="mt-4 text-sm text-cinza">{nivel.q}</p>
+                    <p className="mt-4 text-sm text-cinza">{nivel.paraQuem}</p>
                   </article>
                 ))}
               </div>
@@ -710,9 +699,11 @@ export default function Home() {
           </div>
 
           <div aria-hidden className="altimetro" data-medidor>
-            <span className="altimetro-marca" data-i="0">Órbita</span>
-            <span className="altimetro-marca" data-i="1">Atmosfera</span>
-            <span className="altimetro-marca" data-i="2">Superfície</span>
+            {niveisDeParceria.map((nivel, i) => (
+              <span key={nivel.n} className="altimetro-marca" data-i={i}>
+                {nivel.onde}
+              </span>
+            ))}
             <span className="altimetro-agulha" />
           </div>
         </CenaCinema>
@@ -743,7 +734,7 @@ export default function Home() {
               <div className="max-w-[42rem]">
                 <Rotulo>Trabalhos</Rotulo>
                 <h2 className={tituloSecao + ' max-w-[19ch]'}>
-                  Sites e lojas que a Psy Comunic construiu.
+                  Lojas de moda que a Psy Comunic construiu.
                 </h2>
               </div>
               <p className="max-w-[34ch] font-mono text-[0.68rem] uppercase leading-relaxed tracking-[0.16em] text-cinza">
@@ -759,9 +750,30 @@ export default function Home() {
               declarado, e por isso `cases` continua vazio.
             */}
             <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {trabalhos.map((t) => (
+              {lojas.map((t) => (
                 <Vitrine key={t.arquivo} trabalho={t} />
               ))}
+            </div>
+
+            {/*
+              Os sites de serviço, embaixo e sob subtítulo próprio.
+
+              A galeria de cima é a prova do que esta página promete, e
+              um site de contabilidade no meio dela enfraquece as lojas
+              em vez de somar. Aqui embaixo ele soma de novo, como
+              alcance do estúdio, para quem já desceu a página inteira.
+            */}
+            <div className="revelar mt-20 border-t border-fio pt-12">
+              <p className={rotulo}>Outros projetos</p>
+              <p className="mt-4 max-w-[52ch] leading-relaxed text-cinza">
+                Fora do varejo de moda, a Psy Comunic também constrói site de serviço e
+                de conteúdo.
+              </p>
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {outrosProjetos.map((t) => (
+                  <Vitrine key={t.arquivo} trabalho={t} />
+                ))}
+              </div>
             </div>
 
             {cases.length === 0 ? (
@@ -813,7 +825,7 @@ export default function Home() {
           <div className={secao}>
             <div className="revelar max-w-[52rem]">
               <h2 className="max-w-[17ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-branco">
-                Vamos olhar a sua operação inteira.
+                Vamos olhar a sua loja de moda inteira.
               </h2>
               <p className="mt-7 max-w-[50ch] text-guia text-branco/90">
                 Diagnóstico gratuito nas quatro frentes, com as prioridades apontadas por

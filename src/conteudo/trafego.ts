@@ -25,6 +25,8 @@
  * sai na proposta.
  */
 
+import { faturamento } from './marca';
+
 export const heroi = {
   rotulo: 'Tráfego pago de alta performance',
   /* Uma linha por entrada: cada uma sobe separada na abertura. Quebrar
@@ -166,15 +168,21 @@ export const paraQuem = {
 /**
  * Quem opera. Aqui o Angelo aparece em terceira pessoa, porque a
  * informação é sobre ele.
+ *
+ * O FATURAMENTO É O MESMO DO RESTO DO SITE, e por isso vem de
+ * `faturamento`, em marca.ts. Esta página dizia "e-commerce de
+ * milhões", no presente, enquanto a home dizia outra coisa: duas
+ * redações do mesmo fato, e o visitante que lê as duas desconta as
+ * duas. O tempo verbal também estava errado: é ex-sócio.
  */
 export const quemOpera = {
   titulo: 'Quem coloca a mão na conta',
   texto:
-    'A Psy Comunic é conduzida por Angelo Garcia, que tem mais de 17 anos de design e passou de criar a peça para responder pelo resultado dela. É mentorado na Vinci Society, com Tay Dantas, e sócio em uma operação de e-commerce de milhões, o que significa que as decisões de mídia aqui são tomadas por quem também vive do outro lado, olhando o próprio caixa.',
+    `A Psy Comunic é conduzida por Angelo Garcia, que tem mais de 17 anos de design e passou de criar a peça para responder pelo resultado dela. É mentorado na Vinci Society, com Tay Dantas, e foi sócio de um e-commerce que fatura ${faturamento.ano}, o que significa que as decisões de mídia aqui são tomadas por quem também viveu do outro lado, olhando o próprio caixa.`,
   pontos: [
     '17+ anos de design, com a peça pensada para converter e não só para agradar',
     'Mentoria na Vinci Society, com Tay Dantas',
-    'Sócio em operação de e-commerce, decidindo verba com o próprio dinheiro',
+    `Ex-sócio de e-commerce de ${faturamento.ano}, decidindo verba com o próprio dinheiro`,
   ],
 };
 

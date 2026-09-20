@@ -109,6 +109,16 @@ export type Unidade = {
   };
   perguntas: { pergunta: string; resposta: string }[];
   fechamento: { titulo: string; texto: string; acao: string; mensagem: string };
+  /**
+   * A linha sob a marca, no rodape DESTA pagina.
+   *
+   * O rodape global diz "operacao de crescimento para e-commerce de
+   * moda", que e o que o site principal vende. Esta pagina nao fala com
+   * lojista de moda: fala com quem tem comercio, clinica ou pousada em
+   * Braganca. Sem esta troca, a mesma pagina que promete anuncio local
+   * termina com uma frase sobre e-commerce de moda.
+   */
+  posicionamento: string;
 };
 
 export const braganca: Unidade = {
@@ -128,6 +138,9 @@ export const braganca: Unidade = {
     descricao:
       'Anúncios no Instagram, no Google e criação de sites para empresas de Bragança e região. Peça sua análise gratuita pelo WhatsApp.',
   },
+
+  posicionamento:
+    'Marketing digital para quem vende em Bragança e região. Anúncio, site e presença no Google.',
 
   heroi: {
     rotulo: 'Unidade Bragança, PA',

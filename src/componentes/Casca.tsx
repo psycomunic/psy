@@ -20,17 +20,20 @@ export function Casca({
   children,
   semZap,
   zapRodape,
+  posicionamentoRodape,
 }: {
   children: ReactNode;
   semZap?: boolean;
   /** Troca o WhatsApp do rodape. Ver o comentario em Rodape.tsx. */
   zapRodape?: { link: string; visivel: string; pagina: string };
+  /** Troca a linha sob a marca no rodape. Ver o comentario em braganca.ts. */
+  posicionamentoRodape?: string;
 }) {
   return (
     <>
       <Cabecalho />
       <main id="conteudo">{children}</main>
-      <Rodape zap={zapRodape} />
+      <Rodape zap={zapRodape} posicionamento={posicionamentoRodape} />
       {semZap ? null : <BotaoWhatsapp />}
     </>
   );

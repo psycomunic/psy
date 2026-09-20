@@ -18,22 +18,43 @@ export type Trabalho = {
   arquivo: string;
   largura: number;
   altura: number;
+  /**
+   * `loja` é vitrine de varejo, e abre a galeria. `outro` é site de
+   * serviço, e fica no fim, sob um subtítulo próprio.
+   *
+   * A separação não é arrumação: o site inteiro fala com lojista de
+   * moda, e uma galeria que começa por um site de contabilidade
+   * contradiz a página antes do visitante chegar ao terceiro print.
+   * Os quatro `outro` continuam no ar porque são trabalho entregue, e
+   * apagar trabalho entregue para a vitrine ficar mais redonda é o
+   * começo de um portfólio que não corresponde ao que se faz.
+   */
+  tipo: 'loja' | 'outro';
 };
 
 export const trabalhos: Trabalho[] = [
-  { nome: 'Carmellita',            arquivo: 'carmellita.jpg',           largura: 560, altura: 4000 },
-  { nome: 'Casa Linda',            arquivo: 'casalinda.jpg',            largura: 560, altura: 2666 },
-  { nome: 'Vettor 28',             arquivo: 'vettor28.jpg',             largura: 560, altura: 2605 },
-  { nome: 'Doris Kids',            arquivo: 'doris-kids.jpg',           largura: 560, altura: 2064 },
-  { nome: 'Manalinda',             arquivo: 'manalinda.jpg',            largura: 560, altura: 2401 },
-  { nome: 'Grupo Diságua',         arquivo: 'grupo-disagua.jpg',        largura: 560, altura: 2557 },
-  { nome: 'Lar e Vida',            arquivo: 'lar-e-vida.jpg',           largura: 560, altura: 2492 },
-  { nome: 'Medi Marketing',        arquivo: 'medi-marketing.jpg',       largura: 560, altura: 4000 },
-  { nome: 'Food Métricas',         arquivo: 'foodmetricas.jpg',         largura: 560, altura: 4000 },
-  { nome: 'Bloopi',                arquivo: 'bloopi.jpg',               largura: 560, altura: 4000 },
-  { nome: 'Representantes',        arquivo: 'representantes.jpg',       largura: 560, altura: 3527 },
-  { nome: 'Torres Contabilidade',  arquivo: 'torres-contabilidade.jpg', largura: 560, altura: 4000 },
+  /* Moda primeiro: é o nicho que o site inteiro declara atender. */
+  { nome: 'Carmellita',            arquivo: 'carmellita.jpg',           largura: 560, altura: 4000, tipo: 'loja' },
+  { nome: 'Doris Kids',            arquivo: 'doris-kids.jpg',           largura: 560, altura: 2064, tipo: 'loja' },
+  { nome: 'Manalinda',             arquivo: 'manalinda.jpg',            largura: 560, altura: 2401, tipo: 'loja' },
+  /* As demais lojas. */
+  { nome: 'Casa Linda',            arquivo: 'casalinda.jpg',            largura: 560, altura: 2666, tipo: 'loja' },
+  { nome: 'Vettor 28',             arquivo: 'vettor28.jpg',             largura: 560, altura: 2605, tipo: 'loja' },
+  { nome: 'Lar e Vida',            arquivo: 'lar-e-vida.jpg',           largura: 560, altura: 2492, tipo: 'loja' },
+  { nome: 'Grupo Diságua',         arquivo: 'grupo-disagua.jpg',        largura: 560, altura: 2557, tipo: 'loja' },
+  { nome: 'Bloopi',                arquivo: 'bloopi.jpg',               largura: 560, altura: 4000, tipo: 'loja' },
+  /* Sites de serviço: fora do destaque, e não fora do ar. */
+  { nome: 'Medi Marketing',        arquivo: 'medi-marketing.jpg',       largura: 560, altura: 4000, tipo: 'outro' },
+  { nome: 'Food Métricas',         arquivo: 'foodmetricas.jpg',         largura: 560, altura: 4000, tipo: 'outro' },
+  { nome: 'Representantes',        arquivo: 'representantes.jpg',       largura: 560, altura: 3527, tipo: 'outro' },
+  { nome: 'Torres Contabilidade',  arquivo: 'torres-contabilidade.jpg', largura: 560, altura: 4000, tipo: 'outro' },
 ];
+
+/** A vitrine principal: as lojas. */
+export const lojas = trabalhos.filter((t) => t.tipo === 'loja');
+
+/** O rodapé da galeria: os sites de serviço. */
+export const outrosProjetos = trabalhos.filter((t) => t.tipo === 'outro');
 
 /**
  * Duração da rolagem, proporcional ao comprimento da página.

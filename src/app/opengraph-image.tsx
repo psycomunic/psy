@@ -14,7 +14,7 @@ import { site } from '@/conteudo/site';
 */
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-export const alt = `${site.nome} · operação de crescimento para e-commerce`;
+export const alt = site.og.alt;
 
 const MARINHO = '#101F3F';
 const MARINHO_FUNDO = '#0B1730';
@@ -77,9 +77,9 @@ export default function ImagemOG() {
               letterSpacing: -2.5,
             }}
           >
-            <div>Sua loja não precisa de</div>
-            <div>mais uma agência.</div>
-            <div style={{ color: MAGENTA_TEXTO }}>Precisa de uma operação.</div>
+            <div>Sua loja de moda não</div>
+            <div>precisa de mais uma agência.</div>
+            <div style={{ color: MAGENTA_TEXTO }}>Precisa de quem já vendeu milhões.</div>
           </div>
         </div>
 

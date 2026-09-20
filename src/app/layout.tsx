@@ -69,8 +69,9 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     siteName: marca.nome,
     url: site.url,
-    title: site.titulo,
-    description: site.descricao,
+    /* Texto proprio de rede social, e nao o de busca. Ver site.og. */
+    title: site.og.titulo,
+    description: site.og.descricao,
     /* A imagem vem de src/app/opengraph-image.tsx, que o Next injeta
        sozinho. Repetir aqui geraria duas og:image e a rede escolheria
        uma ao acaso. */
@@ -78,8 +79,8 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: site.titulo,
-    description: site.descricao,
+    title: site.og.titulo,
+    description: site.og.descricao,
   },
 
   robots: {

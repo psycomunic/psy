@@ -9,7 +9,7 @@
 export const marca = {
   nome: 'Psy Comunic',
   posicionamento:
-    'Uma operação de crescimento para e-commerce. Não uma agência de mídia.',
+    'Uma operação de crescimento para e-commerce de moda. Não uma agência de mídia.',
   proposito:
     'Transformar a maneira como crescemos ao evoluir o meio onde compramos.',
 
@@ -66,6 +66,59 @@ export const marca = {
 } as const;
 
 /**
+ * O faturamento da operação de onde vem a credencial.
+ *
+ * Uma constante, e não uma frase digitada em cada lugar. O site diz o
+ * número três vezes: no cartão da capa, na credencial 01 e na hero. As
+ * três precisam dizer EXATAMENTE o mesmo, porque quem lê "milhões" num
+ * lugar e "R$ 16 milhões" no outro conclui que o primeiro era enfeite.
+ *
+ * `ano` e `mes` são o mesmo fato em duas escalas, e existem porque o
+ * mês impressiona quem não consegue imaginar o ano. Usar as duas na
+ * mesma frase é proposital; usar uma terceira redação não é.
+ */
+export const faturamento = {
+  ano: 'R$ 16 milhões por ano',
+  mes: 'mais de R$ 1 milhão por mês',
+  curto: 'R$ 16 milhões',
+} as const;
+
+/**
+ * Os quatro cartões da capa, logo abaixo da hero.
+ *
+ * Estavam escritos dentro do JSX da home. Saíram de lá pela regra do
+ * projeto: texto do site mora em `src/conteudo`. Era também onde o
+ * número do faturamento podia divergir da credencial sem ninguém ver.
+ *
+ * `n` é o que aparece grande. `u` é a unidade em letra pequena ao
+ * lado, e é `null` quando o número já é uma frase. `d` é a linha de
+ * baixo, que diz de onde o número vem: número sem origem declarada é
+ * o tipo de coisa que o visitante desconta sozinho.
+ */
+export const numerosDaCapa = [
+  {
+    n: `${faturamento.curto}`,
+    u: 'por ano',
+    d: 'o faturamento do e-commerce do qual Angelo Garcia foi sócio',
+  },
+  {
+    n: '17',
+    u: 'anos',
+    d: 'de mercado em design, tecnologia e performance',
+  },
+  {
+    n: 'Centenas',
+    u: 'de lojas',
+    d: 'criadas, lançadas e colocadas para vender',
+  },
+  {
+    n: 'Do zero',
+    u: 'ao lançamento',
+    d: 'e as entregas contínuas depois dele, com o mesmo time',
+  },
+] as const;
+
+/**
  * Por que Angelo Garcia é quem responde pela operação.
  *
  * ============================================================
@@ -79,6 +132,18 @@ export const marca = {
  *
  * Agora é uma lista só, e a regra do projeto volta a valer: texto do
  * site mora em `src/conteudo`, não espalhado em JSX.
+ *
+ * ============================================================
+ * O NÚMERO É UM SÓ, E OS NOMES NÃO ENTRAM
+ * ============================================================
+ * O cartão 01 citava duas lojas pelo nome. Não cita mais: a operação
+ * de onde vem a credencial não é identificada no site.
+ *
+ * O faturamento é R$ 16 milhões por ano, e essa é a ÚNICA forma de
+ * escrever. "Milhões", "na casa dos milhões" e "R$ 16 mi" são a mesma
+ * afirmação com três pesos diferentes, e quem lê duas delas na mesma
+ * página desconfia das duas. Se o número mudar, muda aqui e em
+ * `faturamento`, logo acima, e todo lugar que o cita acompanha.
  *
  * ============================================================
  * CARGO SE CONFERE ANTES DE PUBLICAR
@@ -102,13 +167,13 @@ export const marca = {
 export const credenciais = [
   {
     i: '01',
-    t: '17+ anos em design e web',
-    d: 'Angelo Garcia trabalha com design gráfico e web desde antes de e-commerce virar assunto de todo mundo. É a base de por que a Psy Comunic trata a loja como produto, e não como suporte de anúncio.',
+    t: `Ex-sócio de e-commerce de ${faturamento.ano}`,
+    d: `Angelo Garcia foi sócio de um e-commerce que fatura ${faturamento.ano}, ${faturamento.mes}. Já viveu o estoque parado, o boleto que não é pago, a grade furada e a entrega que atrasa, do lado de quem responde por eles. É diferente de quem só gerencia anúncio.`,
   },
   {
     i: '02',
-    t: 'Ex-sócio de e-commerces de milhões',
-    d: 'Ele foi sócio da Casa Linda Decorações e da Lar e Vida, dois e-commerces com faturamento na casa dos milhões. Já viveu o estoque parado, o boleto que não é pago e a entrega que atrasa, do lado de quem responde por eles.',
+    t: '17+ anos em design e web',
+    d: 'Angelo trabalha com design gráfico e web desde antes de e-commerce virar assunto de todo mundo. É a base de por que a Psy Comunic trata a loja como produto, e não como suporte de anúncio.',
   },
   {
     i: '03',

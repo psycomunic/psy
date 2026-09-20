@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Botao } from './Botao';
+import { faturamento } from '@/conteudo/marca';
 
 /**
  * Hero Scroll Cinema: o astronauta, e a entrada pelo visor.
@@ -389,12 +390,19 @@ export function HeroCinema() {
           <div ref={(el) => { camadas.current[0] = el; }} className="sc-camada">
             <p className="sc-rotulo">
               <span aria-hidden className="h-px w-8 bg-magenta" />
-              <span data-decodifica>Do zero ao lançamento, e todo mês depois</span>
+              <span data-decodifica>Especialistas em e-commerce de moda</span>
             </p>
             <h1 className="sc-titulo mt-7 font-display font-extrabold tracking-[-0.045em]">
-              <span data-decodifica>Sua loja não precisa</span>
+              {/* Três linhas, e não duas. `.sc-titulo` é `white-space:
+                  nowrap`: a quebra mora aqui e a fonte encolhe para
+                  caber. "Sua loja de moda não precisa" numa linha só
+                  estourava 79px em 390. A linha mais longa agora tem
+                  17 caracteres, contra os 20 da versão anterior. */}
+              <span data-decodifica>Sua loja de moda</span>
               <br />
-              <span data-decodifica>de mais uma agência.</span>
+              <span data-decodifica>não precisa de</span>
+              <br />
+              <span data-decodifica>mais uma agência.</span>
             </h1>
           </div>
 
@@ -404,9 +412,9 @@ export function HeroCinema() {
               <span data-decodifica>Aproximando</span>
             </p>
             <p className="sc-titulo mt-7 font-display font-extrabold tracking-[-0.045em]">
-              <span data-decodifica>Precisa de uma</span>
+              <span data-decodifica>Precisa de quem</span>
               <br />
-              <span className="text-magenta-texto" data-decodifica>operação.</span>
+              <span className="text-magenta-texto" data-decodifica>já vendeu milhões.</span>
             </p>
           </div>
 
@@ -421,9 +429,11 @@ export function HeroCinema() {
               <span data-decodifica>E ficamos para fazer ela vender.</span>
             </p>
             <p className="mt-7 max-w-[52ch] text-guia text-neve">
-              A Psy Comunic <strong className="font-semibold text-branco">constrói a sua loja
-              do zero até o lançamento</strong> e continua entregando todo mês depois dele.
-              Gestão, tecnologia, marketing e logística rodando junto.
+              A Psy Comunic é conduzida por quem foi sócio de um e-commerce que fatura{' '}
+              <strong className="font-semibold text-branco">{faturamento.ano}</strong>.
+              Construímos a sua loja de moda do zero ao lançamento e continuamos
+              entregando todo mês depois dele: catálogo, página de produto, tráfego pago
+              e marketplaces.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>

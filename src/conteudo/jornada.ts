@@ -42,11 +42,12 @@ export const jornada: FaseDaJornada[] = [
     titulo: 'Do zero ao lançamento',
     entrega: 'Termina com a loja no ar, vendendo e medindo.',
     resumo:
-      'A Psy Comunic constrói a operação inteira, e não só a vitrine. Plataforma, catálogo, pagamento, frete, rastreamento e a primeira campanha saem daqui prontos para rodar.',
+      'A Psy Comunic constrói a operação inteira, e não só a vitrine. Plataforma, catálogo com grade e tabela de medidas, pagamento, frete, política de troca, rastreamento e a primeira campanha saem daqui prontos para rodar.',
     itens: [
       'Escolha e montagem da plataforma, na Magazord, na Shopify ou na que a operação pedir',
-      'Identidade da loja, layout, páginas e a arquitetura de categorias',
-      'Catálogo no ar: cadastro, fotos tratadas e descrições que vendem',
+      'Identidade da loja, layout e a arquitetura de categorias que a cliente de moda usa para comprar',
+      'Catálogo no ar: cadastro por grade e cor, fotos tratadas, tabela de medidas e descrições que vendem',
+      'Página de produto montada para a dúvida de quem compra roupa: caimento, tecido, medida e troca',
       'Checkout, gateway, antifraude e as regras de frete',
       'Integrações com ERP, marketplaces e WhatsApp',
       'Rastreamento completo: GA4, pixel, conversões e o painel de métricas',
@@ -60,10 +61,11 @@ export const jornada: FaseDaJornada[] = [
     titulo: 'Entregas contínuas',
     entrega: 'Não termina: é o mês seguinte, e o seguinte.',
     resumo:
-      'Lançar é o começo. A partir daí a operação roda com meta declarada, leitura semanal e ajuste em cima do número que a loja faturou, e não do que a plataforma de mídia diz ter gerado.',
+      'Lançar é o começo. A partir daí a operação roda com meta declarada, leitura semanal e ajuste em cima do número que a loja faturou, e não do que a plataforma de mídia diz ter gerado. Cada coleção que entra é uma operação nova: cadastro, campanha e vitrine.',
     itens: [
-      'Mídia paga gerida com meta de faturamento, e não com meta de clique',
+      'Mídia paga no Google e no Meta gerida com meta de faturamento, e não com meta de clique',
       'Conteúdo e criativos do dia a dia, com direção do material que a sua equipe grava',
+      'Lançamento de coleção: cadastro, vitrine, campanha e calendário de datas',
       'Recuperação de carrinho e de boleto',
       'Ajuste contínuo de plataforma, checkout e taxa de aprovação',
       'Gestão de marketplaces e novos canais de venda',
@@ -75,7 +77,7 @@ export const jornada: FaseDaJornada[] = [
 
 /** A frase-síntese. Usada no site e na proposta, sempre igual. */
 export const promessaCompleta =
-  'A Psy Comunic entrega o seu e-commerce do zero ao lançamento, e continua entregando todo mês depois dele.';
+  'A Psy Comunic entrega o seu e-commerce de moda do zero ao lançamento, e continua entregando todo mês depois dele.';
 
 /**
  * O que separa a Psy Comunic de contratar em pedaços.
@@ -122,3 +124,45 @@ export const criteriosDeLancamento = [
   'Conta do Google Ads configurada',
   'Todas as tags de conversão e de acompanhamento instaladas e testadas',
 ];
+
+/**
+ * Os três níveis de parceria, em palavras.
+ *
+ * Estavam escritos dentro do JSX da home, no meio da cena da descida.
+ * Saíram de lá pela regra do projeto, e porque eram o único texto
+ * comercial do site que ninguém encontrava para revisar.
+ *
+ * NÃO TEM PREÇO, e é de propósito: a tabela de planos saiu do site: o
+ * que fica é a escada, que responde "até onde vocês entram?" sem
+ * virar cardápio que desconto nenhum consegue negociar depois.
+ *
+ * `onde` é a metáfora de altitude que a cena em vídeo usa, e por isso
+ * a ordem desta lista é a ordem em que o altímetro desce. Trocar a
+ * ordem aqui desalinha o painel da agulha.
+ */
+export const niveisDeParceria = [
+  {
+    n: '01',
+    onde: 'Órbita',
+    titulo: 'Só a mídia',
+    texto:
+      'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
+    paraQuem: 'Para a loja de moda que já vende e quer parar de gastar no escuro.',
+  },
+  {
+    n: '02',
+    onde: 'Atmosfera',
+    titulo: 'Mídia e canais próprios',
+    texto:
+      'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de coleção e de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
+    paraQuem: 'Para quem depende demais de comprar tráfego.',
+  },
+  {
+    n: '03',
+    onde: 'Superfície',
+    titulo: 'A operação inteira',
+    texto:
+      'Tudo acima, mais plataforma, marketplaces, funil comercial, catálogo e mentoria do seu time. A agência dentro da operação.',
+    paraQuem: 'Para quem quer crescer sem montar um time do zero.',
+  },
+] as const;

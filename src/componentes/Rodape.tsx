@@ -19,7 +19,12 @@ const formatado = whatsapp.numero.replace(
  */
 export function Rodape({
   zap,
-}: { zap?: { link: string; visivel: string; pagina: string } } = {}) {
+  posicionamento,
+}: {
+  zap?: { link: string; visivel: string; pagina: string };
+  /** Troca a linha sob a marca. Mesmo motivo do `zap`: ver braganca.ts. */
+  posicionamento?: string;
+} = {}) {
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-fio bg-marinho-fundo">
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -31,7 +36,7 @@ export function Rodape({
           <div>
             <Marca />
             <p className="mt-5 max-w-[30ch] leading-relaxed text-cinza">
-              {marca.posicionamento}
+              {posicionamento ?? marca.posicionamento}
             </p>
 
             <div className="mt-8 space-y-2.5">

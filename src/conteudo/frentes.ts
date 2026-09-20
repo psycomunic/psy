@@ -1,6 +1,13 @@
 /**
  * As 4 frentes de serviço. É a espinha dorsal do site: alimenta a home,
  * o hub /servicos e as quatro páginas filhas, que usam um template só.
+ *
+ * A PRIMEIRA `duvida` NÃO É UMA DUVIDA QUALQUER. A home monta a seção
+ * de diagnóstico com `duvidas[0]` de cada frente, então essas quatro
+ * frases são a única fala de dor que o visitante lê antes de decidir
+ * se desce a página. Elas são de moda de propósito: tamanho, caimento,
+ * grade e devolução. Reordenar a lista troca o cartaz da home sem que
+ * ninguém perceba.
  */
 export type Frente = {
   slug: string;
@@ -15,15 +22,16 @@ export const frentes: Frente[] = [
     slug: 'gestao',
     nome: 'Gestão',
     resumo:
-      'Onde a operação é desenhada: mercado, viabilidade, canais e quem faz o quê.',
+      'Onde a operação é desenhada: mercado de moda, mix de coleção, canais e quem faz o quê.',
     contribuicoes: [
-      'Análise do mercado potencial e da concorrência',
-      'Viabilidade do negócio',
-      'Busca de novos canais',
+      'Análise das marcas que disputam a sua cliente',
+      'Viabilidade do mix, do preço e da margem',
+      'Busca de novos canais de venda',
       'Integração com marketplaces, televendas e lojas físicas',
       'Definição de organograma e atribuições',
     ],
     duvidas: [
+      'Todo mundo vende a mesma peça. Como eu me diferencio?',
       'Quem são meus concorrentes na internet?',
       'Quais os melhores canais para o meu produto?',
       'Estou precisando de uma equipe. Qual experiência ela precisa ter?',
@@ -35,15 +43,16 @@ export const frentes: Frente[] = [
     slug: 'tecnologia',
     nome: 'Tecnologia',
     resumo:
-      'Onde a visita vira pedido: plataforma, velocidade, checkout e integrações.',
+      'Onde a visita vira pedido: plataforma, velocidade, página de produto e checkout.',
     contribuicoes: [
       'Absorver ao máximo o potencial da plataforma',
-      'Otimizar a navegação buscando melhor usabilidade e aumento de conversão',
+      'Página de produto e navegação por categoria montadas para aumentar conversão',
       'Monitorar disponibilidade e tempo de resposta dos servidores',
       'Integração de gateway, adquirentes e antifraude',
       'Integração aos processos internos da empresa',
     ],
     duvidas: [
+      'Minha cliente olha o produto e não compra. O que falta na página?',
       'Estou tendo muitas visitas mas poucas vendas. O que posso melhorar?',
       'Meu site está lento e não sei o que fazer.',
       'Como posso ter mais agilidade no faturamento dos pedidos?',
@@ -54,9 +63,9 @@ export const frentes: Frente[] = [
     slug: 'marketing',
     nome: 'Marketing',
     resumo:
-      'Onde o investimento vira receita: mídia paga, criativo, conteúdo e ROI por canal.',
+      'Onde o investimento vira receita: Google, Meta, criativo, conteúdo e ROI por canal.',
     contribuicoes: [
-      'Identificar os produtos que despertam mais interesse e os mais vendidos',
+      'Identificar as peças que puxam venda e sustentam a campanha',
       'Monitorar ROI por mídia para aumentar a rentabilidade do investimento',
       'Administração dos investimentos em mídia paga',
       'Manter os novos clientes envolvidos com conteúdo de blog e mídias sociais',
@@ -66,6 +75,7 @@ export const frentes: Frente[] = [
       'Elaboração de conteúdos que conversam com as estratégias propostas',
     ],
     duvidas: [
+      'Como cadastrar grade, cor e tabela de medidas sem virar bagunça?',
       'Como posso melhorar meu cadastro de produto?',
       'Como vou me manter atrativo para os clientes?',
       'Como posso investir em mídia de forma mais assertiva?',
@@ -80,12 +90,13 @@ export const frentes: Frente[] = [
       'Onde o pedido vira cliente que volta: SLA, entrega, aprovação de pagamento e recompra.',
     contribuicoes: [
       'Identificar os canais importantes para atendimento',
-      'Mapear fluxos de atendimento',
+      'Mapear fluxos de atendimento e a política de troca',
       'Aproximação com transportadoras e atendimento por faixas de CEP',
       'Monitoramento das entregas e dos SLAs',
       'Aumento de conversão entre pedidos captados e faturados',
     ],
     duvidas: [
+      'Minha taxa de troca e devolução está alta demais. Como reduzo?',
       'Como incentivo meus clientes a comentarem mais?',
       'Como posso aproveitar o feedback dos clientes para melhorar o serviço?',
       'Como aumentar a taxa de aprovação das formas de pagamento?',
@@ -97,7 +108,7 @@ export const frentes: Frente[] = [
 
 /** Os 4 resultados. Seção 3 do escopo. */
 export const resultados = [
-  'Otimização da estrutura do e-commerce',
+  'Otimização da estrutura do e-commerce de moda',
   'Otimização da aquisição de clientes',
   'Aceleração de conversões e retenção de clientes',
   'Plano de comunicação e presença digital da marca',
@@ -108,7 +119,7 @@ export const metodologia = [
   {
     nome: 'Briefing & diagnóstico',
     texto:
-      'Analisamos o mercado nacional e internacional em busca de boas práticas da concorrência. Definimos, planejamos e documentamos as principais estratégias a serem implementadas para o negócio.',
+      'Analisamos o mercado de moda nacional e internacional em busca de boas práticas da concorrência. Definimos, planejamos e documentamos as principais estratégias a serem implementadas para o negócio.',
   },
   {
     nome: 'Checklist operacional',

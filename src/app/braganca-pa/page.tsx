@@ -95,6 +95,9 @@ export default function PaginaBraganca() {
         visivel: u.telefoneVisivel,
         pagina: u.slug,
       }}
+      /* Pelo mesmo motivo: o rodape global fala de e-commerce de moda,
+         que nao e o assunto desta pagina. */
+      posicionamentoRodape={u.posicionamento}
     >
       <UnidadeLocal
         id="#unidade"

@@ -14,12 +14,29 @@ export const site = {
   nome: 'Psy Comunic',
   nomeCurto: 'Psy Comunic',
 
-  titulo: 'Psy Comunic · E-commerce, tráfego pago e performance',
+  titulo: 'Psy Comunic · E-commerce de moda, tráfego pago e performance',
 
   /* Até 155 caracteres. Mais que isso o Google corta no meio da frase.
-     Esta tem 154. */
+     Esta tem 152. */
   descricao:
-    'Operação completa para e-commerce: gestão, tecnologia, tráfego pago no Google e Meta, e logística. Diagnóstico gratuito nas quatro frentes.',
+    'Criamos e operamos e-commerce de moda: plataforma, página de produto, categorização, tráfego pago no Google e Meta e marketplaces. Diagnóstico gratuito.',
+
+  /*
+    O par que vai para o Facebook, o Instagram e o WhatsApp.
+
+    É texto DIFERENTE do de busca, e não uma segunda cópia dele. O
+    título de busca disputa uma lista de dez resultados e por isso
+    carrega as palavras que a pessoa digitou. O título de rede social
+    aparece sozinho, embaixo de uma imagem, e o que ele precisa é dar
+    vontade de tocar. Antes os dois eram o mesmo, e o de rede social
+    pagava o preço.
+  */
+  og: {
+    titulo: 'Psy Comunic · E-commerce de moda que vende',
+    descricao:
+      'Operação completa para loja de moda, do catálogo ao tráfego pago. Diagnóstico gratuito nas quatro frentes.',
+    alt: 'Psy Comunic · operação de crescimento para e-commerce de moda',
+  },
 
   /*
     PENDÊNCIA: cidade e estado.
