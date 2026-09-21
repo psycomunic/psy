@@ -61,7 +61,7 @@ function Moldura({ children }: { children: React.ReactNode }) {
 function Barra({ w, claro = false }: { w: string; claro?: boolean }) {
   return (
     <span
-      className={`block h-1.5 rounded-full ${claro ? 'bg-white/28' : 'bg-white/14'}`}
+      className={`block h-1.5 rounded-full ${claro ? 'bg-tinta/20' : 'bg-tinta/12'}`}
       style={{ width: w }}
     />
   );
@@ -74,27 +74,27 @@ function CenaAnuncio() {
   return (
     <Moldura>
       <div className="relative w-full max-w-[330px]">
-        <div className="cena-post overflow-hidden rounded-xl border border-fio bg-marinho-alto/80 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+        <div className="cena-post overflow-hidden rounded-xl border border-fio bg-papel-alt/80 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
           {/* Cabeçalho do post */}
           <div className="flex items-center gap-2 px-3 py-2">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[conic-gradient(from_210deg,var(--magenta),#F59E0B,#7C3AED,var(--magenta))]">
-              <span className="h-[22px] w-[22px] rounded-full bg-marinho-alto" />
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[conic-gradient(from_210deg,var(--psy-pink),#F59E0B,#7C3AED,var(--psy-pink))]">
+              <span className="h-[22px] w-[22px] rounded-full bg-papel-alt" />
             </span>
             <span className="min-w-0">
-              <span className="block text-[0.6rem] font-semibold leading-tight text-neve">
+              <span className="block text-[0.6rem] font-semibold leading-tight text-tinta">
                 Sua empresa
               </span>
-              <span className="block font-mono text-[0.5rem] leading-tight text-cinza">
+              <span className="block text-[0.5rem] leading-tight text-tinta-fraca">
                 Bragança, PA
               </span>
             </span>
-            <span className="ml-auto rounded-full border border-magenta/50 px-2 py-0.5 font-mono text-[0.46rem] uppercase tracking-[0.1em] text-magenta-texto">
+            <span className="ml-auto rounded-full border border-rosa/50 px-2 py-0.5 text-[0.46rem] text-acento">
               Patrocinado
             </span>
           </div>
 
           {/* A arte do anúncio */}
-          <div className="relative h-[60px] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--magenta)_42%,transparent),color-mix(in_oklab,#2B6BFF_32%,transparent))]">
+          <div className="relative h-[60px] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--psy-pink)_42%,transparent),color-mix(in_oklab,#2B6BFF_32%,transparent))]">
             <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(6,9,26,0.55))]" />
             <span className="absolute bottom-2 left-3 right-3 flex flex-col gap-1">
               <Barra w="62%" claro />
@@ -107,10 +107,10 @@ function CenaAnuncio() {
             <svg viewBox="0 0 24 24" className="cena-curtir h-3.5 w-3.5" fill="currentColor">
               <path d="M12 20.5s-7.5-4.6-7.5-9.4A4.1 4.1 0 0 1 12 8.6a4.1 4.1 0 0 1 7.5 2.5c0 4.8-7.5 9.4-7.5 9.4Z" />
             </svg>
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-tinta-fraca" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 11.5a8 8 0 0 1-11.6 7.1L3 20.5l1.9-6.4A8 8 0 1 1 21 11.5Z" strokeLinejoin="round" />
             </svg>
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-tinta-fraca" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21.5 3 2.5 10.2l7.2 2.7 2.7 7.2L21.5 3Z" strokeLinejoin="round" />
             </svg>
           </div>
@@ -119,29 +119,29 @@ function CenaAnuncio() {
           <div className="px-3 pt-2">
             <Barra w="78%" />
           </div>
-          <div className="cena-cta mx-3 mb-2.5 mt-2.5 flex items-center justify-center gap-1.5 rounded-lg bg-magenta py-1.5">
-            <svg viewBox="0 0 24 24" className="h-3 w-3 text-branco" fill="currentColor">
+          <div className="cena-cta mx-3 mb-2.5 mt-2.5 flex items-center justify-center gap-1.5 rounded-lg bg-rosa py-1.5">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 text-tinta" fill="currentColor">
               <path d="M12 2a10 10 0 0 0-8.7 15l-1.2 4.3 4.4-1.2A10 10 0 1 0 12 2Z" />
             </svg>
-            <span className="text-[0.58rem] font-semibold text-branco">Enviar mensagem</span>
+            <span className="text-[0.58rem] font-semibold text-tinta">Enviar mensagem</span>
           </div>
         </div>
 
         {/* A conversa que chega */}
-        <div className="cena-zap mt-2 overflow-hidden rounded-xl border border-fio bg-marinho-fundo/95 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+        <div className="cena-zap mt-2 overflow-hidden rounded-xl border border-fio bg-papel-alt/95 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
           <div className="space-y-1.5 p-2">
             {/* Quem chegou pelo anúncio */}
-            <div className="cena-balao w-[76%] rounded-lg rounded-tl-sm border border-fio bg-marinho-alto/80 px-2.5 py-1">
-              <span className="block text-[0.55rem] leading-snug text-neve">
+            <div className="cena-balao w-[76%] rounded-lg rounded-tl-sm border border-fio bg-papel-alt/80 px-2.5 py-1">
+              <span className="block text-[0.55rem] leading-snug text-tinta">
                 Oi! Vi o anúncio, vocês atendem em Bragança?
               </span>
             </div>
 
             {/* O "digitando", que é o instante entre a pergunta e a resposta */}
-            <div className="cena-digitando flex w-max items-center gap-1 rounded-lg bg-marinho-alto/60 px-2.5 py-2">
-              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
-              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
-              <span className="cena-ponto h-1 w-1 rounded-full bg-cinza" />
+            <div className="cena-digitando flex w-max items-center gap-1 rounded-lg bg-papel-alt/60 px-2.5 py-2">
+              <span className="cena-ponto h-1 w-1 rounded-full bg-tinta-fraca" />
+              <span className="cena-ponto h-1 w-1 rounded-full bg-tinta-fraca" />
+              <span className="cena-ponto h-1 w-1 rounded-full bg-tinta-fraca" />
             </div>
 
             {/* A resposta */}
@@ -150,7 +150,7 @@ function CenaAnuncio() {
                 Atendemos sim. Pode me contar o que precisa?
               </span>
               <span className="mt-0.5 flex items-center justify-end gap-1">
-                <span className="font-mono text-[0.42rem] text-[#06210F]/60">agora</span>
+                <span className="text-[0.42rem] text-[#06210F]/60">agora</span>
                 <svg viewBox="0 0 24 24" className="cena-tique h-2.5 w-2.5 text-[#0B4FA8]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                   <path d="m2 13 4 4 8-9M10 17l8-9" />
                 </svg>
@@ -170,27 +170,27 @@ function CenaBusca() {
   return (
     <Moldura>
       <div className="w-full max-w-[340px]">
-        <div className="flex items-center gap-2.5 rounded-full border border-fio bg-marinho-alto/75 px-4 py-2.5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.85)]">
-          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 flex-none text-cinza" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="flex items-center gap-2.5 rounded-full border border-fio bg-papel-alt/75 px-4 py-2.5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.85)]">
+          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 flex-none text-tinta-fraca" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" strokeLinecap="round" />
           </svg>
-          <span className="cena-digita font-mono text-[0.6rem] text-neve">
+          <span className="cena-digita text-[0.6rem] text-tinta">
             eletricista em bragança
           </span>
-          <span className="cena-cursor h-3 w-px flex-none bg-magenta" />
+          <span className="cena-cursor h-3 w-px flex-none bg-rosa" />
         </div>
 
         <div className="mt-3 space-y-2">
           {/* O resultado patrocinado, que é o entregável */}
-          <div className="cena-linha-1 rounded-lg border border-magenta/45 bg-magenta/[0.08] p-2.5">
+          <div className="cena-linha-1 rounded-lg border border-rosa/45 bg-rosa/[0.08] p-2.5">
             <div className="flex items-center gap-1.5">
-              <span className="rounded border border-magenta/50 px-1.5 py-px font-mono text-[0.44rem] uppercase tracking-[0.08em] text-magenta-texto">
+              <span className="rounded border border-rosa/50 px-1.5 py-px text-[0.44rem] text-acento">
                 Anúncio
               </span>
-              <span className="font-mono text-[0.46rem] text-cinza">suaempresa.com.br</span>
+              <span className="text-[0.46rem] text-tinta-fraca">suaempresa.com.br</span>
             </div>
-            <span className="mt-1.5 block text-[0.62rem] font-semibold leading-snug text-neve">
+            <span className="mt-1.5 block text-[0.62rem] font-semibold leading-snug text-tinta">
               Sua empresa · Atendimento em Bragança e região
             </span>
             <span className="mt-1 block space-y-1">
@@ -202,7 +202,7 @@ function CenaBusca() {
               {['Ligar', 'Como chegar', 'WhatsApp'].map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-fio px-2 py-0.5 font-mono text-[0.44rem] uppercase tracking-[0.06em] text-cinza"
+                  className="rounded-full border border-fio px-2 py-0.5 text-[0.44rem] text-tinta-fraca"
                 >
                   {t}
                 </span>
@@ -240,7 +240,7 @@ function CenaMapa() {
         {/* As ruas, desenhando-se antes do pino cair */}
         <svg
           viewBox="0 0 320 120"
-          className="absolute inset-x-0 top-0 h-[120px] w-full text-magenta/25"
+          className="absolute inset-x-0 top-0 h-[120px] w-full text-acento/25"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
@@ -252,35 +252,35 @@ function CenaMapa() {
         </svg>
 
         <div className="relative grid place-items-center pb-1 pt-4">
-          <span className="cena-onda absolute h-16 w-16 rounded-full border border-magenta" />
+          <span className="cena-onda absolute h-16 w-16 rounded-full border border-rosa" />
           <svg
             viewBox="0 0 24 24"
-            className="cena-pino relative h-14 w-14 text-magenta drop-shadow-[0_8px_16px_rgba(228,21,95,0.6)]"
+            className="cena-pino relative h-14 w-14 text-acento drop-shadow-[0_8px_16px_rgba(255,46,99,0.6)]"
             fill="currentColor"
           >
             <path d="M12 2c-3.9 0-7 3.1-7 7 0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7Z" />
-            <circle cx="12" cy="9" r="2.6" fill="var(--marinho-fundo)" />
+            <circle cx="12" cy="9" r="2.6" fill="var(--bg)" />
           </svg>
         </div>
 
         {/* A ficha da empresa no Maps */}
-        <div className="cena-ficha rounded-xl border border-fio bg-marinho-alto/85 p-3 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
+        <div className="cena-ficha rounded-xl border border-fio bg-papel-alt/85 p-3 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[linear-gradient(135deg,var(--magenta),#7C3AED)]">
-              <svg viewBox="0 0 24 24" className="h-4 w-4 text-branco" fill="none" stroke="currentColor" strokeWidth="2">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[linear-gradient(135deg,var(--psy-pink),#7C3AED)]">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-tinta" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z" />
                 <path d="M3 9l1.6-4.2A1 1 0 0 1 5.5 4h13a1 1 0 0 1 .9.8L21 9" />
               </svg>
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[0.64rem] font-semibold leading-tight text-neve">
+              <span className="block text-[0.64rem] font-semibold leading-tight text-tinta">
                 Sua empresa
               </span>
               <span className="mt-1 block">
                 <Barra w="60%" />
               </span>
             </span>
-            <span className="cena-chip flex-none rounded-full border border-[#25D366]/45 bg-[#25D366]/10 px-2 py-0.5 font-mono text-[0.44rem] uppercase tracking-[0.06em] text-[#25D366]">
+            <span className="cena-chip flex-none rounded-full border border-[#25D366]/45 bg-[#25D366]/10 px-2 py-0.5 text-[0.44rem] text-[#25D366]">
               Aberto
             </span>
           </div>
@@ -289,7 +289,7 @@ function CenaMapa() {
               inventada, mesmo dentro de um desenho. */}
           <div className="mt-2.5 flex items-center gap-1">
             {[0, 1, 2, 3, 4].map((i) => (
-              <svg key={i} viewBox="0 0 24 24" className="cena-estrela h-3 w-3 text-magenta-texto" fill="currentColor">
+              <svg key={i} viewBox="0 0 24 24" className="cena-estrela h-3 w-3 text-acento" fill="currentColor">
                 <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1-4.5-4.2 6.1-.8L12 3Z" />
               </svg>
             ))}
@@ -305,12 +305,12 @@ function CenaMapa() {
             ].map((b) => (
               <span
                 key={b.t}
-                className="flex flex-col items-center gap-1 rounded-lg border border-fio py-1.5 text-magenta-texto"
+                className="flex flex-col items-center gap-1 rounded-lg border border-fio py-1.5 text-acento"
               >
                 <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
                   <path d={b.d} />
                 </svg>
-                <span className="font-mono text-[0.42rem] uppercase tracking-[0.06em] text-cinza">
+                <span className="text-[0.42rem] text-tinta-fraca">
                   {b.t}
                 </span>
               </span>

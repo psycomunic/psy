@@ -83,7 +83,30 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
       if (v && !v.paused) v.pause();
     }
 
-    window.addEventListener('cena-terminou', abrir as EventListener);
+    /*
+      O popup abre quando a ABERTURA TERMINA DE PASSAR.
+
+      Antes o sinal vinha da cena em video, que disparava
+      `cena-terminou` ao chegar em 98,5% do progresso. A cena saiu com
+      a metafora espacial, e o gatilho virou geometrico: observa a
+      secao de abertura e dispara quando ela sai por cima. Mesmo
+      momento da leitura, sem depender de video nenhum.
+
+      `top < 0` e o que separa "saiu por cima" de "ainda nao entrou":
+      sem isso o popup abriria no carregamento, antes de a pessoa ler
+      qualquer coisa.
+    */
+    const abertura = document.querySelector('[data-abertura]');
+    const observador = abertura
+      ? new IntersectionObserver(
+          ([e]) => {
+            if (!e.isIntersecting && e.boundingClientRect.top < 0) abrir();
+          },
+          { threshold: 0 },
+        )
+      : null;
+    observador?.observe(abertura!);
+
     d.addEventListener('close', aoFechar);
 
     const aoClicar = (e: MouseEvent) => {
@@ -92,7 +115,7 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
     d.addEventListener('click', aoClicar);
 
     return () => {
-      window.removeEventListener('cena-terminou', abrir as EventListener);
+      observador?.disconnect();
       d.removeEventListener('close', aoFechar);
       d.removeEventListener('click', aoClicar);
       document.body.style.overflow = '';
@@ -119,7 +142,7 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
       ref={caixa}
       aria-labelledby="apresentacao-titulo"
       className={
-        'popup-apresentacao rounded-[var(--raio)] border border-fio bg-marinho-fundo p-0 text-branco ' +
+        'popup-apresentacao rounded-[var(--raio)] border border-fio bg-papel-alt p-0 text-tinta ' +
         'backdrop:bg-[rgba(6,9,26,0.88)] backdrop:backdrop-blur-sm ' +
         (a.video ? 'w-[min(58rem,94vw)]' : 'w-[min(46rem,92vw)]')
       }
@@ -158,11 +181,11 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
             >
               <span
                 aria-hidden
-                className="flex h-[74px] w-[74px] items-center justify-center rounded-full bg-magenta pl-1.5 text-3xl text-branco shadow-[0_10px_40px_-8px_rgba(228,21,95,0.9)]"
+                className="flex h-[74px] w-[74px] items-center justify-center rounded-full bg-rosa pl-1.5 text-3xl text-branco shadow-[0_10px_40px_-8px_rgba(255,46,99,0.9)]"
               >
                 ▶
               </span>
-              <span className="rounded-full bg-marinho-fundo/90 px-5 py-2.5 text-sm font-semibold">
+              <span className="rounded-full bg-papel-alt/90 px-5 py-2.5 text-sm font-semibold">
                 Assistir à apresentação
               </span>
             </button>
@@ -172,7 +195,7 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
             type="button"
             onClick={() => caixa.current?.close()}
             aria-label="Fechar"
-            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(6,9,26,0.7)] text-neve transition-colors hover:bg-marinho hover:text-branco"
+            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(6,9,26,0.7)] text-tinta transition-colors hover:bg-papel hover:text-tinta"
           >
             <span aria-hidden className="text-xl leading-none">
               ×
@@ -191,7 +214,7 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
                 que a pessoa está mais perto de agir. */}
             <p
               className={
-                'mt-3 max-w-[60ch] leading-relaxed text-cinza ' + (acabou ? 'text-neve' : '')
+                'mt-3 max-w-[60ch] leading-relaxed text-tinta-fraca ' + (acabou ? 'text-tinta' : '')
               }
             >
               {a.texto}
@@ -201,15 +224,14 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
                 href={linkDaUnidade(u, a.mensagem)}
                 pagina={u.slug}
                 secao="apresentacao"
-                className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full bg-magenta px-7 text-sm font-semibold tracking-wide text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-magenta-forte"
+                className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full bg-rosa px-7 text-sm font-semibold tracking-wide text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-rosa-forte"
               >
                 {a.acao}
-                <span aria-hidden>→</span>
               </LinkWhatsapp>
               <button
                 type="button"
                 onClick={() => caixa.current?.close()}
-                className="inline-flex min-h-[52px] items-center rounded-full px-6 text-sm font-semibold text-cinza transition-colors hover:text-branco"
+                className="inline-flex min-h-[52px] items-center rounded-full px-6 text-sm font-semibold text-tinta-fraca transition-colors hover:text-tinta"
               >
                 Continuar lendo a página
               </button>
@@ -222,15 +244,15 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
             type="button"
             onClick={() => caixa.current?.close()}
             aria-label="Fechar"
-            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full text-cinza transition-colors hover:bg-white/5 hover:text-branco"
+            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-tinta"
           >
             <span aria-hidden className="text-xl leading-none">
               ×
             </span>
           </button>
 
-          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-            <span aria-hidden className="h-px w-8 bg-magenta" />
+          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
+            <span aria-hidden className="h-px w-8 bg-rosa" />
             {u.cidade}, {u.estado}
           </p>
 
@@ -241,12 +263,12 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
             {a.titulo}
           </h2>
 
-          <p className="mt-5 max-w-[56ch] leading-relaxed text-neve">{a.texto}</p>
+          <p className="mt-5 max-w-[56ch] leading-relaxed text-tinta">{a.texto}</p>
 
           <ul className="mt-7 grid gap-3">
             {a.topicos.map((t) => (
-              <li key={t} className="flex gap-3 leading-relaxed text-cinza">
-                <span aria-hidden className="mt-1.5 flex-none text-magenta-texto">
+              <li key={t} className="flex gap-3 leading-relaxed text-tinta-fraca">
+                <span aria-hidden className="mt-1.5 flex-none text-acento">
                   ●
                 </span>
                 {t}
@@ -259,15 +281,14 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
               href={linkDaUnidade(u, a.mensagem)}
               pagina={u.slug}
               secao="apresentacao"
-              className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full bg-magenta px-7 text-sm font-semibold tracking-wide text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-magenta-forte"
+              className="inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full bg-rosa px-7 text-sm font-semibold tracking-wide text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-rosa-forte"
             >
               {a.acao}
-              <span aria-hidden>→</span>
             </LinkWhatsapp>
             <button
               type="button"
               onClick={() => caixa.current?.close()}
-              className="inline-flex min-h-[52px] items-center rounded-full px-6 text-sm font-semibold text-cinza transition-colors hover:text-branco"
+              className="inline-flex min-h-[52px] items-center rounded-full px-6 text-sm font-semibold text-tinta-fraca transition-colors hover:text-tinta"
             >
               Continuar lendo a página
             </button>

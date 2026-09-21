@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Casca, canonical } from '@/componentes/Casca';
 import {
+  HeroLocal,
   ProblemasLocal,
   ServicosLocal,
   PassosLocal,
@@ -11,7 +12,6 @@ import {
   FechamentoLocal,
   ZapFlutuanteLocal,
 } from '@/componentes/local/Blocos';
-import { HeroCinemaLocal } from '@/componentes/local/HeroCinemaLocal';
 import { PopupApresentacao } from '@/componentes/local/PopupApresentacao';
 import {
   PerguntasFrequentes,
@@ -35,19 +35,16 @@ import { site, urlAbsoluta } from '@/conteudo/site';
  * vocabulário técnico fica no rodapé de cada bloco, nunca no título.
  *
  * ============================================================
- * UMA CENA DE VÍDEO, E SÓ UMA
+ * A CENA DE VÍDEO SAIU
  * ============================================================
- * A abertura é uma cena amarrada à rolagem (`HeroCinemaLocal`): a
- * câmera sobe do chão do mangue até ver Bragança acesa do outro lado do
- * rio. É a única cena da página, de propósito: quem abre vem de
- * anúncio, no celular, e o hero da unidade é o único lugar em que o
- * peso (~15 MB, todo quadro keyframe) se paga. O resto do clima é foto
- * estática de fundo, abaixo de 300 KB cada, atrás de um véu.
+ * A abertura era uma cena amarrada à rolagem: a câmera sobrevoava a
+ * orla do Caeté. Eram 17,4 MB, e o LCP no 3G media 3348ms contra a
+ * meta de 2,5s que o briefing desta página fixou. Já estava anotado
+ * como dívida; a troca de tema cobrou.
  *
- * A decisão de carregar o vídeo também no celular foi tomada com o
- * peso na mesa. Se o dado do GA4 mostrar queda de conversão no 4G, a
- * volta é trocar `HeroCinemaLocal` por `HeroLocal` nesta rota, que
- * continua em `Blocos.tsx` sem vídeo.
+ * Agora é `HeroLocal`, que sempre existiu em `Blocos.tsx` e era a
+ * volta documentada para este caso. Quem abre esta página vem de
+ * anúncio, no celular, e é ela quem mais ganha com o corte.
  *
  * ============================================================
  * O NÚMERO DAQUI É O (91)
@@ -113,7 +110,7 @@ export default function PaginaBraganca() {
       <PerguntasFrequentes perguntas={u.perguntas} />
       <Trilha itens={[{ nome: `${u.cidade}, ${u.estado}`, caminho: `/${u.slug}` }]} />
 
-      <HeroCinemaLocal u={u} />
+      <HeroLocal u={u} />
       <ProblemasLocal u={u} />
       <ServicosLocal u={u} />
       <PassosLocal u={u} />

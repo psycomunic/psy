@@ -18,9 +18,9 @@ import type { ReactNode } from 'react';
  * ============================================================
  * A ALTURA
  * ============================================================
- * O slide é uma grade de duas faixas: cabeçalho e corpo. O corpo leva
+ * O slide é uma de duas faixas: cabeçalho e corpo. O corpo leva
  * `min-h-0` porque, sem isso, um filho com rolagem própria estoura a
- * grade em vez de rolar — é o comportamento padrão do CSS grid, e é o
+ * em vez de rolar — é o comportamento padrão do CSS grid, e é o
  * erro que faz o fim de uma lista longa simplesmente não existir no
  * telefone.
  */
@@ -48,8 +48,8 @@ export function Slide({
       {rotulo || titulo || apoio ? (
         <header className="flex-none">
           {rotulo ? (
-            <p className="flex items-center gap-3 font-mono uppercase tracking-[0.2em] text-magenta-texto [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
-              <span aria-hidden className="h-px w-7 flex-none bg-magenta sm:w-10" />
+            <p className="flex items-center gap-3 text-acento [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
+              <span aria-hidden className="h-px w-7 flex-none bg-rosa sm:w-10" />
               {rotulo}
             </p>
           ) : null}
@@ -61,7 +61,7 @@ export function Slide({
           ) : null}
 
           {apoio ? (
-            <p className="mt-4 max-w-[54ch] text-guia leading-relaxed text-neve sm:mt-5">
+            <p className="mt-4 max-w-[54ch] text-guia leading-relaxed text-tinta sm:mt-5">
               {apoio}
             </p>
           ) : null}
@@ -93,7 +93,7 @@ export function Bloco({
     <div
       className={
         'cartao p-4 sm:p-6 ' +
-        (destaque ? 'border-magenta/50 shadow-[0_24px_60px_-30px_rgba(228,21,95,0.6)] ' : '') +
+        (destaque ? 'border-rosa/50 shadow-[0_24px_60px_-30px_rgba(255,46,99,0.6)] ' : '') +
         className
       }
     >

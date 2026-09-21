@@ -24,7 +24,7 @@ import type { Papel } from '@/lib/papeis';
 export async function Configuracoes({ papel }: { papel: Papel }) {
   if (papel !== 'administrador') {
     return (
-      <p className="cartao p-6 text-sm leading-relaxed text-cinza">
+      <p className="cartao p-6 text-sm leading-relaxed text-tinta-fraca">
         As credenciais da agência são visíveis só para o administrador. Não é ausência de
         configuração: é o recorte de acesso funcionando.
       </p>
@@ -33,7 +33,7 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
 
   if (!bancoConfigurado) {
     return (
-      <p className="cartao p-6 text-sm leading-relaxed text-cinza">
+      <p className="cartao p-6 text-sm leading-relaxed text-tinta-fraca">
         Sem banco configurado não há onde guardar credencial. Esta tela não trabalha com
         dados de demonstração de propósito: um formulário de token que finge gravar é pior
         que nenhum.
@@ -49,21 +49,21 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
   return (
     <>
       {!pronta ? (
-        <div className="cartao border-magenta/40 bg-magenta/10 p-6">
-          <p className="font-display text-lg font-bold text-magenta-texto">
+        <div className="cartao border-rosa/40 bg-rosa-leve p-6">
+          <p className="font-display text-lg font-bold text-acento">
             Falta a chave de cifra
           </p>
-          <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-neve">
-            Sem <code className="font-mono text-magenta-texto">CRIPTO_CHAVE</code> no
+          <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-tinta">
+            Sem <code className="text-acento">CRIPTO_CHAVE</code> no
             ambiente não há como guardar token de anúncio, e gravar em texto puro não é
             alternativa: um dump de banco viraria acesso às contas de anúncio de todos os
             clientes de uma vez.
           </p>
-          <pre className="mt-4 overflow-x-auto rounded-xl border border-fio bg-marinho-fundo p-4 font-mono text-xs text-neve">
+          <pre className="mt-4 overflow-x-auto rounded-xl border border-fio bg-papel-alt p-4 text-xs text-tinta">
 {`node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`}
           </pre>
-          <p className="mt-3 text-sm text-cinza">
-            Guarde em <code className="font-mono">.env.local</code> e na Vercel. Trocar a
+          <p className="mt-3 text-sm text-tinta-fraca">
+            Guarde em <code className="rounded bg-papel-alt px-1.5 py-0.5">.env.local</code> e na Vercel. Trocar a
             chave depois torna ilegível tudo que já foi cifrado com a anterior.
           </p>
         </div>
@@ -84,7 +84,7 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
                       {rotuloProvedorApi[p]}
                     </p>
                     {c ? (
-                      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.75rem] text-tinta-fraca">
                         <span>{c.rotulo}</span>
                         <span>token {c.pista}</span>
                         <span>
@@ -92,7 +92,7 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
                         </span>
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm text-cinza">Nenhuma credencial guardada.</p>
+                      <p className="mt-2 text-sm text-tinta-fraca">Nenhuma credencial guardada.</p>
                     )}
                   </div>
 
@@ -109,10 +109,10 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
                   <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-fio pt-4 text-sm">
                     {Object.entries(c.configuracao).map(([k, v]) => (
                       <div key={k}>
-                        <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                        <dt className="text-[0.75rem] text-tinta-fraca">
                           {k}
                         </dt>
-                        <dd className="tabular mt-0.5 break-all text-neve">{v}</dd>
+                        <dd className="tabular mt-0.5 break-all text-tinta">{v}</dd>
                       </div>
                     ))}
                   </dl>
@@ -142,10 +142,10 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
         >
           <div className="cartao p-6">
             <BotaoSincronizar />
-            <p className="mt-5 max-w-[68ch] text-sm leading-relaxed text-cinza">
+            <p className="mt-5 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
               Para rodar sozinho todo dia, aponte um cron para{' '}
-              <code className="font-mono text-neve">GET /api/sincronizar</code> com o
-              cabeçalho <code className="font-mono text-neve">x-psy-token</code>. O que
+              <code className="text-tinta">GET /api/sincronizar</code> com o
+              cabeçalho <code className="text-tinta">x-psy-token</code>. O que
               falhar fica no diário de sincronização da ficha de cada loja, com o erro que
               a API devolveu.
             </p>

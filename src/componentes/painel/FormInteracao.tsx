@@ -5,9 +5,9 @@ import { registrarInteracao } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotulo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotulo = 'block text-[0.75rem] text-tinta-fraca';
 
 const TIPOS = [
   { v: 'ligacao', r: 'Ligação' },
@@ -70,7 +70,7 @@ export function FormInteracao({ contaId }: { contaId: string }) {
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Salvando...' : 'Registrar'}
         </button>
@@ -83,7 +83,7 @@ export function FormInteracao({ contaId }: { contaId: string }) {
             'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ' +
             (estado.ok
               ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-              : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+              : 'border-rosa/40 bg-rosa-leve text-acento')
           }
         >
           <span aria-hidden className="mt-0.5">

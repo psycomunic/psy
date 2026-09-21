@@ -136,14 +136,17 @@ export const criteriosDeLancamento = [
  * que fica é a escada, que responde "até onde vocês entram?" sem
  * virar cardápio que desconto nenhum consegue negociar depois.
  *
- * `onde` é a metáfora de altitude que a cena em vídeo usa, e por isso
- * a ordem desta lista é a ordem em que o altímetro desce. Trocar a
- * ordem aqui desalinha o painel da agulha.
+ * Havia um campo `onde` com "Órbita", "Atmosfera" e "Superfície": os
+ * nomes de altitude que o altímetro da cena em vídeo marcava. A cena
+ * saiu e eles saíram junto. Eram rótulo de uma metáfora, não nome de
+ * nível, e sozinhos não dizem nada a quem lê.
+ *
+ * A ORDEM É A ESCADA: cada nível diz "tudo acima, mais". Trocar a
+ * ordem quebra a frase do nível seguinte.
  */
 export const niveisDeParceria = [
   {
     n: '01',
-    onde: 'Órbita',
     titulo: 'Só a mídia',
     texto:
       'Meta e Google geridos com meta declarada, leitura semanal e um retrato do mês que dá para conferir número por número.',
@@ -151,7 +154,6 @@ export const niveisDeParceria = [
   },
   {
     n: '02',
-    onde: 'Atmosfera',
     titulo: 'Mídia e canais próprios',
     texto:
       'Tudo acima, mais conteúdo, criativos do dia a dia, campanhas de coleção e de data e recuperação de carrinho. A loja passa a vender também quando a verba pausa.',
@@ -159,7 +161,6 @@ export const niveisDeParceria = [
   },
   {
     n: '03',
-    onde: 'Superfície',
     titulo: 'A operação inteira',
     texto:
       'Tudo acima, mais plataforma, marketplaces, funil comercial, catálogo e mentoria do seu time. A agência dentro da operação.',

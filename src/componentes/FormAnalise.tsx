@@ -14,12 +14,12 @@ import { FAIXAS_DE_VERBA, CANAIS_HOJE, formulario } from '@/conteudo/trafego';
  */
 
 const campo =
-  'w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3.5 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/70 focus:border-magenta focus:bg-white/[0.07]';
+  'w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3.5 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/70 focus:border-rosa focus:bg-white/[0.07]';
 /* 12px, e não os 0,7rem que o resto do site usa em rótulo decorativo.
    Aqui o rótulo é funcional: quem não conseguir ler não preenche, e
    este formulário é o objetivo inteiro da página. */
-const rotulo = 'block font-mono text-xs uppercase tracking-[0.16em] text-cinza';
+const rotulo = 'block text-xs text-tinta-fraca';
 
 export function FormAnalise() {
   const [estado, acao, pendente] = useActionState<ResultadoLead | null, FormData>(
@@ -52,10 +52,10 @@ export function FormAnalise() {
         aria-live="polite"
       >
         <p aria-hidden className="text-3xl">✓</p>
-        <p className="mt-5 font-display text-2xl font-bold tracking-[-0.03em] text-branco">
+        <p className="mt-5 font-display text-2xl font-bold tracking-[-0.03em] text-tinta">
           {estado.mensagem}
         </p>
-        <p className="mx-auto mt-4 max-w-[46ch] leading-relaxed text-cinza">
+        <p className="mx-auto mt-4 max-w-[46ch] leading-relaxed text-tinta-fraca">
           Se preferir adiantar, chame no WhatsApp e diga que preencheu o formulário. A
           conversa começa de onde você parou.
         </p>
@@ -165,7 +165,7 @@ export function FormAnalise() {
       {estado && !estado.ok ? (
         <p
           role="status"
-          className="flex items-start gap-3 rounded-xl border border-magenta/40 bg-magenta/10 px-4 py-3 text-sm leading-relaxed text-magenta-texto"
+          className="flex items-start gap-3 rounded-xl border border-rosa/40 bg-rosa-leve px-4 py-3 text-sm leading-relaxed text-acento"
         >
           <span aria-hidden className="mt-0.5">■</span>
           {estado.mensagem}
@@ -175,12 +175,12 @@ export function FormAnalise() {
       <button
         type="submit"
         disabled={pendente}
-        className="w-full rounded-full bg-magenta px-7 py-4 text-sm font-semibold text-branco transition-all duration-300 hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)] disabled:opacity-60 sm:w-auto"
+        className="w-full rounded-full bg-rosa px-7 py-4 text-sm font-semibold text-branco transition-all duration-300 hover:bg-rosa-forte hover:shadow-[0_10px_40px_-8px_rgba(255,46,99,0.75)] disabled:opacity-60 sm:w-auto"
       >
         {pendente ? 'Enviando...' : 'Quero a análise da minha conta'}
       </button>
 
-      <p className="text-xs leading-relaxed text-cinza">{formulario.rodape}</p>
+      <p className="text-xs leading-relaxed text-tinta-fraca">{formulario.rodape}</p>
     </form>
   );
 }

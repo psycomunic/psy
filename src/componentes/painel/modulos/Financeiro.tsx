@@ -140,8 +140,8 @@ export async function Financeiro({ aba = 'visao' }: { aba?: AbaFinanceiro }) {
             className={
               'rounded-full px-4 py-2 text-sm transition-colors ' +
               (aba === a.k
-                ? 'bg-magenta font-semibold text-branco'
-                : 'border border-fio text-neve hover:bg-white/5')
+                ? 'bg-rosa font-semibold text-branco'
+                : 'border border-fio text-tinta hover:bg-tinta/12')
             }
           >
             {a.r}
@@ -321,8 +321,8 @@ function Visao({
                   ■
                 </span>
                 <div className="min-w-0 grow">
-                  <p className="truncate text-sm font-semibold text-branco">{f.conta ?? '—'}</p>
-                  <p className="mt-1 text-xs text-cinza">
+                  <p className="truncate text-sm font-semibold text-tinta">{f.conta ?? '—'}</p>
+                  <p className="mt-1 text-xs text-tinta-fraca">
                     {f.numero} · venceu há {Math.abs(f.diasAteVencer)}{' '}
                     {Math.abs(f.diasAteVencer) === 1 ? 'dia' : 'dias'}
                   </p>
@@ -350,7 +350,7 @@ function Visao({
         apoio="Quanto do faturamento depende de um cliente só. Acima de 30% num único contrato, a saída dele vira problema de caixa."
       >
         {contas.length === 0 ? (
-          <p className="text-sm text-cinza">Nenhuma loja ativa ainda.</p>
+          <p className="text-sm text-tinta-fraca">Nenhuma loja ativa ainda.</p>
         ) : (
           <ul className="space-y-3">
             {[...contas]
@@ -368,7 +368,7 @@ function Visao({
                     </div>
                     <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-white/[0.05]">
                       <div
-                        className="h-full rounded-full bg-magenta"
+                        className="h-full rounded-full bg-rosa"
                         style={{ width: `${Math.max(fatia, 1)}%` }}
                       />
                     </div>
@@ -422,7 +422,7 @@ function Cobrancas({
         apoio="O status vem do Asaas pelo webhook. 'Conferir' na aba Visão puxa o estado real, para quando o retorno se perde."
       >
         {faturas.length === 0 ? (
-          <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
+          <p className="max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
             Nenhuma cobrança ainda. O fee mensal sai em Contratos; o resto sai no botão
             &ldquo;Nova cobrança&rdquo; aqui em cima.
           </p>
@@ -436,14 +436,14 @@ function Cobrancas({
                 <li key={f.id} className="cartao space-y-4 p-5">
                   <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
                     <div className="min-w-0">
-                      <p className="font-semibold text-branco">{f.conta ?? '—'}</p>
-                      <p className="mt-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                      <p className="font-semibold text-tinta">{f.conta ?? '—'}</p>
+                      <p className="mt-1 text-[0.75rem] text-tinta-fraca">
                         {f.numero}
                         {f.contratoId ? ' · fee mensal' : ' · avulsa'}
                         {f.parcelas > 1 ? ` · ${f.parcelas}x` : ''}
                       </p>
                       {f.descricao ? (
-                        <p className="mt-1.5 text-sm text-neve">{f.descricao}</p>
+                        <p className="mt-1.5 text-sm text-tinta">{f.descricao}</p>
                       ) : null}
                     </div>
 
@@ -459,7 +459,7 @@ function Cobrancas({
                     </div>
                   </div>
 
-                  <p className="text-xs text-cinza">
+                  <p className="text-xs text-tinta-fraca">
                     {f.status === 'paga'
                       ? `Paga${f.pagaEm ? ` em ${dataBR(f.pagaEm)}` : ''}${f.formaPagamento ? ` · ${f.formaPagamento}` : ''}`
                       : f.diasAteVencer < 0
@@ -539,7 +539,7 @@ function Contratos({
         {podeMexer ? <FormContrato lojas={lojasParaContrato} /> : null}
 
         {contratos.length === 0 ? (
-          <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
+          <p className="max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
             Nenhum contrato vigente. Sem contrato não há o que faturar: contrato nasce
             aqui, ou sozinho quando um lead vira cliente no CRM.
           </p>
@@ -549,22 +549,22 @@ function Contratos({
           <article key={c.id} className="cartao space-y-4 p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
               <div>
-                <h3 className="font-semibold text-branco">
+                <h3 className="font-semibold text-tinta">
                   {c.conta ?? '—'}
                   {c.futuro ? (
-                    <span className="ml-2.5 rounded-full border border-fio px-2.5 py-1 align-middle font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                    <span className="ml-2.5 rounded-full border border-fio px-2.5 py-1 align-middle text-[0.75rem] text-tinta-fraca">
                       agendado
                     </span>
                   ) : null}
                 </h3>
-                <p className="mt-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                <p className="mt-1 text-[0.75rem] text-tinta-fraca">
                   {c.plano} · {c.futuro ? 'começa em' : 'desde'} {dataBR(c.inicio)}
                   {c.fim ? ` · até ${dataBR(c.fim)}` : ''}
                 </p>
               </div>
               <p className="tabular text-lg font-semibold">
                 {dinheiro(c.feeMensal)}
-                <span className="ml-1.5 text-xs font-normal text-cinza">por mês</span>
+                <span className="ml-1.5 text-xs font-normal text-tinta-fraca">por mês</span>
               </p>
             </div>
 
@@ -655,8 +655,8 @@ function Despesas({
             {ranking.map(([nome, valor]) => (
               <li key={nome}>
                 <div className="flex items-baseline justify-between gap-4">
-                  <span className="text-sm text-neve">{nome}</span>
-                  <span className="tabular text-sm font-semibold text-branco">
+                  <span className="text-sm text-tinta">{nome}</span>
+                  <span className="tabular text-sm font-semibold text-tinta">
                     {dinheiro(valor)}
                   </span>
                 </div>
@@ -680,7 +680,7 @@ function Despesas({
         apoio="Despesa da agência. Receita não entra aqui: ela é cobrança, e vive na aba Cobranças."
       >
         {despesas.length === 0 ? (
-          <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
+          <p className="max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
             Nenhuma despesa lançada. Sem elas o painel mostra faturamento, mas não mostra
             resultado.
           </p>
@@ -702,8 +702,8 @@ function Despesas({
                 return (
                   <tr key={d.id}>
                     <th scope="row" className={`${td} font-normal`}>
-                      <span className="font-semibold text-branco">{d.descricao}</span>
-                      <span className="mt-1 block text-xs text-cinza">
+                      <span className="font-semibold text-tinta">{d.descricao}</span>
+                      <span className="mt-1 block text-xs text-tinta-fraca">
                         {d.categoria ?? 'sem categoria'}
                         {d.conta ? ` · ${d.conta}` : ''}
                       </span>

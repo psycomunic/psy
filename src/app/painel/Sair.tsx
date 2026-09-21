@@ -17,7 +17,7 @@ export function Sair() {
     <button
       type="button"
       onClick={sair}
-      className="text-sm text-magenta-texto underline underline-offset-4"
+      className="text-sm text-acento underline underline-offset-4"
     >
       Sair
     </button>

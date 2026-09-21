@@ -33,10 +33,10 @@ export default function Cases() {
         </div>
       </section>
 
-      <section className="border-y border-fio bg-marinho-fundo py-20 md:py-24">
+      <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-            <span aria-hidden className="h-px w-8 bg-magenta" />
+          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
+            <span aria-hidden className="h-px w-8 bg-rosa" />
             Marcas atendidas
           </p>
           <h2 className="mt-5 max-w-[20ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
@@ -47,7 +47,7 @@ export default function Cases() {
             {marcasAtendidas.map((m) => (
               <li
                 key={m}
-                className="rounded-full border border-fio px-5 py-2.5 font-mono text-[0.72rem] uppercase tracking-[0.12em] text-cinza"
+                className="rounded-full border border-fio px-5 py-2.5 text-[0.72rem] text-tinta-fraca"
               >
                 {m}
               </li>
@@ -55,7 +55,7 @@ export default function Cases() {
           </ul>
 
           {cases.length === 0 ? (
-            <p className="mt-12 max-w-[64ch] leading-relaxed text-neve">
+            <p className="mt-12 max-w-[64ch] leading-relaxed text-tinta">
               Os estudos de caso, com métrica, período e base de comparação, entram aqui
               assim que as autorizações de uso de resultado estiverem assinadas. A Psy
               Comunic não publica número de cliente sem autorização escrita e sem período

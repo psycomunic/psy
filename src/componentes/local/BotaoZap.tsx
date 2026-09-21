@@ -24,10 +24,10 @@ export function BotaoZap({
 }) {
   const estilos = {
     primario:
-      'bg-magenta text-branco hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)]',
+      'bg-rosa text-branco hover:bg-rosa-forte hover:shadow-[0_10px_40px_-8px_rgba(255,46,99,0.75)]',
     secundario:
-      'text-branco ring-1 ring-inset ring-white/20 backdrop-blur-sm hover:bg-white/5 hover:ring-white/45',
-    claro: 'bg-branco text-marinho hover:shadow-[0_10px_40px_-8px_rgba(0,0,0,0.45)]',
+      'text-tinta ring-1 ring-inset ring-white/20 backdrop-blur-sm hover:bg-tinta/12 hover:ring-white/45',
+    claro: 'bg-tinta text-papel hover:shadow-[0_10px_40px_-8px_rgba(0,0,0,0.45)]',
   } as const;
 
   return (
@@ -43,7 +43,6 @@ export function BotaoZap({
       }
     >
       {children}
-      <span aria-hidden>→</span>
     </LinkWhatsapp>
   );
 }

@@ -79,11 +79,11 @@ export default async function PaginaFrente({
         <div className={secao}>
           <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div>
-              <IconeFrente slug={f.slug} className="h-12 w-12 text-magenta-texto" />
+              <IconeFrente slug={f.slug} className="h-12 w-12 text-acento" />
               <h2 className="mt-8 font-display text-sub font-extrabold tracking-[-0.035em]">
                 O que a frente de {f.nome} entrega
               </h2>
-              <p className="mt-5 max-w-[46ch] leading-relaxed text-cinza">
+              <p className="mt-5 max-w-[46ch] leading-relaxed text-tinta-fraca">
                 Cada item abaixo é uma entrega concreta, e não uma promessa de
                 acompanhamento. É o que a Psy Comunic executa dentro desta frente.
               </p>
@@ -92,10 +92,10 @@ export default async function PaginaFrente({
             <ul className="grid gap-4">
               {f.contribuicoes.map((c, i) => (
                 <li key={c} className="cartao flex gap-5 px-7 py-6">
-                  <span className="tabular shrink-0 font-mono text-xs text-magenta-texto">
+                  <span className="tabular shrink-0 text-xs text-acento">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span className="leading-relaxed text-neve">{c}</span>
+                  <span className="leading-relaxed text-tinta">{c}</span>
                 </li>
               ))}
             </ul>
@@ -115,10 +115,10 @@ export default async function PaginaFrente({
         pergunta está. Marcar assim mesmo é motivo de ação manual contra
         o site. Quando as respostas forem escritas, a marcação entra.
       */}
-      <section className="border-y border-fio bg-marinho-fundo py-20 md:py-24">
+      <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-            <span aria-hidden className="h-px w-8 bg-magenta" />
+          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
+            <span aria-hidden className="h-px w-8 bg-rosa" />
             Perguntas que esta frente responde
           </p>
           <h2 className="mt-5 max-w-[20ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
@@ -129,7 +129,7 @@ export default async function PaginaFrente({
             {f.duvidas.map((d) => (
               <div key={d} className="cartao px-8 py-7">
                 <dt className="font-display text-lg font-bold leading-snug tracking-[-0.02em] md:text-xl">
-                  <span aria-hidden className="mr-1 text-magenta-texto">“</span>
+                  <span aria-hidden className="mr-1 text-acento">“</span>
                   {d}
                 </dt>
               </div>
@@ -145,7 +145,7 @@ export default async function PaginaFrente({
           <h2 className="font-display text-sub font-extrabold tracking-[-0.035em]">
             As outras frentes da operação
           </h2>
-          <p className="mt-4 max-w-[58ch] leading-relaxed text-cinza">
+          <p className="mt-4 max-w-[58ch] leading-relaxed text-tinta-fraca">
             {f.nome} sozinha não sustenta um e-commerce. A operação é o conjunto,
             e é por isso que a Psy Comunic trabalha as quatro juntas.
           </p>
@@ -154,18 +154,15 @@ export default async function PaginaFrente({
               <Link
                 key={o.slug}
                 href={`/servicos/${o.slug}`}
-                className="cartao group p-7 transition-all duration-500 hover:-translate-y-1 hover:border-magenta/40"
+                className="cartao group p-7 transition-all duration-500 hover:-translate-y-1 hover:border-rosa/40"
               >
-                <IconeFrente slug={o.slug} className="h-8 w-8 text-magenta-texto" />
+                <IconeFrente slug={o.slug} className="h-8 w-8 text-acento" />
                 <h3 className="mt-6 font-display text-xl font-bold tracking-[-0.02em]">
                   {o.nome}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-cinza">{o.resumo}</p>
-                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-magenta-texto">
+                <p className="mt-3 text-sm leading-relaxed text-tinta-fraca">{o.resumo}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-acento">
                   Ver frente
-                  <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
                 </span>
               </Link>
             ))}

@@ -32,7 +32,7 @@ export function Vitrine({ trabalho }: { trabalho: Trabalho }) {
   return (
     <figure
       onClick={() => setAberto((v) => !v)}
-      className="revelar cartao group relative overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-magenta/40"
+      className="revelar cartao group relative overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-rosa/40"
       style={{
         // Altura da janela. Entra como variável porque o CSS da rolagem
         // precisa dela na conta, e repetir o número quebraria os dois
@@ -64,7 +64,7 @@ export function Vitrine({ trabalho }: { trabalho: Trabalho }) {
 
       <figcaption className="flex items-center justify-between gap-4 border-t border-fio px-6 py-5">
         <span className="font-display font-bold tracking-[-0.02em]">{trabalho.nome}</span>
-        <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-cinza">
+        <span className="text-[0.62rem] text-tinta-fraca">
           {/* Instrução muda conforme o aparelho: dizer "passe o cursor"
               num celular é dar uma ordem impossível. */}
           <span className="hidden md:inline">Passe o cursor</span>

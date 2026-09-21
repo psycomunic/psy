@@ -60,9 +60,9 @@ export function Marca({ className = '' }: { className?: string }) {
           amarra o lockup à paleta. */}
       <span
         aria-hidden
-        className="h-4 w-px bg-magenta transition-[height] duration-300 group-hover:h-5"
+        className="h-4 w-px bg-rosa transition-[height] duration-300 group-hover:h-5"
       />
-      <span className="font-mono text-[0.75rem] uppercase leading-none tracking-[0.26em] text-cinza transition-colors group-hover:text-neve">
+      <span className="text-[0.75rem] leading-none text-tinta-fraca transition-colors group-hover:text-tinta">
         Comunic
       </span>
     </Link>

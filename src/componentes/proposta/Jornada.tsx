@@ -27,7 +27,7 @@ export function SlideJornada() {
       titulo={
         <>
           Construímos a loja. E ficamos para{' '}
-          <span className="text-magenta-texto">fazer ela vender.</span>
+          <span className="text-acento">fazer ela vender.</span>
         </>
       }
       apoio={promessaCompleta}
@@ -38,8 +38,8 @@ export function SlideJornada() {
             <div className="flex flex-wrap items-center gap-2.5">
               <span
                 className={
-                  'rounded-full px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] ' +
-                  (i === 1 ? 'bg-magenta text-branco' : 'border border-fio text-magenta-texto')
+                  'rounded-full px-3 py-1 text-[0.7rem] ' +
+                  (i === 1 ? 'bg-rosa text-branco' : 'border border-fio text-acento')
                 }
               >
                 {fase.etiqueta}
@@ -50,16 +50,16 @@ export function SlideJornada() {
               {fase.titulo}
             </h3>
 
-            <p className="mt-1.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+            <p className="mt-1.5 text-[0.7rem] text-tinta-fraca">
               {fase.entrega}
             </p>
 
-            <p className="mt-4 text-sm leading-relaxed text-neve">{fase.resumo}</p>
+            <p className="mt-4 text-sm leading-relaxed text-tinta">{fase.resumo}</p>
 
             <ul className="mt-5 space-y-2.5 border-t border-fio pt-5">
               {fase.itens.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-snug text-neve">
-                  <span aria-hidden className="mt-0.5 flex-none text-[0.75rem] text-magenta-texto">
+                <li key={item} className="flex gap-3 text-sm leading-snug text-tinta">
+                  <span aria-hidden className="mt-0.5 flex-none text-[0.75rem] text-acento">
                     ✓
                   </span>
                   {item}
@@ -86,7 +86,7 @@ export function SlidePorQueCompleta() {
       rotulo="A diferença"
       titulo={
         <>
-          O que muda em ter <span className="text-magenta-texto">um responsável só.</span>
+          O que muda em ter <span className="text-acento">um responsável só.</span>
         </>
       }
       apoio="Contratar em pedaços parece mais barato até a primeira semana em que a venda cai e ninguém assume."
@@ -95,13 +95,13 @@ export function SlidePorQueCompleta() {
         {porQueCompleta.map((item, i) => (
           <li key={item.titulo}>
             <Bloco className="flex h-full flex-col">
-              <span className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-cinza">
+              <span className="text-[0.7rem] text-tinta-fraca">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3 className="mt-4 font-display text-lg font-bold leading-snug tracking-[-0.02em]">
                 {item.titulo}
               </h3>
-              <p className="mt-3.5 text-sm leading-relaxed text-neve">{item.texto}</p>
+              <p className="mt-3.5 text-sm leading-relaxed text-tinta">{item.texto}</p>
             </Bloco>
           </li>
         ))}

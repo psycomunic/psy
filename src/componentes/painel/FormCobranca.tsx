@@ -23,7 +23,7 @@ function Aviso({ r }: { r: Resultado | null }) {
       role="status"
       className={
         'mt-2 flex items-start gap-2 text-xs leading-relaxed ' +
-        (r.ok ? 'text-[#4ADE80]' : 'text-magenta-texto')
+        (r.ok ? 'text-[#4ADE80]' : 'text-acento')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -45,8 +45,8 @@ export function BotaoFaturar({ contratoId, jaFaturado }: { contratoId: string; j
         className={
           'inline-flex min-h-[24px] items-center rounded-full px-5 py-2.5 text-xs font-semibold transition-colors disabled:opacity-60 ' +
           (jaFaturado
-            ? 'border border-fio text-neve hover:bg-white/5'
-            : 'bg-magenta text-branco hover:bg-magenta-forte')
+            ? 'border border-fio text-tinta hover:bg-tinta/12'
+            : 'bg-rosa text-branco hover:bg-rosa-forte')
         }
       >
         {pendente ? 'Emitindo...' : jaFaturado ? 'Já faturado' : 'Faturar o mês'}
@@ -65,7 +65,7 @@ export function BotaoCobrar({ faturaId }: { faturaId: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="inline-flex min-h-[24px] items-center rounded-full bg-magenta px-4 py-2 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center rounded-full bg-rosa px-4 py-2 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
       >
         {pendente ? 'Emitindo...' : 'Emitir cobrança'}
       </button>
@@ -84,7 +84,7 @@ export function BotaoConferir({ faturaId }: { faturaId: string }) {
         type="submit"
         disabled={pendente}
         title="Puxa do Asaas o estado real desta cobrança"
-        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5 disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12 disabled:opacity-60"
       >
         {pendente ? 'Conferindo...' : 'Conferir'}
       </button>
@@ -105,7 +105,7 @@ export function CopiarCobranca({ link }: { link: string }) {
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2500);
       }}
-      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline"
+      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-acento underline-offset-4 hover:underline"
     >
       {copiado ? 'copiado ✓' : 'copiar link'}
     </button>

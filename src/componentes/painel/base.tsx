@@ -60,13 +60,13 @@ export function Kpi({
 
   return (
     <div className="cartao p-6">
-      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
+      <p className="text-[0.75rem] text-tinta-fraca">
         {rotulo}
       </p>
       <p className="tabular mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">
         {valor}
       </p>
-      {apoio ? <p className="mt-2 text-xs leading-relaxed text-cinza">{apoio}</p> : null}
+      {apoio ? <p className="mt-2 text-xs leading-relaxed text-tinta-fraca">{apoio}</p> : null}
       {variacao !== null && variacao !== undefined ? (
         <p
           className="tabular mt-3 text-xs font-semibold"
@@ -75,7 +75,7 @@ export function Kpi({
           {/* Seta além da cor: mesma regra do selo. */}
           <span aria-hidden>{variacao >= 0 ? '↑' : '↓'}</span>{' '}
           {`${variacao > 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}%`}
-          <span className="ml-1 font-normal text-cinza">vs. 7 dias antes</span>
+          <span className="ml-1 font-normal text-tinta-fraca">vs. 7 dias antes</span>
         </p>
       ) : null}
     </div>
@@ -85,7 +85,7 @@ export function Kpi({
 /** Barra de progresso da meta, com o alvo sempre visível. */
 export function Progresso({ percentual }: { percentual: number | null }) {
   if (percentual === null) {
-    return <p className="text-xs text-cinza">Meta não definida</p>;
+    return <p className="text-xs text-tinta-fraca">Meta não definida</p>;
   }
   const cor =
     percentual >= 90 ? CORES_SITUACAO.saudavel
@@ -98,7 +98,7 @@ export function Progresso({ percentual }: { percentual: number | null }) {
         <span className="tabular text-sm font-semibold" style={{ color: cor }}>
           {percentual.toFixed(0)}%
         </span>
-        <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+        <span className="text-[0.75rem] text-tinta-fraca">
           da meta do mês
         </span>
       </div>
@@ -129,8 +129,8 @@ export function Progresso({ percentual }: { percentual: number | null }) {
 export function AvisoProcedencia({ procedencia }: { procedencia: Procedencia }) {
   if (procedencia === 'banco') return null;
   return (
-    <p className="rounded-xl border border-magenta/40 bg-magenta/10 px-5 py-3.5 text-sm leading-relaxed text-neve">
-      <strong className="text-magenta-texto">Dados de demonstração.</strong> O banco
+    <p className="rounded-xl border border-rosa/40 bg-rosa-leve px-5 py-3.5 text-sm leading-relaxed text-tinta">
+      <strong className="text-acento">Dados de demonstração.</strong> O banco
       ainda não está configurado, então os números e nomes desta tela são fictícios e
       servem só para desenhar o sistema. Nenhum cliente real aparece aqui.
     </p>
@@ -153,7 +153,7 @@ export function Secao({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-bold tracking-[-0.02em]">{titulo}</h2>
-          {apoio ? <p className="mt-1.5 text-sm text-cinza">{apoio}</p> : null}
+          {apoio ? <p className="mt-1.5 text-sm text-tinta-fraca">{apoio}</p> : null}
         </div>
         {acao}
       </div>
@@ -175,5 +175,5 @@ export function Tabela({ children }: { children: ReactNode }) {
 }
 
 export const th =
-  'px-5 py-4 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza font-normal';
+  'px-5 py-4 text-[0.75rem] text-tinta-fraca font-normal';
 export const td = 'px-5 py-4 border-t border-fio';

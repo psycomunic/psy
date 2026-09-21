@@ -72,7 +72,7 @@ export function Sino({
             ? `Avisos: ${naoLidas} ${naoLidas === 1 ? 'não lido' : 'não lidos'}`
             : 'Avisos'
         }
-        className="relative flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-fio text-neve transition-colors hover:bg-white/[0.06] hover:text-branco"
+        className="relative flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-fio text-tinta transition-colors hover:bg-white/[0.06] hover:text-tinta"
       >
         <svg viewBox="0 0 20 20" className="h-[18px] w-[18px]" fill="none" aria-hidden>
           <path
@@ -87,7 +87,7 @@ export function Sino({
         {naoLidas > 0 ? (
           <span
             aria-hidden
-            className="tabular absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full bg-magenta px-1 text-center text-[0.75rem] font-bold leading-[18px] text-branco"
+            className="tabular absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full bg-rosa px-1 text-center text-[0.75rem] font-bold leading-[18px] text-branco"
           >
             {naoLidas > 9 ? '9+' : naoLidas}
           </span>
@@ -105,9 +105,9 @@ export function Sino({
             className="fixed inset-0 z-40 cursor-default"
           />
 
-          <div className="absolute right-0 top-11 z-50 max-h-[70vh] w-[min(22rem,calc(100vw-3rem))] overflow-y-auto rounded-2xl border border-fio bg-marinho-fundo/95 shadow-2xl backdrop-blur">
+          <div className="absolute right-0 top-11 z-50 max-h-[70vh] w-[min(22rem,calc(100vw-3rem))] overflow-y-auto rounded-2xl border border-fio bg-papel-alt/95 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-between gap-3 border-b border-fio px-4 py-3">
-              <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+              <p className="text-[0.75rem] text-tinta-fraca">
                 Avisos
               </p>
               {naoLidas > 0 ? (
@@ -115,7 +115,7 @@ export function Sino({
                   <button
                     type="submit"
                     disabled={pLer}
-                    className="text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
+                    className="text-xs font-semibold text-acento underline-offset-4 hover:underline disabled:opacity-60"
                   >
                     {pLer ? 'marcando...' : 'marcar tudo como lido'}
                   </button>
@@ -124,14 +124,14 @@ export function Sino({
             </div>
 
             {rLer && !rLer.ok ? (
-              <p role="status" className="px-4 py-3 text-xs font-semibold text-magenta-texto">
+              <p role="status" className="px-4 py-3 text-xs font-semibold text-acento">
                 <span aria-hidden className="mr-1.5">■</span>
                 {rLer.mensagem}
               </p>
             ) : null}
 
             {lista.length === 0 ? (
-              <p className="px-4 py-6 text-sm leading-relaxed text-cinza">
+              <p className="px-4 py-6 text-sm leading-relaxed text-tinta-fraca">
                 Nada por aqui. Os avisos aparecem quando uma tarefa se aproxima do prazo,
                 atrasa, ou quando uma cobrança vence.
               </p>
@@ -152,17 +152,17 @@ export function Sino({
                           <span
                             className={
                               'block text-sm leading-snug ' +
-                              (n.lidaEm ? 'text-cinza' : 'font-semibold text-branco')
+                              (n.lidaEm ? 'text-tinta-fraca' : 'font-semibold text-tinta')
                             }
                           >
                             {n.titulo}
                           </span>
                           {n.corpo ? (
-                            <span className="mt-1 block text-xs leading-relaxed text-cinza">
+                            <span className="mt-1 block text-xs leading-relaxed text-tinta-fraca">
                               {n.corpo}
                             </span>
                           ) : null}
-                          <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                          <span className="mt-1 block text-[0.75rem] text-tinta-fraca">
                             {quando(n.criadaEm, agora)}
                           </span>
                         </span>

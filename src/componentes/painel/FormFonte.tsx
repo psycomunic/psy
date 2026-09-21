@@ -9,9 +9,9 @@ import {
 import type { Resultado } from '@/app/painel/acoes';
 
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
 
 /** O que pedir por provedor. Errar o formato do identificador é o
     primeiro erro de todo mundo, então o exemplo fica no campo. */
@@ -45,7 +45,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+          : 'border-rosa/40 bg-rosa-leve text-acento')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -69,7 +69,7 @@ export function FormFonte({ contaId }: { contaId: string }) {
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">
           Vincular conta de anúncio
         </h3>
-        <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-cinza">
+        <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-tinta-fraca">
           A conta do cliente já precisa estar na BM e na conta gerenciadora da agência. Aqui
           entra só o número dela: a credencial é a mesma para todas as lojas, e o cliente
           não gera token nenhum.
@@ -108,7 +108,7 @@ export function FormFonte({ contaId }: { contaId: string }) {
             autoComplete="off"
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">{fonte.onde}</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">{fonte.onde}</p>
         </div>
 
         <div>
@@ -124,7 +124,7 @@ export function FormFonte({ contaId }: { contaId: string }) {
             defaultValue={7}
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
             Quantos dias reprocessar a cada rodada. Pedido aprovado muda de status depois
             do fato, então buscar só ontem congela a aprovação num número que ainda ia
             mudar.
@@ -137,7 +137,7 @@ export function FormFonte({ contaId }: { contaId: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+        className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
       >
         {pendente ? 'Vinculando...' : 'Vincular'}
       </button>
@@ -157,7 +157,7 @@ export function BotaoSincronizar({ contaId }: { contaId?: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full bg-magenta px-6 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+        className="rounded-full bg-rosa px-6 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
       >
         {pendente ? 'Puxando das APIs...' : 'Sincronizar agora'}
       </button>
@@ -178,12 +178,12 @@ export function BotaoDesvincular({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-cinza underline-offset-4 transition-colors hover:text-magenta-texto hover:underline disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-tinta-fraca underline-offset-4 transition-colors hover:text-acento hover:underline disabled:opacity-60"
       >
         {pendente ? 'Removendo...' : 'Desvincular'}
       </button>
       {estado && !estado.ok ? (
-        <span className="ml-3 text-xs text-magenta-texto">{estado.mensagem}</span>
+        <span className="ml-3 text-xs text-acento">{estado.mensagem}</span>
       ) : null}
     </form>
   );

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Bricolage_Grotesque, Manrope, JetBrains_Mono } from 'next/font/google';
+import { Fraunces, Montserrat } from 'next/font/google';
 import './globals.css';
 import { marca } from '@/conteudo/marca';
 import { site } from '@/conteudo/site';
@@ -9,36 +9,32 @@ import { DadosEstruturados } from '@/componentes/DadosEstruturados';
 import { Analytics } from '@/componentes/Analytics';
 
 /*
-  Três fontes, três funções. Uma família só, variando o peso, é o que
-  fazia a página parecer um documento: sem contraste de DESENHO, só de
-  tamanho.
+  DUAS FAMÍLIAS, E NÃO TRÊS.
 
-  Fontes provisórias. O escopo lista a fonte da marca como asset
-  pendente do cliente (seção 14).
+  Eram Bricolage Grotesque, Manrope e JetBrains Mono: display pesada,
+  corpo neutro e uma mono para rótulos e números. A mono era o que dava
+  à página o vocabulário de painel de operação, e é justamente o que o
+  tema editorial não quer. Saiu, e com ela as caixas altas de rótulo.
+
+  Fraunces é serifada variável com eixo óptico: nos títulos ela entra
+  em peso 300, fina e grande, que é o contrário da display preta de
+  antes. O itálico dela é onde o grifo do hero mora agora, em vez de
+  uma segunda cor.
+
+  Montserrat carrega todo o resto: corpo, botão, rótulo e legenda.
 */
-
-/* Display: grotesca com aberturas fechadas e um leve desalinho nas
-   terminações. Segura tamanho grande sem parecer fonte de sistema. */
-const display = Bricolage_Grotesque({
+const display = Fraunces({
   variable: '--font-display',
   subsets: ['latin'],
-  weight: ['600', '700', '800'],
+  weight: ['300', '500', '700'],
+  style: ['normal', 'italic'],
   display: 'swap',
 });
 
-/* Corpo: neutra, alta legibilidade em parágrafo longo. */
-const corpo = Manrope({
+const corpo = Montserrat({
   variable: '--font-corpo',
   subsets: ['latin'],
-  display: 'swap',
-});
-
-/* Mono: rótulos e números. Dá à página o vocabulário de operação e
-   painel, que é o que a Psy Comunic vende, em vez de folheto. */
-const mono = JetBrains_Mono({
-  variable: '--font-mono',
-  subsets: ['latin'],
-  weight: ['500'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
 });
 
@@ -121,13 +117,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="pt-BR"
-      className={`${display.variable} ${corpo.variable} ${mono.variable} h-full`}
+      className={`${display.variable} ${corpo.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
         {/* Atalho de teclado exigido pela WCAG: pular direto ao conteúdo */}
         <a
           href="#conteudo"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:bg-magenta focus:px-5 focus:py-2.5 focus:text-branco"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:bg-rosa focus:px-5 focus:py-2.5 focus:text-branco"
         >
           Pular para o conteúdo
         </a>

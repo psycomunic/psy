@@ -109,8 +109,8 @@ export default function Privacidade() {
       <section className="pb-24">
         <div className={secao}>
           <div className="max-w-[68ch]">
-            <p className="rounded-[var(--raio-p)] border border-magenta/40 bg-magenta/10 px-6 py-5 text-sm leading-relaxed text-neve">
-              <strong className="text-magenta-texto">Documento em finalização.</strong>{' '}
+            <p className="rounded-[var(--raio-p)] border border-rosa/40 bg-rosa-leve px-6 py-5 text-sm leading-relaxed text-tinta">
+              <strong className="text-acento">Documento em finalização.</strong>{' '}
               O texto abaixo descreve com precisão o que o site faz hoje, mas ainda
               depende de razão social, CNPJ e endereço, e de revisão jurídica antes de
               valer como documento definitivo.
@@ -120,14 +120,14 @@ export default function Privacidade() {
               {secoes.map((s, i) => (
                 <li key={s.t}>
                   <h2 className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
-                    <span className="mr-3 font-mono text-sm text-magenta-texto">
+                    <span className="mr-3 text-sm text-acento">
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     {s.t}
                   </h2>
                   <div className="mt-4 space-y-4">
                     {s.p.map((t) => (
-                      <p key={t} className="leading-relaxed text-neve">
+                      <p key={t} className="leading-relaxed text-tinta">
                         {t}
                       </p>
                     ))}
@@ -136,18 +136,18 @@ export default function Privacidade() {
               ))}
             </ol>
 
-            <p className="mt-16 border-t border-fio pt-8 text-sm text-cinza">
+            <p className="mt-16 border-t border-fio pt-8 text-sm text-tinta-fraca">
               Dúvidas sobre este documento:{' '}
               <a
                 href={`mailto:${site.contato.email}`}
-                className="text-magenta-texto underline underline-offset-4"
+                className="text-acento underline underline-offset-4"
               >
                 {site.contato.email}
               </a>
               . Veja também os{' '}
               <Link
                 href="/termos-de-uso"
-                className="text-magenta-texto underline underline-offset-4"
+                className="text-acento underline underline-offset-4"
               >
                 termos de uso
               </Link>

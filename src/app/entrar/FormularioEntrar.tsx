@@ -57,13 +57,13 @@ export function FormularioEntrar({ destino }: { destino: string }) {
   }
 
   const campo =
-    'w-full rounded-2xl border border-fio bg-white/[0.03] px-5 py-3.5 text-branco ' +
-    'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
+    'w-full rounded-2xl border border-fio bg-white/[0.03] px-5 py-3.5 text-tinta ' +
+    'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
 
   return (
     <form onSubmit={entrar} className="mt-10 space-y-5" noValidate>
       <div>
-        <label htmlFor="email" className="block text-sm font-semibold text-neve">
+        <label htmlFor="email" className="block text-sm font-semibold text-tinta">
           E-mail
         </label>
         <input
@@ -83,7 +83,7 @@ export function FormularioEntrar({ destino }: { destino: string }) {
       </div>
 
       <div>
-        <label htmlFor="senha" className="block text-sm font-semibold text-neve">
+        <label htmlFor="senha" className="block text-sm font-semibold text-tinta">
           Senha
         </label>
         <div className="relative mt-2">
@@ -104,7 +104,7 @@ export function FormularioEntrar({ destino }: { destino: string }) {
           <button
             type="button"
             onClick={() => setMostrarSenha((v) => !v)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl px-3 py-2 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-cinza transition-colors hover:bg-white/5 hover:text-neve"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl px-3 py-2 text-[0.62rem] text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-tinta"
           >
             {mostrarSenha ? 'ocultar' : 'ver'}
           </button>
@@ -115,7 +115,7 @@ export function FormularioEntrar({ destino }: { destino: string }) {
       {erro ? (
         <p
           role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-magenta/40 bg-magenta/10 px-5 py-3.5 text-sm text-magenta-texto"
+          className="flex items-start gap-3 rounded-2xl border border-rosa/40 bg-rosa-leve px-5 py-3.5 text-sm text-acento"
         >
           <span aria-hidden className="mt-0.5">■</span>
           {erro}
@@ -125,7 +125,7 @@ export function FormularioEntrar({ destino }: { destino: string }) {
       <button
         type="submit"
         disabled={enviando}
-        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-magenta px-7 py-4 font-semibold text-branco transition-all duration-300 hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)] disabled:opacity-60 disabled:hover:shadow-none"
+        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-rosa px-7 py-4 font-semibold text-branco transition-all duration-300 hover:bg-rosa-forte hover:shadow-[0_10px_40px_-8px_rgba(255,46,99,0.75)] disabled:opacity-60 disabled:hover:shadow-none"
       >
         {enviando ? 'Entrando...' : 'Entrar'}
         {!enviando ? (

@@ -28,7 +28,7 @@ export function CartaoCredencial({
   return (
     <div
       className={
-        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9 ' +
+        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-rosa/35 md:p-9 ' +
         className
       }
       data-inclina
@@ -48,12 +48,12 @@ export function CartaoCredencial({
           />
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--marinho-fundo)_18%,color-mix(in_oklab,var(--marinho-fundo)_90%,transparent)_55%,color-mix(in_oklab,var(--marinho-fundo)_72%,transparent)_100%)]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--bg)_18%,color-mix(in_oklab,var(--bg)_90%,transparent)_55%,color-mix(in_oklab,var(--bg)_72%,transparent)_100%)]"
           />
         </>
       ) : null}
 
-      <span className="tabular relative shrink-0 font-mono text-xs text-magenta-texto">
+      <span className="tabular relative shrink-0 text-xs text-acento">
         {item.i}
       </span>
 
@@ -61,7 +61,7 @@ export function CartaoCredencial({
         <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
           {item.t}
         </p>
-        <p className="mt-3 max-w-[56ch] leading-relaxed text-cinza">{item.d}</p>
+        <p className="mt-3 max-w-[56ch] leading-relaxed text-tinta-fraca">{item.d}</p>
 
         {selos ? <FileiraDeSelos selos={selos} /> : null}
       </div>
@@ -87,7 +87,7 @@ function FileiraDeSelos({
 }) {
   return (
     <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-fio pt-5">
-      <li className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-cinza">
+      <li className="text-[0.6rem] text-tinta-fraca">
         Onde ela construiu
       </li>
       {selos.map((s) =>
@@ -100,7 +100,7 @@ function FileiraDeSelos({
                  pixels de letra em 15930, contra 0 do controle sem
                  máscara. Pintava, e mesmo assim era um borrão: o
                  traço da fonte fica abaixo de um pixel. */
-              className="block h-[22px] bg-neve"
+              className="block h-[22px] bg-tinta"
               style={{
                 width: `${((s.largura ?? 100) / (s.altura ?? 100)) * 22}px`,
                 WebkitMaskImage: `url(${s.arquivo})`,
@@ -117,7 +117,7 @@ function FileiraDeSelos({
         ) : (
           <li
             key={s.nome}
-            className="rounded-full border border-fio px-3 py-1 text-[0.72rem] font-semibold text-neve"
+            className="rounded-full border border-fio px-3 py-1 text-[0.72rem] font-semibold text-tinta"
           >
             {s.nome}
           </li>

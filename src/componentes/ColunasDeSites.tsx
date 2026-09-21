@@ -72,7 +72,7 @@ export function ColunasDeSites() {
             'h-[380px] overflow-hidden sm:h-[460px] lg:h-[540px] ' +
             (c === 2 ? 'hidden sm:block ' : '') +
             /* A do meio começa deslocada. Três colunas alinhadas na
-               mesma linha leem como uma grade que anda, e não como três
+               mesma linha leem como uma que anda, e não como três
                colunas independentes. */
             (c === 1 ? 'sm:-mt-8' : '')
           }
@@ -84,7 +84,7 @@ export function ColunasDeSites() {
             {[...coluna.itens, ...coluna.itens].map((t, i) => (
               <li
                 key={`${t.arquivo}-${i}`}
-                className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-fio bg-marinho-fundo sm:mb-4"
+                className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-fio bg-papel-alt sm:mb-4"
               >
                 <Image
                   src={`/imagens/sites/${t.arquivo}`}

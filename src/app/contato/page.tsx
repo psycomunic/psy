@@ -79,21 +79,18 @@ export default function Contato() {
                 {...(c.externo ? { target: '_blank', rel: 'noopener' } : {})}
                 className={
                   'cartao group flex flex-col p-8 transition-all duration-500 hover:-translate-y-1 md:p-9 ' +
-                  (c.principal ? 'border-magenta/45' : 'hover:border-magenta/35')
+                  (c.principal ? 'border-rosa/45' : 'hover:border-rosa/35')
                 }
               >
-                <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
+                <p className="text-[0.68rem] text-acento">
                   {c.nome}
                 </p>
                 <p className="mt-4 font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
                   {c.detalhe}
                 </p>
-                <p className="mt-4 grow leading-relaxed text-cinza">{c.texto}</p>
-                <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-magenta-texto">
+                <p className="mt-4 grow leading-relaxed text-tinta-fraca">{c.texto}</p>
+                <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-acento">
                   Abrir
-                  <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
                 </span>
               </a>
             ))}
@@ -121,7 +118,7 @@ export default function Contato() {
           {/* EDITAR: razão social, CNPJ e endereço. Asset pendente do
               cliente. Endereço real aqui é o que destrava a busca local
               e o Perfil da Empresa no Google. */}
-          <p className="mt-14 max-w-[58ch] text-sm leading-relaxed text-cinza">
+          <p className="mt-14 max-w-[58ch] text-sm leading-relaxed text-tinta-fraca">
             Razão social, CNPJ e endereço a preencher.
           </p>
         </div>

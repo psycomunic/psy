@@ -15,9 +15,9 @@ import { PAPEIS, rotuloPapel, descricaoPapel, type Papel } from '@/lib/papeis';
 
 /* Estilos compartilhados: campo e rótulo iguais em toda a plataforma. */
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotulo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotulo = 'block text-[0.75rem] text-tinta-fraca';
 
 function Aviso({ r }: { r: Resultado | null }) {
   if (!r) return null;
@@ -28,7 +28,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+          : 'border-rosa/40 bg-rosa-leve text-acento')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -66,7 +66,7 @@ function Dobra({
         className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-white/[0.03]"
       >
         <span className="font-display text-lg font-bold tracking-[-0.02em]">{titulo}</span>
-        <span className="flex items-center gap-2 text-sm font-semibold text-magenta-texto">
+        <span className="flex items-center gap-2 text-sm font-semibold text-acento">
           {aberto ? 'Fechar' : acaoRotulo}
           <span
             aria-hidden
@@ -114,7 +114,7 @@ export function FormNovaConta() {
             {/* O aviso onde a escolha acontece. Sem ele, alguém cadastra
                 um chalé como loja online e depois estranha ver o
                 semáforo vermelho para sempre. */}
-            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+            <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
               Cliente de tráfego não tem venda registrada aqui, e o semáforo de saúde deixa
               de descontar por meta e ROAS.
             </p>
@@ -158,7 +158,7 @@ export function FormNovaConta() {
           <div>
             <label htmlFor="c-doc" className={rotulo}>CNPJ ou CPF</label>
             <input id="c-doc" name="documento" placeholder="00.000.000/0001-00" className={`mt-2 ${campo}`} />
-            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+            <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
               Sem documento não dá para emitir cobrança: o Asaas exige.
             </p>
           </div>
@@ -169,7 +169,7 @@ export function FormNovaConta() {
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Cadastrando...' : 'Cadastrar cliente'}
         </button>
@@ -247,7 +247,7 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
           </legend>
 
           {contas.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs text-cinza">
+            <p className="mt-3 rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs text-tinta-fraca">
               Nenhuma loja cadastrada ainda. Cadastre em Clientes antes de dar acesso a um
               lojista.
             </p>
@@ -269,7 +269,7 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
                   </label>
                 ))}
               </div>
-              <p className="mt-2.5 text-xs leading-relaxed text-cinza">
+              <p className="mt-2.5 text-xs leading-relaxed text-tinta-fraca">
                 {precisaConta
                   ? 'A primeira marcada vira a loja principal, que é a que abre por padrão.'
                   : 'Papel interno enxerga todas as lojas. Marcar aqui só define de quais a pessoa é responsável.'}
@@ -280,7 +280,7 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
 
         {/* A consequencia de cada papel vem da matriz, e nao de texto
             repetido aqui: um lugar so descreve o que cada um enxerga. */}
-        <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-cinza">
+        <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-tinta-fraca">
           {descricaoPapel[papel]}
         </p>
 
@@ -295,17 +295,17 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               placeholder="mínimo 12 caracteres"
-              className={`${campo} min-w-[14rem] flex-1 font-mono`}
+              className={`${campo} min-w-[14rem] flex-1`}
             />
             <button
               type="button"
               onClick={gerar}
-              className="rounded-xl border border-fio px-5 py-3 text-sm font-semibold text-neve transition-colors hover:bg-white/5"
+              className="rounded-xl border border-fio px-5 py-3 text-sm font-semibold text-tinta transition-colors hover:bg-tinta/12"
             >
               Gerar
             </button>
           </div>
-          <p className="mt-2 text-xs text-cinza">
+          <p className="mt-2 text-xs text-tinta-fraca">
             Anote e entregue por um canal seguro. Ela não fica salva em lugar nenhum,
             e esta tela não vai mostrá-la de novo.
           </p>
@@ -316,7 +316,7 @@ export function FormNovoUsuario({ contas }: { contas: { id: string; nome: string
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Criando acesso...' : 'Criar acesso'}
         </button>
@@ -344,7 +344,7 @@ export function BotaoAcesso({
   );
 
   if (eVoce) {
-    return <span className="text-xs text-cinza">você</span>;
+    return <span className="text-xs text-tinta-fraca">você</span>;
   }
 
   return (
@@ -354,12 +354,12 @@ export function BotaoAcesso({
       <button
         type="submit"
         disabled={pendente}
-        className="text-sm font-semibold text-magenta-texto transition-opacity hover:opacity-80 disabled:opacity-50"
+        className="text-sm font-semibold text-acento transition-opacity hover:opacity-80 disabled:opacity-50"
       >
         {pendente ? '...' : ativo ? 'Desativar' : 'Reativar'}
       </button>
       {estado && !estado.ok ? (
-        <span className="text-xs text-magenta-texto">{estado.mensagem}</span>
+        <span className="text-xs text-acento">{estado.mensagem}</span>
       ) : null}
     </form>
   );
@@ -375,7 +375,7 @@ export function FormMeta({ contas }: { contas: { id: string; nome: string }[] })
   return (
     <Dobra titulo="Definir meta do mês" acaoRotulo="Nova meta">
       <form action={acao} className="space-y-5">
-        <p className="text-sm leading-relaxed text-cinza">
+        <p className="text-sm leading-relaxed text-tinta-fraca">
           Sem meta, o painel mostra o número e não diz se ele é bom. É a meta que
           transforma &ldquo;R$ 180 mil&rdquo; em &ldquo;83% do mês&rdquo; e calcula
           quanto a loja precisa faturar por dia no que resta.
@@ -409,7 +409,7 @@ export function FormMeta({ contas }: { contas: { id: string; nome: string }[] })
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Salvando...' : 'Salvar meta'}
         </button>
@@ -453,14 +453,14 @@ export function LojasDaPessoa({
   const erro = [vincular, desvincular].find((r) => r && !r.ok);
 
   if (atuais.length === 0 && !editavel) {
-    return <span className="text-xs text-cinza">todas</span>;
+    return <span className="text-xs text-tinta-fraca">todas</span>;
   }
 
   return (
     <div className="space-y-2">
       <ul className="flex flex-wrap gap-1.5">
         {atuais.length === 0 ? (
-          <li className="text-xs text-cinza">todas as lojas</li>
+          <li className="text-xs text-tinta-fraca">todas as lojas</li>
         ) : (
           atuais.map((c) => (
             <li key={c.id}>
@@ -474,7 +474,7 @@ export function LojasDaPessoa({
                       type="submit"
                       disabled={desvinculando}
                       aria-label={`Remover acesso a ${c.nome}`}
-                      className="flex h-4 w-4 items-center justify-center rounded-full text-cinza transition-colors hover:bg-magenta/20 hover:text-magenta-texto disabled:opacity-40"
+                      className="flex h-4 w-4 items-center justify-center rounded-full text-tinta-fraca transition-colors hover:bg-rosa/20 hover:text-acento disabled:opacity-40"
                     >
                       <span aria-hidden>×</span>
                     </button>
@@ -494,7 +494,7 @@ export function LojasDaPessoa({
             defaultValue=""
             required
             aria-label="Adicionar loja"
-            className="rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-branco outline-none focus:border-magenta"
+            className="rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-tinta outline-none focus:border-rosa"
           >
             <option value="" disabled>
               adicionar loja
@@ -508,14 +508,14 @@ export function LojasDaPessoa({
           <button
             type="submit"
             disabled={vinculando}
-            className="text-xs font-semibold text-magenta-texto disabled:opacity-50"
+            className="text-xs font-semibold text-acento disabled:opacity-50"
           >
             {vinculando ? '...' : '+ dar acesso'}
           </button>
         </form>
       ) : null}
 
-      {erro ? <p className="text-xs text-magenta-texto">{erro.mensagem}</p> : null}
+      {erro ? <p className="text-xs text-acento">{erro.mensagem}</p> : null}
     </div>
   );
 }
@@ -539,7 +539,7 @@ export function FormTransferencia({
   return (
     <Dobra titulo="Transferir carteira" acaoRotulo="Transferir">
       <form action={acao} className="space-y-5">
-        <p className="text-sm leading-relaxed text-cinza">
+        <p className="text-sm leading-relaxed text-tinta-fraca">
           Passa todas as lojas de uma pessoa para outra. Existe porque desativar alguém sem
           passar a carteira adiante deixa contas órfãs: ninguém responsável, ninguém
           recebendo o alerta, e o problema só aparece quando o cliente liga reclamando.
@@ -568,7 +568,7 @@ export function FormTransferencia({
           </div>
         </div>
 
-        <label className="flex cursor-pointer items-center gap-3 text-sm text-neve">
+        <label className="flex cursor-pointer items-center gap-3 text-sm text-tinta">
           <input type="checkbox" name="desativar" value="true" className="h-4 w-4 accent-[#E4155F]" />
           Desativar o acesso de quem sai
         </label>
@@ -578,7 +578,7 @@ export function FormTransferencia({
         <button
           type="submit"
           disabled={pendente || comCarteira.length === 0}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Transferindo...' : 'Transferir carteira'}
         </button>

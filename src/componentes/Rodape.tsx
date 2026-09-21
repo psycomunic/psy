@@ -26,16 +26,15 @@ export function Rodape({
   posicionamento?: string;
 } = {}) {
   return (
-    <footer className="relative mt-auto overflow-hidden border-t border-fio bg-marinho-fundo">
+    <footer className="relative mt-auto overflow-hidden border-t border-fio bg-papel-alt">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="brilho-magenta absolute -bottom-64 left-1/2 h-[520px] w-[900px] -translate-x-1/2 opacity-[0.14]" />
       </div>
 
-      <div className={'relative mx-auto w-full max-w-[1320px] px-5 py-20 md:px-10'}>
+      <div className={'relative mx-auto w-full max-w-[1180px] px-5 py-20 md:px-10'}>
         <div className="grid gap-14 lg:grid-cols-[1.5fr_repeat(4,1fr)]">
           <div>
             <Marca />
-            <p className="mt-5 max-w-[30ch] leading-relaxed text-cinza">
+            <p className="mt-5 max-w-[30ch] leading-relaxed text-tinta-fraca">
               {posicionamento ?? marca.posicionamento}
             </p>
 
@@ -50,7 +49,7 @@ export function Rodape({
                   href={zap.link}
                   pagina={zap.pagina}
                   secao="rodape"
-                  className="block text-sm text-neve transition-colors hover:text-branco"
+                  className="block text-sm text-tinta transition-colors hover:text-tinta"
                 >
                   {`WhatsApp ${zap.visivel}`}
                 </LinkWhatsapp>
@@ -59,14 +58,14 @@ export function Rodape({
                   href={linkWhatsapp}
                   target="_blank"
                   rel="noopener"
-                  className="block text-sm text-neve transition-colors hover:text-branco"
+                  className="block text-sm text-tinta transition-colors hover:text-tinta"
                 >
                   WhatsApp {formatado}
                 </a>
               )}
               <a
                 href="mailto:psycomunic@gmail.com"
-                className="block text-sm text-neve transition-colors hover:text-branco"
+                className="block text-sm text-tinta transition-colors hover:text-tinta"
               >
                 psycomunic@gmail.com
               </a>
@@ -74,7 +73,7 @@ export function Rodape({
                 href="https://instagram.com/reysonmkt"
                 target="_blank"
                 rel="noopener"
-                className="block text-sm text-neve transition-colors hover:text-branco"
+                className="block text-sm text-tinta transition-colors hover:text-tinta"
               >
                 @reysonmkt
               </a>
@@ -83,7 +82,7 @@ export function Rodape({
 
           {navRodape.map((grupo) => (
             <nav key={grupo.titulo} aria-label={grupo.titulo}>
-              <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
+              <h2 className="text-[0.68rem] text-acento">
                 {grupo.titulo}
               </h2>
               <ul className="mt-5 space-y-3">
@@ -91,7 +90,7 @@ export function Rodape({
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className="text-sm text-neve transition-colors hover:text-branco"
+                      className="text-sm text-tinta transition-colors hover:text-tinta"
                     >
                       {item.rotulo}
                     </Link>
@@ -115,7 +114,7 @@ export function Rodape({
             Quando os dados chegarem, entram aqui e também em
             `site.ts`, onde a cidade e o estado alimentam o JSON-LD. */}
         <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-fio pt-8">
-          <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="text-[0.68rem] text-tinta-fraca">
             © {new Date().getFullYear()} {marca.nome}
           </p>
           {/* A unidade fica aqui, junto dos dados da empresa, e nao numa
@@ -125,7 +124,7 @@ export function Rodape({
               busca. */}
           <Link
             href="/braganca-pa"
-            className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza transition-colors hover:text-neve"
+            className="text-[0.68rem] text-tinta-fraca transition-colors hover:text-tinta"
           >
             Bragança, PA
           </Link>

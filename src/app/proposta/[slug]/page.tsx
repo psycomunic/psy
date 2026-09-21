@@ -115,8 +115,8 @@ export default async function PaginaProposta({
       {/* ---------------------------------------------------------- */}
       <Slide centrado>
         <div>
-          <p className="flex items-center gap-3 font-mono uppercase tracking-[0.22em] text-magenta-texto [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
-            <span aria-hidden className="h-px w-8 flex-none bg-magenta sm:w-12" />
+          <p className="flex items-center gap-3 text-acento [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
+            <span aria-hidden className="h-px w-8 flex-none bg-rosa sm:w-12" />
             Proposta comercial
           </p>
 
@@ -124,37 +124,37 @@ export default async function PaginaProposta({
             {p.cliente}
           </h1>
 
-          <p className="mt-5 text-guia text-neve">
-            Aos cuidados de <span className="text-branco">{p.contato}</span>
+          <p className="mt-5 text-guia text-tinta">
+            Aos cuidados de <span className="text-tinta">{p.contato}</span>
           </p>
 
-          <p className="mt-8 max-w-[52ch] text-guia leading-relaxed text-neve">{p.resumo}</p>
+          <p className="mt-8 max-w-[52ch] text-guia leading-relaxed text-tinta">{p.resumo}</p>
 
           <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-t border-fio pt-7">
             <div>
-              <dt className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
+              <dt className="text-[0.7rem] text-tinta-fraca">
                 Emitida em
               </dt>
-              <dd className="mt-1.5 text-sm text-neve">{dataBR(new Date(p.emitidaEm))}</dd>
+              <dd className="mt-1.5 text-sm text-tinta">{dataBR(new Date(p.emitidaEm))}</dd>
             </div>
             <div>
-              <dt className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
+              <dt className="text-[0.7rem] text-tinta-fraca">
                 {vencida ? 'Venceu em' : 'Válida até'}
               </dt>
-              <dd className={'mt-1.5 text-sm ' + (vencida ? 'text-magenta-texto' : 'text-neve')}>
+              <dd className={'mt-1.5 text-sm ' + (vencida ? 'text-acento' : 'text-tinta')}>
                 {dataBR(vencimento)}
               </dd>
             </div>
             <div>
-              <dt className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
+              <dt className="text-[0.7rem] text-tinta-fraca">
                 Por
               </dt>
-              <dd className="mt-1.5 text-sm text-neve">{marca.nome}</dd>
+              <dd className="mt-1.5 text-sm text-tinta">{marca.nome}</dd>
             </div>
           </dl>
 
           {vencida ? (
-            <p className="mt-8 max-w-[54ch] rounded-2xl border border-magenta/40 bg-magenta/10 p-4 text-sm leading-relaxed text-magenta-texto">
+            <p className="mt-8 max-w-[54ch] rounded-2xl border border-rosa/40 bg-rosa-leve p-4 text-sm leading-relaxed text-acento">
               Esta proposta passou da validade. Fale com a {marca.nome} para receber uma
               versão atualizada, com os valores conferidos.
             </p>
@@ -195,7 +195,7 @@ export default async function PaginaProposta({
           rotulo="Diagnóstico"
           titulo={
             <>
-              O que <span className="text-magenta-texto">encontramos.</span>
+              O que <span className="text-acento">encontramos.</span>
             </>
           }
           apoio="O ponto de partida desta proposta. Se algo aqui estiver errado, o escopo muda junto."
@@ -204,10 +204,10 @@ export default async function PaginaProposta({
             {p.diagnostico.map((d, i) => (
               <li key={d}>
                 <Bloco className="flex gap-4 sm:gap-5">
-                  <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-magenta/15 font-mono text-[0.72rem] font-semibold text-magenta-texto">
+                  <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-rosa/15 text-[0.72rem] font-semibold text-acento">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span className="min-w-0 self-center text-sm leading-relaxed text-neve sm:text-[1.02rem]">
+                  <span className="min-w-0 self-center text-sm leading-relaxed text-tinta sm:text-[1.02rem]">
                     {d}
                   </span>
                 </Bloco>
@@ -242,7 +242,7 @@ export default async function PaginaProposta({
           rotulo="Escopo"
           titulo={
             <>
-              O que vamos <span className="text-magenta-texto">fazer.</span>
+              O que vamos <span className="text-acento">fazer.</span>
             </>
           }
         >
@@ -252,10 +252,10 @@ export default async function PaginaProposta({
                 <h3 className="font-display text-lg font-bold tracking-[-0.02em]">
                   {bloco.frente}
                 </h3>
-                <ul className="mt-3.5 space-y-2.5 text-sm leading-relaxed text-neve">
+                <ul className="mt-3.5 space-y-2.5 text-sm leading-relaxed text-tinta">
                   {bloco.itens.map((i) => (
                     <li key={i} className="flex gap-3">
-                      <span aria-hidden className="flex-none text-magenta-texto">
+                      <span aria-hidden className="flex-none text-acento">
                         ·
                       </span>
                       {i}
@@ -407,19 +407,19 @@ export default async function PaginaProposta({
           rotulo="Investimento"
           titulo={
             <>
-              Quanto <span className="text-magenta-texto">custa.</span>
+              Quanto <span className="text-acento">custa.</span>
             </>
           }
         >
           <dl className="mt-2 grid gap-3 sm:grid-cols-2">
             {p.investimento.map((i) => (
               <Bloco key={i.rotulo} className="h-full">
-                <dt className="text-sm text-cinza">{i.rotulo}</dt>
+                <dt className="text-sm text-tinta-fraca">{i.rotulo}</dt>
                 <dd className="tabular mt-2 font-display text-3xl font-extrabold tracking-[-0.04em]">
                   {i.valor}
                 </dd>
                 {i.observacao ? (
-                  <p className="mt-3 max-w-[42ch] text-xs leading-relaxed text-cinza">
+                  <p className="mt-3 max-w-[42ch] text-xs leading-relaxed text-tinta-fraca">
                     {i.observacao}
                   </p>
                 ) : null}
@@ -436,7 +436,7 @@ export default async function PaginaProposta({
         rotulo="Condições"
         titulo={
           <>
-            Como <span className="text-magenta-texto">funciona.</span>
+            Como <span className="text-acento">funciona.</span>
           </>
         }
       >
@@ -447,20 +447,20 @@ export default async function PaginaProposta({
           {p.condicoesExtras.map((c) => (
             <li key={c}>
               <Bloco destaque className="flex gap-4">
-                <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">
+                <span aria-hidden className="mt-0.5 flex-none text-acento">
                   →
                 </span>
-                <span className="text-sm leading-relaxed text-neve sm:text-[0.98rem]">{c}</span>
+                <span className="text-sm leading-relaxed text-tinta sm:text-[0.98rem]">{c}</span>
               </Bloco>
             </li>
           ))}
           {condicoes.map((c) => (
             <li key={c}>
               <Bloco className="flex gap-4">
-                <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">
+                <span aria-hidden className="mt-0.5 flex-none text-acento">
                   →
                 </span>
-                <span className="text-sm leading-relaxed text-neve sm:text-[0.98rem]">{c}</span>
+                <span className="text-sm leading-relaxed text-tinta sm:text-[0.98rem]">{c}</span>
               </Bloco>
             </li>
           ))}
@@ -475,7 +475,7 @@ export default async function PaginaProposta({
           rotulo="A partir do sim"
           titulo={
             <>
-              Próximos <span className="text-magenta-texto">passos.</span>
+              Próximos <span className="text-acento">passos.</span>
             </>
           }
         >
@@ -483,10 +483,10 @@ export default async function PaginaProposta({
             {p.proximosPassos.map((s, i) => (
               <li key={s}>
                 <Bloco className="flex items-center gap-4 sm:gap-5">
-                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-magenta/35 bg-magenta/12 font-mono text-xs font-semibold text-magenta-texto">
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-rosa/35 bg-rosa/12 text-xs font-semibold text-acento">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span className="min-w-0 text-sm leading-relaxed text-neve sm:text-[0.98rem]">
+                  <span className="min-w-0 text-sm leading-relaxed text-tinta sm:text-[0.98rem]">
                     {s}
                   </span>
                 </Bloco>
@@ -501,16 +501,16 @@ export default async function PaginaProposta({
       {/* ---------------------------------------------------------- */}
       <Slide centrado>
         <div>
-          <p className="flex items-center gap-3 font-mono uppercase tracking-[0.22em] text-magenta-texto [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
-            <span aria-hidden className="h-px w-8 flex-none bg-magenta sm:w-12" />
+          <p className="flex items-center gap-3 text-acento [font-size:clamp(0.72rem,2.4vw,0.8rem)]">
+            <span aria-hidden className="h-px w-8 flex-none bg-rosa sm:w-12" />
             Aceite
           </p>
 
           <h2 className="mt-6 max-w-[13ch] font-display text-mostro font-extrabold tracking-[-0.045em]">
-            Pronto para <span className="text-magenta-texto">começar?</span>
+            Pronto para <span className="text-acento">começar?</span>
           </h2>
 
-          <p className="mt-6 max-w-[46ch] text-guia leading-relaxed text-neve">
+          <p className="mt-6 max-w-[46ch] text-guia leading-relaxed text-tinta">
             Responda por aqui que a {marca.nome} inicia o kick off e o plano de mídia na
             mesma semana.
           </p>
@@ -519,12 +519,12 @@ export default async function PaginaProposta({
             href={linkWhatsapp}
             target="_blank"
             rel="noopener"
-            className="mt-9 inline-flex w-full items-center justify-center rounded-full bg-magenta px-9 py-4 text-sm font-semibold text-branco shadow-[0_18px_50px_-18px_rgba(228,21,95,0.95)] transition-colors hover:bg-magenta-forte sm:w-auto"
+            className="mt-9 inline-flex w-full items-center justify-center rounded-full bg-rosa px-9 py-4 text-sm font-semibold text-branco shadow-[0_18px_50px_-18px_rgba(255,46,99,0.95)] transition-colors hover:bg-rosa-forte sm:w-auto"
           >
             Aceitar e falar no WhatsApp
           </a>
 
-          <p className="mt-12 border-t border-fio pt-6 text-xs leading-relaxed text-cinza">
+          <p className="mt-12 border-t border-fio pt-6 text-xs leading-relaxed text-tinta-fraca">
             Documento confidencial, preparado para {p.cliente}. Os valores valem até{' '}
             {dataBR(vencimento)}.
             <br />© {new Date().getFullYear()} {marca.nome}.

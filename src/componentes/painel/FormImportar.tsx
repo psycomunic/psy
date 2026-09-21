@@ -6,11 +6,11 @@ import type { Resultado } from '@/app/painel/acoes';
 import { PROVEDORES, rotuloProvedor, type ProvedorPlanilha } from '@/lib/ingestao/csv';
 
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
   'outline-none transition-colors file:mr-4 file:rounded-full file:border-0 ' +
-  'file:bg-white/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-branco ' +
-  'placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotulo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'file:bg-tinta/12 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-tinta ' +
+  'placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotulo = 'block text-[0.75rem] text-tinta-fraca';
 
 /** As colunas que cada tipo de planilha aceita, para caber na tela sem
     virar documentação em outro lugar. */
@@ -35,7 +35,7 @@ export function FormImportar({ contaId }: { contaId: string }) {
 
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Importar planilha</h3>
-        <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-cinza">
+        <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-tinta-fraca">
           Enquanto as APIs não estão ligadas, é por aqui que o número entra. Reimportar o
           mesmo período sobrescreve o dia em vez de somar, então dá para corrigir e mandar
           de novo sem medo de dobrar o faturamento.
@@ -77,14 +77,14 @@ export function FormImportar({ contaId }: { contaId: string }) {
         </div>
       </div>
 
-      <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-cinza">
-        <span className="font-mono uppercase tracking-[0.12em] text-magenta-texto">
+      <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-tinta-fraca">
+        <span className=" text-acento">
           Colunas aceitas
         </span>
         <br />
         {COLUNAS[provedor]}
         <br />
-        <span className="text-cinza/80">
+        <span className="text-tinta-fraca/80">
           Data em dd/mm/aaaa ou aaaa-mm-dd. Ponto e vírgula, vírgula ou tabulação como
           separador. Número no formato brasileiro. Nome de coluna com acento e maiúscula
           funciona igual.
@@ -98,7 +98,7 @@ export function FormImportar({ contaId }: { contaId: string }) {
             'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
             (estado.ok
               ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-              : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+              : 'border-rosa/40 bg-rosa-leve text-acento')
           }
         >
           <span aria-hidden className="mt-0.5">
@@ -111,7 +111,7 @@ export function FormImportar({ contaId }: { contaId: string }) {
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+        className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
       >
         {pendente ? 'Lendo...' : 'Importar'}
       </button>

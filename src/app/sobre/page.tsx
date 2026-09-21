@@ -39,7 +39,7 @@ export default function Sobre() {
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-transparent mix-blend-soft-light"
+                className="absolute inset-0 bg-gradient-to-tr from-rosa/20 via-transparent to-transparent mix-blend-soft-light"
               />
               <div
                 aria-hidden
@@ -49,7 +49,7 @@ export default function Sobre() {
                 <p className="font-display text-2xl font-extrabold tracking-[-0.03em]">
                   {site.fundador}
                 </p>
-                <p className="mt-1.5 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
+                <p className="mt-1.5 text-[0.68rem] text-acento">
                   Fundador · {marca.nome}
                 </p>
               </figcaption>
@@ -70,10 +70,10 @@ export default function Sobre() {
       </section>
 
       {/* Pilares */}
-      <section className="border-y border-fio bg-marinho-fundo py-20 md:py-24">
+      <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-            <span aria-hidden className="h-px w-8 bg-magenta" />
+          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
+            <span aria-hidden className="h-px w-8 bg-rosa" />
             Pilares
           </p>
           <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
@@ -82,10 +82,10 @@ export default function Sobre() {
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
             {marca.pilares.map((p, i) => (
               <li key={p} className="border-t border-fio pt-7">
-                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto">
+                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-acento">
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <p className="mt-4 text-lg leading-snug text-neve">{p}</p>
+                <p className="mt-4 text-lg leading-snug text-tinta">{p}</p>
               </li>
             ))}
           </ol>
@@ -95,8 +95,8 @@ export default function Sobre() {
       {/* Valores */}
       <section className="py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
-            <span aria-hidden className="h-px w-8 bg-magenta" />
+          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
+            <span aria-hidden className="h-px w-8 bg-rosa" />
             Valores
           </p>
           <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
@@ -108,7 +108,7 @@ export default function Sobre() {
                 <dt className="font-display text-xl font-bold tracking-[-0.02em]">
                   {v.nome}
                 </dt>
-                <dd className="mt-3 leading-relaxed text-cinza">{v.texto}</dd>
+                <dd className="mt-3 leading-relaxed text-tinta-fraca">{v.texto}</dd>
               </div>
             ))}
           </dl>
@@ -117,7 +117,7 @@ export default function Sobre() {
             <blockquote className="max-w-[46ch] font-display text-2xl font-semibold leading-snug tracking-[-0.02em] md:text-3xl">
               {marca.assinatura.frase}
             </blockquote>
-            <figcaption className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
+            <figcaption className="mt-4 text-[0.7rem] text-tinta-fraca">
               {marca.assinatura.autor}
             </figcaption>
           </figure>

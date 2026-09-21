@@ -1,86 +1,153 @@
 @import "tailwindcss";
 
 /* =================================================================
-   Tokens da marca Psy Comunic.
+   Tokens da marca Psy Comunic: tema claro editorial.
 
-   ATENÇÃO: os hex vieram do PDF da apresentação e são APROXIMAÇÕES.
-   Confirmar no manual de marca antes do go-live (pendência 1 da seção
-   17 do escopo). Trocar aqui propaga para o site inteiro.
+   O SITE ERA ESCURO. Marinho chapado, texto branco, brilhos e
+   estrelas. Virou branco por opção de marca: o fundo claro existe
+   para a foto de produto da loja de moda mandar na página, e não
+   disputar com ela.
+
+   TRÊS PAPÉIS, E NÃO UMA LISTA DE CORES
+   O branco é o fundo. O marinho é texto E faixa inteira. O rosa é
+   acento, nunca área grande: em bloco cheio ele satura e cansa no
+   claro.
+
+   POR QUE OS TOKENS SEMÂNTICOS EXISTEM
+   `--fg`, `--fg-muted` e `--border` são redefinidos dentro de
+   `.faixa-navy`. É o que permite a MESMA classe funcionar nos dois
+   fundos: `text-tinta` é marinho na página e branco na faixa, sem
+   nenhum componente saber em qual dos dois está.
    ================================================================= */
 :root {
-  --marinho:        #101F3F;   /* fundo dominante */
-  --marinho-fundo:  #0B1730;   /* um degrau mais escuro, para camadas */
-  --marinho-alto:   #1A2E56;   /* superfície elevada, cards */
-  --magenta:        #E4155F;   /* CTA, destaque gráfico */
-  --magenta-forte:  #C2114F;   /* hover do CTA */
+  /* base */
+  --psy-white:      #FFFFFF;
+  --psy-paper:      #F7F8FA;
+  --psy-navy:       #0B1437;
+  --psy-navy-soft:  #16204A;
+  --psy-slate:      #686F8C;
+  --psy-line:       #E4E6EE;
 
-  /* Magenta CLARO, exclusivo para TEXTO sobre o marinho.
-     O #E4155F sobre #101F3F dá contraste ~3.4:1 e reprova na WCAG 2.2
-     AA, que exige 4.5:1 para texto. Então o magenta original fica
-     restrito a fundo de botão e elemento gráfico, e o texto usa este. */
-  --magenta-texto:  #FF6B96;
+  /* acento */
+  --psy-pink:       #FF2E63;
+  --psy-pink-ink:   #D91A4A;
+  --psy-pink-deep:  #B01238;
+  --psy-pink-wash:  #FFF1F5;
 
-  --branco:         #FFFFFF;
-  --neve:           #E8ECF5;   /* texto secundário sobre o marinho */
-  --cinza:          #93A0BC;   /* texto terciário */
+  /* semânticos: é isto que a faixa marinho troca */
+  --bg:         var(--psy-white);
+  --bg-alt:     var(--psy-paper);
+  --fg:         var(--psy-navy);
+  --fg-muted:   var(--psy-slate);
+  --border:     var(--psy-line);
+  --accent:     var(--psy-pink);
 
-  /* ---------------------------------------------------------------
-     Camadas de profundidade.
+  /*
+    Acento de TEXTO e FUNDO DE BOTÃO, separado do acento gráfico.
 
-     Marinho chapado em tela grande vira um vazio azul. Estas três
-     camadas dão material à superfície: um brilho quente que ancora o
-     olho, uma grade que dá escala, e um grão que tira o aspecto de
-     gradiente de software.
-     --------------------------------------------------------------- */
-  --fio:        color-mix(in oklab, var(--branco) 12%, transparent);
-  --fio-forte:  color-mix(in oklab, var(--branco) 24%, transparent);
+    Os números vieram de medição, e corrigem o documento do tema em
+    dois pontos:
 
-  /* Superfície de card: gradiente sutil no lugar de cor chapada. Um
-     card com a mesma cor em cima e embaixo não tem volume nenhum. */
-  --superficie: linear-gradient(
-    160deg,
-    color-mix(in oklab, var(--marinho-alto) 70%, transparent),
-    color-mix(in oklab, var(--marinho-fundo) 85%, transparent)
-  );
+    1. Branco sobre #FF2E63 dá 3.61:1 e REPROVA nos 4.5:1 exigidos
+       para texto de 14px. O documento dava esse par como aprovado. O
+       botão primário usa o tom escurecido, onde branco dá 4.81:1.
+    2. O par de texto foi calculado contra a superfície clara mais
+       ESCURA da paleta, que é o lavado rosa #FFF1F5 e não o branco.
+       #E01B4C e #6B7290 passavam no branco e reprovavam por pouco no
+       lavado e no papel: 4.46:1. Os valores atuais passam nos três.
 
-  --raio:      1.75rem;
-  --raio-p:    1rem;
+    O #FF2E63 cheio continua existindo, restrito a elemento gráfico,
+    onde o mínimo é 3:1.
+  */
+  --accent-ink: var(--psy-pink-ink);
+
+  /* Sombra quase não existe: a separação vem de linha e de espaço.
+     Quando precisa, é esta e só esta. */
+  --sombra: 0 1px 2px rgba(11, 20, 55, .06);
+
+  --raio:      14px;
+  --raio-p:    14px;
+
+  /* Respiro entre seções. O tema claro precisa de mais ar que o
+     escuro: sem isso a página parece apertada, porque não há
+     escuridão nenhuma separando um bloco do outro. */
+  --ar: clamp(72px, 10vw, 140px);
+}
+
+/*
+  A FAIXA MARINHO.
+
+  Seções inteiras em marinho com texto branco são o que dá ritmo à
+  página. Ela não pinta texto: troca os tokens, e todo componente
+  dentro dela se ajusta sozinho.
+*/
+.faixa-navy {
+  background: var(--psy-navy);
+  color: var(--psy-white);
+  --bg:         var(--psy-navy);
+  --bg-alt:     var(--psy-navy-soft);
+  --fg:         #FFFFFF;
+  --fg-muted:   #A9B0C9;
+  --border:     rgba(255, 255, 255, .14);
+  /* Sobre marinho o rosa cheio volta a ter contraste, e o escurecido
+     perderia. O acento de texto inverte junto com o resto. */
+  --accent-ink: #FF7BA0;
+}
+
+/* A faixa rosa da chamada final, pelo mesmo mecanismo. */
+.faixa-pink {
+  background: var(--psy-pink);
+  color: var(--psy-white);
+  --bg:         var(--psy-pink);
+  --fg:         #FFFFFF;
+  --fg-muted:   rgba(255, 255, 255, .82);
+  --border:     rgba(255, 255, 255, .28);
+  --accent-ink: #FFFFFF;
 }
 
 @theme inline {
-  --color-marinho:       var(--marinho);
-  --color-marinho-fundo: var(--marinho-fundo);
-  --color-marinho-alto:  var(--marinho-alto);
-  --color-magenta:       var(--magenta);
-  --color-magenta-forte: var(--magenta-forte);
-  --color-magenta-texto: var(--magenta-texto);
-  --color-branco:        var(--branco);
-  --color-neve:          var(--neve);
-  --color-cinza:         var(--cinza);
-  --color-fio:           var(--fio);
+  /* --- papéis, e não cores. Uma classe, dois fundos. --- */
+  --color-tinta:        var(--fg);
+  --color-tinta-fraca:  var(--fg-muted);
+  --color-fio:          var(--border);
+  --color-papel:        var(--bg);
+  --color-papel-alt:    var(--bg-alt);
+  --color-acento:       var(--accent-ink);
+
+  /* --- cores literais, para quando o papel não serve --- */
+  --color-rosa:       var(--psy-pink-ink);
+  --color-rosa-forte: var(--psy-pink-deep);
+  --color-rosa-grafico: var(--psy-pink);
+  --color-rosa-leve:  var(--psy-pink-wash);
+  --color-marinho:    var(--psy-navy);
+  --color-marinho-alto: var(--psy-navy-soft);
+  --color-branco:     var(--psy-white);
 
   --font-sans:    var(--font-corpo);
   --font-display: var(--font-display);
-  --font-mono:    var(--font-mono);
 
-  /* Escala fluida. Um h1 de 72px fixo é gigante no notebook e pequeno
-     no monitor de 27". clamp resolve os dois sem media query. */
-  /* A hero é de DUAS colunas: a display ocupa pouco mais da metade da
-     tela, não a largura toda. Escala calibrada para essa coluna.
+  /*
+    ESCALA TIPOGRÁFICA.
 
-     O teto de 4rem não é estético, é geométrico: o container trava em
-     1320px, então a coluna do título para de crescer aí. Uma fonte que
-     continuasse subindo depois disso só ganharia linhas. Medido: com
-     teto de 4.5rem o h1 quebrava em 5 linhas em 1920 e em 4 linhas em
-     1440. Com 4rem são 4 linhas nos dois. */
-  --text-mostro:  clamp(2.25rem, 1rem + 3.6vw, 4rem);
-  --text-mostro--line-height: 0.96;
-  --text-titulo:  clamp(1.85rem, 1.05rem + 2.4vw, 3.25rem);
-  --text-titulo--line-height: 1.04;
-  --text-sub:     clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
-  --text-sub--line-height: 1.15;
-  --text-guia:    clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
-  --text-guia--line-height: 1.6;
+    Título em serifada de peso 300: fina e grande. É o oposto da
+    display pesada de antes, e por isso a escala subiu: uma serifada
+    clara no mesmo corpo da grotesca preta parece menor do que é.
+  */
+  --text-mostro:  clamp(34px, 6.4vw, 66px);
+  --text-mostro--line-height: 1.03;
+  --text-titulo:  clamp(28px, 4.4vw, 46px);
+  --text-titulo--line-height: 1.1;
+  --text-sub:     clamp(20px, 3vw, 30px);
+  --text-sub--line-height: 1.2;
+  --text-numero:  clamp(22px, 3.4vw, 32px);
+  --text-numero--line-height: 1.1;
+  --text-guia:    16px;
+  --text-guia--line-height: 1.65;
+}
+
+/* Respiro vertical padrão de seção. */
+@utility secao-ar {
+  padding-block: var(--ar);
 }
 
 html {
@@ -100,20 +167,33 @@ html {
     a barra de rolagem e o autofill no tema certo, sem CSS nenhum por
     controle.
   */
-  color-scheme: dark;
+  /*
+    CLARO, E SEM ALTERNÂNCIA AUTOMÁTICA.
+
+    `color-scheme: light` é o que faz o navegador desenhar a lista do
+    <select>, o seletor de data, a barra de rolagem e o autofill no
+    tema certo. Sem ele a lista do select abre com as cores do sistema
+    e some no fundo, que foi exatamente o defeito que existia quando o
+    site era escuro, ao contrário.
+
+    Não existe bloco `prefers-color-scheme`: o site é claro por opção
+    de marca, e inverter sozinho no aparelho do visitante trocaria a
+    identidade por uma preferência de sistema.
+  */
+  color-scheme: light;
 }
 
 /* Reforço para os navegadores que ainda pintam a lista pelo elemento.
    `color-scheme` resolve na maioria; estes dois fecham o resto. */
 option,
 optgroup {
-  background-color: var(--marinho-alto);
-  color: var(--neve);
+  background-color: var(--psy-white);
+  color: var(--psy-navy);
 }
 
 body {
-  background: var(--marinho);
-  color: var(--branco);
+  background: var(--bg);
+  color: var(--fg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 
@@ -127,55 +207,8 @@ body {
    larguras diferentes e a coluna de estatísticas dança. */
 .tabular { font-variant-numeric: tabular-nums; }
 
-/* =================================================================
-   Grão.
 
-   Aplicado como camada fixa sobre o fundo, nunca sobre o conteúdo.
-   É o que separa "azul escuro chapado" de "superfície". Gerado em SVG
-   inline: um PNG de ruído custaria uma requisição e vários KB.
-   ================================================================= */
-@utility grao-camada {
-  position: fixed;
-  inset: 0;
-  /* Acima de tudo, inclusive do cabeçalho fixo: grão que para no meio
-     do caminho denuncia a camada. pointer-events:none garante que ele
-     não intercepta um clique sequer. */
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.19;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23r)' opacity='0.55'/%3E%3C/svg%3E");
-}
 
-/* =================================================================
-   Utilitários de composição
-   ================================================================= */
-
-/* Brilho radial. Ancora o olho e dá temperatura ao marinho. */
-@utility brilho-magenta {
-  background: radial-gradient(
-    50% 50% at 50% 50%,
-    color-mix(in oklab, var(--magenta) 42%, transparent) 0%,
-    transparent 72%
-  );
-}
-@utility brilho-frio {
-  background: radial-gradient(
-    50% 50% at 50% 50%,
-    color-mix(in oklab, #2B6BFF 34%, transparent) 0%,
-    transparent 70%
-  );
-}
-
-/* Grade técnica de fundo. Dá escala e vocabulário de operação, não de
-   folheto. Some nas bordas por máscara, senão vira gaiola. */
-@utility grade {
-  background-image:
-    linear-gradient(to right, var(--fio) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--fio) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(75% 60% at 50% 40%, #000 0%, transparent 100%);
-}
 
 /* =================================================================
    PASTILHA DE ICONE COM VOLUME.
@@ -201,47 +234,26 @@ body {
   position: relative;
   display: grid;
   place-items: center;
-  border-radius: 1.25rem;
-  background:
-    linear-gradient(145deg,
-      color-mix(in oklab, var(--marinho-alto) 92%, var(--branco) 8%) 0%,
-      var(--marinho-alto) 38%,
-      var(--marinho-fundo) 100%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, var(--branco) 30%, transparent),
-    inset 0 -1px 0 color-mix(in oklab, #000 45%, transparent),
-    inset 0 0 0 1px color-mix(in oklab, var(--branco) 8%, transparent),
-    0 10px 22px -10px rgba(0, 0, 0, 0.75),
-    0 2px 6px -2px rgba(0, 0, 0, 0.5);
-  transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateZ(0);
-  transition: transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .45s ease;
+  border-radius: var(--raio);
+  background: var(--psy-pink-wash);
+  border: 1px solid color-mix(in oklab, var(--psy-pink) 18%, transparent);
+  color: var(--psy-pink-ink);
+  transition: transform .35s cubic-bezier(.22,.61,.36,1), background .35s ease;
 }
 
-/* O brilho magenta que corre na diagonal de cima, como reflexo. */
-@utility icone-3d-luz {
-  content: '';
-  position: absolute;
-  inset: 1px 1px auto 1px;
-  height: 42%;
-  border-radius: 1.2rem 1.2rem 40% 40%;
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--branco) 14%, transparent),
-    transparent);
-  pointer-events: none;
+/* Dentro da faixa marinho o lavado rosa desaparece: vira um sinal de
+   branco sobre o fundo escuro, com o traço em rosa claro. */
+.faixa-navy .icone-3d {
+  background: rgba(255, 255, 255, .06);
+  border-color: var(--border);
+  color: var(--accent-ink);
 }
 
 .group:hover .icone-3d {
-  transform: perspective(600px) rotateX(-9deg) rotateY(11deg) translateZ(14px);
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, var(--branco) 38%, transparent),
-    inset 0 -1px 0 color-mix(in oklab, #000 45%, transparent),
-    inset 0 0 0 1px color-mix(in oklab, var(--magenta) 35%, transparent),
-    0 18px 34px -12px rgba(0, 0, 0, 0.8),
-    0 0 26px -6px color-mix(in oklab, var(--magenta) 45%, transparent);
+  background: color-mix(in oklab, var(--psy-pink) 12%, var(--psy-pink-wash));
+  transform: translateY(-2px);
 }
 
-/* Quem pediu menos movimento recebe a pastilha parada, com o volume
-   inteiro: o relevo e estatico, so a inclinacao some. */
 @media (prefers-reduced-motion: reduce) {
   .icone-3d,
   .group:hover .icone-3d {
@@ -250,10 +262,19 @@ body {
   }
 }
 
-/* Card com volume: gradiente + fio de contorno claro no topo. */
+/*
+  Card.
+
+  Era superfície com gradiente e fio claro no topo, porque no marinho
+  um card da mesma cor do fundo não tem volume nenhum. No branco o
+  problema não existe: a separação vem da linha e do ar em volta, e
+  gradiente aqui só sujaria o fundo que a foto de produto precisa.
+
+  Sombra quase não existe neste tema. Quando precisa, é --sombra.
+*/
 @utility cartao {
-  background: var(--superficie);
-  border: 1px solid var(--fio);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--raio);
   position: relative;
   isolation: isolate;
@@ -265,7 +286,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in oklab, var(--branco) 45%, transparent),
+    color-mix(in oklab, var(--psy-white) 45%, transparent),
     transparent
   );
 }
@@ -336,7 +357,7 @@ body {
 
 /* Foco visível é requisito de acessibilidade, não enfeite. */
 :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--magenta-texto);
+  outline: 2px solid var(--accent-ink);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -420,366 +441,8 @@ body {
   }
 }
 
-/* =================================================================
-   SCROLL CINEMA: o hero do lançamento.
-
-   Regras que não se quebram (ver HeroCinema.tsx e CLAUDE.md):
-   - A seção é alta (460vh) e o contêiner interno é sticky de 100vh.
-   - overflow:clip, nunca hidden: hidden mata o sticky.
-   - prefers-reduced-motion NÃO zera a altura; reduz a 100vh e mostra
-     o frame final com o texto completo.
-   ================================================================= */
-.sc-hero {
-  height: 520vh;
-  /* Fecha a cena em preto-marinho profundo, um degrau abaixo do
-     marinho: o espaço é mais escuro que o site. */
-  background: #06091A;
-
-  /*
-     SOBE POR TRÁS DO CABEÇALHO. NÃO REMOVA AO REESCREVER ESTE ARQUIVO.
-
-     O cabeçalho já nasce com fundo transparente, mas é `sticky`, e
-     sticky OCUPA LUGAR NO FLUXO: sem esta linha a cena começa depois
-     dele, e o que aparece atrás do menu é o fundo da página em vez do
-     astronauta. Menu transparente sem nada atrás é menu opaco, e foi
-     assim que isto voltou uma vez.
-
-     A altura vem de `--cabecalho`, que o próprio cabeçalho mede e
-     publica, porque muda com a largura: 77px no telefone, 101px em
-     1024 e 81px em 1440. Número escrito à mão erra em pelo menos uma
-     dessas. O valor de reserva cobre o primeiro quadro e o caso sem
-     script.
-
-     O véu já escurece os 18% de cima, então o texto do menu continua
-     legível sobre o vídeo. */
-  margin-top: calc(-1 * var(--cabecalho, 81px));
-}
-.sc-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  overflow: clip;
-  background: #06091A;
-  isolation: isolate;
-}
-.sc-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0;
-  transition: opacity .8s ease;
-  will-change: transform;
-  transform: scale(1.04);
-}
-.sc-video.is-ready { opacity: 1; }
-
-/* Véu: escurece só a faixa de leitura, à esquerda e embaixo, para o
-   foguete continuar limpo no centro. */
-.sc-veu {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(6, 9, 26, .62) 0%, rgba(6, 9, 26, .22) 36%, transparent 58%),
-    linear-gradient(180deg, rgba(6, 9, 26, .5) 0%, transparent 18%, transparent 78%, rgba(6, 9, 26, .6) 100%);
-}
-@media (max-width: 1023px) {
-  .sc-veu {
-    background:
-      linear-gradient(180deg, rgba(6, 9, 26, .6) 0%, rgba(6, 9, 26, .2) 40%, rgba(6, 9, 26, .45) 70%, rgba(6, 9, 26, .8) 100%);
-  }
-}
-
-.sc-loader {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 1.25rem;
-  background: #06091A;
-  transition: opacity .6s ease;
-}
-.sc-loader.is-gone { opacity: 0; pointer-events: none; }
-.sc-loader-anel {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--fio-forte);
-  border-top-color: var(--magenta);
-  animation: sc-girar 1.1s linear infinite;
-}
-@keyframes sc-girar { to { transform: rotate(360deg); } }
-
-/* Conteúdo sobre o vídeo: as camadas empilham no mesmo lugar e se
-   revezam pela opacidade, comandada pelo progresso. */
-.sc-conteudo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  pointer-events: none;
-  display: grid;
-}
-.sc-camada {
-  grid-area: 1 / 1;
-  /* min-width:0: item de grid não encolhe abaixo do conteúdo por
-     padrão, e a display em nowrap empurraria a camada para fora da
-     tela no celular, cortando o parágrafo junto. */
-  min-width: 0;
-  max-width: min(34rem, 100%);
-  opacity: 0;
-  will-change: opacity, transform;
-  pointer-events: none;
-}
-.sc-camada a { pointer-events: auto; }
-
-/* Escala própria do hero: vive na viewport inteira, não numa coluna,
-   então pode subir mais que --text-mostro. nowrap é carga estrutural:
-   a quebra de linha está no HTML, e a fonte encolhe para caber. */
-.sc-titulo {
-  font-size: clamp(2.1rem, 1.2rem + 4.2vw, 4.75rem);
-  line-height: 0.96;
-  white-space: nowrap;
-  text-shadow: 0 2px 40px rgba(6, 9, 26, .6);
-}
-.sc-titulo-p {
-  font-size: clamp(1.7rem, 1rem + 2.6vw, 3.1rem);
-  line-height: 1.02;
-  text-shadow: 0 2px 40px rgba(6, 9, 26, .6);
-}
-@media (max-width: 640px) {
-  /* Medido em 390px com fonte de sistema (mais larga que a Bricolage):
-     "de mais uma agência." cabe em 8.4vw sem quebrar. A segunda display
-     quebra livre no celular: duas linhas de 7vw leem melhor que uma
-     linha espremida. */
-  .sc-titulo { font-size: min(8.4vw, 2.4rem); }
-  .sc-titulo-p { font-size: clamp(1.4rem, 7vw, 2rem); white-space: normal; }
-  .sc-conteudo { top: auto; bottom: 21vh; transform: translate(-50%, 0); }
-}
-
-/* Telemetria: canto inferior esquerdo, vocabulário de painel. */
-.sc-telemetria {
-  position: absolute;
-  left: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
-  bottom: 2.25rem;
-  z-index: 4;
-  display: flex;
-  gap: 2.25rem;
-  pointer-events: none;
-}
-.sc-tele-item { display: grid; gap: .35rem; }
-.sc-tele-rotulo {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--cinza);
-}
-.sc-tele-valor {
-  font-family: var(--font-mono);
-  font-size: 1.05rem;
-  color: var(--branco);
-  display: inline-flex;
-  align-items: baseline;
-  gap: .4rem;
-}
-.sc-tele-unidade { font-size: .62rem; color: var(--magenta-texto); letter-spacing: .12em; }
-@media (max-width: 640px) {
-  .sc-telemetria { left: 1.25rem; bottom: 1.25rem; gap: 1.25rem; }
-  .sc-tele-item:nth-child(3) { display: none; }
-  .sc-tele-valor { font-size: .9rem; }
-}
-
-/* Barra de progresso lateral. scaleY é composto na GPU: não reflui. */
-.sc-barra {
-  position: absolute;
-  right: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 34vh;
-  background: var(--fio);
-  z-index: 4;
-}
-.sc-barra-fio {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, var(--magenta-texto), var(--magenta));
-  transform-origin: top;
-  transform: scaleY(0);
-}
-@media (max-width: 640px) { .sc-barra { display: none; } }
-
-.sc-dica {
-  position: absolute;
-  left: 50%;
-  bottom: 2.25rem;
-  transform: translateX(-50%);
-  z-index: 4;
-  display: grid;
-  justify-items: center;
-  gap: .75rem;
-  transition: opacity .5s ease;
-  pointer-events: none;
-}
-.sc-dica-seta {
-  width: 1px;
-  height: 40px;
-  background: linear-gradient(180deg, transparent, var(--magenta-texto));
-  animation: sc-cair 1.8s ease-in-out infinite;
-}
-@keyframes sc-cair {
-  0%, 100% { transform: translateY(0); opacity: .4; }
-  50% { transform: translateY(8px); opacity: 1; }
-}
-@media (max-width: 640px) { .sc-dica { bottom: 5.5rem; } }
-
-/* Hero da unidade local (HeroCinemaLocal): a subida do mangue é um
-   movimento só, mais curto que a aproximação do astronauta, então a
-   pista é menor. A camada de texto é mais larga porque o h1 leva a
-   palavra-chave inteira com a cidade. */
-.sc-hero--local { height: 460vh; }
-.sc-camada--local { max-width: min(38rem, 100%); }
-@media (max-width: 640px) {
-  .sc-camada--local .sc-titulo-p { font-size: clamp(1.5rem, 7.6vw, 2.1rem); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sc-hero { height: 100vh; height: 100svh; }
-  .sc-dica, .sc-loader-anel { animation: none; }
-}
-
-/* =================================================================
-   CÉU: estrelas e órbitas para as seções abaixo do hero.
-
-   Estrelas em SVG inline, em duas camadas com escalas diferentes, para
-   não parecer um padrão repetido. Custam zero requisição. A máscara
-   esmaece para o centro para o texto continuar limpo.
-   ================================================================= */
-@utility estrelas {
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='23' cy='41' r='.9'/%3E%3Ccircle cx='137' cy='19' r='.6'/%3E%3Ccircle cx='211' cy='88' r='1.1'/%3E%3Ccircle cx='377' cy='63' r='.7'/%3E%3Ccircle cx='58' cy='167' r='.7'/%3E%3Ccircle cx='302' cy='151' r='.5'/%3E%3Ccircle cx='168' cy='233' r='.9'/%3E%3Ccircle cx='401' cy='214' r='.6'/%3E%3Ccircle cx='93' cy='301' r='1.2'/%3E%3Ccircle cx='254' cy='329' r='.6'/%3E%3Ccircle cx='349' cy='377' r='.8'/%3E%3Ccircle cx='31' cy='389' r='.5'/%3E%3Ccircle cx='190' cy='402' r='.7'/%3E%3Ccircle cx='276' cy='47' r='.5'/%3E%3Ccircle cx='118' cy='118' r='.5'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23ffffff' opacity='.55'%3E%3Ccircle cx='12' cy='77' r='.5'/%3E%3Ccircle cx='89' cy='23' r='.4'/%3E%3Ccircle cx='151' cy='131' r='.5'/%3E%3Ccircle cx='233' cy='58' r='.4'/%3E%3Ccircle cx='47' cy='201' r='.4'/%3E%3Ccircle cx='198' cy='219' r='.5'/%3E%3Ccircle cx='121' cy='249' r='.4'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 420px 420px, 260px 260px;
-  opacity: .55;
-  mask-image: radial-gradient(80% 70% at 50% 50%, transparent 20%, #000 100%);
-}
-
-/* Órbita: um anel fino, inclinado, que passa atrás do conteúdo. */
-@utility orbita {
-  border: 1px solid var(--fio);
-  border-radius: 50%;
-  transform: rotateX(72deg);
-  mask-image: linear-gradient(180deg, #000, transparent 85%);
-}
 
 
-/* =================================================================
-   SCROLL CINEMA, versão astronauta: mira, visor, abertura.
-   ================================================================= */
-.sc-rotulo {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  font-family: var(--font-mono);
-  font-size: .7rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--magenta-texto);
-}
-
-/* Texto "projetado no vidro": brilho frio e leve halo. Sem caixa. */
-.sc-camada [data-decodifica] {
-  font-variant-ligatures: none;
-}
-.sc-camada--visor .sc-titulo-p,
-.sc-camada--visor .sc-rotulo {
-  text-shadow:
-    0 0 24px rgba(255, 107, 150, .35),
-    0 0 2px rgba(255, 255, 255, .6),
-    0 2px 40px rgba(6, 9, 26, .8);
-}
-
-/* A mira: caixa posicionada em %, com quatro cantos. */
-.sc-mira {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0;
-  will-change: left, top, width, height, transform, opacity;
-}
-.sc-mira-canto {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(255, 255, 255, .7);
-  transition: border-color .3s ease;
-}
-.sc-mira-canto--a { left: 0; top: 0; border-right: 0; border-bottom: 0; }
-.sc-mira-canto--b { right: 0; top: 0; border-left: 0; border-bottom: 0; }
-.sc-mira-canto--c { left: 0; bottom: 0; border-right: 0; border-top: 0; }
-.sc-mira-canto--d { right: 0; bottom: 0; border-left: 0; border-top: 0; }
-.sc-mira[data-travada='sim'] .sc-mira-canto { border-color: var(--magenta-texto); }
-.sc-mira-centro {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .8);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, .08);
-}
-.sc-mira[data-travada='sim'] .sc-mira-centro {
-  background: var(--magenta-texto);
-  box-shadow: 0 0 0 6px rgba(228, 21, 95, .25), 0 0 18px rgba(228, 21, 95, .6);
-}
-.sc-mira-rotulo {
-  position: absolute;
-  left: 0;
-  top: calc(100% + 10px);
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--cinza);
-  white-space: nowrap;
-}
-.sc-mira-rotulo--trava { display: none; color: var(--magenta-texto); }
-.sc-mira[data-travada='sim'] .sc-mira-rotulo--busca { display: none; }
-.sc-mira[data-travada='sim'] .sc-mira-rotulo--trava { display: inline; }
-@media (max-width: 640px) { .sc-mira-rotulo { display: none; } }
-
-/* A abertura: o fundo da seção seguinte, recortado em círculo. */
-.sc-abertura {
-  --r: 0%;
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  /* Aro magenta na borda do círculo: a abertura lê como portal, não
-     como um disco chapado crescendo. O raio acompanha o clip-path. */
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      transparent calc(var(--r) - 3.5%),
-      color-mix(in oklab, var(--magenta) 55%, transparent) calc(var(--r) - 1%),
-      color-mix(in oklab, var(--magenta-texto) 85%, transparent) calc(var(--r) - 0.3%),
-      transparent var(--r)
-    ),
-    var(--marinho);
-  clip-path: circle(0% at 50% 50%);
-  opacity: 0;
-  pointer-events: none;
-  overflow: clip;
-}
 
 /* =================================================================
    KIT DE INTERAÇÕES DA PÁGINA (ver Interacoes.tsx)
@@ -793,7 +456,7 @@ body {
   z-index: 60;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, var(--magenta), var(--magenta-texto));
+  background: linear-gradient(90deg, var(--psy-pink), var(--accent-ink));
   transform-origin: left;
   transform: scaleX(0);
   pointer-events: none;
@@ -818,7 +481,7 @@ body {
   pointer-events: none;
   background: radial-gradient(
     240px circle at var(--mx) var(--my),
-    color-mix(in oklab, var(--magenta) 32%, transparent),
+    color-mix(in oklab, var(--psy-pink) 32%, transparent),
     transparent 70%
   );
   opacity: 0;
@@ -838,9 +501,9 @@ body {
   transform: translateY(6px);
 }
 [data-etapas] > .ativa .etapa-numero {
-  background: var(--magenta);
-  border-color: var(--magenta);
-  color: var(--branco);
+  background: var(--psy-pink);
+  border-color: var(--psy-pink);
+  color: var(--psy-white);
   box-shadow: 0 0 24px rgba(228, 21, 95, .5);
 }
 
@@ -867,7 +530,7 @@ body {
   height: 10px;
   margin: -5px 0 0 -5px;
   border-radius: 50%;
-  background: var(--branco);
+  background: var(--psy-white);
   box-shadow: 0 0 0 4px rgba(255, 255, 255, .12), 0 0 22px rgba(255, 107, 150, .9);
   pointer-events: none;
   opacity: 0;
@@ -904,202 +567,6 @@ body {
 
 
 /* =================================================================
-   CENAS CONTIDAS (CenaCinema.tsx): estação e descida.
-   ================================================================= */
-.cena {
-  height: var(--altura, 340vh);
-  background: #06091A;
-}
-.cena-sticky {
-  --p: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  overflow: clip;
-  background: #06091A;
-  isolation: isolate;
-}
-.cena-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity .8s ease;
-}
-.cena-video.is-ready { opacity: 1; }
-.cena-veu {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(6, 9, 26, .78) 0%, rgba(6, 9, 26, .4) 42%, transparent 66%),
-    linear-gradient(180deg, rgba(16, 31, 63, 1) 0%, transparent 14%, transparent 86%, rgba(16, 31, 63, 1) 100%);
-}
-@media (max-width: 1023px) {
-  .cena-veu {
-    background:
-      linear-gradient(180deg, rgba(16, 31, 63, 1) 0%, rgba(6, 9, 26, .55) 18%, rgba(6, 9, 26, .55) 82%, rgba(16, 31, 63, 1) 100%);
-  }
-}
-.cena-loader {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  transition: opacity .6s ease;
-  pointer-events: none;
-}
-.cena-loader.is-gone { opacity: 0; }
-.cena-conteudo {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: grid;
-  align-items: center;
-}
-.cena-caixa {
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 1.25rem;
-}
-@media (min-width: 768px) { .cena-caixa { padding: 0 2.5rem; } }
-
-/* Painel de vidro que segura o conteúdo sobre o vídeo. */
-.cena-painel {
-  position: relative;
-  max-width: 34rem;
-  border: 1px solid var(--fio);
-  border-radius: var(--raio);
-  background: color-mix(in oklab, var(--marinho-fundo) 72%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 1.75rem;
-  max-height: calc(100svh - 7rem);
-  overflow: auto;
-}
-@media (min-width: 768px) { .cena-painel { padding: 2.25rem; } }
-
-/* Etapas: um bloco por vez, trocando com fade e leve subida. */
-.cena-etapa {
-  grid-area: 1 / 1;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity .45s ease, transform .45s ease;
-  pointer-events: none;
-}
-.cena-etapas { display: grid; }
-[data-etapa='0'] .cena-etapa[data-i='0'],
-[data-etapa='1'] .cena-etapa[data-i='1'],
-[data-etapa='2'] .cena-etapa[data-i='2'] {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-/* Itens que acendem um a um (módulos acoplando). */
-[data-acende] {
-  display: flex;
-  gap: .85rem;
-  align-items: flex-start;
-  color: var(--cinza);
-  opacity: .45;
-  transition: opacity .35s ease, color .35s ease, transform .35s ease;
-  transform: translateX(-4px);
-}
-[data-acende] .acende-ponto {
-  flex: none;
-  margin-top: .45rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid var(--fio-forte);
-  transition: background .35s ease, box-shadow .35s ease, border-color .35s ease;
-}
-[data-acende].acesa {
-  opacity: 1;
-  color: var(--neve);
-  transform: none;
-}
-[data-acende].acesa .acende-ponto {
-  background: var(--magenta-texto);
-  border-color: var(--magenta-texto);
-  box-shadow: 0 0 12px rgba(255, 107, 150, .8);
-}
-
-/* Altímetro da descida: régua vertical com três marcas e a agulha. */
-.altimetro {
-  position: absolute;
-  right: max(1.25rem, calc((100vw - 1320px) / 2 + 2.5rem));
-  top: 50%;
-  transform: translateY(-50%);
-  height: 56vh;
-  width: 1px;
-  background: var(--fio-forte);
-  z-index: 4;
-}
-.altimetro-marca {
-  position: absolute;
-  right: 0;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  flex-direction: row-reverse;
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--cinza);
-  white-space: nowrap;
-  transition: color .35s ease;
-}
-.altimetro-marca::before {
-  content: '';
-  width: 14px;
-  height: 1px;
-  background: var(--fio-forte);
-}
-.altimetro-marca[data-i='0'] { top: 0; }
-.altimetro-marca[data-i='1'] { top: 50%; }
-.altimetro-marca[data-i='2'] { top: 100%; }
-[data-etapa='0'] .altimetro-marca[data-i='0'],
-[data-etapa='1'] .altimetro-marca[data-i='1'],
-[data-etapa='2'] .altimetro-marca[data-i='2'] { color: var(--magenta-texto); }
-.altimetro-agulha {
-  position: absolute;
-  right: -5px;
-  top: calc(var(--p, 0) * 100%);
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--magenta-texto);
-  box-shadow: 0 0 0 5px rgba(228, 21, 95, .22), 0 0 18px rgba(255, 107, 150, .9);
-  transform: translateY(-50%);
-}
-@media (max-width: 1023px) { .altimetro { display: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .cena { height: 100vh; height: 100svh; }
-  .cena-etapa { transition: none; }
-  [data-acende] { opacity: 1; color: var(--neve); transform: none; }
-}
-
-/* Celular: o painel da estação mostra só os itens da fase atual e
-   dispensa o resumo. Os 15 itens de uma vez não cabem em 844px. */
-@media (max-width: 767px) {
-  .cena-resumo { display: none; }
-  [data-etapa='0'] li[data-fase='1'],
-  [data-etapa='1'] li[data-fase='0'] { display: none; }
-  .cena-painel { padding: 1.25rem; }
-}
-
-/* =================================================================
    CENAS DOS SERVIÇOS DA UNIDADE LOCAL.
 
    Onde ainda não existe print do entregável, entra uma cena desenhada
@@ -1122,10 +589,10 @@ body {
   position: relative;
   overflow: hidden;
   border-radius: var(--raio-p);
-  border: 1px solid var(--fio);
+  border: 1px solid var(--border);
   background:
-    radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--marinho-alto) 60%, transparent), transparent 70%),
-    var(--marinho-fundo);
+    radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--bg-alt) 60%, transparent), transparent 70%),
+    var(--bg);
 }
 
 /* A grade de fundo, comum às três: dá escala sem competir. */
@@ -1134,8 +601,8 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, var(--fio) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--fio) 1px, transparent 1px);
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
   background-size: 34px 34px;
   mask-image: radial-gradient(80% 70% at 50% 45%, #000, transparent);
   opacity: .5;
@@ -1163,14 +630,14 @@ body {
   14%, 100% { opacity: 1; transform: none; }
 }
 @keyframes cenaCurtir {
-  0%, 20%   { transform: scale(1); color: var(--cinza); }
+  0%, 20%   { transform: scale(1); color: var(--fg-muted); }
   26%       { transform: scale(1.5); }
-  32%, 100% { transform: scale(1); color: var(--magenta); }
+  32%, 100% { transform: scale(1); color: var(--psy-pink); }
 }
 @keyframes cenaCta {
-  0%, 32%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--magenta) 60%, transparent); }
-  40%       { box-shadow: 0 0 0 7px color-mix(in oklab, var(--magenta) 0%, transparent); }
-  41%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--magenta) 0%, transparent); }
+  0%, 32%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--psy-pink) 60%, transparent); }
+  40%       { box-shadow: 0 0 0 7px color-mix(in oklab, var(--psy-pink) 0%, transparent); }
+  41%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--psy-pink) 0%, transparent); }
 }
 @keyframes cenaZap {
   0%, 42%   { opacity: 0; transform: translateY(18px) scale(.97); }
@@ -1295,6 +762,6 @@ body {
   /* Sem movimento, a conversa mostra o fim: a resposta ja enviada. O
      "digitando" e um estado de passagem e nao faz sentido parado. */
   .cena-digitando { display: none; }
-  .cena-curtir { color: var(--magenta); }
+  .cena-curtir { color: var(--psy-pink); }
   .cena-mapa-tracado { stroke-dashoffset: 0; }
 }

@@ -149,9 +149,6 @@ export default async function PainelModulo({
           ficam maiores que a janela e sujam qualquer medição de
           largura, mesmo sem criar rolagem. */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="grade absolute inset-0 opacity-50" />
-        <div className="brilho-magenta absolute -right-[22%] -top-[28%] h-[680px] w-[680px] opacity-[0.22]" />
-        <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
       </div>
       {/* Navegação lateral. Agrupada, com ícone e contador: onze itens
           no mesmo peso visual não são um menu, são uma lista. */}
@@ -169,11 +166,11 @@ export default async function PainelModulo({
         {!permitido ? (
           <>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">Sem acesso</h1>
-            <p className="mt-4 max-w-[52ch] text-neve">
+            <p className="mt-4 max-w-[52ch] text-tinta">
               O perfil {rotuloPapel[papel]} não enxerga {rotuloModulo[moduloAtual]}. Isso é a
               matriz de permissões funcionando, e não um erro.
             </p>
-            <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-cinza">
+            <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-tinta-fraca">
               Com o banco ligado, esta checagem acontece em três camadas: aqui, na sessão do
               servidor, e nas políticas do Postgres. Mesmo que as duas primeiras falhassem, o
               banco se recusaria a devolver a linha.
@@ -186,7 +183,7 @@ export default async function PainelModulo({
                 vezes onde a pessoa está. */}
             {moduloAtual !== 'metricas' && !naFicha ? (
               <header>
-                <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-magenta-texto">
+                <p className="text-[0.75rem] text-acento">
                   {rotuloPapel[papel]}
                 </p>
                 <h1 className="mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">

@@ -5,9 +5,9 @@ import { salvarCredencial, desligarCredencial } from '@/app/painel/acoes-integra
 import type { Resultado } from '@/app/painel/acoes';
 
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
 
 /* Espelha `CAMPOS_DO_PROVEDOR`, em `credenciais.ts`. Duplicado porque
    aquele arquivo é `server-only` e este é componente de cliente:
@@ -31,7 +31,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+          : 'border-rosa/40 bg-rosa-leve text-acento')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -71,7 +71,7 @@ export function FormCredencial({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="rounded-full border border-fio px-5 py-2.5 text-sm font-semibold text-neve transition-colors hover:bg-white/5"
+          className="rounded-full border border-fio px-5 py-2.5 text-sm font-semibold text-tinta transition-colors hover:bg-tinta/12"
         >
           {jaExiste ? 'Substituir credencial' : `Conectar ${rotuloProvedor}`}
         </button>
@@ -84,9 +84,9 @@ export function FormCredencial({
     <form action={acao} className="space-y-5 rounded-xl border border-fio bg-white/[0.02] p-5">
       <input type="hidden" name="provedor" value={provedor} />
 
-      <p className="text-sm leading-relaxed text-cinza">
+      <p className="text-sm leading-relaxed text-tinta-fraca">
         Cole os valores uma vez. Eles são cifrados antes de ir para o banco e{' '}
-        <strong className="text-neve">não voltam a aparecer nesta tela</strong>, nem para
+        <strong className="text-tinta">não voltam a aparecer nesta tela</strong>, nem para
         você. Para trocar, cole de novo.
       </p>
 
@@ -94,8 +94,8 @@ export function FormCredencial({
           isto, quem troca só a chave fica sem saber se o resto
           sobreviveu — e a resposta importa: é o token do webhook que
           faz a confirmação de pagamento voltar. */}
-      <p className="text-sm leading-relaxed text-cinza">
-        <strong className="text-neve">Campo em branco mantém o que já está guardado.</strong>{' '}
+      <p className="text-sm leading-relaxed text-tinta-fraca">
+        <strong className="text-tinta">Campo em branco mantém o que já está guardado.</strong>{' '}
         Dá para trocar só a chave sem mexer no resto. Para apagar de verdade, use
         &ldquo;Desligar e apagar token&rdquo;.
       </p>
@@ -167,7 +167,7 @@ export function FormCredencial({
             className={`mt-2 ${campo}`}
           />
           )}
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">{c.ajuda}</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">{c.ajuda}</p>
         </div>
       ))}
 
@@ -177,14 +177,14 @@ export function FormCredencial({
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Cifrando...' : 'Guardar'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
         >
           Cancelar
         </button>
@@ -208,12 +208,12 @@ export function BotaoDesligarCredencial({ id, rotulo }: { id: string; rotulo: st
         type="submit"
         disabled={pendente}
         title={`Desligar ${rotulo} e apagar o token`}
-        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
+        className="inline-flex min-h-[24px] items-center text-xs font-semibold text-acento underline-offset-4 hover:underline disabled:opacity-60"
       >
         {pendente ? 'Desligando...' : 'Desligar e apagar token'}
       </button>
       {estado && !estado.ok ? (
-        <span className="ml-3 text-xs text-magenta-texto">{estado.mensagem}</span>
+        <span className="ml-3 text-xs text-acento">{estado.mensagem}</span>
       ) : null}
     </form>
   );

@@ -42,7 +42,7 @@ export function BotaoMenu() {
              recolhe do mesmo jeito; só não lembra na próxima visita. */
         }
       }}
-      className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-fio text-cinza transition-colors hover:bg-white/5 hover:text-neve"
+      className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-fio text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-tinta"
     >
       {/* Três traços que viram seta no modo recolhido, por CSS. Ícone
           em SVG inline: uma requisição a menos e ele herda a cor. */}

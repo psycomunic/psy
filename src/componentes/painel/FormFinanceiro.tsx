@@ -24,13 +24,13 @@ import type { Resultado } from '@/app/painel/acoes';
  */
 
 const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
-  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
-const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
+  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
 const pilula =
-  'inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5 disabled:opacity-60';
+  'inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12 disabled:opacity-60';
 const principal =
-  'inline-flex min-h-[24px] items-center gap-2 rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60';
+  'inline-flex min-h-[24px] items-center gap-2 rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60';
 
 function Aviso({ r, grande = false }: { r: Resultado | null; grande?: boolean }) {
   if (!r) return null;
@@ -42,7 +42,7 @@ function Aviso({ r, grande = false }: { r: Resultado | null; grande?: boolean })
           'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
           (r.ok
             ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-            : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+            : 'border-rosa/40 bg-rosa-leve text-acento')
         }
       >
         <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -55,7 +55,7 @@ function Aviso({ r, grande = false }: { r: Resultado | null; grande?: boolean })
       role="status"
       className={
         'mt-2 flex items-start gap-2 text-xs leading-relaxed ' +
-        (r.ok ? 'text-[#4ADE80]' : 'text-magenta-texto')
+        (r.ok ? 'text-[#4ADE80]' : 'text-acento')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -160,7 +160,7 @@ export function FormCobrancaAvulsa({
     <form action={acao} className="cartao space-y-5 p-6">
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Nova cobrança</h3>
-        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-cinza">
+        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
           Para o que não é o fee do mês: setup, projeto, criativo extra, reembolso de mídia.
           Sai no Asaas na hora, e o cliente escolhe entre PIX, boleto e cartão.
         </p>
@@ -172,7 +172,7 @@ export function FormCobrancaAvulsa({
           {contaFixa ? (
             <>
               <input type="hidden" name="conta_id" value={contaFixa.id} />
-              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-branco">
+              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-tinta">
                 {contaFixa.nome}
               </p>
             </>
@@ -187,7 +187,7 @@ export function FormCobrancaAvulsa({
               ))}
             </select>
           )}
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
             Cliente sem CNPJ ou CPF fica travado: o Asaas exige documento para emitir.
           </p>
         </div>
@@ -201,7 +201,7 @@ export function FormCobrancaAvulsa({
             placeholder="Setup da loja"
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
             É o texto que o cliente lê no e-mail e no boleto.
           </p>
         </div>
@@ -235,7 +235,7 @@ export function FormCobrancaAvulsa({
             onChange={(e) => setParcelas(e.target.value)}
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
             {porParcela ? `${n}x de ${porParcela}` : 'Uma parcela é o normal.'}
           </p>
         </div>
@@ -247,14 +247,14 @@ export function FormCobrancaAvulsa({
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Emitindo...' : 'Emitir cobrança'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
         >
           Cancelar
         </button>
@@ -297,7 +297,7 @@ export function AcoesFatura({
     return (
       <form action={aBaixa} className="space-y-2.5 rounded-xl border border-fio bg-white/[0.02] p-3.5">
         <input type="hidden" name="fatura_id" value={faturaId} />
-        <p className="text-xs leading-relaxed text-cinza">
+        <p className="text-xs leading-relaxed text-tinta-fraca">
           Para quando o cliente pagou por fora, como PIX direto na conta. O Asaas é avisado
           junto, para os dois lados continuarem contando a mesma coisa.
         </p>
@@ -320,7 +320,7 @@ export function AcoesFatura({
     return (
       <form action={aCanc} className="space-y-2.5 rounded-xl border border-fio bg-white/[0.02] p-3.5">
         <input type="hidden" name="fatura_id" value={faturaId} />
-        <p className="text-xs leading-relaxed text-cinza">
+        <p className="text-xs leading-relaxed text-tinta-fraca">
           Cancela aqui e no Asaas. O cliente para de receber lembrete, e a fatura continua
           no histórico marcada como cancelada.
         </p>
@@ -345,7 +345,7 @@ export function AcoesFatura({
       <button
         type="button"
         onClick={() => setAba('cancelar')}
-        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto"
+        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento"
       >
         Cancelar
       </button>
@@ -412,7 +412,7 @@ export function CopiarTexto({ texto, rotulo }: { texto: string; rotulo: string }
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2500);
       }}
-      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline"
+      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-acento underline-offset-4 hover:underline"
     >
       {copiado ? 'copiado ✓' : rotulo}
     </button>
@@ -454,7 +454,7 @@ export function FormDespesa({
     <form action={acao} className="cartao space-y-5 p-6">
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Nova despesa</h3>
-        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-cinza">
+        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
           É o que transforma faturamento em resultado. Ferramenta, salário, imposto,
           mídia paga do próprio bolso.
         </p>
@@ -514,7 +514,7 @@ export function FormDespesa({
               <option key={l.id} value={l.id}>{l.nome}</option>
             ))}
           </select>
-          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
             Só quando a despesa é de um cliente específico.
           </p>
         </div>
@@ -526,14 +526,14 @@ export function FormDespesa({
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
         >
           {pendente ? 'Lançando...' : 'Lançar despesa'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
         >
           Cancelar
         </button>
@@ -603,7 +603,7 @@ export function AcoesDespesa({
           <button
             type="submit"
             disabled={pApagar}
-            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto disabled:opacity-60"
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento disabled:opacity-60"
           >
             {pApagar ? 'Removendo...' : 'Remover'}
           </button>
