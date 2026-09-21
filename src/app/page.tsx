@@ -5,7 +5,6 @@ import { Cabecalho } from '@/componentes/Cabecalho';
 import { Rodape } from '@/componentes/Rodape';
 import { Botao } from '@/componentes/Botao';
 import { FitaMarcas } from '@/componentes/FitaMarcas';
-import { Vitrine } from '@/componentes/Vitrine';
 import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { CabecalhoDeSecao } from '@/componentes/CabecalhoDeSecao';
@@ -17,8 +16,8 @@ import { BarraDeAcao } from '@/componentes/BarraDeAcao';
 import { Interacoes } from '@/componentes/Interacoes';
 import { credenciais, numerosDaCapa, faturamento } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
-import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
-import { lojas, logosMarcas } from '@/conteudo/trabalhos';
+import { marcasAtendidas, parcerias } from '@/conteudo/prova';
+import { logosMarcas } from '@/conteudo/trabalhos';
 import { jornada, promessaCompleta, porQueCompleta, niveisDeParceria } from '@/conteudo/jornada';
 
 const secao = 'mx-auto w-full max-w-[1180px] px-5 md:px-10';
@@ -404,19 +403,56 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm font-semibold text-tinta">{fase.entrega}</p>
 
-                  <ul className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
-                    {fase.itens.map((item) => (
-                      <li key={item.nome} className="border-t border-fio pt-4">
-                        <p className="flex items-start gap-2.5 font-semibold">
-                          <span aria-hidden className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-rosa" />
-                          {item.nome}
-                        </p>
-                        <p className="mt-1.5 pl-[1rem] text-sm leading-relaxed text-tinta-fraca">
-                          {item.detalhe}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                  {/*
+                    GAVETA, e nao lista aberta.
+
+                    As dezessete entregas somadas ocupavam quase duas
+                    telas. Elas importam para quem esta comparando
+                    proposta, e atrapalham quem so quer saber se a Psy
+                    Comunic faz tudo: essa pessoa ja teve a resposta no
+                    resumo acima.
+
+                    `<details>` nativo, e nao estado em React: abre e
+                    fecha sem JavaScript, o teclado ja navega, o leitor
+                    de tela ja anuncia se esta aberto ou fechado, e o
+                    Ctrl+F do navegador encontra o texto de dentro
+                    mesmo fechado.
+                  */}
+                  <details className="group mt-8">
+                    <summary
+                      className="flex cursor-pointer list-none items-center gap-3 border-t border-fio pt-5
+                                 text-sm font-semibold text-acento marker:hidden
+                                 [&::-webkit-details-marker]:hidden"
+                    >
+                      <span
+                        aria-hidden
+                        className="grid h-7 w-7 flex-none place-items-center rounded-full border border-fio
+                                   transition-transform duration-300 group-open:rotate-45"
+                      >
+                        <svg viewBox="0 0 12 12" className="h-3 w-3 stroke-current" strokeWidth="1.8">
+                          <path d="M6 1.5v9M1.5 6h9" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                      <span className="group-open:hidden">
+                        Ver as {fase.itens.length} entregas
+                      </span>
+                      <span className="hidden group-open:inline">Fechar a lista</span>
+                    </summary>
+
+                    <ul className="mt-8 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+                      {fase.itens.map((item) => (
+                        <li key={item.nome} className="border-t border-fio pt-4">
+                          <p className="flex items-start gap-2.5 font-semibold">
+                            <span aria-hidden className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-rosa" />
+                            {item.nome}
+                          </p>
+                          <p className="mt-1.5 pl-[1rem] text-sm leading-relaxed text-tinta-fraca">
+                            {item.detalhe}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 </article>
               ))}
             </div>
@@ -734,45 +770,19 @@ export default function Home() {
         </section>
 
         {/* ==========================================================
-            10. CASES
+            A GALERIA DE TRABALHOS SAIU DAQUI
+
+            Eram doze vitrines no fim da home. Saiu inteira, a pedido,
+            e por dois motivos que se somam: a pagina tinha 38 telas de
+            altura no celular, e as lojas JA aparecem na abertura, na
+            fileira de quatro logo abaixo dos botoes. A prova estava
+            sendo dada duas vezes na mesma pagina, e a segunda vez
+            custava um terco da altura.
+
+            Ela continua inteira em /cases, que e a pagina de
+            portfolio, e o link para la continua no menu e no rodape.
+            Nenhum arquivo de imagem foi apagado.
             ========================================================== */}
-        <section id="cases" className="scroll-mt-24 relative overflow-clip secao-ar">
-          <div className={secao}>
-            <div className="revelar flex flex-wrap items-end justify-between gap-8">
-              <div className="max-w-[42rem]">
-                <Rotulo>Trabalhos</Rotulo>
-                <h2 className={tituloSecao + ' max-w-[19ch]'}>
-                  Lojas de moda que a Psy Comunic construiu.
-                </h2>
-              </div>
-              <p className="max-w-[34ch] text-[0.68rem] leading-relaxed text-tinta-fraca">
-                {lojas.length} lojas · passe o cursor para percorrer a página inteira
-              </p>
-            </div>
-
-            {/*
-              Portfólio, e não estudo de caso. A diferença não é
-              semântica: aqui está o print da página que existe, com o
-              nome de quem encomendou, e NENHUM número. Métrica de
-              cliente exige autorização escrita e período de referência
-              declarado, e por isso `cases` continua vazio.
-            */}
-            <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {lojas.map((t) => (
-                <Vitrine key={t.arquivo} trabalho={t} />
-              ))}
-            </div>
-
-            {cases.length === 0 ? (
-              <p className="revelar mt-12 max-w-[64ch] leading-relaxed text-tinta">
-                Os estudos de caso, com métrica, período e base de comparação, entram aqui
-                assim que as autorizações de uso de resultado estiverem assinadas. A Psy
-                Comunic não publica número de cliente sem autorização escrita e sem
-                período declarado.
-              </p>
-            ) : null}
-          </div>
-        </section>
 
         {/* ==========================================================
             11. PARCERIAS
