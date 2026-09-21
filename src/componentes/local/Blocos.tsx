@@ -38,7 +38,7 @@ import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
 
 const rotuloCss =
   'flex items-center gap-3 text-[0.7rem] text-acento';
-const tituloCss = 'mt-5 font-display text-titulo font-extrabold tracking-[-0.035em]';
+const tituloCss = 'mt-5 font-display text-titulo titulo-revista';
 
 /**
  * Foto de fundo de um bloco, já com o véu.
@@ -647,7 +647,7 @@ export function FechamentoLocal({ u }: { u: Unidade }) {
         <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(255,255,255,0.55))]" />
       </div>
       <div className={secao}>
-        <h2 className="max-w-[18ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-tinta">
+        <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">
           {u.fechamento.titulo}
         </h2>
         <p className="mt-6 max-w-[54ch] text-guia text-tinta/90">{u.fechamento.texto}</p>

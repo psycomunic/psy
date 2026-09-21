@@ -129,18 +129,23 @@
   /*
     ESCALA TIPOGRÁFICA.
 
-    Título em serifada de peso 300: fina e grande. É o oposto da
-    display pesada de antes, e por isso a escala subiu: uma serifada
-    clara no mesmo corpo da grotesca preta parece menor do que é.
+    A condensada muda a conta. Ela cabe mais letra por linha, então o
+    mesmo título ocupa menos altura, e por isso pode crescer bem mais
+    que a serifada que estava aqui: 92px contra 66px no teto, sem
+    ganhar uma linha sequer.
+
+    Entrelinha quase colada no título grande. Em caixa alta condensada
+    não há descendente para separar as linhas, e 1.03 abria um vão que
+    quebrava o bloco em duas coisas.
   */
-  --text-mostro:  clamp(34px, 6.4vw, 66px);
-  --text-mostro--line-height: 1.03;
-  --text-titulo:  clamp(28px, 4.4vw, 46px);
-  --text-titulo--line-height: 1.1;
+  --text-mostro:  clamp(42px, 8.2vw, 92px);
+  --text-mostro--line-height: 0.92;
+  --text-titulo:  clamp(30px, 5.2vw, 58px);
+  --text-titulo--line-height: 0.96;
   --text-sub:     clamp(20px, 3vw, 30px);
-  --text-sub--line-height: 1.2;
-  --text-numero:  clamp(22px, 3.4vw, 32px);
-  --text-numero--line-height: 1.1;
+  --text-sub--line-height: 1.15;
+  --text-numero:  clamp(30px, 4.6vw, 48px);
+  --text-numero--line-height: 1;
   --text-guia:    16px;
   --text-guia--line-height: 1.65;
 }
@@ -148,6 +153,35 @@
 /* Respiro vertical padrão de seção. */
 @utility secao-ar {
   padding-block: var(--ar);
+}
+
+/*
+  A LARGURA DA DISPLAY.
+
+  Archivo é variável no eixo `wdth`. 78% é condensada de capa de
+  revista: aperta o suficiente para caber mais palavra por linha sem
+  chegar no ponto em que o "o" vira uma fresta e o texto perde
+  legibilidade, que é por volta de 70%.
+
+  Vale para TODO uso de `font-display`, e por isso mora aqui e não
+  repetido em cada título.
+*/
+.font-display {
+  font-stretch: 78%;
+}
+
+/*
+  Título de seção: caixa alta, peso 800.
+
+  A caixa alta só funciona porque a fonte é condensada: em largura
+  normal, uma linha em maiúsculas ocuparia 30% a mais e o título
+  quebraria em lugar errado. O espaçamento fica levemente POSITIVO,
+  não negativo: em maiúscula, letras coladas viram um bloco cinza.
+*/
+@utility titulo-revista {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
 }
 
 html {

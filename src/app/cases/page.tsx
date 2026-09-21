@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { Casca, TopoPagina, ChamadaFinal, secao, canonical } from '@/componentes/Casca';
 import { Vitrine } from '@/componentes/Vitrine';
-import { trabalhos } from '@/conteudo/trabalhos';
+import { lojas } from '@/conteudo/trabalhos';
 import { marcasAtendidas, cases } from '@/conteudo/prova';
 import { urlAbsoluta } from '@/conteudo/site';
 
 export const metadata: Metadata = {
-  title: 'Trabalhos: sites e lojas que construímos',
+  title: 'Trabalhos: lojas que construímos',
   description:
     'Portfólio de e-commerces, landing pages e sites institucionais construídos pela Psy Comunic. Percorra cada projeto por inteiro, do topo ao rodapé.',
   ...canonical('/cases'),
@@ -18,7 +18,7 @@ export default function Cases() {
     <Casca>
       <TopoPagina
         rotulo="Trabalhos"
-        titulo={<>Sites e lojas que a Psy Comunic construiu.</>}
+        titulo={<>Lojas que a Psy Comunic construiu.</>}
         texto="Passe o cursor em qualquer projeto para percorrer a página inteira, do topo ao rodapé. No celular, um toque rola e outro devolve."
         trilha={[]}
       />
@@ -26,7 +26,7 @@ export default function Cases() {
       <section className="py-12 md:py-16">
         <div className={secao}>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {trabalhos.map((t) => (
+            {lojas.map((t) => (
               <Vitrine key={t.arquivo} trabalho={t} />
             ))}
           </div>
@@ -39,7 +39,7 @@ export default function Cases() {
             <span aria-hidden className="h-px w-8 bg-rosa" />
             Marcas atendidas
           </p>
-          <h2 className="mt-5 max-w-[20ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[20ch] font-display text-titulo titulo-revista">
             Algumas das muitas marcas que já confiaram a operação.
           </h2>
 

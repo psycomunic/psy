@@ -120,7 +120,7 @@ export default async function PaginaProposta({
             Proposta comercial
           </p>
 
-          <h1 className="mt-6 max-w-[14ch] font-display text-mostro font-extrabold tracking-[-0.045em]">
+          <h1 className="mt-6 max-w-[14ch] font-display text-mostro titulo-revista">
             {p.cliente}
           </h1>
 
@@ -506,7 +506,7 @@ export default async function PaginaProposta({
             Aceite
           </p>
 
-          <h2 className="mt-6 max-w-[13ch] font-display text-mostro font-extrabold tracking-[-0.045em]">
+          <h2 className="mt-6 max-w-[13ch] font-display text-mostro titulo-revista">
             Pronto para <span className="text-acento">começar?</span>
           </h2>
 

@@ -55,7 +55,7 @@ export function Slide({
           ) : null}
 
           {titulo ? (
-            <h2 className="mt-4 max-w-[17ch] font-display text-titulo font-extrabold tracking-[-0.035em] sm:mt-5">
+            <h2 className="mt-4 max-w-[17ch] font-display text-titulo titulo-revista sm:mt-5">
               {titulo}
             </h2>
           ) : null}

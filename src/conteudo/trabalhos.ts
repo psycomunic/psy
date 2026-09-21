@@ -19,15 +19,19 @@ export type Trabalho = {
   largura: number;
   altura: number;
   /**
-   * `loja` é vitrine de varejo, e abre a galeria. `outro` é site de
-   * serviço, e fica no fim, sob um subtítulo próprio.
+   * `loja` é vitrine de varejo e é a ÚNICA que aparece no site
+   * principal. `outro` é site de serviço, e não aparece em lugar
+   * nenhum do site principal: nem na home, nem em /cases.
    *
-   * A separação não é arrumação: o site inteiro fala com lojista de
-   * moda, e uma galeria que começa por um site de contabilidade
-   * contradiz a página antes do visitante chegar ao terceiro print.
-   * Os quatro `outro` continuam no ar porque são trabalho entregue, e
-   * apagar trabalho entregue para a vitrine ficar mais redonda é o
-   * começo de um portfólio que não corresponde ao que se faz.
+   * O site inteiro fala com lojista de moda, e uma galeria com site de
+   * contabilidade no meio contradiz a página. Um portfólio que mostra
+   * tudo que já foi feito prova capacidade; este site não precisa
+   * provar capacidade, precisa provar que entende de loja.
+   *
+   * POR QUE OS QUATRO CONTINUAM NO ARQUIVO: a página de Bragança monta
+   * o portfólio dela com três deles, por nome. Lá o assunto é empresa
+   * local, e site de contabilidade é exatamente o exemplo certo.
+   * Apagar as linhas daqui esvaziaria aquela seção sem aviso.
    */
   tipo: 'loja' | 'outro';
 };

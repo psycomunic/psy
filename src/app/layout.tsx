@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Fraunces, Montserrat } from 'next/font/google';
+import { Archivo, Inter } from 'next/font/google';
 import './globals.css';
 import { marca } from '@/conteudo/marca';
 import { site } from '@/conteudo/site';
@@ -9,32 +9,30 @@ import { DadosEstruturados } from '@/componentes/DadosEstruturados';
 import { Analytics } from '@/componentes/Analytics';
 
 /*
-  DUAS FAMÍLIAS, E NÃO TRÊS.
+  DUAS FAMÍLIAS: uma para bater, outra para ler.
 
-  Eram Bricolage Grotesque, Manrope e JetBrains Mono: display pesada,
-  corpo neutro e uma mono para rótulos e números. A mono era o que dava
-  à página o vocabulário de painel de operação, e é justamente o que o
-  tema editorial não quer. Saiu, e com ela as caixas altas de rótulo.
+  A serifada fina não funcionou. Fraunces em peso 300 dá página de
+  revista literária, e o que esta vende é loja de roupa: precisa bater,
+  não sussurrar.
 
-  Fraunces é serifada variável com eixo óptico: nos títulos ela entra
-  em peso 300, fina e grande, que é o contrário da display preta de
-  antes. O itálico dela é onde o grifo do hero mora agora, em vez de
-  uma segunda cor.
+  Archivo é variável com eixo de LARGURA, e é isso que importa aqui.
+  Condensada em peso 800 ela é a grotesca de capa de revista: cabe mais
+  palavra por linha, então o título ocupa menos altura e pode crescer
+  mais. Uma família só faz o papel que exigiria duas.
 
-  Montserrat carrega todo o resto: corpo, botão, rótulo e legenda.
+  Inter no corpo: neutra de verdade, desenhada para tela, e some atrás
+  do texto em vez de competir com o título.
 */
-const display = Fraunces({
+const display = Archivo({
   variable: '--font-display',
   subsets: ['latin'],
-  weight: ['300', '500', '700'],
-  style: ['normal', 'italic'],
+  axes: ['wdth'],
   display: 'swap',
 });
 
-const corpo = Montserrat({
+const corpo = Inter({
   variable: '--font-corpo',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
 });
 

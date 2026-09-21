@@ -59,7 +59,7 @@ export default function Diagnostico() {
             <span aria-hidden className="h-px w-8 bg-rosa" />
             O que é analisado
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
             As perguntas que o diagnóstico responde.
           </h2>
           <p className="mt-7 max-w-[62ch] text-guia text-tinta">
@@ -94,7 +94,7 @@ export default function Diagnostico() {
       {/* Como funciona */}
       <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
         <div className={secao}>
-          <h2 className="max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="max-w-[22ch] font-display text-titulo titulo-revista">
             Como funciona, na prática.
           </h2>
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
@@ -120,7 +120,7 @@ export default function Diagnostico() {
           <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(255,255,255,0.55))]" />
         </div>
         <div className={secao}>
-          <h2 className="max-w-[18ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-tinta">
+          <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">
             Manda o link da sua loja que a gente olha.
           </h2>
           <p className="mt-6 max-w-[52ch] text-guia text-tinta/90">

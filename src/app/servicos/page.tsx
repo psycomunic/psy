@@ -69,7 +69,7 @@ export default function Servicos() {
             <span aria-hidden className="h-px w-8 bg-rosa" />
             O que sai disso
           </p>
-          <h2 className="mt-5 max-w-[16ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[16ch] font-display text-titulo titulo-revista">
             Quatro resultados, não quatro relatórios.
           </h2>
           <ol className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">

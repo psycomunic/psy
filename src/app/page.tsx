@@ -13,13 +13,13 @@ import { Interacoes } from '@/componentes/Interacoes';
 import { marca, credenciais, numerosDaCapa, faturamento } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
-import { trabalhos, lojas, outrosProjetos, logosMarcas } from '@/conteudo/trabalhos';
+import { lojas, logosMarcas } from '@/conteudo/trabalhos';
 import { jornada, promessaCompleta, porQueCompleta, niveisDeParceria } from '@/conteudo/jornada';
 
 const secao = 'mx-auto w-full max-w-[1180px] px-5 md:px-10';
 const rotulo = 'text-[13px] font-semibold text-acento';
 /* Serifada em peso 300, e nao display preta. Fina e grande. */
-const tituloSecao = 'mt-5 font-display text-titulo font-light tracking-[-0.02em]';
+const tituloSecao = 'mt-5 font-display text-titulo titulo-revista';
 
 /* O olho de seção. Tinha um fio rosa à esquerda e vinha em caixa alta
    com espaçamento de letra largo: o vocabulário de painel de operação
@@ -53,24 +53,35 @@ export default function Home() {
             As tres camadas de texto que se revezavam viraram uma so:
             olho, titulo, subtitulo, paragrafo e os dois botoes.
             ========================================================== */}
-        <section className="relative isolate overflow-clip pb-16 pt-14 md:pb-24 md:pt-20">
+        <section className="relative isolate overflow-clip pb-16 pt-12 md:pb-24 md:pt-16">
           <div className={secao}>
-            <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+            <Rotulo>Especialistas em e-commerce de moda</Rotulo>
+
+            {/*
+              O TÍTULO OCUPA A LARGURA INTEIRA, e não a coluna.
+
+              Medido: em coluna de 600px a 92px, esta frase quebrava em
+              CINCO linhas e virava um parágrafo em caixa alta. Na
+              largura toda são duas. É a conta que a condensada permite
+              e a serifada não permitia, e é por isso que ela pode ser
+              grande desse jeito.
+            */}
+            <h1 className="mt-6 font-display text-mostro titulo-revista">
+              Sua loja de moda não precisa de mais uma agência.
+            </h1>
+
+            <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-16">
               <div className="min-w-0">
-                <Rotulo>Especialistas em e-commerce de moda</Rotulo>
-
-                <h1 className="mt-6 font-display text-mostro font-light tracking-[-0.02em]">
-                  Sua loja de moda não precisa de mais uma agência.
-                </h1>
-
-                {/* Subtitulo, e nao segunda linha do titulo: e a virada
-                    da frase, e o italico da serifada e onde o grifo
-                    mora agora. Nunca em cor diferente. */}
-                <p className="mt-6 max-w-[22ch] font-display text-sub font-light italic text-tinta-fraca">
+                {/* A virada da frase. Era o itálico da serifada; a
+                    condensada não tem um que funcione nesse tamanho, e
+                    itálico forçado numa grotesca fica torto. O papel
+                    do grifo passou para o PESO e para o acento, que é
+                    como revista resolve o mesmo problema. */}
+                <p className="max-w-[24ch] font-display text-sub font-bold text-acento">
                   Precisa de quem já vendeu milhões.
                 </p>
 
-                <p className="mt-8 max-w-[52ch] leading-relaxed text-tinta">
+                <p className="mt-7 max-w-[52ch] leading-relaxed text-tinta-fraca">
                   A Psy Comunic é conduzida por quem foi sócio de um e-commerce que
                   fatura{' '}
                   <strong className="font-semibold text-tinta">{faturamento.ano}</strong>.
@@ -79,7 +90,7 @@ export default function Home() {
                   pago e marketplaces.
                 </p>
 
-                <div className="mt-10 flex flex-wrap items-center gap-4">
+                <div className="mt-9 flex flex-wrap items-center gap-4">
                   <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
                   <Botao href="/como-trabalhamos" variante="secundario">
                     Ver como trabalhamos
@@ -87,10 +98,10 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* As lojas, subindo e descendo. Estavam ao lado da barra
-                  de numeros; aqui elas sao a imagem da abertura, que e
-                  o lugar delas num tema feito para a foto mandar. */}
-              <div className="min-w-0 lg:pl-4">
+              {/* As lojas, subindo e descendo. São a imagem da
+                  abertura, que é o lugar delas num tema feito para a
+                  foto mandar. */}
+              <div className="min-w-0">
                 <ColunasDeSites />
               </div>
             </div>
@@ -104,7 +115,7 @@ export default function Home() {
             das lojas; com as lojas na hero, ela ganha a tela toda e
             vira a primeira pausa escura da pagina.
             ========================================================== */}
-        <section className="faixa-navy border-y border-fio py-16 md:py-20">
+        <section className="faixa-navy border-y border-fio secao-ar">
           <div className={secao}>
             <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-16">
               <div className="min-w-0">
@@ -117,9 +128,14 @@ export default function Home() {
               <dl className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
                 {numerosDaCapa.map((item) => (
                   <div key={item.d} className="border-t border-fio pt-6">
-                    <dt className="flex items-baseline gap-2.5">
+                    {/* `items-end`, e nao `items-baseline`: "R$ 17
+                        milhoes" quebra em duas linhas, e a base que o
+                        baseline alinha e a da PRIMEIRA linha. A
+                        unidade subia para o alto do bloco e parecia
+                        solta. */}
+                    <dt className="flex flex-wrap items-end gap-x-2.5">
                       <span
-                        className="tabular font-display text-numero font-light tracking-[-0.02em]"
+                        className="tabular font-display text-numero font-extrabold tracking-[-0.01em]"
                         data-contar={/^\d+$/.test(item.n) ? item.n : undefined}
                       >
                         {item.n}
@@ -164,8 +180,11 @@ export default function Home() {
               </h2>
             </div>
 
-            <div className="mt-14 grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-14">
-              {/* --- Retrato quadrado, à esquerda --- */}
+            <div className="mt-14 grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start lg:gap-16">
+              {/* --- Retrato, à esquerda ---
+                  Era quadrado e pequeno. Virou retrato em pé e grande:
+                  a página tinha ar demais e foto de menos, e esta é a
+                  única foto de gente que o site tem. --- */}
               <figure className="revelar">
                 {/*
                   O arquivo é 3:2 deitado, então um quadro 1:1 corta
@@ -192,11 +211,11 @@ export default function Home() {
                   width={1440}
                   height={960}
                   sizes="(max-width: 1024px) 92vw, 560px"
-                  className="aspect-square w-full rounded-[var(--raio)] object-cover object-[38%_center]"
+                  className="aspect-[4/5] w-full rounded-[var(--raio)] object-cover object-[38%_center]"
                 />
 
                 <figcaption className="mt-5">
-                  <p className="font-display text-sub font-light tracking-[-0.02em]">
+                  <p className="font-display text-sub font-bold tracking-[-0.01em]">
                     Angelo Garcia
                   </p>
                   <p className="mt-1 text-sm text-tinta-fraca">
@@ -315,7 +334,7 @@ export default function Home() {
                     <span className="text-sm text-tinta-fraca">{fase.entrega}</span>
                   </p>
 
-                  <h3 className="mt-4 font-display text-sub font-light tracking-[-0.02em]">
+                  <h3 className="mt-4 font-display text-sub font-bold tracking-[-0.01em]">
                     {fase.titulo}
                   </h3>
                   <p className="mt-4 max-w-[46ch] leading-relaxed text-tinta-fraca">{fase.resumo}</p>
@@ -363,9 +382,6 @@ export default function Home() {
             4. O DIAGNÓSTICO
             ========================================================== */}
         <section className="relative overflow-clip secao-ar">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          </div>
-
           <div className={secao}>
             <div className="revelar max-w-[46rem]">
               <Rotulo>O diagnóstico</Rotulo>
@@ -384,13 +400,13 @@ export default function Home() {
             {/* As perguntas em escada. O deslocamento vertical na coluna
                 da direita quebra a leitura em tabela e obriga o olho a
                 percorrer uma a uma. */}
-            <ul className="mt-16 grid gap-5 md:grid-cols-2 md:gap-7">
+            <ul className="mt-16 grid items-start gap-5 md:grid-cols-2 md:gap-7">
               {frentes.map((f, i) => (
                 <li
                   key={f.slug}
                   className={'revelar' + (i % 2 === 1 ? ' md:mt-14' : '')}
                 >
-                  <div className="cartao h-full px-8 py-9 md:px-10 md:py-11" data-inclina>
+                  <div className="cartao px-8 py-9 md:px-10 md:py-11" data-inclina>
                     <span aria-hidden className="absolute left-10 right-10 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                     <p className="font-display text-sub font-bold leading-tight tracking-[-0.03em] text-tinta">
                       <span aria-hidden className="mr-1 text-acento">“</span>
@@ -410,10 +426,7 @@ export default function Home() {
         {/* ==========================================================
             5. AS QUATRO FRENTES
             ========================================================== */}
-        <section id="frentes" className="scroll-mt-24 relative overflow-clip secao-ar">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          </div>
-
+        <section id="frentes" className="faixa-navy scroll-mt-24 relative overflow-clip border-y border-fio secao-ar">
           <div className={secao}>
             <div className="revelar max-w-[46rem]">
               <Rotulo>As quatro frentes</Rotulo>
@@ -498,7 +511,7 @@ export default function Home() {
         {/* ==========================================================
             8. METODOLOGIA
             ========================================================== */}
-        <section id="metodologia" className="scroll-mt-24 secao-ar" data-cena>
+        <section id="metodologia" className="scroll-mt-24 bg-papel-alt secao-ar" data-cena>
           <div className={secao}>
             <div className="revelar max-w-[46rem]">
               <Rotulo>Metodologia</Rotulo>
@@ -553,7 +566,7 @@ export default function Home() {
             Sem preço, como antes: escopo e investimento saem na
             proposta, que é link único por cliente.
             ========================================================== */}
-        <section id="parceria" className="scroll-mt-24 secao-ar">
+        <section id="parceria" className="faixa-navy scroll-mt-24 border-y border-fio secao-ar">
           <div className={secao}>
             <div className="max-w-[52ch]">
               <Rotulo>Níveis de parceria</Rotulo>
@@ -571,7 +584,7 @@ export default function Home() {
               {niveisDeParceria.map((nivel) => (
                 <li key={nivel.n} className="border-t border-fio pt-7">
                   <span className="text-sm font-semibold text-acento">{nivel.n}</span>
-                  <h3 className="mt-4 font-display text-sub font-light tracking-[-0.02em]">
+                  <h3 className="mt-4 font-display text-sub font-bold tracking-[-0.01em]">
                     {nivel.titulo}
                   </h3>
                   <p className="mt-4 max-w-[38ch] leading-relaxed text-tinta-fraca">{nivel.texto}</p>
@@ -601,9 +614,6 @@ export default function Home() {
             10. CASES
             ========================================================== */}
         <section id="cases" className="scroll-mt-24 relative overflow-clip secao-ar">
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          </div>
-
           <div className={secao}>
             <div className="revelar flex flex-wrap items-end justify-between gap-8">
               <div className="max-w-[42rem]">
@@ -613,7 +623,7 @@ export default function Home() {
                 </h2>
               </div>
               <p className="max-w-[34ch] text-[0.68rem] leading-relaxed text-tinta-fraca">
-                {trabalhos.length} projetos · passe o cursor para percorrer a página inteira
+                {lojas.length} lojas · passe o cursor para percorrer a página inteira
               </p>
             </div>
 
@@ -628,27 +638,6 @@ export default function Home() {
               {lojas.map((t) => (
                 <Vitrine key={t.arquivo} trabalho={t} />
               ))}
-            </div>
-
-            {/*
-              Os sites de serviço, embaixo e sob subtítulo próprio.
-
-              A galeria de cima é a prova do que esta página promete, e
-              um site de contabilidade no meio dela enfraquece as lojas
-              em vez de somar. Aqui embaixo ele soma de novo, como
-              alcance do estúdio, para quem já desceu a página inteira.
-            */}
-            <div className="revelar mt-20 border-t border-fio pt-12">
-              <p className={rotulo}>Outros projetos</p>
-              <p className="mt-4 max-w-[52ch] leading-relaxed text-tinta-fraca">
-                Fora do varejo de moda, a Psy Comunic também constrói site de serviço e
-                de conteúdo.
-              </p>
-              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {outrosProjetos.map((t) => (
-                  <Vitrine key={t.arquivo} trabalho={t} />
-                ))}
-              </div>
             </div>
 
             {cases.length === 0 ? (
@@ -696,7 +685,7 @@ export default function Home() {
             {/* Único bloco centralizado da página. Todo o resto alinha
                 à esquerda. */}
             <div className="revelar mx-auto max-w-[52ch] text-center">
-              <h2 className="mx-auto max-w-[17ch] font-display text-titulo font-light tracking-[-0.02em]">
+              <h2 className="mx-auto max-w-[17ch] font-display text-titulo titulo-revista">
                 Vamos olhar a sua loja de moda inteira.
               </h2>
               <p className="mx-auto mt-6 max-w-[52ch] text-guia text-tinta-fraca">
@@ -712,7 +701,7 @@ export default function Home() {
             </div>
 
             <figure className="revelar mx-auto mt-20 max-w-[44ch] border-t border-fio pt-8 text-center">
-              <blockquote className="font-display text-sub font-light italic leading-snug tracking-[-0.02em]">
+              <blockquote className="font-display text-sub font-semibold leading-snug tracking-[-0.01em]">
                 {marca.assinatura.frase}
               </blockquote>
               <figcaption className="mt-4 text-sm text-tinta-fraca">

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 
 /**
  * O lockup da marca no cabeçalho.
@@ -27,11 +26,21 @@ import Image from 'next/image';
  * ============================================================
  * O desenho tem 8,7 KB. Colado no componente, ele viajaria dentro do
  * HTML de TODA página do site, toda vez. Como arquivo, o navegador
- * baixa uma vez e reaproveita. A logo é sempre branca no cabeçalho,
- * então não se perde nada por não poder herdar cor.
+ * baixa uma vez e reaproveita.
  *
- * `width` e `height` explícitos não são enfeite: sem eles a barra pula
- * de altura quando o desenho chega.
+ * ============================================================
+ * MÁSCARA, E NÃO <img>
+ * ============================================================
+ * O arquivo é `fill:white`, e o cabeçalho era marinho. Com o tema
+ * claro a barra virou branca e a logo SUMIU: branco sobre branco.
+ *
+ * A máscara resolve de uma vez e para sempre: ela descarta a cor do
+ * arquivo e usa só o recorte, então a logo herda a cor do texto em
+ * volta. Marinho no cabeçalho branco, branca se um dia o cabeçalho
+ * for escuro, sem um segundo arquivo para manter em dia.
+ *
+ * As medidas explícitas não são enfeite: sem elas a barra pula de
+ * altura quando o desenho chega.
  */
 export function Marca({ className = '' }: { className?: string }) {
   return (
@@ -40,21 +49,22 @@ export function Marca({ className = '' }: { className?: string }) {
       aria-label="Psy Comunic, início"
       className={`group inline-flex items-center gap-2.5 ${className}`}
     >
-      {/* alt vazio de propósito: quem anuncia o destino é o aria-label do
-          link. Repetir o nome aqui faria o leitor de tela dizer duas
-          vezes a mesma coisa. */}
-      <Image
-        src="/logo-psy-marca.svg"
-        alt=""
-        width={48}
-        height={22}
-        /* `unoptimized` porque o arquivo e VETOR: nao ha o que o
-           otimizador de imagem faca com ele alem de custar uma
-           passagem. Tambem evita ligar `dangerouslyAllowSVG` no
-           next.config, flag que tem esse nome por um motivo. */
-        unoptimized
-        priority
-        className="h-[22px] w-auto"
+      {/* Decorativo: quem anuncia o destino é o aria-label do link.
+          Repetir o nome aqui faria o leitor de tela dizer duas vezes
+          a mesma coisa. */}
+      <span
+        aria-hidden
+        className="block h-[24px] w-[52px] flex-none bg-tinta"
+        style={{
+          WebkitMaskImage: 'url(/logo-psy-marca.svg)',
+          maskImage: 'url(/logo-psy-marca.svg)',
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'left center',
+          maskPosition: 'left center',
+        }}
       />
       {/* Fio magenta entre a marca e o nome: o elemento gráfico que
           amarra o lockup à paleta. */}
@@ -62,7 +72,7 @@ export function Marca({ className = '' }: { className?: string }) {
         aria-hidden
         className="h-4 w-px bg-rosa transition-[height] duration-300 group-hover:h-5"
       />
-      <span className="text-[0.75rem] leading-none text-tinta-fraca transition-colors group-hover:text-tinta">
+      <span className="text-[0.8rem] font-medium leading-none text-tinta">
         Comunic
       </span>
     </Link>

@@ -89,7 +89,7 @@ export function TopoPagina({
           {rotulo}
         </p>
 
-        <h1 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.04em]">
+        <h1 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
           {titulo}
         </h1>
 
@@ -116,7 +116,7 @@ export function ChamadaFinal({
         <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(255,255,255,0.55))]" />
       </div>
       <div className={secao}>
-        <h2 className="max-w-[17ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-tinta">
+        <h2 className="max-w-[17ch] font-display text-titulo titulo-revista text-tinta">
           {titulo}
         </h2>
         <p className="mt-6 max-w-[52ch] text-guia text-tinta/90">{texto}</p>

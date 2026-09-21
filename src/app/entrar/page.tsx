@@ -55,7 +55,7 @@ export default async function Entrar({
             <span aria-hidden className="h-px w-8 bg-rosa" />
             Plataforma
           </p>
-          <h1 className="mt-6 max-w-[16ch] font-display text-titulo font-extrabold tracking-[-0.04em]">
+          <h1 className="mt-6 max-w-[16ch] font-display text-titulo titulo-revista">
             A operação da sua loja, num lugar só.
           </h1>
           <p className="mt-6 max-w-[42ch] text-guia text-tinta">

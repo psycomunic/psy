@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { trabalhos } from '@/conteudo/trabalhos';
+import { lojas } from '@/conteudo/trabalhos';
 
 /**
  * Colunas de sites deslizando, umas para cima e outras para baixo.
@@ -42,19 +42,27 @@ import { trabalhos } from '@/conteudo/trabalhos';
  * sabe nomear e todo mundo sente. Container flex não colapsa margem.
  */
 
-/* Doze trabalhos em três colunas de quatro. A terceira só entra a
-   partir de `sm`: em 360px de largura, três colunas dariam cartões de
-   100px, onde não se reconhece site nenhum. */
+/*
+  DUAS COLUNAS DE QUATRO, e não três.
+
+  Eram três colunas de quatro, com os doze trabalhos. Os quatro sites
+  de serviço saíram da vitrine do site principal, e sobraram oito
+  lojas: três colunas dariam uma coluna de dois, que em movimento
+  aparece como buraco.
+
+  Duas colunas também dão cartão MAIOR, que é o que esta abertura
+  pede: quem chega precisa reconhecer uma loja de roupa em meio
+  segundo, e num cartão de 100px não se reconhece nada.
+*/
 const COLUNAS = [
-  { itens: trabalhos.slice(0, 4), sobe: true, duracao: 42 },
-  { itens: trabalhos.slice(4, 8), sobe: false, duracao: 52 },
-  { itens: trabalhos.slice(8, 12), sobe: true, duracao: 47 },
+  { itens: lojas.slice(0, 4), sobe: true, duracao: 42 },
+  { itens: lojas.slice(4, 8), sobe: false, duracao: 52 },
 ];
 
 export function ColunasDeSites() {
   return (
     <div
-      className="colunas-de-sites relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4"
+      className="colunas-de-sites relative grid grid-cols-2 gap-3 sm:gap-4"
       style={{
         /* Esmaece as pontas. Sem isto o corte é uma linha reta e as
            colunas parecem três imagens cortadas, não um movimento
@@ -99,13 +107,14 @@ export function ColunasDeSites() {
                   aria-hidden={i >= coluna.itens.length}
                   width={t.largura}
                   height={t.altura}
-                  sizes="(max-width: 640px) 44vw, (max-width: 1024px) 30vw, 15vw"
+                  sizes="(max-width: 640px) 44vw, (max-width: 1024px) 38vw, 22vw"
                   priority={c === 0 && i < 2}
-                  /* A terceira coluna some abaixo de `sm`, e `lazy` faz
-                     o navegador não buscar o que está escondido. No
-                     computador ela está na tela desde o primeiro quadro,
-                     então `lazy` ali carrega na hora do mesmo jeito. */
-                  loading={c === 2 ? 'lazy' : c === 0 && i < 2 ? undefined : 'eager'}
+                  /* Havia uma terceira coluna, escondida abaixo de
+                     `sm`, e ela era `lazy` para o navegador não buscar
+                     o que estava fora da tela. Com duas colunas, as
+                     duas aparecem em toda largura: `lazy` aqui só
+                     atrasaria o que já está visível. */
+                  loading={c === 0 && i < 2 ? undefined : 'eager'}
                   className="absolute inset-0 h-full w-full object-cover object-top"
                 />
               </li>

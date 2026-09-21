@@ -121,7 +121,7 @@ export default async function PaginaFrente({
             <span aria-hidden className="h-px w-8 bg-rosa" />
             Perguntas que esta frente responde
           </p>
-          <h2 className="mt-5 max-w-[20ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[20ch] font-display text-titulo titulo-revista">
             Se alguma destas é a sua, é aqui que ela se resolve.
           </h2>
 

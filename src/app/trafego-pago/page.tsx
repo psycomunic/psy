@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   },
 };
 
-const tituloSecao = 'font-display text-titulo font-extrabold tracking-[-0.04em]';
+const tituloSecao = 'font-display text-titulo titulo-revista';
 const rotuloSecao =
   'flex items-center gap-3 text-[0.7rem] text-acento';
 

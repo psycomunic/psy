@@ -202,7 +202,7 @@ export function SlidePlano({
             a pessoa procura primeiro ao chegar no slide. */}
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-fio pb-6">
           <div>
-            <h2 className="font-display text-titulo font-extrabold leading-[1] tracking-[-0.04em]">
+            <h2 className="font-display text-titulo titulo-revista">
               {f.nome}
             </h2>
             <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-tinta-fraca">{f.paraQuem}</p>

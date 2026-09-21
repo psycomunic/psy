@@ -56,7 +56,7 @@ export default function Sobre() {
             </figure>
 
             <div>
-              <h2 className="font-display text-titulo font-extrabold tracking-[-0.035em]">
+              <h2 className="font-display text-titulo titulo-revista">
                 Construída por quem já esteve do outro lado do balcão.
               </h2>
               <div className="mt-10 grid gap-5">
@@ -76,7 +76,7 @@ export default function Sobre() {
             <span aria-hidden className="h-px w-8 bg-rosa" />
             Pilares
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
             No que a operação se apoia.
           </h2>
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
@@ -99,7 +99,7 @@ export default function Sobre() {
             <span aria-hidden className="h-px w-8 bg-rosa" />
             Valores
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
             Como o time decide quando ninguém está olhando.
           </h2>
           <dl className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
