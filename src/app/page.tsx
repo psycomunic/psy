@@ -8,7 +8,9 @@ import { FitaMarcas } from '@/componentes/FitaMarcas';
 import { Vitrine } from '@/componentes/Vitrine';
 import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
+import { CabecalhoDeSecao } from '@/componentes/CabecalhoDeSecao';
 import { CartaoCredencial } from '@/componentes/CartaoCredencial';
+import { RetratoDaTurma } from '@/componentes/RetratoDaTurma';
 import { ProvasEmVideo } from '@/componentes/ProvasEmVideo';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { Interacoes } from '@/componentes/Interacoes';
@@ -141,15 +143,25 @@ export default function Home() {
             ========================================================== */}
         <section className="faixa-navy border-y border-fio secao-ar">
           <div className={secao}>
-            <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-16">
-              <div className="min-w-0">
-                <Rotulo>O que a Psy Comunic entrega</Rotulo>
-                <h2 className={tituloSecao + ' max-w-[16ch]'}>
-                  Lojas que saem daqui prontas para vender.
-                </h2>
-              </div>
+            <CabecalhoDeSecao
+              n="01"
+              rotulo="O que a Psy Comunic entrega"
+              titulo={<>Lojas que saem daqui prontas para vender.</>}
+              apoio={
+                <>
+                  Plataforma, catálogo com grade e medidas, checkout, rastreamento e a
+                  primeira campanha no ar. É o que sai daqui, e é o que a página abaixo
+                  detalha.
+                </>
+              }
+            />
 
-              <dl className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
+            {/* Os quatro em FILEIRA, e não numa coluna ao lado do
+                título. Em duas colunas de dois, os números ficavam
+                pequenos num bloco apertado e sobrava meia tela vazia
+                embaixo do título. Na largura toda eles viram a régua
+                da faixa. */}
+            <dl className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
                 {numerosDaCapa.map((item) => (
                   <div key={item.d} className="border-t border-fio pt-6">
                     {/* `items-end`, e nao `items-baseline`: "R$ 17
@@ -173,8 +185,7 @@ export default function Home() {
                     </dd>
                   </div>
                 ))}
-              </dl>
-            </div>
+            </dl>
           </div>
         </section>
 
@@ -203,14 +214,21 @@ export default function Home() {
             Angelo aparece em terceira pessoa, e só porque a informação
             é sobre ele. Ver CLAUDE.md.
             ========================================================== */}
-        <section id="quem-somos" className="scroll-mt-24 secao-ar">
+        <section id="quem-somos" aria-labelledby="quem-somos-titulo" className="scroll-mt-24 secao-ar">
           <div className={secao}>
-            <div className="revelar max-w-[52ch]">
-              <Rotulo>Quem está por trás</Rotulo>
-              <h2 className={tituloSecao}>
-                A operação foi construída por quem já esteve do outro lado do balcão.
-              </h2>
-            </div>
+            <CabecalhoDeSecao
+              n="03"
+              rotulo="Quem está por trás"
+              id="quem-somos-titulo"
+              titulo={<>A operação foi construída por quem já esteve do outro lado do balcão.</>}
+              apoio={
+                <>
+                  Três fatos que se conferem, e não adjetivos. Quem responde pela Psy
+                  Comunic já teve estoque parado, boleto não pago e entrega atrasada no
+                  próprio caixa.
+                </>
+              }
+            />
 
             <div className="mt-14 grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start lg:gap-16">
               {/* --- Retrato, à esquerda ---
@@ -231,6 +249,10 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
+            {/* A foto da turma, discreta, no fim da seção. Ver
+                RetratoDaTurma.tsx. */}
+            <RetratoDaTurma className="revelar mt-16" />
           </div>
         </section>
 
@@ -257,12 +279,18 @@ export default function Home() {
           className="faixa-navy border-y border-fio secao-ar"
         >
           <div className={secao}>
-            <div className="max-w-[52ch]">
-              <Rotulo>Marcas atendidas</Rotulo>
-              <h2 id="marcas-titulo" className={tituloSecao}>
-                Elas já confiaram a operação à Psy Comunic.
-              </h2>
-            </div>
+            <CabecalhoDeSecao
+              n="04"
+              rotulo="Marcas atendidas"
+              id="marcas-titulo"
+              titulo={<>Elas já confiaram a operação à Psy Comunic.</>}
+              apoio={
+                <>
+                  Moda, casa, viagem, acessório e infantil. Operações de portes
+                  diferentes, com o mesmo time atrás do número.
+                </>
+              }
+            />
           </div>
 
           <div className="mt-14 md:mt-16" />
@@ -334,15 +362,13 @@ export default function Home() {
           className="scroll-mt-24 secao-ar"
         >
           <div className={secao}>
-            <div className="max-w-[52ch]">
-              <Rotulo>Solução completa</Rotulo>
-              <h2 id="jornada-titulo" className={tituloSecao}>
-                Construímos a loja de moda. E ficamos para fazer ela vender.
-              </h2>
-              <p className="mt-6 max-w-[52ch] leading-relaxed text-tinta-fraca">
-                {promessaCompleta}
-              </p>
-            </div>
+            <CabecalhoDeSecao
+              n="05"
+              rotulo="Solução completa"
+              id="jornada-titulo"
+              titulo={<>Construímos a loja de moda. E ficamos para fazer ela vender.</>}
+              apoio={<>{promessaCompleta}</>}
+            />
 
             <div className="mt-16 grid gap-x-14 gap-y-14 md:mt-20 md:grid-cols-2">
               {jornada.map((fase) => (
@@ -371,21 +397,43 @@ export default function Home() {
           </div>
         </section>
 
-        <section aria-label="Por que a solução completa" className="relative overflow-clip secao-ar">
+        <section aria-labelledby="completa-titulo" className="relative overflow-clip secao-ar">
           <div className={secao}>
+            {/* A seção não tinha cabeçalho nenhum: abria direto na
+                caixa dos três selos, que ficava boiando no meio de
+                uma tela de branco sem nada que dissesse o que era. */}
+            <CabecalhoDeSecao
+              n="06"
+              rotulo="Por que completa"
+              id="completa-titulo"
+              titulo={<>Contratar em pedaços sai mais caro, e a conta chega depois.</>}
+              apoio={
+                <>
+                  &ldquo;Solução completa&rdquo; é o que toda agência escreve. Sem dizer
+                  o que a alternativa custa, a frase não significa nada.
+                </>
+              }
+            />
             {/* Por que completa importa. "Solução completa" é o que toda
                 agência escreve; sem dizer o que a alternativa custa, a
                 frase não significa nada. */}
-            <div className="grid gap-px overflow-hidden rounded-[var(--raio)] border border-fio bg-[var(--fio)] md:grid-cols-3">
-              {porQueCompleta.map((item) => (
-                <div key={item.titulo} className="revelar bg-papel px-7 py-8 md:px-8 md:py-10">
-                  <h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">
+            <ol className="mt-14 grid gap-x-10 gap-y-12 md:mt-16 md:grid-cols-3">
+              {porQueCompleta.map((item, i) => (
+                <li key={item.titulo} className="revelar border-t border-fio pt-7">
+                  {/* O índice grande, que é o que dá peso a um bloco
+                      de texto curto sem precisar de caixa em volta. */}
+                  <span className="tabular font-display text-numero font-extrabold text-acento">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className="mt-4 font-display text-sub font-bold tracking-[-0.01em]">
                     {item.titulo}
                   </h3>
-                  <p className="mt-3.5 text-sm leading-relaxed text-tinta-fraca">{item.texto}</p>
-                </div>
+                  <p className="mt-4 max-w-[38ch] leading-relaxed text-tinta-fraca">
+                    {item.texto}
+                  </p>
+                </li>
               ))}
-            </div>
+            </ol>
 
             <div className="revelar mt-14 flex flex-wrap items-center gap-4">
               <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
@@ -401,19 +449,25 @@ export default function Home() {
             ========================================================== */}
         <section className="relative overflow-clip secao-ar">
           <div className={secao}>
-            <div className="revelar max-w-[46rem]">
-              <Rotulo>O diagnóstico</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[18ch]'}>
-                Sua loja de moda recebe visitas e{' '}
-                <span className="text-acento">não converte?</span>
-              </h2>
-              <p className="mt-7 max-w-[60ch] text-guia text-tinta">
-                Você investe em mídia, o tráfego sobe e a venda não acompanha. Na moda, o
-                problema quase nunca está no anúncio: está na dúvida do tamanho, na foto
-                que não mostra o caimento, no frete que aparece só no checkout ou na grade
-                cadastrada errada. É por isso que a Psy Comunic olha as quatro frentes.
-              </p>
-            </div>
+            <CabecalhoDeSecao
+              n="07"
+              rotulo="O diagnóstico"
+              titulo={
+                <>
+                  Sua loja de moda recebe visitas e{' '}
+                  <span className="text-acento">não converte?</span>
+                </>
+              }
+              apoio={
+                <>
+                  Você investe em mídia, o tráfego sobe e a venda não acompanha. Na moda,
+                  o problema quase nunca está no anúncio: está na dúvida do tamanho, na
+                  foto que não mostra o caimento, no frete que aparece só no checkout ou
+                  na grade cadastrada errada. É por isso que a Psy Comunic olha as quatro
+                  frentes.
+                </>
+              }
+            />
 
             {/* As perguntas em escada. O deslocamento vertical na coluna
                 da direita quebra a leitura em tabela e obriga o olho a

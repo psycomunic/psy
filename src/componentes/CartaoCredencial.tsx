@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { credenciais } from '@/conteudo/marca';
 
 /**
@@ -22,7 +21,6 @@ export function CartaoCredencial({
   item: Credencial;
   className?: string;
 }) {
-  const bg = 'bg' in item ? item.bg : null;
   const selos = 'selos' in item ? item.selos : null;
 
   return (
@@ -33,26 +31,6 @@ export function CartaoCredencial({
       }
       data-inclina
     >
-      {bg ? (
-        <>
-          {/* A foto do evento, de fundo. `opacity` baixa e um degradê
-              por cima: sem isso o verde claro da parede de plantas sobe
-              atrás do texto cinza e o contraste cai abaixo do legível.
-              O número exato saiu de medição, não de gosto. */}
-          <Image
-            src={bg}
-            alt=""
-            fill
-            sizes="(max-width: 768px) 92vw, 620px"
-            className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.42]"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--bg)_18%,color-mix(in_oklab,var(--bg)_90%,transparent)_55%,color-mix(in_oklab,var(--bg)_72%,transparent)_100%)]"
-          />
-        </>
-      ) : null}
-
       <span className="tabular relative shrink-0 text-xs text-acento">
         {item.i}
       </span>

@@ -144,7 +144,11 @@
   --text-titulo--line-height: 0.96;
   --text-sub:     clamp(20px, 3vw, 30px);
   --text-sub--line-height: 1.15;
-  --text-numero:  clamp(30px, 4.6vw, 48px);
+  /* Teto de 40, e não 48: com os quatro números em fileira, cada
+     coluna tem ~245px, e "R$ 17 milhões" a 48px pedia 250. Quebrava
+     em duas linhas, e só ele: a fileira ficava com um número alto e
+     três baixos. */
+  --text-numero:  clamp(28px, 4.2vw, 40px);
   --text-numero--line-height: 1;
   --text-guia:    16px;
   --text-guia--line-height: 1.65;

@@ -182,9 +182,14 @@ export const credenciais = [
        carrega o G4 e a Boca Rosa junto. Quem passa credibilidade aqui é
        a pessoa, e a mentoria dela é o que vem depois. */
     t: 'Mentorado por Tay Dantas',
-    /* Foto da turma do evento, de fundo. Só este cartão tem: é o único
-       em que existe imagem de verdade do que a frase afirma. */
-    bg: '/imagens/mentoria-vinci.jpg',
+    /* A foto da turma do evento ERA o fundo deste cartão, a 42% de
+       opacidade, com um degradê por cima para o texto continuar
+       legível. Saiu: fundo de foto atrás de parágrafo chama mais
+       atenção do que a frase que ele deveria sustentar, e era o único
+       cartão dos três com peso diferente.
+
+       A foto continua no site, pequena e com legenda, no fim da seção.
+       Ver `RetratoDaTurma`. */
     d: 'Tay Dantas é sócia e diretora de marca do G4 Educação e foi COO da Boca Rosa. Fundou a Vinci Society, onde Angelo Garcia faz mentoria, e é de onde vem o método que a Psy Comunic aplica na aquisição.',
     /*
       As duas casas que dão o peso do nome dela.
