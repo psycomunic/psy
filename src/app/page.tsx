@@ -55,7 +55,7 @@ export default function Home() {
             As tres camadas de texto que se revezavam viraram uma so:
             olho, titulo, subtitulo, paragrafo e os dois botoes.
             ========================================================== */}
-        <section className="relative isolate overflow-clip pb-16 pt-12 md:pb-24 md:pt-16">
+        <section className="relative isolate pb-16 pt-12 md:pb-24 md:pt-16">
           <div className={secao}>
             <Rotulo>Especialistas em e-commerce de moda</Rotulo>
 
@@ -76,8 +76,7 @@ export default function Home() {
               A virada da frase, colada no título e não na coluna.
 
               É o standfirst: em revista ele vem logo abaixo da manchete
-              e na largura dela, porque é a mesma frase continuando. Na
-              coluna estreita ele parecia legenda de outra coisa.
+              e na largura dela, porque é a mesma frase continuando.
 
               Era o itálico da serifada; a condensada não tem um que
               funcione nesse tamanho, e itálico forçado numa grotesca
@@ -86,66 +85,50 @@ export default function Home() {
             <p className="mt-6 font-display text-sub font-bold text-acento">
               Precisa de quem já vendeu milhões.
             </p>
-          </div>
 
-          <div className={secao}>
-            {/*
-              Alinhado no TOPO, depois de igualar as alturas.
+            <p className="mt-10 max-w-[52ch] leading-relaxed text-tinta-fraca">
+              A Psy Comunic é conduzida por quem foi sócio de um e-commerce que
+              fatura{' '}
+              <strong className="font-semibold text-tinta">{faturamento.ano}</strong>.
+              Construímos a sua loja de moda do zero ao lançamento e continuamos
+              entregando todo mês depois dele: catálogo, página de produto, tráfego
+              pago e marketplaces.
+            </p>
 
-              A coluna de texto media metade da coluna das lojas, e
-              centrar dividia a sobra em dois vãos de 190px. Em vez de
-              disfarçar a sobra, ela sumiu: a faixa das frentes entrou
-              embaixo dos botões e as lojas foram de 540 para 470px de
-              altura. Agora as duas colunas terminam juntas.
-            */}
-            <div className="mt-12 grid items-start gap-12 md:mt-14 lg:grid-cols-[1fr_0.92fr] lg:gap-16">
-              <div className="min-w-0">
-                <p className="max-w-[52ch] leading-relaxed text-tinta-fraca">
-                  A Psy Comunic é conduzida por quem foi sócio de um e-commerce que
-                  fatura{' '}
-                  <strong className="font-semibold text-tinta">{faturamento.ano}</strong>.
-                  Construímos a sua loja de moda do zero ao lançamento e continuamos
-                  entregando todo mês depois dele: catálogo, página de produto, tráfego
-                  pago e marketplaces.
-                </p>
-
-                <div className="mt-9 flex flex-wrap items-center gap-4">
-                  <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
-                  <Botao href="/como-trabalhamos" variante="secundario">
-                    Ver como trabalhamos
-                  </Botao>
-                </div>
-
-                {/* As frentes, em uma linha. Ocupa a sobra que restou
-                    abaixo dos botões com informação, e não com ar, e
-                    adianta o assunto do resto da página. */}
-                <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-fio pt-6 text-sm text-tinta-fraca">
-                  {frentes.map((f) => (
-                    <li key={f.slug} className="flex items-center gap-2">
-                      <IconeFrente slug={f.slug} className="h-4 w-4 text-acento" />
-                      {f.nome}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/*
-                AS LOJAS SANGRAM ATÉ A BORDA DA TELA.
-
-                O container trava em 1180px e centraliza, então sobra
-                uma faixa branca à direita das lojas que não é respiro:
-                é o fim da folha aparecendo. Revista resolve levando a
-                imagem para fora da margem, e a margem negativa faz
-                exatamente isso.
-
-                `max(0px, ...)` é o que segura a conta abaixo de
-                1180px, onde a sobra é só o padding e a subtração
-                daria margem POSITIVA, empurrando as lojas para dentro.
-              */}
-              <div className="min-w-0 lg:mr-[calc(-1*(max(0px,(100vw-1180px)/2)+2.5rem))]">
-                <ColunasDeSites />
-              </div>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <Botao href="/diagnostico">Quero meu diagnóstico gratuito</Botao>
+              <Botao href="/como-trabalhamos" variante="secundario">
+                Ver como trabalhamos
+              </Botao>
             </div>
+
+            {/*
+              AS LOJAS EM UMA FILEIRA, NA MARGEM DO TEXTO.
+
+              Estavam numa coluna ao lado. Não fechava, e a medição
+              explica por quê: a coluna de texto media 275px e a das
+              lojas 883px, em 1440. Nenhuma proporção de cartão resolve
+              uma diferença dessas: para as duas terminarem juntas, o
+              cartão teria que virar uma tarja de 2,5:1, onde não se
+              reconhece loja nenhuma.
+
+              Embaixo, na largura inteira, o problema deixa de existir.
+              Os quatro cartões começam na mesma margem esquerda do
+              título e do parágrafo, têm o mesmo tamanho, e a fileira
+              tem topo e base retos.
+            */}
+            <ul className="mt-14 grid grid-cols-2 gap-3 md:mt-16 md:grid-cols-4 md:gap-4">
+              <ColunasDeSites />
+            </ul>
+
+            <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-fio pt-6 text-sm text-tinta-fraca">
+              {frentes.map((f) => (
+                <li key={f.slug} className="flex items-center gap-2">
+                  <IconeFrente slug={f.slug} className="h-4 w-4 text-acento" />
+                  {f.nome}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 

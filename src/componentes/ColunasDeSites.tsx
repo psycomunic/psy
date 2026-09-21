@@ -2,160 +2,93 @@ import Image from 'next/image';
 import { vitrineDaCapa } from '@/conteudo/trabalhos';
 
 /**
- * Colunas de sites deslizando, umas para cima e outras para baixo.
+ * As lojas na abertura.
  *
  * ============================================================
- * POR QUE NÃO É A PAREDE DE ANTES
+ * ERA UMA FITA EM MOVIMENTO, E O MOVIMENTO ERA O DEFEITO
  * ============================================================
- * Já houve aqui uma parede de doze prints ocupando a tela inteira atrás
- * do texto. Saiu por peso: no escuro, doze telas atrás do título
- * disputam a leitura, e escurecê-las até pararem de disputar as tornava
- * inúteis.
+ * Duas colunas rolavam em sentidos opostos, sem parar. O topo de cada
+ * coluna caía no meio de um cartão, e como as duas andavam em ritmos
+ * diferentes, os dois cortes nunca coincidiam: a borda de cima era
+ * uma linha quebrada que mudava a cada quadro.
  *
- * Estas colunas ocupam um lado só. Os sites aparecem nítidos, do
- * tamanho de quem é assunto, e o texto tem a outra metade inteira para
- * ele. O movimento é o que faz alguém olhar; a nitidez é o que faz
- * valer a pena ter olhado.
+ * Isso foi tratado duas vezes como problema de alinhamento, primeiro
+ * tirando uma margem negativa que tinha sobrado de quando eram três
+ * colunas. A margem era um defeito de verdade, e consertá-la não
+ * resolveu nada de visível, porque a causa era outra: fita que anda
+ * não tem borda superior. Um degradê no topo disfarçava o corte, e
+ * disfarce não é alinhamento.
  *
- * ============================================================
- * SEM JAVASCRIPT
- * ============================================================
- * É animação de CSS. Não há estado, observador nem ouvinte de rolagem,
- * então isto é componente de servidor e não custa um byte de bundle.
- * Sem script, as colunas ficam paradas mostrando os primeiros sites, e
- * nada some.
+ * Agora são quatro cartões parados numa grade 2x2. A borda de cima é
+ * reta e começa na mesma linha do texto ao lado.
  *
  * ============================================================
- * A CONTA DO LAÇO
+ * O MOVIMENTO NÃO SE PERDEU: MUDOU DE GATILHO
  * ============================================================
- * Cada coluna repete a própria lista duas vezes e desliza exatamente
- * metade da altura. Para "metade" ser mesmo metade, o espaçamento entre
- * cartões é `margin-bottom` de cada cartão, e não `gap` da lista: com
- * `gap`, oito cartões têm sete vãos, metade da altura cai no meio de um
- * vão e o laço salta a cada volta.
+ * Cada cartão percorre a página inteira da loja quando o cursor
+ * entra. É o mesmo efeito da galeria lá embaixo, e é melhor aqui:
+ * antes a página se mexia sozinha e ninguém controlava; agora quem
+ * quer ver a loja inteira passa o mouse e vê.
  *
- * E a lista é `flex`, o que não é decoração. Numa lista de bloco, a
- * margem de baixo do último cartão COLAPSA para fora do elemento: a
- * altura vira oito passos menos uma margem, e metade dela fica 6px
- * (no telefone) ou 8px (daí para cima) curta. Medido, era exatamente
- * isso. Um salto de 8px a cada volta é daqueles defeitos que ninguém
- * sabe nomear e todo mundo sente. Container flex não colapsa margem.
+ * `--percurso` é quanto a imagem sobe: a altura dela menos a altura
+ * da janela. Sai da proporção real do arquivo, e não de um número
+ * chutado, senão a página de 1563px pararia no meio e a de 2547px
+ * sobraria imagem sem mostrar.
  */
-
-/*
-  DUAS COLUNAS, E ELAS COMEÇAM ALINHADAS.
-
-  ============================================================
-  O DESALINHAMENTO ERA UM RESTO DE TRÊS COLUNAS
-  ============================================================
-  Havia `c === 1 ? 'sm:-mt-8'`: a coluna DO MEIO subia 32px, para as
-  três não lerem como uma fileira só. Quando as colunas passaram de
-  três para duas, o índice 1 deixou de ser a do meio e passou a ser a
-  última: o deslocamento que amarrava o conjunto virou a segunda
-  coluna torta em relação à primeira.
-
-  Havia também `c === 2 ? 'hidden sm:block'`, escondendo uma terceira
-  coluna que não existe mais. Regra que sobrevive ao que ela governava
-  não fica inofensiva: fica esperando.
-
-  ============================================================
-  CINCO CAPTURAS, EM 3 E 2
-  ============================================================
-  As colunas rodam independentes, cada uma com seu ciclo, então não
-  precisam do mesmo número de itens. Três e duas dão períodos
-  diferentes de propósito: com a mesma contagem e a mesma duração as
-  duas repetiriam juntas e o olho perceberia a volta.
-*/
-const COLUNAS = [
-  { itens: vitrineDaCapa.slice(0, 3), sobe: true, duracao: 38 },
-  { itens: vitrineDaCapa.slice(3), sobe: false, duracao: 31 },
-];
+const JANELA = 3 / 4;
 
 export function ColunasDeSites() {
+  /* Quatro, e não cinco: 2x2 fecha retângulo. Cinco deixaria um
+     buraco numa das colunas, que é exatamente o que esta seção
+     estava tentando parar de fazer. */
+  const cartoes = vitrineDaCapa.slice(0, 4);
+
   return (
-    <div
-      className="colunas-de-sites relative grid grid-cols-2 gap-3 sm:gap-4"
-      style={{
-        /* Esmaece as pontas. Sem isto o corte é uma linha reta e as
-           colunas parecem três imagens cortadas, não um movimento
-           contínuo. */
-        maskImage:
-          'linear-gradient(to bottom, transparent 0%, #fff 11%, #fff 89%, transparent 100%)',
-        WebkitMaskImage:
-          'linear-gradient(to bottom, transparent 0%, #fff 11%, #fff 89%, transparent 100%)',
-      }}
-    >
-      {COLUNAS.map((coluna, c) => (
-        <div
-          key={coluna.itens[0].arquivo}
-          className={
-            'h-[380px] overflow-hidden sm:h-[460px] lg:h-[470px]'
-          }
-        >
-          <ul
-            className={'flex flex-col ' + (coluna.sobe ? 'trilha-sobe' : 'trilha-desce')}
-            style={{ animationDuration: `${coluna.duracao}s` }}
+    <>
+      {cartoes.map((t) => {
+        /* Altura da imagem quando ela é desenhada na largura do
+           cartão, em unidades de "largura do cartão". */
+        const altura = t.altura / t.largura;
+        const percurso = Math.max(0, altura - JANELA);
+
+        return (
+          <li
+            key={t.arquivo}
+            className="vitrine-capa group relative aspect-[3/4] overflow-hidden rounded-xl border border-fio bg-papel-alt"
+            style={{ ['--percurso' as string]: `${(percurso / JANELA) * 100}%` }}
           >
-            {[...coluna.itens, ...coluna.itens].map((t, i) => (
-              <li
-                key={`${t.arquivo}-${i}`}
-                className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-fio bg-papel-alt sm:mb-4"
-              >
-                <Image
-                  src={`/imagens/sites/${t.arquivo}`}
-                  alt={
-                    /* A segunda volta da lista é a mesma coisa de novo.
-                       Anunciar doze nomes vinte e quatro vezes é ruído
-                       para quem usa leitor de tela. */
-                    i < coluna.itens.length
-                      ? `Site ${t.nome}, criado pela Psy Comunic`
-                      : ''
-                  }
-                  aria-hidden={i >= coluna.itens.length}
-                  width={t.largura}
-                  height={t.altura}
-                  sizes="(max-width: 640px) 44vw, (max-width: 1024px) 38vw, 22vw"
-                  priority={c === 0 && i < 2}
-                  /* Havia uma terceira coluna, escondida abaixo de
-                     `sm`, e ela era `lazy` para o navegador não buscar
-                     o que estava fora da tela. Com duas colunas, as
-                     duas aparecem em toda largura: `lazy` aqui só
-                     atrasaria o que já está visível. */
-                  loading={c === 0 && i < 2 ? undefined : 'eager'}
-                  className="absolute inset-0 h-full w-full object-cover object-top"
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+            <Image
+              src={`/imagens/sites/${t.arquivo}`}
+              alt={`Loja ${t.nome}, criada pela Psy Comunic`}
+              width={t.largura}
+              height={t.altura}
+              sizes="(max-width: 640px) 44vw, (max-width: 1024px) 38vw, 22vw"
+              priority
+              className="absolute inset-x-0 top-0 w-full"
+            />
+            <span className="sr-only">{t.nome}</span>
+          </li>
+        );
+      })}
 
       <style>{`
-        .colunas-de-sites .trilha-sobe,
-        .colunas-de-sites .trilha-desce {
-          animation-timing-function: linear;
-          animation-iteration-count: infinite;
+        .vitrine-capa img {
+          height: auto;
+          transition: transform 6s linear;
           will-change: transform;
         }
-        .colunas-de-sites .trilha-sobe { animation-name: trilhaSobe; }
-        .colunas-de-sites .trilha-desce { animation-name: trilhaDesce; }
-
-        @keyframes trilhaSobe {
-          from { transform: translateY(0); }
-          to   { transform: translateY(-50%); }
+        .vitrine-capa:hover img,
+        .vitrine-capa:focus-within img {
+          transform: translateY(calc(-1 * var(--percurso)));
         }
-        @keyframes trilhaDesce {
-          from { transform: translateY(-50%); }
-          to   { transform: translateY(0); }
-        }
-
-        /* Quem pediu menos movimento vê as colunas paradas, e continua
-           vendo os sites. */
+        /* Quem pediu menos movimento vê o topo de cada loja, parado,
+           que é o que identifica a loja de qualquer jeito. */
         @media (prefers-reduced-motion: reduce) {
-          .colunas-de-sites .trilha-sobe,
-          .colunas-de-sites .trilha-desce { animation: none; }
+          .vitrine-capa img { transition: none; }
+          .vitrine-capa:hover img,
+          .vitrine-capa:focus-within img { transform: none; }
         }
       `}</style>
-    </div>
+    </>
   );
 }
