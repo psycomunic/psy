@@ -9,6 +9,7 @@ import { Vitrine } from '@/componentes/Vitrine';
 import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
 import { CartaoCredencial } from '@/componentes/CartaoCredencial';
+import { ProvasEmVideo } from '@/componentes/ProvasEmVideo';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { Interacoes } from '@/componentes/Interacoes';
 import { marca, credenciais, numerosDaCapa, faturamento } from '@/conteudo/marca';
@@ -193,6 +194,14 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* ==========================================================
+            1b2. PROVAS EM VÍDEO
+
+            Só aparece quando os arquivos existem em public/video/.
+            Ver ProvasEmVideo.tsx.
+            ========================================================== */}
+        <ProvasEmVideo />
 
         {/* ==========================================================
             1c. QUEM ESTÁ POR TRÁS

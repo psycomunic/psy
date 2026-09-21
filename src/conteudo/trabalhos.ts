@@ -41,6 +41,11 @@ export const trabalhos: Trabalho[] = [
   { nome: 'Carmellita',            arquivo: 'carmellita.jpg',           largura: 560, altura: 4000, tipo: 'loja' },
   { nome: 'Doris Kids',            arquivo: 'doris-kids.jpg',           largura: 560, altura: 2064, tipo: 'loja' },
   { nome: 'Manalinda',             arquivo: 'manalinda.jpg',            largura: 560, altura: 2401, tipo: 'loja' },
+  /* Capturas novas, em 560px como as demais. Ver `vitrineDaCapa`. */
+  { nome: 'Criativaê',             arquivo: 'criativae.jpg',            largura: 560, altura: 2211, tipo: 'loja' },
+  { nome: 'Thomé',                 arquivo: 'thome.jpg',                largura: 560, altura: 2547, tipo: 'loja' },
+  { nome: 'Nativas',               arquivo: 'nativas.jpg',              largura: 560, altura: 1563, tipo: 'loja' },
+  { nome: 'Shop Viagem',           arquivo: 'shop-viagem.jpg',          largura: 560, altura: 1619, tipo: 'loja' },
   /* As demais lojas. */
   { nome: 'Casa Linda',            arquivo: 'casalinda.jpg',            largura: 560, altura: 2666, tipo: 'loja' },
   { nome: 'Vettor 28',             arquivo: 'vettor28.jpg',             largura: 560, altura: 2605, tipo: 'loja' },
@@ -56,6 +61,25 @@ export const trabalhos: Trabalho[] = [
 
 /** A vitrine principal: as lojas. */
 export const lojas = trabalhos.filter((t) => t.tipo === 'loja');
+
+/**
+ * As cinco capturas que abrem a página, no carrossel da hero.
+ *
+ * É uma seleção, e não a lista inteira: a abertura tem alguns
+ * segundos para provar que a Psy Comunic faz loja de roupa, e essas
+ * cinco são as que mostram vitrine de moda logo no topo da captura,
+ * que é a parte que aparece no cartão.
+ *
+ * A galeria de /cases e a do fim da home continuam com todas.
+ */
+const NA_CAPA = ['Criativaê', 'Thomé', 'Nativas', 'Shop Viagem', 'Manalinda'];
+export const vitrineDaCapa = NA_CAPA.map((nome) => {
+  const t = lojas.find((l) => l.nome === nome);
+  /* Falha no build, e não em silêncio: renomear uma loja sem mexer
+     nesta lista deixaria a capa com um buraco que ninguém veria. */
+  if (!t) throw new Error(`vitrineDaCapa: "${nome}" não está em trabalhos`);
+  return t;
+});
 
 /** O rodapé da galeria: os sites de serviço. */
 export const outrosProjetos = trabalhos.filter((t) => t.tipo === 'outro');

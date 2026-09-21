@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { lojas } from '@/conteudo/trabalhos';
+import { vitrineDaCapa } from '@/conteudo/trabalhos';
 
 /**
  * Colunas de sites deslizando, umas para cima e outras para baixo.
@@ -43,20 +43,32 @@ import { lojas } from '@/conteudo/trabalhos';
  */
 
 /*
-  DUAS COLUNAS DE QUATRO, e não três.
+  DUAS COLUNAS, E ELAS COMEÇAM ALINHADAS.
 
-  Eram três colunas de quatro, com os doze trabalhos. Os quatro sites
-  de serviço saíram da vitrine do site principal, e sobraram oito
-  lojas: três colunas dariam uma coluna de dois, que em movimento
-  aparece como buraco.
+  ============================================================
+  O DESALINHAMENTO ERA UM RESTO DE TRÊS COLUNAS
+  ============================================================
+  Havia `c === 1 ? 'sm:-mt-8'`: a coluna DO MEIO subia 32px, para as
+  três não lerem como uma fileira só. Quando as colunas passaram de
+  três para duas, o índice 1 deixou de ser a do meio e passou a ser a
+  última: o deslocamento que amarrava o conjunto virou a segunda
+  coluna torta em relação à primeira.
 
-  Duas colunas também dão cartão MAIOR, que é o que esta abertura
-  pede: quem chega precisa reconhecer uma loja de roupa em meio
-  segundo, e num cartão de 100px não se reconhece nada.
+  Havia também `c === 2 ? 'hidden sm:block'`, escondendo uma terceira
+  coluna que não existe mais. Regra que sobrevive ao que ela governava
+  não fica inofensiva: fica esperando.
+
+  ============================================================
+  CINCO CAPTURAS, EM 3 E 2
+  ============================================================
+  As colunas rodam independentes, cada uma com seu ciclo, então não
+  precisam do mesmo número de itens. Três e duas dão períodos
+  diferentes de propósito: com a mesma contagem e a mesma duração as
+  duas repetiriam juntas e o olho perceberia a volta.
 */
 const COLUNAS = [
-  { itens: lojas.slice(0, 4), sobe: true, duracao: 42 },
-  { itens: lojas.slice(4, 8), sobe: false, duracao: 52 },
+  { itens: vitrineDaCapa.slice(0, 3), sobe: true, duracao: 38 },
+  { itens: vitrineDaCapa.slice(3), sobe: false, duracao: 31 },
 ];
 
 export function ColunasDeSites() {
@@ -77,12 +89,7 @@ export function ColunasDeSites() {
         <div
           key={coluna.itens[0].arquivo}
           className={
-            'h-[380px] overflow-hidden sm:h-[460px] lg:h-[470px] ' +
-            (c === 2 ? 'hidden sm:block ' : '') +
-            /* A do meio começa deslocada. Três colunas alinhadas na
-               mesma linha leem como uma que anda, e não como três
-               colunas independentes. */
-            (c === 1 ? 'sm:-mt-8' : '')
+            'h-[380px] overflow-hidden sm:h-[460px] lg:h-[470px]'
           }
         >
           <ul
