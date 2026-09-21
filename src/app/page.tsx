@@ -7,6 +7,7 @@ import { FitaMarcas } from '@/componentes/FitaMarcas';
 import { Vitrine } from '@/componentes/Vitrine';
 import { ColunasDeSites } from '@/componentes/ColunasDeSites';
 import { IconeFrente } from '@/componentes/IconeFrente';
+import { CartaoCredencial } from '@/componentes/CartaoCredencial';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { HeroCinema } from '@/componentes/HeroCinema';
 import { Interacoes } from '@/componentes/Interacoes';
@@ -212,47 +213,16 @@ export default function Home() {
                   Empilhadas, e cada uma um card próprio: três blocos com
                   peso igual pesam mais do que três parágrafos separados
                   por fio. */}
-              <dl className="grid gap-5">
-                  {credenciais.map((item) => (
-                    <div
-                      key={item.t}
-                      className="revelar cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9"
-                      data-inclina
-                    >
-                      {'bg' in item && item.bg ? (
-                        <>
-                          {/* A foto do evento, de fundo. `opacity` baixa e
-                              um degrade por cima: sem isso o verde claro
-                              da parede de plantas sobe atras do texto
-                              cinza e o contraste cai abaixo do legivel. O
-                              numero exato saiu de medicao, nao de gosto. */}
-                          <Image
-                            src={item.bg}
-                            alt=""
-                            fill
-                            sizes="(max-width: 768px) 92vw, 620px"
-                            className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.42]"
-                          />
-                          <span
-                            aria-hidden
-                            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--marinho-fundo)_18%,color-mix(in_oklab,var(--marinho-fundo)_90%,transparent)_55%,color-mix(in_oklab,var(--marinho-fundo)_72%,transparent)_100%)]"
-                          />
-                        </>
-                      ) : null}
-                      <span className="tabular relative shrink-0 font-mono text-xs text-magenta-texto">
-                        {item.i}
-                      </span>
-                      <div className="relative min-w-0">
-                        <dt className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
-                          {item.t}
-                        </dt>
-                        <dd className="mt-3 max-w-[56ch] leading-relaxed text-cinza">
-                          {item.d}
-                        </dd>
-                      </div>
-                    </div>
+              {/* Empilhadas, e cada uma um card próprio: três blocos
+                  com peso igual pesam mais do que três parágrafos
+                  separados por fio. A marcação vive em
+                  CartaoCredencial, porque /sobre mostra os mesmos
+                  três. */}
+              <div className="grid gap-5">
+                {credenciais.map((item) => (
+                  <CartaoCredencial key={item.t} item={item} className="revelar" />
                 ))}
-              </dl>
+              </div>
             </div>
           </div>
         </section>

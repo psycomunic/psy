@@ -71,16 +71,16 @@ export const marca = {
  * Uma constante, e não uma frase digitada em cada lugar. O site diz o
  * número três vezes: no cartão da capa, na credencial 01 e na hero. As
  * três precisam dizer EXATAMENTE o mesmo, porque quem lê "milhões" num
- * lugar e "R$ 16 milhões" no outro conclui que o primeiro era enfeite.
+ * lugar e "R$ 17 milhões" no outro conclui que o primeiro era enfeite.
  *
  * `ano` e `mes` são o mesmo fato em duas escalas, e existem porque o
  * mês impressiona quem não consegue imaginar o ano. Usar as duas na
  * mesma frase é proposital; usar uma terceira redação não é.
  */
 export const faturamento = {
-  ano: 'R$ 16 milhões por ano',
+  ano: 'R$ 17 milhões por ano',
   mes: 'mais de R$ 1 milhão por mês',
-  curto: 'R$ 16 milhões',
+  curto: 'R$ 17 milhões',
 } as const;
 
 /**
@@ -139,8 +139,8 @@ export const numerosDaCapa = [
  * O cartão 01 citava duas lojas pelo nome. Não cita mais: a operação
  * de onde vem a credencial não é identificada no site.
  *
- * O faturamento é R$ 16 milhões por ano, e essa é a ÚNICA forma de
- * escrever. "Milhões", "na casa dos milhões" e "R$ 16 mi" são a mesma
+ * O faturamento é R$ 17 milhões por ano, e essa é a ÚNICA forma de
+ * escrever. "Milhões", "na casa dos milhões" e "R$ 17 mi" são a mesma
  * afirmação com três pesos diferentes, e quem lê duas delas na mesma
  * página desconfia das duas. Se o número mudar, muda aqui e em
  * `faturamento`, logo acima, e todo lugar que o cita acompanha.
@@ -177,10 +177,24 @@ export const credenciais = [
   },
   {
     i: '03',
-    t: 'Mentorado na Vinci Society',
+    /* O NOME DELA NO TÍTULO, e não o da empresa.
+       "Vinci Society" não diz nada a quem nunca ouviu falar; Tay Dantas
+       carrega o G4 e a Boca Rosa junto. Quem passa credibilidade aqui é
+       a pessoa, e a mentoria dela é o que vem depois. */
+    t: 'Mentorado por Tay Dantas',
     /* Foto da turma do evento, de fundo. Só este cartão tem: é o único
        em que existe imagem de verdade do que a frase afirma. */
     bg: '/imagens/mentoria-vinci.jpg',
-    d: 'Mentoria com Tay Dantas, fundadora da Vinci Society, ex-COO da Boca Rosa e ex-sócia e diretora de branding do G4 Educação. É de onde vem o método que a Psy Comunic aplica na aquisição.',
+    d: 'Tay Dantas é sócia e diretora de marca do G4 Educação e foi COO da Boca Rosa. Fundou a Vinci Society, onde Angelo Garcia faz mentoria, e é de onde vem o método que a Psy Comunic aplica na aquisição.',
+    /*
+      As duas casas que dão o peso do nome dela.
+      `arquivo` é a silhueta; sem ele, entra o nome escrito, e não uma
+      moldura vazia. Máscara que não carrega some com o elemento
+      inteiro (ver CLAUDE.md), e some em silêncio.
+    */
+    selos: [
+      { nome: 'G4 Educação', arquivo: null },
+      { nome: 'Boca Rosa', arquivo: '/imagens/selos/boca-rosa.svg', largura: 268, altura: 34 },
+    ],
   },
 ] as const;
