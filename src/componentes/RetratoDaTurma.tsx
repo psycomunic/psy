@@ -22,7 +22,7 @@ export function RetratoDaTurma({ className = '' }: { className?: string }) {
   return (
     <figure
       className={
-        'flex flex-col gap-5 border-t border-fio pt-8 sm:flex-row sm:items-center sm:gap-8 ' +
+        'flex flex-col gap-6 border-t border-fio pt-10 sm:flex-row sm:items-center sm:gap-10 ' +
         className
       }
     >
@@ -31,11 +31,11 @@ export function RetratoDaTurma({ className = '' }: { className?: string }) {
         alt="Turma de um encontro presencial da Vinci Society, com Angelo Garcia entre os participantes"
         width={1600}
         height={1067}
-        sizes="(max-width: 640px) 92vw, 340px"
+        sizes="(max-width: 640px) 92vw, 520px"
         loading="lazy"
-        className="aspect-[3/2] w-full max-w-[340px] flex-none rounded-[var(--raio-p)] object-cover"
+        className="aspect-[3/2] w-full flex-none rounded-[var(--raio)] object-cover sm:max-w-[520px]"
       />
-      <figcaption className="max-w-[46ch] text-sm leading-relaxed text-tinta-fraca">
+      <figcaption className="max-w-[42ch] leading-relaxed text-tinta-fraca">
         <span className="font-semibold text-tinta">Encontro presencial da Vinci Society.</span>{' '}
         É a mentoria de onde vem o método que a Psy Comunic aplica na aquisição, e a
         foto está aqui porque credencial que se afirma deveria poder ser vista.

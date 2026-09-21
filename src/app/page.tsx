@@ -13,8 +13,9 @@ import { CartaoCredencial } from '@/componentes/CartaoCredencial';
 import { RetratoDaTurma } from '@/componentes/RetratoDaTurma';
 import { ProvasEmVideo } from '@/componentes/ProvasEmVideo';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
+import { BarraDeAcao } from '@/componentes/BarraDeAcao';
 import { Interacoes } from '@/componentes/Interacoes';
-import { marca, credenciais, numerosDaCapa, faturamento } from '@/conteudo/marca';
+import { credenciais, numerosDaCapa, faturamento } from '@/conteudo/marca';
 import { frentes, resultados, metodologia } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias, cases } from '@/conteudo/prova';
 import { lojas, logosMarcas } from '@/conteudo/trabalhos';
@@ -370,24 +371,49 @@ export default function Home() {
               apoio={<>{promessaCompleta}</>}
             />
 
-            <div className="mt-16 grid gap-x-14 gap-y-14 md:mt-20 md:grid-cols-2">
+            {/*
+              AS FASES EMPILHADAS, E AS ENTREGAS EM TRES COLUNAS.
+
+              Eram duas colunas de frases longas, dezessete ao todo:
+              uma parede que ninguem le para decidir se pede um
+              diagnostico. Cada entrega virou NOME em negrito mais o
+              detalhe em cinza, e a fileira de tres corta a altura da
+              secao pela metade.
+
+              A contagem no cabecalho da fase existe porque "nove
+              entregas" e um fato que se le em meio segundo, e a lista
+              inteira nao.
+            */}
+            <div className="mt-16 space-y-16 md:mt-20 md:space-y-20">
               {jornada.map((fase) => (
-                <article key={fase.id} className="border-t border-fio pt-8">
-                  <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="text-sm font-semibold text-acento">{fase.etiqueta}</span>
-                    <span className="text-sm text-tinta-fraca">{fase.entrega}</span>
+                <article key={fase.id}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-fio pt-6">
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <span className="text-sm font-semibold text-acento">{fase.etiqueta}</span>
+                      <h3 className="font-display text-sub font-bold tracking-[-0.01em]">
+                        {fase.titulo}
+                      </h3>
+                    </div>
+                    <span className="tabular text-sm text-tinta-fraca">
+                      {fase.itens.length} entregas
+                    </span>
+                  </div>
+
+                  <p className="mt-5 max-w-[68ch] leading-relaxed text-tinta-fraca">
+                    {fase.resumo}
                   </p>
+                  <p className="mt-3 text-sm font-semibold text-tinta">{fase.entrega}</p>
 
-                  <h3 className="mt-4 font-display text-sub font-bold tracking-[-0.01em]">
-                    {fase.titulo}
-                  </h3>
-                  <p className="mt-4 max-w-[46ch] leading-relaxed text-tinta-fraca">{fase.resumo}</p>
-
-                  <ul className="mt-7 space-y-3 border-t border-fio pt-6">
+                  <ul className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
                     {fase.itens.map((item) => (
-                      <li key={item} className="flex gap-3 text-[0.94rem] leading-relaxed">
-                        <span aria-hidden className="mt-2.5 h-px w-3 shrink-0 bg-acento" />
-                        {item}
+                      <li key={item.nome} className="border-t border-fio pt-4">
+                        <p className="flex items-start gap-2.5 font-semibold">
+                          <span aria-hidden className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-rosa" />
+                          {item.nome}
+                        </p>
+                        <p className="mt-1.5 pl-[1rem] text-sm leading-relaxed text-tinta-fraca">
+                          {item.detalhe}
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -560,20 +586,37 @@ export default function Home() {
             ========================================================== */}
         <section id="resultados" className="scroll-mt-24 secao-ar">
           <div className={secao}>
-            <div className="revelar">
-              <Rotulo>O que fazemos</Rotulo>
-              <h2 className={tituloSecao + ' max-w-[16ch]'}>
-                Quatro resultados, não quatro relatórios.
-              </h2>
-            </div>
+            <CabecalhoDeSecao
+              n="08"
+              rotulo="O que fazemos"
+              titulo={<>Quatro resultados, não quatro relatórios.</>}
+              apoio={
+                <>
+                  Relatório conta o que aconteceu. Estes quatro são o que muda na loja
+                  enquanto a Psy Comunic está dentro dela.
+                </>
+              }
+            />
 
-            <ol className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {/* O indice em FANTASMA, grande, atras do texto. Em
+                pastilha pequena ele era so enfeite; em corpo grande e
+                baixa opacidade ele vira a textura que faltava numa
+                secao de quatro frases curtas. */}
+            <ol className="mt-14 grid gap-x-8 gap-y-12 sm:grid-cols-2 md:mt-16 lg:grid-cols-4">
               {resultados.map((r, i) => (
-                <li key={r} className="revelar border-t border-fio pt-7">
-                  <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-acento">
+                <li key={r} className="revelar relative border-t border-fio pt-7">
+                  <span
+                    aria-hidden
+                    className="tabular pointer-events-none absolute -top-2 right-0 font-display text-[4.5rem] font-extrabold leading-none text-tinta/[0.06]"
+                  >
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <p className="mt-4 text-lg leading-snug text-tinta">{r}</p>
+                  <span className="tabular relative font-display text-sm font-bold text-acento">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <p className="relative mt-4 max-w-[24ch] font-display text-sub font-bold leading-tight tracking-[-0.01em]">
+                    {r}
+                  </p>
                 </li>
               ))}
             </ol>
@@ -583,12 +626,19 @@ export default function Home() {
         {/* ==========================================================
             8. METODOLOGIA
             ========================================================== */}
-        <section id="metodologia" className="scroll-mt-24 bg-papel-alt secao-ar" data-cena>
+        <section id="metodologia" className="scroll-mt-24 bg-papel-alt secao-ar">
           <div className={secao}>
-            <div className="revelar max-w-[46rem]">
-              <Rotulo>Metodologia</Rotulo>
-              <h2 className={tituloSecao}>Três processos. Zero achismo.</h2>
-            </div>
+            <CabecalhoDeSecao
+              n="09"
+              rotulo="Metodologia"
+              titulo={<>Três processos. Zero achismo.</>}
+              apoio={
+                <>
+                  O mesmo caminho em toda loja, do primeiro diagnóstico ao relatório do
+                  mês. É o que faz a decisão sair de dado, e não de opinião.
+                </>
+              }
+            />
 
             <ol className="relative mt-16 grid gap-10 md:grid-cols-3 md:gap-8" data-etapas>
               {/* Linha que costura os três passos e se desenha com a
@@ -640,17 +690,18 @@ export default function Home() {
             ========================================================== */}
         <section id="parceria" className="faixa-navy scroll-mt-24 border-y border-fio secao-ar">
           <div className={secao}>
-            <div className="max-w-[52ch]">
-              <Rotulo>Níveis de parceria</Rotulo>
-              <h2 className={tituloSecao}>
-                Três profundidades, e a escolha depende de onde sua loja trava.
-              </h2>
-              <p className="mt-6 max-w-[52ch] leading-relaxed text-tinta-fraca">
-                A Psy Comunic entra no ponto em que a operação precisa, e não num pacote
-                fechado. O escopo e o investimento saem na proposta, depois do
-                diagnóstico, porque antes disso qualquer número seria chute.
-              </p>
-            </div>
+            <CabecalhoDeSecao
+              n="10"
+              rotulo="Níveis de parceria"
+              titulo={<>Três profundidades, e a escolha depende de onde sua loja trava.</>}
+              apoio={
+                <>
+                  A Psy Comunic entra no ponto em que a operação precisa, e não num
+                  pacote fechado. O escopo e o investimento saem na proposta, depois do
+                  diagnóstico, porque antes disso qualquer número seria chute.
+                </>
+              }
+            />
 
             <ol className="mt-16 grid gap-x-12 gap-y-12 md:mt-20 md:grid-cols-3">
               {niveisDeParceria.map((nivel) => (
@@ -728,16 +779,29 @@ export default function Home() {
             ========================================================== */}
         <section className="border-t border-fio py-16">
           <div className={secao}>
-            <div className="revelar flex flex-wrap items-center gap-x-12 gap-y-6">
+            <div className="revelar flex flex-wrap items-center gap-x-12 gap-y-8">
               <p className={rotulo}>Parcerias e certificações</p>
-              {/* EDITAR: trocar por SVG dos selos quando os arquivos chegarem. */}
-              <ul className="flex flex-wrap items-center gap-3">
+              {/*
+                Com arquivo, entra o selo oficial; sem, o nome escrito.
+                Ver o comentario em prova.ts: o direito de exibir o
+                selo vem do programa de parceria, e nao do arquivo.
+              */}
+              <ul className="flex flex-wrap items-center gap-x-10 gap-y-6">
                 {parcerias.map((p) => (
-                  <li
-                    key={p.nome}
-                    className="rounded-full border border-fio px-5 py-2.5 text-sm font-semibold text-tinta"
-                  >
-                    {p.nome}
+                  <li key={p.nome} className="flex items-center">
+                    {p.arquivo ? (
+                      <Image
+                        src={`/imagens/parcerias/${p.arquivo}`}
+                        alt={p.nome}
+                        width={p.largura ?? 160}
+                        height={p.altura ?? 40}
+                        className="h-8 w-auto object-contain md:h-9"
+                      />
+                    ) : (
+                      <span className="rounded-full border border-fio px-5 py-2.5 text-sm font-semibold text-tinta">
+                        {p.nome}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -749,43 +813,98 @@ export default function Home() {
             12. CTA FINAL
             ========================================================== */}
         <section className="faixa-navy relative isolate overflow-hidden secao-ar">
-          {/* Era magenta chapado com dois gradientes por cima, para o
-              bloco de cor ganhar volume. A faixa agora é marinho, e a
-              regra do tema é que separação vem de linha e de ar: o
-              gradiente saiu junto. */}
+          {/*
+            A CHAMADA FINAL ERA UM BLOCO DE TEXTO CENTRADO.
+
+            Titulo, uma linha de apoio, dois botoes do mesmo tamanho e
+            uma frase do Steve Jobs embaixo. Tres problemas: os dois
+            botoes com o mesmo peso nao dizem qual e o proximo passo,
+            nao havia nada que respondesse "o que eu ganho e o que me
+            custa", e a citacao roubava o fim da pagina do pedido.
+
+            Agora o pedido ocupa a secao: o que a pessoa recebe em
+            tres linhas, um botao grande sozinho, e as objecoes de
+            sempre respondidas embaixo dele, que e onde elas aparecem
+            na cabeca de quem esta com o dedo no botao.
+          */}
           <div className={secao}>
-            {/* Único bloco centralizado da página. Todo o resto alinha
-                à esquerda. */}
-            <div className="revelar mx-auto max-w-[52ch] text-center">
-              <h2 className="mx-auto max-w-[17ch] font-display text-titulo titulo-revista">
-                Vamos olhar a sua loja de moda inteira.
-              </h2>
-              <p className="mx-auto mt-6 max-w-[52ch] text-guia text-tinta-fraca">
-                Diagnóstico gratuito nas quatro frentes, com as prioridades apontadas por
-                ordem de impacto no faturamento.
-              </p>
-              <div className="mt-10 flex flex-wrap justify-center gap-4">
-                <Botao href="/diagnostico">Começar o diagnóstico</Botao>
-                <Botao href="#parceria" variante="secundario">
-                  Ver os níveis de parceria
-                </Botao>
+            <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20">
+              <div>
+                <p className="text-[13px] font-semibold text-acento">Diagnóstico gratuito</p>
+                <h2 className="mt-5 font-display text-titulo titulo-revista">
+                  Vamos olhar a sua loja de moda inteira.
+                </h2>
+                <p className="mt-6 max-w-[48ch] text-guia leading-relaxed text-tinta-fraca">
+                  Uma conversa, as quatro frentes analisadas e as prioridades apontadas
+                  por ordem de impacto no faturamento. Sem compromisso e sem proposta
+                  automática no fim.
+                </p>
+
+                <ul className="mt-9 grid gap-3 text-[0.95rem] sm:grid-cols-2">
+                  {[
+                    'O que está travando a venda hoje',
+                    'Por onde começar, em ordem de impacto',
+                    'O que dá para resolver sem trocar de plataforma',
+                    'Quanto do seu tráfego está sendo desperdiçado',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <span
+                        aria-hidden
+                        className="mt-[3px] grid h-4 w-4 flex-none place-items-center rounded-full bg-rosa"
+                      >
+                        <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 fill-none stroke-white" strokeWidth="2.2">
+                          <path d="M2.5 6.2 4.8 8.5 9.5 3.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/*
+                O cartao do pedido. Um botao so, do tamanho do bloco:
+                dois botoes lado a lado com o mesmo peso e a mesma cor
+                fazem a pessoa escolher entre eles em vez de agir.
+                "Ver os niveis" virou link de texto embaixo, que e o
+                peso que uma saida lateral merece.
+              */}
+              <div className="rounded-[var(--raio)] border border-fio bg-white/[0.04] p-8 md:p-10">
+                <p className="font-display text-sub font-bold tracking-[-0.01em]">
+                  Comece pelo diagnóstico
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-tinta-fraca">
+                  Começando do zero ou já vendendo, é o mesmo primeiro passo.
+                </p>
+
+                <Link
+                  href="/diagnostico"
+                  className="mt-7 flex h-14 w-full items-center justify-center rounded-full bg-rosa px-6 text-center font-semibold text-branco transition-colors hover:bg-rosa-forte"
+                >
+                  Quero meu diagnóstico gratuito
+                </Link>
+
+                <p className="mt-4 text-center text-sm text-tinta-fraca">
+                  Resposta no mesmo dia útil.
+                </p>
+
+                <div className="mt-7 border-t border-fio pt-6 text-center">
+                  <Link
+                    href="#parceria"
+                    className="text-sm font-semibold text-acento underline-offset-4 hover:underline"
+                  >
+                    Antes disso, ver os níveis de parceria
+                  </Link>
+                </div>
               </div>
             </div>
-
-            <figure className="revelar mx-auto mt-20 max-w-[44ch] border-t border-fio pt-8 text-center">
-              <blockquote className="font-display text-sub font-semibold leading-snug tracking-[-0.01em]">
-                {marca.assinatura.frase}
-              </blockquote>
-              <figcaption className="mt-4 text-sm text-tinta-fraca">
-                {marca.assinatura.autor}
-              </figcaption>
-            </figure>
           </div>
         </section>
       </main>
 
       <Rodape />
       <BotaoWhatsapp />
+      <BarraDeAcao />
     </>
   );
 }

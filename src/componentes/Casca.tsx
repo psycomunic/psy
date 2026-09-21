@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Cabecalho } from './Cabecalho';
 import { Rodape } from './Rodape';
 import { BotaoWhatsapp } from './BotaoWhatsapp';
+import { BarraDeAcao } from './BarraDeAcao';
 import { Botao } from './Botao';
 import { site, urlAbsoluta } from '@/conteudo/site';
 
@@ -35,6 +36,7 @@ export function Casca({
       <main id="conteudo">{children}</main>
       <Rodape zap={zapRodape} posicionamento={posicionamentoRodape} />
       {semZap ? null : <BotaoWhatsapp />}
+      {semZap ? null : <BarraDeAcao />}
     </>
   );
 }

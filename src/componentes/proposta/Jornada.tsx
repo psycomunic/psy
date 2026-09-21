@@ -58,11 +58,14 @@ export function SlideJornada() {
 
             <ul className="mt-5 space-y-2.5 border-t border-fio pt-5">
               {fase.itens.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-snug text-tinta">
+                <li key={item.nome} className="flex gap-3 text-sm leading-snug text-tinta">
                   <span aria-hidden className="mt-0.5 flex-none text-[0.75rem] text-acento">
                     ✓
                   </span>
-                  {item}
+                  <span>
+                    <strong className="font-semibold">{item.nome}.</strong>{' '}
+                    <span className="text-tinta-fraca">{item.detalhe}</span>
+                  </span>
                 </li>
               ))}
             </ul>

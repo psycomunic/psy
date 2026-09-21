@@ -24,6 +24,19 @@
  * medos de uma vez: começa junto e continua junto.
  */
 
+/**
+ * Uma entrega.
+ *
+ * ERA UMA FRASE SO. As dezessete entregas eram dezessete frases
+ * longas em duas colunas, e ninguem le dezessete frases longas para
+ * decidir se pede um diagnostico: bate o olho, nao reconhece nada em
+ * meio segundo e desce.
+ *
+ * `nome` e o que a pessoa procura; `detalhe` e o que ela le se o nome
+ * chamou. Nenhuma palavra se perdeu na separacao.
+ */
+export type Entrega = { nome: string; detalhe: string };
+
 export type FaseDaJornada = {
   id: 'implantacao' | 'operacao';
   etiqueta: string;
@@ -32,7 +45,7 @@ export type FaseDaJornada = {
       é promessa aberta, e promessa aberta é o que gera atrito depois. */
   entrega: string;
   resumo: string;
-  itens: string[];
+  itens: Entrega[];
 };
 
 export const jornada: FaseDaJornada[] = [
@@ -44,15 +57,15 @@ export const jornada: FaseDaJornada[] = [
     resumo:
       'A Psy Comunic constrói a operação inteira, e não só a vitrine. Plataforma, catálogo com grade e tabela de medidas, pagamento, frete, política de troca, rastreamento e a primeira campanha saem daqui prontos para rodar.',
     itens: [
-      'Escolha e montagem da plataforma, na Magazord, na Shopify ou na que a operação pedir',
-      'Identidade da loja, layout e a arquitetura de categorias que a cliente de moda usa para comprar',
-      'Catálogo no ar: cadastro por grade e cor, fotos tratadas, tabela de medidas e descrições que vendem',
-      'Página de produto montada para a dúvida de quem compra roupa: caimento, tecido, medida e troca',
-      'Checkout, gateway, antifraude e as regras de frete',
-      'Integrações com ERP, marketplaces e WhatsApp',
-      'Rastreamento completo: GA4, pixel, conversões e o painel de métricas',
-      'Plano de mídia e a primeira campanha no ar',
-      'Treinamento do seu time para tocar o dia a dia',
+      { nome: 'Plataforma', detalhe: 'Escolha e montagem, na Magazord, na Shopify ou na que a operação pedir' },
+      { nome: 'Identidade e categorias', detalhe: 'Layout da loja e a arquitetura que a cliente de moda usa para comprar' },
+      { nome: 'Catálogo no ar', detalhe: 'Cadastro por grade e cor, fotos tratadas, tabela de medidas e descrições que vendem' },
+      { nome: 'Página de produto', detalhe: 'Montada para a dúvida de quem compra roupa: caimento, tecido, medida e troca' },
+      { nome: 'Checkout e frete', detalhe: 'Gateway, antifraude e as regras de entrega' },
+      { nome: 'Integrações', detalhe: 'ERP, marketplaces e WhatsApp' },
+      { nome: 'Rastreamento', detalhe: 'GA4, pixel, conversões e o painel de métricas' },
+      { nome: 'Primeira campanha', detalhe: 'Plano de mídia e os anúncios no ar' },
+      { nome: 'Treinamento', detalhe: 'Seu time pronto para tocar o dia a dia' },
     ],
   },
   {
@@ -63,14 +76,14 @@ export const jornada: FaseDaJornada[] = [
     resumo:
       'Lançar é o começo. A partir daí a operação roda com meta declarada, leitura semanal e ajuste em cima do número que a loja faturou, e não do que a plataforma de mídia diz ter gerado. Cada coleção que entra é uma operação nova: cadastro, campanha e vitrine.',
     itens: [
-      'Mídia paga no Google e no Meta gerida com meta de faturamento, e não com meta de clique',
-      'Conteúdo e criativos do dia a dia, com direção do material que a sua equipe grava',
-      'Lançamento de coleção: cadastro, vitrine, campanha e calendário de datas',
-      'Recuperação de carrinho e de boleto',
-      'Ajuste contínuo de plataforma, checkout e taxa de aprovação',
-      'Gestão de marketplaces e novos canais de venda',
-      'Painel de métricas ao vivo, com o seu login',
-      'Reunião de resultado e relatório com o diário de bordo do que foi feito',
+      { nome: 'Mídia paga', detalhe: 'Google e Meta geridos com meta de faturamento, e não de clique' },
+      { nome: 'Conteúdo e criativos', detalhe: 'Do dia a dia, com direção do material que a sua equipe grava' },
+      { nome: 'Lançamento de coleção', detalhe: 'Cadastro, vitrine, campanha e calendário de datas' },
+      { nome: 'Recuperação', detalhe: 'Carrinho abandonado e boleto não pago' },
+      { nome: 'Ajuste contínuo', detalhe: 'Plataforma, checkout e taxa de aprovação' },
+      { nome: 'Marketplaces', detalhe: 'Gestão e novos canais de venda' },
+      { nome: 'Painel ao vivo', detalhe: 'Métricas com o seu login' },
+      { nome: 'Reunião de resultado', detalhe: 'Relatório com o diário de bordo do que foi feito' },
     ],
   },
 ];

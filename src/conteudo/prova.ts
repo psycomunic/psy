@@ -15,7 +15,30 @@ export const marcasAtendidas = [
   'Wananda', 'Bebenova', 'Udaf', 'Sorrento',
 ];
 
-export const parcerias = [
+/**
+ * Parcerias e certificacoes.
+ *
+ * `arquivo` e o selo oficial, em `public/imagens/parcerias/`. Sem
+ * ele, entra o NOME escrito numa pastilha, que e o que esta no ar
+ * hoje: melhor um nome legivel do que um logotipo aproximado.
+ *
+ * ESTES LOGOTIPOS SAO MARCA REGISTRADA DE TERCEIROS. Google e Meta
+ * publicam manual proprio de uso do selo de parceiro, e o direito de
+ * exibir vem do programa, nao do arquivo. Baixar de busca de imagem
+ * traz o arquivo errado (redimensionado, com fundo, as vezes uma
+ * versao que a marca ja aposentou) e nao traz o direito.
+ *
+ * `largura` e `altura` sao as do arquivo, e servem para a fileira
+ * alinhar pela altura sem deformar nenhum.
+ */
+export type Parceria = {
+  nome: string;
+  arquivo: string | null;
+  largura?: number;
+  altura?: number;
+};
+
+export const parcerias: Parceria[] = [
   { nome: 'Google Partner',        arquivo: null },
   { nome: 'Meta Business Partner', arquivo: null },
   { nome: 'Magazord',              arquivo: null },

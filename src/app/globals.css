@@ -239,6 +239,12 @@ body {
      position:sticky em toda a descendência. clip corta igual sem esse
      efeito colateral. Ver CLAUDE.md. */
   overflow-x: clip;
+
+  /* Respiro para a barra fixa de ação no telefone. Ela publica a
+     própria altura em `--barra-acao`, medida e não chutada, porque o
+     tamanho muda com a fonte do aparelho. Sem isto, o fim do rodapé
+     fica atrás da barra para sempre. */
+  padding-bottom: var(--barra-acao, 0px);
 }
 
 /* Números tabulares em tudo que é dado: sem isso, "17" e "26" têm
@@ -530,19 +536,24 @@ body {
 }
 [data-inclina]:hover::after { opacity: 1; }
 
-/* Etapas que acendem uma a uma. */
-[data-etapas] > * {
-  transition: opacity .5s ease, transform .5s ease;
-}
-[data-animar='sim'] [data-etapas] > *:not(.ativa) {
-  opacity: .32;
-  transform: translateY(6px);
-}
-[data-etapas] > .ativa .etapa-numero {
-  background: var(--psy-pink);
-  border-color: var(--psy-pink);
+/*
+  Etapas.
+
+  Elas ACENDIAM UMA A UMA, conforme a cena em video avancava: quem nao
+  tinha `.ativa` ficava com opacidade .32. As cenas sairam, o
+  progresso que dava a classe deixou de existir, e o terceiro passo da
+  metodologia ficou apagado PARA SEMPRE, parecendo desabilitado.
+
+  Agora os tres tem o mesmo peso. A pastilha rosa continua, porque e
+  ela que diz que sao passos em ordem e nao tres caixas soltas.
+*/
+.etapa-numero {
+  /* O rosa ESCURECIDO, e nao o grafico: a pastilha leva o numero em
+     branco de 12px, e branco sobre #FF2E63 da 3.61:1, abaixo dos 4.5
+     exigidos. Sobre #D91A4A da 4.81. Medido, nao estimado. */
+  background: var(--psy-pink-ink);
+  border-color: var(--psy-pink-ink);
   color: var(--psy-white);
-  box-shadow: 0 0 24px rgba(228, 21, 95, .5);
 }
 
 /* Linha de órbita que se desenha, e o satélite que viaja nela. */
