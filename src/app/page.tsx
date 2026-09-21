@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { RetratoFundador } from '@/componentes/RetratoFundador';
 import Image from 'next/image';
 import { Cabecalho } from '@/componentes/Cabecalho';
 import { Rodape } from '@/componentes/Rodape';
@@ -224,44 +225,7 @@ export default function Home() {
                   Era quadrado e pequeno. Virou retrato em pé e grande:
                   a página tinha ar demais e foto de menos, e esta é a
                   única foto de gente que o site tem. --- */}
-              <figure className="revelar">
-                {/*
-                  O arquivo é 3:2 deitado, então um quadro 1:1 corta
-                  480px de largura. ONDE cortar não é indiferente: a
-                  marca da Vinci Society está na parede à esquerda, e a
-                  foto vale justamente por ser a prova visual da
-                  terceira credencial.
-
-                  Por isso o corte é deslocado para a esquerda, e não
-                  centrado. Em 38% ele começa em x=182 do original em
-                  vez de x=240, o que segura o "V" da Vinci inteiro
-                  dentro do quadro.
-
-                  SEM VÉU E SEM LAVAGEM. A foto tinha um degradê escuro
-                  na base, para a legenda pousar em cima dela, e uma
-                  lavagem magenta para pertencer à paleta escura. As
-                  duas saíram: neste tema a foto é clara e a legenda
-                  vive embaixo dela, em texto, que é a regra da galeria
-                  inteira.
-                */}
-                <Image
-                  src="/imagens/angelo-vinci.jpg"
-                  alt="Angelo Garcia, fundador da Psy Comunic, em um encontro da Vinci Society"
-                  width={1440}
-                  height={960}
-                  sizes="(max-width: 1024px) 92vw, 560px"
-                  className="aspect-[4/5] w-full rounded-[var(--raio)] object-cover object-[38%_center]"
-                />
-
-                <figcaption className="mt-5">
-                  <p className="font-display text-sub font-bold tracking-[-0.01em]">
-                    Angelo Garcia
-                  </p>
-                  <p className="mt-1 text-sm text-tinta-fraca">
-                    Fundador da Psy Comunic · encontro da Vinci Society
-                  </p>
-                </figcaption>
-              </figure>
+              <RetratoFundador className="revelar" />
 
               {/* --- Credenciais, à direita ---
                   Empilhadas, e cada uma um card próprio: três blocos

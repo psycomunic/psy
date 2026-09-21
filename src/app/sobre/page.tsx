@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import { RetratoFundador } from '@/componentes/RetratoFundador';
 import { Casca, TopoPagina, ChamadaFinal, secao, canonical } from '@/componentes/Casca';
 import { CartaoCredencial } from '@/componentes/CartaoCredencial';
 import { marca, credenciais } from '@/conteudo/marca';
-import { urlAbsoluta, site } from '@/conteudo/site';
+import { urlAbsoluta } from '@/conteudo/site';
 
 export const metadata: Metadata = {
   title: 'Sobre a operação e quem está por trás',
@@ -28,32 +28,7 @@ export default function Sobre() {
       <section className="py-12 md:py-16">
         <div className={secao}>
           <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-14">
-            <figure className="relative overflow-hidden rounded-[var(--raio)] border border-fio">
-              <Image
-                src="/imagens/angelo-vinci.jpg"
-                alt="Angelo Garcia, fundador da Psy Comunic, em um encontro da Vinci Society"
-                width={1440}
-                height={960}
-                sizes="(max-width: 1024px) 92vw, 560px"
-                className="aspect-square w-full object-cover object-[38%_center] brightness-[1.2] contrast-[1.06]"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-tr from-rosa/20 via-transparent to-transparent mix-blend-soft-light"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/70 to-transparent"
-              />
-              <figcaption className="absolute inset-x-0 bottom-0 p-7 md:p-8">
-                <p className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-                  {site.fundador}
-                </p>
-                <p className="mt-1.5 text-[0.68rem] text-acento">
-                  Fundador · {marca.nome}
-                </p>
-              </figcaption>
-            </figure>
+            <RetratoFundador />
 
             <div>
               <h2 className="font-display text-titulo titulo-revista">
