@@ -77,7 +77,7 @@ export function ColunasDeSites() {
         <div
           key={coluna.itens[0].arquivo}
           className={
-            'h-[380px] overflow-hidden sm:h-[460px] lg:h-[540px] ' +
+            'h-[380px] overflow-hidden sm:h-[460px] lg:h-[470px] ' +
             (c === 2 ? 'hidden sm:block ' : '') +
             /* A do meio começa deslocada. Três colunas alinhadas na
                mesma linha leem como uma que anda, e não como três

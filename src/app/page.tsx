@@ -62,26 +62,43 @@ export default function Home() {
 
               Medido: em coluna de 600px a 92px, esta frase quebrava em
               CINCO linhas e virava um parágrafo em caixa alta. Na
-              largura toda são duas. É a conta que a condensada permite
+              largura toda são três. É a conta que a condensada permite
               e a serifada não permitia, e é por isso que ela pode ser
               grande desse jeito.
             */}
-            <h1 className="mt-6 font-display text-mostro titulo-revista">
+            <h1 className="mt-5 font-display text-mostro titulo-revista">
               Sua loja de moda não precisa de mais uma agência.
             </h1>
 
-            <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:items-start lg:gap-16">
-              <div className="min-w-0">
-                {/* A virada da frase. Era o itálico da serifada; a
-                    condensada não tem um que funcione nesse tamanho, e
-                    itálico forçado numa grotesca fica torto. O papel
-                    do grifo passou para o PESO e para o acento, que é
-                    como revista resolve o mesmo problema. */}
-                <p className="max-w-[24ch] font-display text-sub font-bold text-acento">
-                  Precisa de quem já vendeu milhões.
-                </p>
+            {/*
+              A virada da frase, colada no título e não na coluna.
 
-                <p className="mt-7 max-w-[52ch] leading-relaxed text-tinta-fraca">
+              É o standfirst: em revista ele vem logo abaixo da manchete
+              e na largura dela, porque é a mesma frase continuando. Na
+              coluna estreita ele parecia legenda de outra coisa.
+
+              Era o itálico da serifada; a condensada não tem um que
+              funcione nesse tamanho, e itálico forçado numa grotesca
+              fica torto. O grifo passou para o peso e para o acento.
+            */}
+            <p className="mt-6 font-display text-sub font-bold text-acento">
+              Precisa de quem já vendeu milhões.
+            </p>
+          </div>
+
+          <div className={secao}>
+            {/*
+              Alinhado no TOPO, depois de igualar as alturas.
+
+              A coluna de texto media metade da coluna das lojas, e
+              centrar dividia a sobra em dois vãos de 190px. Em vez de
+              disfarçar a sobra, ela sumiu: a faixa das frentes entrou
+              embaixo dos botões e as lojas foram de 540 para 470px de
+              altura. Agora as duas colunas terminam juntas.
+            */}
+            <div className="mt-12 grid items-start gap-12 md:mt-14 lg:grid-cols-[1fr_0.92fr] lg:gap-16">
+              <div className="min-w-0">
+                <p className="max-w-[52ch] leading-relaxed text-tinta-fraca">
                   A Psy Comunic é conduzida por quem foi sócio de um e-commerce que
                   fatura{' '}
                   <strong className="font-semibold text-tinta">{faturamento.ano}</strong>.
@@ -96,12 +113,34 @@ export default function Home() {
                     Ver como trabalhamos
                   </Botao>
                 </div>
+
+                {/* As frentes, em uma linha. Ocupa a sobra que restou
+                    abaixo dos botões com informação, e não com ar, e
+                    adianta o assunto do resto da página. */}
+                <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-fio pt-6 text-sm text-tinta-fraca">
+                  {frentes.map((f) => (
+                    <li key={f.slug} className="flex items-center gap-2">
+                      <IconeFrente slug={f.slug} className="h-4 w-4 text-acento" />
+                      {f.nome}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {/* As lojas, subindo e descendo. São a imagem da
-                  abertura, que é o lugar delas num tema feito para a
-                  foto mandar. */}
-              <div className="min-w-0">
+              {/*
+                AS LOJAS SANGRAM ATÉ A BORDA DA TELA.
+
+                O container trava em 1180px e centraliza, então sobra
+                uma faixa branca à direita das lojas que não é respiro:
+                é o fim da folha aparecendo. Revista resolve levando a
+                imagem para fora da margem, e a margem negativa faz
+                exatamente isso.
+
+                `max(0px, ...)` é o que segura a conta abaixo de
+                1180px, onde a sobra é só o padding e a subtração
+                daria margem POSITIVA, empurrando as lojas para dentro.
+              */}
+              <div className="min-w-0 lg:mr-[calc(-1*(max(0px,(100vw-1180px)/2)+2.5rem))]">
                 <ColunasDeSites />
               </div>
             </div>
@@ -241,17 +280,40 @@ export default function Home() {
 
         {/* ==========================================================
             2. FITA DE MARCAS
+
+            FAIXA MARINHO, e não papel. Não é preferência: os 28 logos
+            são SILHUETAS BRANCAS com fundo transparente, medido nos
+            arquivos (254,254,254, cerca de 30% de pixels opacos).
+            Sobre o papel claro eles sumiam, e a seção era uma tarja
+            vazia com uma legenda em cima.
+
+            Dava para recolorir por máscara, como a logo do cabeçalho.
+            Não vale aqui: são 28 arquivos, e uma parede de logos é
+            justamente o lugar onde o fundo escuro ajuda, porque cada
+            marca aparece recortada e nenhuma disputa com a outra.
+
+            A seção de solução completa, que vem logo abaixo, passou
+            para o branco no mesmo movimento. Duas faixas marinho
+            emendadas viram uma faixa só.
             ========================================================== */}
-        <section aria-label="Marcas atendidas" className="border-y border-fio bg-papel-alt py-14">
+        <section
+          aria-labelledby="marcas-titulo"
+          className="faixa-navy border-y border-fio secao-ar"
+        >
           <div className={secao}>
-            <p className="mb-10 text-center text-[0.7rem] text-tinta-fraca">
-              Algumas das muitas marcas que já confiaram a operação à Psy Comunic
-            </p>
+            <div className="max-w-[52ch]">
+              <Rotulo>Marcas atendidas</Rotulo>
+              <h2 id="marcas-titulo" className={tituloSecao}>
+                Elas já confiaram a operação à Psy Comunic.
+              </h2>
+            </div>
           </div>
+
+          <div className="mt-14 md:mt-16" />
 
           {/* Duas fitas em sentidos opostos: o contramovimento é o que
               faz o olho perceber as duas, em vez de uma esteira só. */}
-          <div className="space-y-8 md:space-y-10">
+          <div className="space-y-10 md:space-y-12">
             <FitaMarcas logos={logosMarcas.slice(0, metadeLogos)} duracao={64} />
             <FitaMarcas logos={logosMarcas.slice(metadeLogos)} duracao={78} volta />
           </div>
@@ -313,7 +375,7 @@ export default function Home() {
         <section
           id="jornada"
           aria-labelledby="jornada-titulo"
-          className="faixa-navy scroll-mt-24 border-y border-fio secao-ar"
+          className="scroll-mt-24 secao-ar"
         >
           <div className={secao}>
             <div className="max-w-[52ch]">

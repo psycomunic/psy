@@ -48,7 +48,7 @@ export function FitaMarcas({
 
               max-width evita que um logo muito deitado ocupe meia fita.
             */
-            className="h-7 w-auto max-w-[9.5rem] shrink-0 object-contain opacity-55 transition-opacity duration-300 hover:opacity-100 md:h-8"
+            className="h-8 w-auto max-w-[11rem] shrink-0 object-contain opacity-90 transition-opacity duration-300 hover:opacity-100 md:h-10"
           />
         ))}
       </div>
