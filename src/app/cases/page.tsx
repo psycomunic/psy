@@ -65,7 +65,7 @@ export default function Cases() {
         </div>
       </section>
 
-      <ChamadaFinal titulo="Quer que a sua loja seja o próximo?" />
+      <ChamadaFinal titulo="Quer que a sua loja seja a próxima?" />
     </Casca>
   );
 }

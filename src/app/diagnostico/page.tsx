@@ -115,10 +115,6 @@ export default function Diagnostico() {
 
       {/* CTA final */}
       <section className="faixa-navy relative isolate overflow-hidden secao-ar">
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(255,255,255,0.55))]" />
-        </div>
         <div className={secao}>
           <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">
             Manda o link da sua loja que a gente olha.
