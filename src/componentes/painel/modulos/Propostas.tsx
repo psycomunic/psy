@@ -91,7 +91,7 @@ export async function Propostas({
       <AvisoProcedencia procedencia={procedencia} />
 
       {procedencia !== 'banco' ? (
-        <p className="cartao mt-8 p-6 text-sm leading-relaxed text-tinta-fraca">
+        <p className="cartao mt-8 p-6 text-sm leading-relaxed text-cinza">
           O gerador precisa do banco: um link de proposta que não fica gravado em lugar
           nenhum não abre para o cliente. Esta tela não trabalha com dados de demonstração
           de propósito.
@@ -138,7 +138,7 @@ export async function Propostas({
         apoio="Rascunho não abre para ninguém. Publicar é um segundo ato, e recolher tira do ar sem apagar o histórico."
       >
         {propostas.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">Nenhuma proposta gerada ainda.</p>
+          <p className="cartao p-6 text-sm text-cinza">Nenhuma proposta gerada ainda.</p>
         ) : (
           <Tabela>
             <caption className="sr-only">Propostas geradas, com status e validade</caption>
@@ -160,14 +160,14 @@ export async function Propostas({
                 return (
                   <tr key={p.id}>
                     <th scope="row" className={`${td} font-normal`}>
-                      <span className="font-semibold text-tinta">{p.cliente}</span>
-                      <span className="mt-1 block text-xs text-tinta-fraca">
+                      <span className="font-semibold text-branco">{p.cliente}</span>
+                      <span className="mt-1 block text-xs text-cinza">
                         {p.contato}
                         {p.autor ? ` · por ${p.autor}` : ''}
                       </span>
                     </th>
                     <td className={td}>
-                      <span className="text-sm text-tinta">
+                      <span className="text-sm text-neve">
                         {p.plano
                           ? (fichas[p.plano as keyof typeof fichas]?.nome ?? p.plano)
                           : p.servicos.length > 0
@@ -188,7 +188,7 @@ export async function Propostas({
                     </td>
                     <td className={`${td} tabular whitespace-nowrap text-sm`}>
                       {diaLongo(p.emitidaEm)}
-                      <span className="mt-1 block text-xs text-tinta-fraca">
+                      <span className="mt-1 block text-xs text-cinza">
                         {vencida
                           ? `venceu há ${Math.abs(p.diasParaVencer)} dia(s)`
                           : `vence em ${p.diasParaVencer} dia(s)`}
@@ -196,7 +196,7 @@ export async function Propostas({
                     </td>
                     <td className={td}>
                       {p.status === 'rascunho' ? (
-                        <span className="text-xs text-tinta-fraca">não publicado</span>
+                        <span className="text-xs text-cinza">não publicado</span>
                       ) : (
                         <CopiarLink slug={p.slug} versao={p.versao} />
                       )}
@@ -219,7 +219,7 @@ export async function Propostas({
                           {p.status !== 'aceita' ? (
                             <Link
                               href={`/painel/propostas?editar=${p.id}`}
-                              className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+                              className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
                             >
                               Editar
                             </Link>

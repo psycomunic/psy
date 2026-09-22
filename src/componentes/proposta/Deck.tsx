@@ -136,9 +136,12 @@ export function Deck({ children }: { children: ReactNode }) {
   const ultimo = atual === total - 1;
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden bg-papel print:h-auto print:overflow-visible">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-marinho print:h-auto print:overflow-visible">
       {/* Cenário fixo. Não se move com os slides, de propósito. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0 print:hidden">
+        <div className="grade absolute inset-0 opacity-70" />
+        <div className="brilho-magenta absolute -right-[30%] -top-[35%] h-[760px] w-[760px] opacity-40" />
+        <div className="brilho-frio absolute -left-[28%] bottom-[-25%] h-[680px] w-[680px] opacity-25" />
       </div>
 
       <div
@@ -170,22 +173,22 @@ export function Deck({ children }: { children: ReactNode }) {
           direita. É o que dá a qualquer tela o ar de "página de uma
           apresentação" em vez de página solta. */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-4 px-6 pt-5 sm:px-10 print:hidden">
-        <p className="font-display text-sm font-extrabold tracking-[-0.02em] text-tinta/90">
-          Psy<span className="text-acento">.</span>
+        <p className="font-display text-sm font-extrabold tracking-[-0.02em] text-branco">
+          Psy<span className="text-magenta">.</span>
         </p>
-        <p className="tabular text-[0.72rem] text-tinta-fraca">
-          <span className="text-tinta">{String(atual + 1).padStart(2, '0')}</span>
-          <span className="mx-1 text-tinta-fraca/50">/</span>
+        <p className="tabular font-mono text-[0.72rem] uppercase tracking-[0.18em] text-cinza">
+          <span className="text-branco">{String(atual + 1).padStart(2, '0')}</span>
+          <span className="mx-1 text-cinza/50">/</span>
           {String(total).padStart(2, '0')}
         </p>
       </header>
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[3px] bg-tinta/12 print:hidden"
+        className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[3px] bg-white/10 print:hidden"
       >
         <div
-          className="h-full bg-rosa transition-[width] duration-300"
+          className="h-full bg-magenta transition-[width] duration-300"
           style={{ width: `${((atual + 1) / total) * 100}%` }}
         />
       </div>
@@ -195,7 +198,7 @@ export function Deck({ children }: { children: ReactNode }) {
         aria-label="Navegação da apresentação"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-4 px-5 pb-[max(1.1rem,env(safe-area-inset-bottom))] pt-14 sm:px-8 print:hidden"
         style={{
-          background: 'linear-gradient(to top, var(--bg) 22%, transparent)',
+          background: 'linear-gradient(to top, var(--marinho) 22%, transparent)',
         }}
       >
         <button
@@ -203,7 +206,7 @@ export function Deck({ children }: { children: ReactNode }) {
           onClick={() => irPara(atual - 1)}
           disabled={primeiro}
           aria-label="Slide anterior"
-          className="pointer-events-auto flex h-12 w-12 flex-none items-center justify-center rounded-full border border-fio bg-white/[0.06] text-tinta backdrop-blur transition-colors hover:bg-tinta/12 disabled:opacity-20"
+          className="pointer-events-auto flex h-12 w-12 flex-none items-center justify-center rounded-full border border-fio bg-white/[0.06] text-branco backdrop-blur transition-colors hover:bg-white/15 disabled:opacity-20"
         >
           <span aria-hidden>←</span>
         </button>
@@ -225,8 +228,8 @@ export function Deck({ children }: { children: ReactNode }) {
                   className={
                     'block h-2 rounded-full transition-all duration-300 ' +
                     (i === atual
-                      ? 'w-8 bg-rosa'
-                      : 'w-2 bg-tinta/20 group-hover:bg-tinta/20')
+                      ? 'w-8 bg-magenta'
+                      : 'w-2 bg-white/25 group-hover:bg-white/50')
                   }
                 />
               </button>
@@ -236,7 +239,7 @@ export function Deck({ children }: { children: ReactNode }) {
 
         <p
           aria-live="polite"
-          className="pointer-events-none text-[0.72rem] text-tinta-fraca sm:hidden"
+          className="pointer-events-none font-mono text-[0.72rem] uppercase tracking-[0.18em] text-cinza sm:hidden"
         >
           {primeiro ? 'arraste →' : ultimo ? 'fim' : `${atual + 1} de ${total}`}
         </p>
@@ -246,7 +249,7 @@ export function Deck({ children }: { children: ReactNode }) {
           onClick={() => irPara(atual + 1)}
           disabled={ultimo}
           aria-label="Próximo slide"
-          className="pointer-events-auto flex h-12 w-12 flex-none items-center justify-center rounded-full bg-rosa text-branco shadow-[0_10px_30px_-10px_rgba(255,46,99,0.9)] transition-colors hover:bg-rosa-forte disabled:bg-white/[0.06] disabled:shadow-none disabled:opacity-25"
+          className="pointer-events-auto flex h-12 w-12 flex-none items-center justify-center rounded-full bg-magenta text-branco shadow-[0_10px_30px_-10px_rgba(228,21,95,0.9)] transition-colors hover:bg-magenta-forte disabled:bg-white/[0.06] disabled:shadow-none disabled:opacity-25"
         >
           <span aria-hidden>→</span>
         </button>
@@ -282,7 +285,7 @@ export function Deck({ children }: { children: ReactNode }) {
             height: 56px;
             pointer-events: none;
             z-index: 15;
-            background: linear-gradient(to top, var(--bg) 12%, transparent);
+            background: linear-gradient(to top, var(--marinho) 12%, transparent);
           }
         }
 

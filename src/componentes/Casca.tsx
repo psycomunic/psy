@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { Cabecalho } from './Cabecalho';
 import { Rodape } from './Rodape';
 import { BotaoWhatsapp } from './BotaoWhatsapp';
-import { BarraDeAcao } from './BarraDeAcao';
+import { Botao } from './Botao';
 import { site, urlAbsoluta } from '@/conteudo/site';
 
-export const secao = 'mx-auto w-full max-w-[1180px] px-5 md:px-10';
+export const secao = 'mx-auto w-full max-w-[1320px] px-5 md:px-10';
 
 /**
  * Casca comum das páginas internas: cabeçalho, conteúdo, rodapé.
@@ -35,7 +35,6 @@ export function Casca({
       <main id="conteudo">{children}</main>
       <Rodape zap={zapRodape} posicionamento={posicionamentoRodape} />
       {semZap ? null : <BotaoWhatsapp />}
-      {semZap ? null : <BarraDeAcao />}
     </>
   );
 }
@@ -61,21 +60,24 @@ export function TopoPagina({
   return (
     <section className="relative isolate overflow-hidden pb-14 pt-12 md:pb-20 md:pt-16">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="grade absolute inset-0" />
+        <div className="brilho-magenta absolute -right-[16%] -top-[42%] h-[720px] w-[720px] opacity-35" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       <div className={secao}>
         {trilha ? (
           <nav aria-label="Trilha de navegação">
-            <ol className="flex flex-wrap items-center gap-2 text-[0.66rem] text-tinta-fraca">
+            <ol className="flex flex-wrap items-center gap-2 font-mono text-[0.66rem] uppercase tracking-[0.16em] text-cinza">
               <li>
-                <Link href="/" className="transition-colors hover:text-tinta">
+                <Link href="/" className="transition-colors hover:text-neve">
                   Início
                 </Link>
               </li>
               {trilha.map((t) => (
                 <li key={t.href} className="flex items-center gap-2">
                   <span aria-hidden>/</span>
-                  <Link href={t.href} className="transition-colors hover:text-tinta">
+                  <Link href={t.href} className="transition-colors hover:text-neve">
                     {t.nome}
                   </Link>
                 </li>
@@ -84,17 +86,17 @@ export function TopoPagina({
           </nav>
         ) : null}
 
-        <p className={'mt-6 flex items-center gap-3 text-[0.7rem] text-acento'}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+        <p className={'mt-6 flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto'}>
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           {rotulo}
         </p>
 
-        <h1 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
+        <h1 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.04em]">
           {titulo}
         </h1>
 
         {texto ? (
-          <p className="mt-7 max-w-[62ch] text-guia text-tinta">{texto}</p>
+          <p className="mt-7 max-w-[62ch] text-guia text-neve">{texto}</p>
         ) : null}
       </div>
     </section>
@@ -102,104 +104,31 @@ export function TopoPagina({
 }
 
 /** Chamada final, repetida no pé de cada página interna. */
-/**
- * A chamada final das páginas internas.
- *
- * ============================================================
- * OS DOIS VEUS QUE LAVAVAM O MARINHO
- * ============================================================
- * Havia um radial branco a 22% e um linear branco a 55% por cima da
- * faixa. Eles nasceram quando esta secao era MAGENTA CHAPADO: cor
- * solida em area grande nao tem volume, e os dois degrades davam.
- *
- * A secao virou marinho, e branco por cima de marinho nao da volume:
- * lava. O azul descia para um cinza-azulado sujo, que e o que estava
- * errado. Nao ha degrade nenhum aqui agora, porque a regra do tema e
- * que separacao vem de linha e de ar.
- *
- * ============================================================
- * UM BOTAO, E NAO DOIS DO MESMO TAMANHO
- * ============================================================
- * Eram dois botoes lado a lado com o mesmo peso. Dois caminhos
- * igualmente convidativos fazem a pessoa escolher ENTRE ELES em vez
- * de agir. O pedido principal ganhou cartao proprio e altura de 56px;
- * falar no WhatsApp virou link de texto embaixo, que e o peso que uma
- * saida lateral merece.
- *
- * E o mesmo desenho da chamada final da home, de proposito: quem
- * chega aqui por /servicos ou /sobre encontra o mesmo pedido, no
- * mesmo formato.
- */
 export function ChamadaFinal({
-  titulo = 'Vamos olhar a sua loja de moda inteira.',
+  titulo = 'Vamos olhar a sua operação inteira.',
   texto = 'Diagnóstico gratuito nas quatro frentes, com as prioridades apontadas por ordem de impacto no faturamento.',
-  pontos = [
-    'O que está travando a venda hoje',
-    'Por onde começar, em ordem de impacto',
-    'O que dá para resolver sem trocar de plataforma',
-    'Quanto do seu tráfego está sendo desperdiçado',
-  ],
 }: {
   titulo?: string;
   texto?: string;
-  pontos?: string[];
 }) {
   return (
-    <section className="faixa-navy relative isolate mt-8 overflow-hidden secao-ar">
+    <section className="relative isolate mt-8 overflow-hidden bg-magenta py-20 md:py-24">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(16,31,63,0.55))]" />
+      </div>
       <div className={secao}>
-        <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20">
-          <div>
-            <p className="text-[13px] font-semibold text-acento">Diagnóstico gratuito</p>
-            <h2 className="mt-5 font-display text-titulo titulo-revista">{titulo}</h2>
-            <p className="mt-6 max-w-[48ch] text-guia leading-relaxed text-tinta-fraca">
-              {texto}
-            </p>
-
-            <ul className="mt-9 grid gap-3 text-[0.95rem] sm:grid-cols-2">
-              {pontos.map((item) => (
-                <li key={item} className="flex items-start gap-2.5">
-                  <span
-                    aria-hidden
-                    className="mt-[3px] grid h-4 w-4 flex-none place-items-center rounded-full bg-rosa"
-                  >
-                    <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 fill-none stroke-white" strokeWidth="2.2">
-                      <path d="M2.5 6.2 4.8 8.5 9.5 3.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-[var(--raio)] border border-fio bg-white/[0.04] p-8 md:p-10">
-            <p className="font-display text-sub font-bold tracking-[-0.01em]">
-              Comece pelo diagnóstico
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-tinta-fraca">
-              Começando do zero ou já vendendo, é o mesmo primeiro passo.
-            </p>
-
-            <Link
-              href="/diagnostico"
-              className="mt-7 flex h-14 w-full items-center justify-center rounded-full bg-rosa px-6 text-center font-semibold text-branco transition-colors hover:bg-rosa-forte"
-            >
-              Quero meu diagnóstico gratuito
-            </Link>
-
-            <p className="mt-4 text-center text-sm text-tinta-fraca">
-              Resposta no mesmo dia útil.
-            </p>
-
-            <div className="mt-7 border-t border-fio pt-6 text-center">
-              <Link
-                href="/contato"
-                className="text-sm font-semibold text-acento underline-offset-4 hover:underline"
-              >
-                Prefiro falar com a {site.nome}
-              </Link>
-            </div>
-          </div>
+        <h2 className="max-w-[17ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-branco">
+          {titulo}
+        </h2>
+        <p className="mt-6 max-w-[52ch] text-guia text-branco">{texto}</p>
+        <div className="mt-9 flex flex-wrap gap-4">
+          <Botao href="/diagnostico" variante="claro">
+            Começar o diagnóstico
+          </Botao>
+          <Botao href="/contato" variante="secundario">
+            Falar com a {site.nome}
+          </Botao>
         </div>
       </div>
     </section>

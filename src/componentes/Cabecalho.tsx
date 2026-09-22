@@ -97,11 +97,11 @@ export function Cabecalho() {
       className={
         'sticky top-0 z-50 transition-all duration-300 ' +
         (rolou
-          ? 'border-b border-fio bg-papel/70 backdrop-blur-xl'
+          ? 'border-b border-fio bg-marinho/70 backdrop-blur-xl'
           : 'border-b border-transparent bg-transparent')
       }
     >
-      <div className="mx-auto flex max-w-[1180px] items-center gap-8 px-5 py-4 md:px-10">
+      <div className="mx-auto flex max-w-[1320px] items-center gap-8 px-5 py-4 md:px-10">
         <Marca />
 
         <nav aria-label="Navegação principal" className="ml-auto hidden items-center gap-1 lg:flex">
@@ -109,7 +109,7 @@ export function Cabecalho() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-tinta transition-colors hover:bg-tinta/12 hover:text-tinta"
+              className="rounded-full px-4 py-2 text-sm font-medium text-neve transition-colors hover:bg-white/5 hover:text-branco"
             >
               {item.rotulo}
             </Link>
@@ -126,7 +126,7 @@ export function Cabecalho() {
           onClick={() => setAberto((v) => !v)}
           aria-expanded={aberto}
           aria-controls="menu-mobile"
-          className="ml-auto flex h-11 w-11 items-center justify-center rounded-full ring-1 ring-inset ring-white/20 transition-colors hover:bg-tinta/12 lg:hidden"
+          className="ml-auto flex h-11 w-11 items-center justify-center rounded-full ring-1 ring-inset ring-white/20 transition-colors hover:bg-white/5 lg:hidden"
         >
           <span className="sr-only">{aberto ? 'Fechar menu' : 'Abrir menu'}</span>
           <span aria-hidden className="relative block h-3.5 w-5">
@@ -156,7 +156,7 @@ export function Cabecalho() {
       <div
         id="menu-mobile"
         hidden={!aberto}
-        className="border-t border-fio bg-papel-alt/95 backdrop-blur-xl lg:hidden"
+        className="border-t border-fio bg-marinho-fundo/95 backdrop-blur-xl lg:hidden"
       >
         <nav aria-label="Navegação principal, celular" className="px-5 py-6">
           <ul className="space-y-1">
@@ -165,7 +165,7 @@ export function Cabecalho() {
                 <Link
                   href={item.href}
                   onClick={() => setAberto(false)}
-                  className="block rounded-2xl px-4 py-3.5 text-lg font-semibold text-tinta transition-colors hover:bg-tinta/12 hover:text-tinta"
+                  className="block rounded-2xl px-4 py-3.5 text-lg font-semibold text-neve transition-colors hover:bg-white/5 hover:text-branco"
                 >
                   {item.rotulo}
                 </Link>

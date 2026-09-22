@@ -45,7 +45,7 @@ export async function Metricas({
     return (
       <>
         <AvisoProcedencia procedencia={procedencia} />
-        <p className="cartao mt-8 p-8 text-tinta-fraca">
+        <p className="cartao mt-8 p-8 text-cinza">
           Nenhuma conta disponível para o seu acesso.
         </p>
       </>
@@ -111,8 +111,8 @@ export async function Metricas({
               className={
                 'rounded-full px-4 py-2 text-sm transition-colors ' +
                 (c.id === conta.id
-                  ? 'bg-rosa font-semibold text-branco'
-                  : 'border border-fio text-tinta hover:bg-tinta/12')
+                  ? 'bg-magenta font-semibold text-branco'
+                  : 'border border-fio text-neve hover:bg-white/5')
               }
             >
               {c.nome}
@@ -127,7 +127,7 @@ export async function Metricas({
           <h1 className="font-display text-3xl font-extrabold tracking-[-0.035em]">
             {conta.nome}
           </h1>
-          <p className="mt-2 text-[0.75rem] text-tinta-fraca">
+          <p className="mt-2 font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
             {conta.plataforma ?? 'Plataforma a definir'}
             {conta.ultimoDia ? ` · dado até ${diaLongo(conta.ultimoDia)}` : ''}
           </p>
@@ -141,8 +141,8 @@ export async function Metricas({
       </header>
 
       {conta.situacao === 'sem_dado' ? (
-        <p className="mt-6 rounded-xl border border-rosa/40 bg-rosa-leve px-5 py-4 text-sm leading-relaxed text-tinta">
-          <strong className="text-acento">A sincronização parou.</strong> O último
+        <p className="mt-6 rounded-xl border border-magenta/40 bg-magenta/10 px-5 py-4 text-sm leading-relaxed text-neve">
+          <strong className="text-magenta-texto">A sincronização parou.</strong> O último
           dado é de {conta.ultimoDia ? diaLongo(conta.ultimoDia) : 'data desconhecida'}. Os
           números abaixo estão desatualizados: conferir a integração antes de tomar
           qualquer decisão de verba.
@@ -187,20 +187,20 @@ export async function Metricas({
               { r: 'Clientes novos', v: numero(nov7), a: `${numero(ped7 - nov7)} foram recompra` },
             ].map((e, i) => (
               <li key={e.r} className={i > 0 ? 'sm:border-l sm:border-fio sm:pl-6' : ''}>
-                <p className="text-[0.75rem] text-tinta-fraca">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                   {e.r}
                 </p>
                 <p className="tabular mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
                   {e.v}
                 </p>
-                <p className="mt-1.5 text-xs text-tinta-fraca">{e.a}</p>
+                <p className="mt-1.5 text-xs text-cinza">{e.a}</p>
               </li>
             ))}
           </ol>
 
           {perdidos > 0 && ticket ? (
-            <p className="mt-7 border-t border-fio pt-6 text-sm leading-relaxed text-tinta">
-              <strong className="text-acento">
+            <p className="mt-7 border-t border-fio pt-6 text-sm leading-relaxed text-neve">
+              <strong className="text-magenta-texto">
                 {numero(perdidos)} pedidos não foram pagos nesta semana.
               </strong>{' '}
               No ticket médio atual, são cerca de {dinheiro(perdaEstimada)} que entraram no
@@ -222,7 +222,7 @@ export async function Metricas({
       <Secao titulo="De onde vem a receita" apoio="Acumulado de 30 dias. Orgânico e direto não têm custo de mídia atribuído.">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="cartao p-7">
-            <h3 className="text-[0.75rem] text-tinta-fraca">
+            <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
               Receita por canal
             </h3>
             <div className="mt-6">
@@ -230,7 +230,7 @@ export async function Metricas({
             </div>
           </div>
           <div className="cartao p-7">
-            <h3 className="text-[0.75rem] text-tinta-fraca">
+            <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
               ROAS por canal
             </h3>
             <div className="mt-6">
@@ -278,19 +278,19 @@ export async function Metricas({
         apoio="O que explica os degraus no gráfico. Sem isso, três meses depois ninguém lembra por que a curva mudou."
       >
         {marcos.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">Nenhum marco registrado ainda.</p>
+          <p className="cartao p-6 text-sm text-cinza">Nenhum marco registrado ainda.</p>
         ) : (
           <ol className="space-y-3">
             {marcos.map((m) => (
               <li key={m.id} className="cartao flex flex-wrap gap-x-6 gap-y-2 p-5">
-                <span className="text-[0.75rem] text-acento">
+                <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {diaLongo(m.dia)}
                 </span>
                 <div className="min-w-0 grow">
                   <p className="font-semibold">{m.titulo}</p>
-                  {m.detalhe ? <p className="mt-1 text-sm text-tinta-fraca">{m.detalhe}</p> : null}
+                  {m.detalhe ? <p className="mt-1 text-sm text-cinza">{m.detalhe}</p> : null}
                 </div>
-                <span className="rounded-full border border-fio px-3 py-1 text-[0.75rem] text-tinta-fraca">
+                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                   {m.tipo}
                 </span>
               </li>
@@ -300,7 +300,7 @@ export async function Metricas({
       </Secao>
 
       {papel === 'cliente' ? (
-        <p className="mt-12 rounded-xl border border-fio bg-white/[0.02] px-6 py-5 text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-12 rounded-xl border border-fio bg-white/[0.02] px-6 py-5 text-sm leading-relaxed text-cinza">
           Estes são os números da sua loja, atualizados automaticamente. Dúvida sobre
           qualquer linha: fale com a Psy Comunic pelo WhatsApp.
         </p>

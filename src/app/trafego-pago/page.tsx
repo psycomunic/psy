@@ -52,9 +52,9 @@ export const metadata: Metadata = {
   },
 };
 
-const tituloSecao = 'font-display text-titulo titulo-revista';
+const tituloSecao = 'font-display text-titulo font-extrabold tracking-[-0.04em]';
 const rotuloSecao =
-  'flex items-center gap-3 text-[0.7rem] text-acento';
+  'flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto';
 
 export default function PaginaTrafego() {
   return (
@@ -83,24 +83,24 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-16 md:py-24">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             O que costuma estar acontecendo
           </p>
           <h2 className={`mt-6 max-w-[24ch] ${tituloSecao}`}>
             Não é falta de verba. É falta de{' '}
-            <span className="text-acento">resposta.</span>
+            <span className="text-magenta-texto">resposta.</span>
           </h2>
 
           <ul className="mt-12 grid gap-6 md:grid-cols-3">
             {sintomas.map((s, i) => (
               <li key={s.titulo} className="revelar cartao h-full p-6 md:p-7">
-                  <p aria-hidden className="text-sm text-acento">
+                  <p aria-hidden className="font-mono text-sm text-magenta-texto">
                     {String(i + 1).padStart(2, '0')}
                   </p>
                   <h3 className="mt-4 font-display text-lg font-bold tracking-[-0.02em]">
                     {s.titulo}
                   </h3>
-                  <p className="mt-3 leading-relaxed text-tinta-fraca">{s.texto}</p>
+                  <p className="mt-3 leading-relaxed text-cinza">{s.texto}</p>
               </li>
             ))}
           </ul>
@@ -113,14 +113,14 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-16 md:py-24">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Como a Psy Comunic opera
           </p>
           <h2 className={`mt-6 max-w-[22ch] ${tituloSecao}`}>
             Quatro etapas, cada uma com uma{' '}
-            <span className="text-acento">entrega.</span>
+            <span className="text-magenta-texto">entrega.</span>
           </h2>
-          <p className="mt-7 max-w-[62ch] text-guia text-tinta">
+          <p className="mt-7 max-w-[62ch] text-guia text-neve">
             Promessa vaga qualquer agência faz. O que dá para cobrar é uma sequência em que
             cada passo produz algo que você consegue ver.
           </p>
@@ -130,7 +130,7 @@ export default function PaginaTrafego() {
               <li key={e.n} className="revelar cartao grid gap-6 p-6 md:grid-cols-[auto_1fr_0.8fr] md:items-start md:gap-10 md:p-8">
                   <p
                     aria-hidden
-                    className="font-display text-3xl font-extrabold tracking-[-0.04em] text-acento md:text-4xl"
+                    className="font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto md:text-4xl"
                   >
                     {e.n}
                   </p>
@@ -138,13 +138,13 @@ export default function PaginaTrafego() {
                     <h3 className="font-display text-xl font-bold tracking-[-0.025em]">
                       {e.titulo}
                     </h3>
-                    <p className="mt-3 max-w-[56ch] leading-relaxed text-tinta-fraca">{e.texto}</p>
+                    <p className="mt-3 max-w-[56ch] leading-relaxed text-cinza">{e.texto}</p>
                   </div>
                   <div className="border-t border-fio pt-4 md:border-l md:border-t-0 md:pl-8 md:pt-0">
-                    <p className="text-[0.7rem] text-tinta-fraca">
+                    <p className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
                       Sai daqui
                     </p>
-                    <p className="mt-2.5 leading-relaxed text-tinta">{e.entrega}</p>
+                    <p className="mt-2.5 leading-relaxed text-neve">{e.entrega}</p>
                   </div>
               </li>
             ))}
@@ -157,24 +157,25 @@ export default function PaginaTrafego() {
       {/* ============================================================ */}
       <section className="relative isolate overflow-hidden border-t border-fio py-16 md:py-24">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="brilho-magenta absolute -left-[18%] top-[10%] h-[560px] w-[560px] opacity-25" />
         </div>
 
         <div className={secao}>
           <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
             <div>
               <p className={rotuloSecao}>
-                <span aria-hidden className="h-px w-8 bg-rosa" />
+                <span aria-hidden className="h-px w-8 bg-magenta" />
                 Transparência que se abre
               </p>
               <h2 className={`mt-6 max-w-[18ch] ${tituloSecao}`}>{painel.titulo}</h2>
-              <p className="mt-8 max-w-[52ch] text-guia text-tinta">{painel.texto}</p>
+              <p className="mt-8 max-w-[52ch] text-guia text-neve">{painel.texto}</p>
             </div>
 
             <ul className="space-y-4">
               {painel.itens.map((i) => (
                 <li key={i} className="cartao flex gap-4 p-5 md:p-6">
-                  <span aria-hidden className="mt-1 flex-none text-acento">●</span>
-                  <span className="leading-relaxed text-tinta">{i}</span>
+                  <span aria-hidden className="mt-1 flex-none text-magenta-texto">●</span>
+                  <span className="leading-relaxed text-neve">{i}</span>
                 </li>
               ))}
             </ul>
@@ -188,11 +189,11 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-16 md:py-24">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Complemento, não substituto
           </p>
           <h2 className={`mt-6 max-w-[22ch] ${tituloSecao}`}>{social.titulo}</h2>
-          <p className="mt-8 max-w-[64ch] text-guia text-tinta">{social.texto}</p>
+          <p className="mt-8 max-w-[64ch] text-guia text-neve">{social.texto}</p>
 
           <ul className="mt-12 grid gap-6 md:grid-cols-3">
             {social.itens.map((i) => (
@@ -200,7 +201,7 @@ export default function PaginaTrafego() {
                 <h3 className="font-display text-lg font-bold tracking-[-0.02em]">
                   {i.titulo}
                 </h3>
-                <p className="mt-3 leading-relaxed text-tinta-fraca">{i.texto}</p>
+                <p className="mt-3 leading-relaxed text-cinza">{i.texto}</p>
               </li>
             ))}
           </ul>
@@ -213,7 +214,7 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-14 md:py-16">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Marcas que já passaram por aqui
           </p>
         </div>
@@ -229,23 +230,23 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-16 md:py-24">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Antes de conversar
           </p>
           <h2 className={`mt-6 max-w-[20ch] ${tituloSecao}`}>
             Para quem isto funciona, e para quem{' '}
-            <span className="text-acento">não.</span>
+            <span className="text-magenta-texto">não.</span>
           </h2>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
             <div className="cartao p-6 md:p-8">
-              <p className="text-[0.7rem] text-acento">
+              <p className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-magenta-texto">
                 Serve para
               </p>
               <ul className="mt-6 space-y-4">
                 {paraQuem.serve.map((s) => (
-                  <li key={s} className="flex gap-3 leading-relaxed text-tinta">
-                    <span aria-hidden className="mt-1 flex-none text-acento">●</span>
+                  <li key={s} className="flex gap-3 leading-relaxed text-neve">
+                    <span aria-hidden className="mt-1 flex-none text-magenta-texto">●</span>
                     {s}
                   </li>
                 ))}
@@ -255,12 +256,12 @@ export default function PaginaTrafego() {
             {/* Dizer para quem NÃO serve custa alguns leads e evita as
                 conversas que terminariam mal de todo jeito. */}
             <div className="cartao p-6 md:p-8">
-              <p className="text-[0.7rem] text-tinta-fraca">
+              <p className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
                 Não serve para
               </p>
               <ul className="mt-6 space-y-4">
                 {paraQuem.naoServe.map((s) => (
-                  <li key={s} className="flex gap-3 leading-relaxed text-tinta-fraca">
+                  <li key={s} className="flex gap-3 leading-relaxed text-cinza">
                     <span aria-hidden className="mt-1 flex-none">—</span>
                     {s}
                   </li>
@@ -279,18 +280,18 @@ export default function PaginaTrafego() {
           <div className="grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:gap-16">
             <div>
               <p className={rotuloSecao}>
-                <span aria-hidden className="h-px w-8 bg-rosa" />
+                <span aria-hidden className="h-px w-8 bg-magenta" />
                 Quem opera
               </p>
               <h2 className={`mt-6 max-w-[20ch] ${tituloSecao}`}>{quemOpera.titulo}</h2>
-              <p className="mt-8 max-w-[60ch] text-guia text-tinta">{quemOpera.texto}</p>
+              <p className="mt-8 max-w-[60ch] text-guia text-neve">{quemOpera.texto}</p>
             </div>
 
             <ul className="space-y-4 self-center">
               {quemOpera.pontos.map((p) => (
                 <li key={p} className="cartao flex gap-4 p-5">
-                  <span aria-hidden className="mt-1 flex-none text-acento">●</span>
-                  <span className="leading-relaxed text-tinta">{p}</span>
+                  <span aria-hidden className="mt-1 flex-none text-magenta-texto">●</span>
+                  <span className="leading-relaxed text-neve">{p}</span>
                 </li>
               ))}
             </ul>
@@ -304,11 +305,11 @@ export default function PaginaTrafego() {
       <section className="border-t border-fio py-16 md:py-24">
         <div className={secao}>
           <p className={rotuloSecao}>
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             O que perguntam antes de fechar
           </p>
           <h2 className={`mt-6 max-w-[18ch] ${tituloSecao}`}>
-            Respondido <span className="text-acento">antes.</span>
+            Respondido <span className="text-magenta-texto">antes.</span>
           </h2>
 
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
@@ -318,12 +319,12 @@ export default function PaginaTrafego() {
                   {q.p}
                   <span
                     aria-hidden
-                    className="mt-1 flex-none text-acento transition-transform duration-300 group-open:rotate-45"
+                    className="mt-1 flex-none text-magenta-texto transition-transform duration-300 group-open:rotate-45"
                   >
                     +
                   </span>
                 </summary>
-                <p className="mt-4 max-w-[60ch] leading-relaxed text-tinta-fraca">{q.r}</p>
+                <p className="mt-4 max-w-[60ch] leading-relaxed text-cinza">{q.r}</p>
               </details>
             ))}
           </div>
@@ -339,15 +340,17 @@ export default function PaginaTrafego() {
       {/* ============================================================ */}
       <section className="relative isolate overflow-hidden border-t border-fio py-16 md:py-24">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="grade absolute inset-0" />
+          <div className="brilho-magenta absolute -right-[10%] bottom-[-20%] h-[620px] w-[620px] opacity-30" />
         </div>
 
         <div className={secao}>
           <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div>
               <h2 className={`max-w-[16ch] ${tituloSecao}`}>{formulario.titulo}</h2>
-              <p className="mt-7 max-w-[50ch] text-guia text-tinta">{formulario.texto}</p>
+              <p className="mt-7 max-w-[50ch] text-guia text-neve">{formulario.texto}</p>
 
-              <p className="mt-10 text-sm leading-relaxed text-tinta-fraca">
+              <p className="mt-10 text-sm leading-relaxed text-cinza">
                 Prefere conversar direto?
               </p>
               <div className="mt-4">

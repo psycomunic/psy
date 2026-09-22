@@ -5,8 +5,10 @@ import { criarLead } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
 
-const campo = 'campo';
-const rotuloCss = 'rotulo-campo';
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 /* Origens comuns, para não digitar. A lista é sugestão, e o campo
    aceita qualquer texto: engessar a origem faria o comercial escolher
@@ -64,7 +66,7 @@ export function FormLead() {
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="inline-flex items-center gap-2.5 rounded-full bg-rosa px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte"
+          className="inline-flex items-center gap-2.5 rounded-full bg-magenta px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
         >
           <span aria-hidden className="text-base leading-none">+</span>
           Novo lead
@@ -83,7 +85,7 @@ export function FormLead() {
     <form action={acao} className="cartao space-y-5 p-6">
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Novo lead</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-1.5 text-sm leading-relaxed text-cinza">
           Só o nome é obrigatório. O resto entra conforme a conversa avança.
         </p>
       </div>
@@ -139,7 +141,7 @@ export function FormLead() {
           <input id="l-verba" name="valor_verba_estimada" inputMode="decimal" placeholder="15000" className={`mt-2 ${campo}`} />
           {/* O aviso onde a dúvida nasce: são dois dinheiros de donos
               diferentes, e o sistema inteiro depende de não os somar. */}
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Verba é do cliente e nunca entra no fee.
           </p>
         </div>
@@ -154,7 +156,7 @@ export function FormLead() {
             placeholder="50"
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             É ela que pondera a previsão do funil.
           </p>
         </div>
@@ -179,7 +181,7 @@ export function FormLead() {
       {estado && !estado.ok ? (
         <p
           role="status"
-          className="flex items-start gap-3 rounded-xl border border-rosa/40 bg-rosa-leve px-4 py-3 text-sm text-acento"
+          className="flex items-start gap-3 rounded-xl border border-magenta/40 bg-magenta/10 px-4 py-3 text-sm text-magenta-texto"
         >
           <span aria-hidden className="mt-0.5">■</span>
           {estado.mensagem}
@@ -190,14 +192,14 @@ export function FormLead() {
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
           {pendente ? 'Salvando...' : 'Colocar no funil'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
         >
           Cancelar
         </button>

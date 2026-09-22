@@ -50,7 +50,7 @@ export function SlideMarcas({
       rotulo="Quem já passou por aqui"
       titulo={
         <>
-          Marcas que <span className="text-acento">confiaram.</span>
+          Marcas que <span className="text-magenta-texto">confiaram.</span>
         </>
       }
       apoio={apoio}
@@ -86,19 +86,19 @@ export function SlideMarcas({
         </ul>
 
         {/* Os nomes, em texto. É aqui que a informação está de verdade. */}
-        <p className="mt-6 text-xs leading-relaxed text-tinta-fraca sm:text-sm">
+        <p className="mt-6 text-xs leading-relaxed text-cinza sm:text-sm">
           {marcasAtendidas.join(' · ')} e outras.
         </p>
 
         <div className="mt-auto pt-7">
-          <p className="text-[0.7rem] text-tinta-fraca">
+          <p className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
             Parcerias e plataformas
           </p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {parcerias.map((p) => (
               <li
                 key={p.nome}
-                className="rounded-full border border-fio bg-white/[0.05] px-4 py-2 text-xs font-medium text-tinta"
+                className="rounded-full border border-fio bg-white/[0.05] px-4 py-2 text-xs font-medium text-neve"
               >
                 {p.nome}
               </li>

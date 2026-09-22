@@ -58,7 +58,7 @@ export function SlideCusto({
       rotulo="Investimento"
       titulo={
         <>
-          Quanto você vai <span className="text-acento">gastar por mês.</span>
+          Quanto você vai <span className="text-magenta-texto">gastar por mês.</span>
         </>
       }
       apoio="A conta inteira, já somada. O fee é da Psy Comunic; a verba de anúncio vai direto para o Google e para a Meta e não passa por nós."
@@ -78,57 +78,57 @@ export function SlideCusto({
             <Bloco key={e.rotulo} destaque={e.destaque} className="flex h-full flex-col">
               <p
                 className={
-                  'text-[0.7rem] leading-relaxed ' +
-                  (e.destaque ? 'text-acento' : 'text-tinta-fraca')
+                  'font-mono text-[0.7rem] uppercase leading-relaxed tracking-[0.14em] ' +
+                  (e.destaque ? 'text-magenta-texto' : 'text-cinza')
                 }
               >
                 {e.rotulo}
-                <span className="text-tinta-fraca"> · {e.nota}</span>
+                <span className="text-cinza"> · {e.nota}</span>
               </p>
 
               {/* Sem fee definido não existe total, e inventar um seria
                   pior que não mostrar. O que se sabe do período é a
                   verba, então é ela que aparece grande. */}
-              <p className="tabular mt-4 font-display text-3xl font-extrabold leading-[1.05] tracking-[-0.045em] text-tinta">
+              <p className="tabular mt-4 font-display text-3xl font-extrabold leading-[1.05] tracking-[-0.045em] text-branco">
                 {e.fee === null
                   ? temMidia
                     ? faixa(midiaMin, midiaMax)
                     : (e.feeTexto ?? 'A combinar')
                   : faixa(e.fee + midiaMin, e.fee + midiaMax)}
-                <span className="ml-1.5 text-sm font-normal text-tinta-fraca">
+                <span className="ml-1.5 text-sm font-normal text-cinza">
                   {e.fee === null ? '/mês de verba' : '/mês'}
                 </span>
               </p>
 
               {e.fee === null ? (
-                <p className="mt-1.5 text-xs leading-relaxed text-acento">
+                <p className="mt-1.5 text-xs leading-relaxed text-magenta-texto">
                   mais o fee, a combinar
                 </p>
               ) : null}
 
               <dl className="mt-5 space-y-3 border-t border-fio pt-5 text-sm">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-tinta-fraca">Fee da Psy Comunic</dt>
-                  <dd className="tabular flex-none text-tinta">
+                  <dt className="text-cinza">Fee da Psy Comunic</dt>
+                  <dd className="tabular flex-none text-neve">
                     {e.fee === null ? (e.feeTexto ?? 'A combinar') : reais(e.fee)}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-tinta-fraca">
+                  <dt className="text-cinza">
                     Verba de anúncio
                     {temMidia ? (
-                      <span className="mt-0.5 block text-xs text-tinta-fraca/80">
+                      <span className="mt-0.5 block text-xs text-cinza/80">
                         {faixa(e.midiaMinDia, e.midiaMaxDia)} por dia
                       </span>
                     ) : null}
                   </dt>
-                  <dd className="tabular flex-none text-tinta">
+                  <dd className="tabular flex-none text-neve">
                     {temMidia ? faixa(midiaMin, midiaMax) : reais(0)}
                   </dd>
                 </div>
               </dl>
 
-              <p className="mt-auto pt-5 text-xs leading-relaxed text-tinta-fraca">{e.explicacao}</p>
+              <p className="mt-auto pt-5 text-xs leading-relaxed text-cinza">{e.explicacao}</p>
             </Bloco>
           );
         })}
@@ -136,10 +136,10 @@ export function SlideCusto({
 
       {notaPlataforma ? (
         <Bloco className="mt-4">
-          <p className="text-[0.7rem] text-tinta-fraca">
+          <p className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-cinza">
             Fora dessa conta · plataforma
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-tinta">{notaPlataforma}</p>
+          <p className="mt-3 text-sm leading-relaxed text-neve">{notaPlataforma}</p>
         </Bloco>
       ) : null}
     </Slide>
@@ -161,7 +161,7 @@ export function SlideLancamento({ prazoTexto }: { prazoTexto: string | null }) {
       titulo={
         <>
           A verba só começa{' '}
-          <span className="text-acento">quando tudo estiver pronto.</span>
+          <span className="text-magenta-texto">quando tudo estiver pronto.</span>
         </>
       }
       apoio="Nenhum real de anúncio é gasto antes desta lista inteira estar fechada. Antes disso não existe para onde mandar tráfego."
@@ -170,19 +170,19 @@ export function SlideLancamento({ prazoTexto }: { prazoTexto: string | null }) {
         {criteriosDeLancamento.map((c, i) => (
           <li key={c}>
             <Bloco className="flex h-full items-center gap-4">
-              <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-rosa/15 text-[0.7rem] font-semibold text-acento">
+              <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-magenta/15 font-mono text-[0.7rem] font-semibold text-magenta-texto">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <span className="min-w-0 text-sm leading-snug text-tinta">{c}</span>
+              <span className="min-w-0 text-sm leading-snug text-neve">{c}</span>
             </Bloco>
           </li>
         ))}
       </ul>
 
       {prazoTexto ? (
-        <p className="mt-6 rounded-2xl border border-fio bg-white/[0.03] p-5 text-sm leading-relaxed text-tinta">
+        <p className="mt-6 rounded-2xl border border-fio bg-white/[0.03] p-5 text-sm leading-relaxed text-neve">
           O prazo é de{' '}
-          <strong className="font-semibold text-tinta">{prazoTexto}</strong>. Pode ficar
+          <strong className="font-semibold text-branco">{prazoTexto}</strong>. Pode ficar
           pronto antes, e a intenção é essa. O prazo maior está aqui para caber imprevisto
           de catálogo e de integração, que é onde loja nova costuma atrasar.
         </p>
@@ -204,7 +204,7 @@ export function SlideInclusoes({ itens }: { itens: string[] }) {
       rotulo="Nesta proposta"
       titulo={
         <>
-          O que vai <span className="text-acento">além do plano.</span>
+          O que vai <span className="text-magenta-texto">além do plano.</span>
         </>
       }
       apoio="Entregas de um plano superior, incluídas aqui sem custo adicional."
@@ -213,10 +213,10 @@ export function SlideInclusoes({ itens }: { itens: string[] }) {
         {itens.map((item) => (
           <li key={item}>
             <Bloco destaque className="flex gap-4">
-              <span aria-hidden className="mt-0.5 flex-none text-lg leading-none text-acento">
+              <span aria-hidden className="mt-0.5 flex-none text-lg leading-none text-magenta-texto">
                 +
               </span>
-              <span className="text-sm leading-relaxed text-tinta sm:text-[1rem]">{item}</span>
+              <span className="text-sm leading-relaxed text-neve sm:text-[1rem]">{item}</span>
             </Bloco>
           </li>
         ))}

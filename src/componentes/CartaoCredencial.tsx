@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { credenciais } from '@/conteudo/marca';
 
 /**
@@ -21,25 +22,46 @@ export function CartaoCredencial({
   item: Credencial;
   className?: string;
 }) {
+  const bg = 'bg' in item ? item.bg : null;
   const selos = 'selos' in item ? item.selos : null;
 
   return (
     <div
       className={
-        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-rosa/40 md:p-9 ' +
+        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-magenta/35 md:p-9 ' +
         className
       }
       data-inclina
     >
-      <span className="tabular relative shrink-0 text-sm font-semibold text-acento">
+      {bg ? (
+        <>
+          {/* A foto do evento, de fundo. `opacity` baixa e um degradê
+              por cima: sem isso o verde claro da parede de plantas sobe
+              atrás do texto cinza e o contraste cai abaixo do legível.
+              O número exato saiu de medição, não de gosto. */}
+          <Image
+            src={bg}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 92vw, 620px"
+            className="pointer-events-none absolute inset-0 object-cover object-center opacity-[0.42]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--marinho-fundo)_18%,color-mix(in_oklab,var(--marinho-fundo)_90%,transparent)_55%,color-mix(in_oklab,var(--marinho-fundo)_72%,transparent)_100%)]"
+          />
+        </>
+      ) : null}
+
+      <span className="tabular relative shrink-0 font-mono text-xs text-magenta-texto">
         {item.i}
       </span>
 
       <div className="relative min-w-0">
-        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl text-tinta">
+        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
           {item.t}
         </p>
-        <p className="mt-3 max-w-[56ch] leading-relaxed text-tinta-fraca">{item.d}</p>
+        <p className="mt-3 max-w-[56ch] leading-relaxed text-cinza">{item.d}</p>
 
         {selos ? <FileiraDeSelos selos={selos} /> : null}
       </div>
@@ -65,8 +87,8 @@ function FileiraDeSelos({
 }) {
   return (
     <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-fio pt-5">
-      <li className="text-[0.65rem] font-semibold uppercase tracking-widest text-tinta-fraca">
-        Onde ele construiu
+      <li className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-cinza">
+        Onde ela construiu
       </li>
       {selos.map((s) =>
         s.arquivo ? (
@@ -74,7 +96,11 @@ function FileiraDeSelos({
             <span
               role="img"
               aria-label={s.nome}
-              className="block h-[22px] bg-tinta"
+              /* 22px, e não 15. Medido: a 15px o logotipo rendia 338
+                 pixels de letra em 15930, contra 0 do controle sem
+                 máscara. Pintava, e mesmo assim era um borrão: o
+                 traço da fonte fica abaixo de um pixel. */
+              className="block h-[22px] bg-neve"
               style={{
                 width: `${((s.largura ?? 100) / (s.altura ?? 100)) * 22}px`,
                 WebkitMaskImage: `url(${s.arquivo})`,
@@ -91,7 +117,7 @@ function FileiraDeSelos({
         ) : (
           <li
             key={s.nome}
-            className="rounded-full border border-fio bg-papel-alt px-3 py-1 text-[0.72rem] font-semibold text-tinta-fraca"
+            className="rounded-full border border-fio px-3 py-1 text-[0.72rem] font-semibold text-neve"
           >
             {s.nome}
           </li>

@@ -63,7 +63,7 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
       titulo={
         <>
           Três profundidades,{' '}
-          <span className="text-acento">uma escada.</span>
+          <span className="text-magenta-texto">uma escada.</span>
         </>
       }
       apoio="Cada plano contém o anterior inteiro. O que muda é até onde a Psy Comunic entra na operação."
@@ -81,15 +81,15 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
               className={'flex flex-col ' + (alvo ? 'lg:-translate-y-3' : '')}
             >
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[0.72rem] text-tinta-fraca">
+                <span className="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-cinza">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {alvo ? (
-                  <span className="rounded-full bg-rosa px-3 py-1 text-[0.7rem] text-branco">
+                  <span className="rounded-full bg-magenta px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-branco">
                     recomendado
                   </span>
                 ) : f.selo ? (
-                  <span className="rounded-full border border-fio px-3 py-1 text-[0.7rem] text-tinta-fraca">
+                  <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.14em] text-cinza">
                     {f.selo}
                   </span>
                 ) : null}
@@ -100,13 +100,13 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
               </h3>
 
               <p className="tabular mt-3 flex items-baseline gap-1.5">
-                <span className="font-display text-3xl font-extrabold tracking-[-0.04em] text-tinta">
+                <span className="font-display text-3xl font-extrabold tracking-[-0.04em] text-branco">
                   {feeEmReais(p)}
                 </span>
-                <span className="text-sm text-tinta-fraca">/mês</span>
+                <span className="text-sm text-cinza">/mês</span>
               </p>
 
-              <p className="mt-4 border-t border-fio pt-4 text-sm leading-relaxed text-tinta">
+              <p className="mt-4 border-t border-fio pt-4 text-sm leading-relaxed text-neve">
                 {f.promessa}
               </p>
 
@@ -116,10 +116,10 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
                   de relance. */}
               <div className="mt-auto pt-5">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-[0.7rem] text-tinta-fraca">
+                  <span className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                     cobertura
                   </span>
-                  <span className="tabular text-xs font-semibold text-tinta">
+                  <span className="tabular text-xs font-semibold text-neve">
                     {inclusos} de {total}
                   </span>
                 </div>
@@ -128,11 +128,11 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
                     className="h-full rounded-full"
                     style={{
                       width: `${(inclusos / total) * 100}%`,
-                      background: alvo ? 'var(--exp-tarja)' : SIM,
+                      background: alvo ? 'var(--magenta)' : SIM,
                     }}
                   />
                 </div>
-                <p className="mt-3 text-[0.7rem] text-tinta-fraca">
+                <p className="mt-3 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                   {f.indicadoPara}
                 </p>
               </div>
@@ -202,35 +202,35 @@ export function SlidePlano({
             a pessoa procura primeiro ao chegar no slide. */}
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-fio pb-6">
           <div>
-            <h2 className="font-display text-titulo titulo-revista">
+            <h2 className="font-display text-titulo font-extrabold leading-[1] tracking-[-0.04em]">
               {f.nome}
             </h2>
-            <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-tinta-fraca">{f.paraQuem}</p>
+            <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-cinza">{f.paraQuem}</p>
           </div>
 
           {precoNaConta ? (
-            <p className="max-w-[22ch] text-sm leading-relaxed text-tinta-fraca">
+            <p className="max-w-[22ch] text-sm leading-relaxed text-cinza">
               O investimento desta proposta está{' '}
-              <span className="text-acento">logo adiante</span>, com a conta feita
+              <span className="text-magenta-texto">logo adiante</span>, com a conta feita
               mês a mês.
             </p>
           ) : (
             <p className="tabular">
               <span
                 className="font-display text-4xl font-extrabold tracking-[-0.045em] sm:text-5xl"
-                style={{ color: alvo ? 'var(--accent-ink)' : 'var(--fg)' }}
+                style={{ color: alvo ? 'var(--magenta-texto)' : 'var(--branco)' }}
               >
                 {feeEmReais(plano)}
               </span>
-              <span className="ml-1.5 text-sm text-tinta-fraca">/mês</span>
-              <span className="mt-1.5 block text-[0.7rem] text-tinta-fraca">
+              <span className="ml-1.5 text-sm text-cinza">/mês</span>
+              <span className="mt-1.5 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                 fee da agência · verba de mídia à parte
               </span>
             </p>
           )}
         </div>
 
-        <p className="mt-6 max-w-[62ch] text-guia leading-relaxed text-tinta">{f.promessa}</p>
+        <p className="mt-6 max-w-[62ch] text-guia leading-relaxed text-neve">{f.promessa}</p>
 
         {/* Só o que ESTÁ incluído, agrupado. Duas colunas a partir do
             tablet; no telefone uma só, porque duas de 170px transformam
@@ -240,8 +240,8 @@ export function SlidePlano({
             .filter((g) => g.itens.some((i) => i.incluso))
             .map((g) => (
               <div key={g.titulo}>
-                <h3 className="flex items-center gap-2.5 text-[0.72rem] text-acento">
-                  <span aria-hidden className="h-px w-5 flex-none bg-rosa/60" />
+                <h3 className="flex items-center gap-2.5 font-mono text-[0.72rem] uppercase tracking-[0.16em] text-magenta-texto">
+                  <span aria-hidden className="h-px w-5 flex-none bg-magenta/60" />
                   {g.titulo}
                 </h3>
                 <ul className="mt-3.5 space-y-3">
@@ -257,7 +257,7 @@ export function SlidePlano({
                           ✓
                         </span>
                         <span className="min-w-0">
-                          <span className="block text-sm font-medium leading-snug text-tinta">
+                          <span className="block text-sm font-medium leading-snug text-branco">
                             {item.nome}
                           </span>
                           {/* A sublinha mostra o LIMITE quando ele
@@ -271,11 +271,11 @@ export function SlidePlano({
                               escrito, revisado, e renderizado em lugar
                               nenhum. */}
                           {typeof item.valor === 'string' ? (
-                            <span className="mt-0.5 block text-xs leading-snug text-tinta-fraca">
+                            <span className="mt-0.5 block text-xs leading-snug text-cinza">
                               {item.valor}
                             </span>
                           ) : item.porque ? (
-                            <span className="mt-0.5 block text-xs leading-snug text-tinta-fraca">
+                            <span className="mt-0.5 block text-xs leading-snug text-cinza">
                               {item.porque}
                             </span>
                           ) : null}
@@ -290,14 +290,14 @@ export function SlidePlano({
         {/* O que falta, em UMA linha. Nomeado, para não haver surpresa
             na reunião, e discreto, para não virar o assunto do slide. */}
         {foraDoPlano.length > 0 ? (
-          <p className="mt-auto flex flex-wrap gap-x-2 gap-y-1 border-t border-fio pt-5 text-xs leading-relaxed text-tinta-fraca">
-            <span className="" style={{ color: NAO }}>
+          <p className="mt-auto flex flex-wrap gap-x-2 gap-y-1 border-t border-fio pt-5 text-xs leading-relaxed text-cinza">
+            <span className="font-mono uppercase tracking-[0.12em]" style={{ color: NAO }}>
               não inclui
             </span>
             <span className="min-w-0">{foraDoPlano.join(' · ')}</span>
           </p>
         ) : (
-          <p className="mt-auto border-t border-fio pt-5 text-xs" style={{ color: SIM }}>
+          <p className="mt-auto border-t border-fio pt-5 text-xs uppercase tracking-[0.12em]" style={{ color: SIM }}>
             <span aria-hidden>✓ </span>
             entrega as {total} de {total} linhas desta proposta
           </p>
@@ -321,21 +321,21 @@ export function SlideDiferencas({ recomendado }: { recomendado: Plano }) {
       rotulo="Comparativo"
       titulo={
         <>
-          O que muda <span className="text-acento">entre eles.</span>
+          O que muda <span className="text-magenta-texto">entre eles.</span>
         </>
       }
       apoio="Só as linhas em que os três discordam. O que é igual nos três não ajuda a escolher."
     >
       {/* Sem tabela de propósito. Cada item vira um bloco com o rótulo
-          em cima e os três valores embaixo, em de três colunas.
+          em cima e os três valores embaixo, em grade de três colunas.
           Isso cabe em 360px, e uma tabela de três colunas não cabe. */}
       <ul className="mt-2 grid gap-3 lg:grid-cols-2">
         {diferencas.map((l) => (
           <li key={l.nome}>
             <Bloco className="h-full">
-              <p className="text-sm font-semibold text-tinta">{l.nome}</p>
+              <p className="text-sm font-semibold text-branco">{l.nome}</p>
               {l.porque ? (
-                <p className="mt-1 text-xs leading-relaxed text-tinta-fraca">{l.porque}</p>
+                <p className="mt-1 text-xs leading-relaxed text-cinza">{l.porque}</p>
               ) : null}
 
               <dl className="mt-4 grid grid-cols-3 gap-2">
@@ -349,11 +349,11 @@ export function SlideDiferencas({ recomendado }: { recomendado: Plano }) {
                       className={
                         'rounded-xl px-2.5 py-2.5 ' +
                         (alvo
-                          ? 'bg-rosa/[0.14] ring-1 ring-rosa/45'
+                          ? 'bg-magenta/[0.14] ring-1 ring-magenta/45'
                           : 'bg-white/[0.045]')
                       }
                     >
-                      <dt className="text-[0.7rem] text-tinta-fraca">
+                      <dt className="font-mono text-[0.7rem] uppercase tracking-[0.1em] text-cinza">
                         {fichas[p].nome}
                       </dt>
                       <dd
@@ -369,7 +369,7 @@ export function SlideDiferencas({ recomendado }: { recomendado: Plano }) {
                             <span aria-hidden>— </span>Não inclui
                           </>
                         ) : (
-                          <span className={alvo ? 'font-semibold text-tinta' : 'text-tinta'}>
+                          <span className={alvo ? 'font-semibold text-branco' : 'text-neve'}>
                             {v}
                           </span>
                         )}
@@ -396,7 +396,7 @@ export function SlideSempreIncluso({ comparativo = true }: { comparativo?: boole
       rotulo="Em qualquer plano"
       titulo={
         <>
-          Isso vem junto, <span className="text-acento">sempre.</span>
+          Isso vem junto, <span className="text-magenta-texto">sempre.</span>
         </>
       }
       /* Sem o comparativo na frente, falar em "os três" não faz sentido
@@ -414,7 +414,7 @@ export function SlideSempreIncluso({ comparativo = true }: { comparativo?: boole
               <span aria-hidden className="mt-0.5 flex-none text-sm" style={{ color: SIM }}>
                 ✓
               </span>
-              <span className="text-sm leading-relaxed text-tinta">{item}</span>
+              <span className="text-sm leading-relaxed text-neve">{item}</span>
             </Bloco>
           </li>
         ))}

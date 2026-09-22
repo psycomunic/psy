@@ -13,12 +13,13 @@ import { FAIXAS_DE_VERBA, CANAIS_HOJE, formulario } from '@/conteudo/trafego';
  * verba e canal existem porque mudam a conversa que vem depois.
  */
 
-const campo = 'campo';
-/* O rótulo aqui é FUNCIONAL, e não decorativo: quem não conseguir ler
-   não preenche, e este formulário é o objetivo inteiro da página.
-   Estava em 12px e em cinza claro, o mesmo peso do texto de apoio.
-   Agora é 0.8rem em peso 600 e na tinta cheia. Ver `rotulo-campo`. */
-const rotulo = 'rotulo-campo';
+const campo =
+  'w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3.5 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/70 focus:border-magenta focus:bg-white/[0.07]';
+/* 12px, e não os 0,7rem que o resto do site usa em rótulo decorativo.
+   Aqui o rótulo é funcional: quem não conseguir ler não preenche, e
+   este formulário é o objetivo inteiro da página. */
+const rotulo = 'block font-mono text-xs uppercase tracking-[0.16em] text-cinza';
 
 export function FormAnalise() {
   const [estado, acao, pendente] = useActionState<ResultadoLead | null, FormData>(
@@ -51,10 +52,10 @@ export function FormAnalise() {
         aria-live="polite"
       >
         <p aria-hidden className="text-3xl">✓</p>
-        <p className="mt-5 font-display text-2xl font-bold tracking-[-0.03em] text-tinta">
+        <p className="mt-5 font-display text-2xl font-bold tracking-[-0.03em] text-branco">
           {estado.mensagem}
         </p>
-        <p className="mx-auto mt-4 max-w-[46ch] leading-relaxed text-tinta-fraca">
+        <p className="mx-auto mt-4 max-w-[46ch] leading-relaxed text-cinza">
           Se preferir adiantar, chame no WhatsApp e diga que preencheu o formulário. A
           conversa começa de onde você parou.
         </p>
@@ -70,12 +71,7 @@ export function FormAnalise() {
         fd.set('aberto_em', String(abertoEm.current));
         return acao(fd);
       }}
-      className="vidro-marinho space-y-5 p-6 md:p-8"
-      /* O borrado do vidro vive AQUI, e nao na folha: as duas
-         tentativas em CSS sairam quebradas na minificacao, uma
-         colando duas funcoes de filtro sem espaco e outra descartando
-         a propriedade sem prefixo. Ver o comentario em globals.css. */
-      style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+      className="cartao space-y-5 p-6 md:p-8"
     >
 
       {/*
@@ -134,16 +130,7 @@ export function FormAnalise() {
         </div>
       </div>
 
-      {/*
-        OS DOIS SELECTS EM UMA COLUNA, e não lado a lado.
-
-        Medido: lado a lado eles ficavam com 203px, e a opção mais
-        longa, "Entre R$ 15.000 e R$ 50.000", pede cerca de 250px com
-        o espaço da seta. O texto saía cortado no meio, e select é o
-        único campo em que o valor escolhido FICA à vista o tempo
-        todo: cortado, ele mostra a escolha errada.
-      */}
-      <div className="grid gap-5">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="an-canal" className={rotulo}>Onde você anuncia hoje</label>
           <select id="an-canal" name="canal" defaultValue="ambos" className={`mt-2 ${campo}`}>
@@ -178,7 +165,7 @@ export function FormAnalise() {
       {estado && !estado.ok ? (
         <p
           role="status"
-          className="flex items-start gap-3 rounded-xl border border-rosa/40 bg-rosa-leve px-4 py-3 text-sm leading-relaxed text-acento"
+          className="flex items-start gap-3 rounded-xl border border-magenta/40 bg-magenta/10 px-4 py-3 text-sm leading-relaxed text-magenta-texto"
         >
           <span aria-hidden className="mt-0.5">■</span>
           {estado.mensagem}
@@ -188,12 +175,12 @@ export function FormAnalise() {
       <button
         type="submit"
         disabled={pendente}
-        className="w-full rounded-full bg-rosa px-7 py-4 text-sm font-semibold text-branco transition-all duration-300 hover:bg-rosa-forte hover:shadow-[0_10px_40px_-8px_rgba(255,46,99,0.75)] disabled:opacity-60 sm:w-auto"
+        className="w-full rounded-full bg-magenta px-7 py-4 text-sm font-semibold text-branco transition-all duration-300 hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)] disabled:opacity-60 sm:w-auto"
       >
         {pendente ? 'Enviando...' : 'Quero a análise da minha conta'}
       </button>
 
-      <p className="text-xs leading-relaxed text-tinta-fraca">{formulario.rodape}</p>
+      <p className="text-xs leading-relaxed text-cinza">{formulario.rodape}</p>
     </form>
   );
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { RetratoFundador } from '@/componentes/RetratoFundador';
+import Image from 'next/image';
 import { Casca, TopoPagina, ChamadaFinal, secao, canonical } from '@/componentes/Casca';
 import { CartaoCredencial } from '@/componentes/CartaoCredencial';
 import { marca, credenciais } from '@/conteudo/marca';
-import { urlAbsoluta } from '@/conteudo/site';
+import { urlAbsoluta, site } from '@/conteudo/site';
 
 export const metadata: Metadata = {
   title: 'Sobre a operação e quem está por trás',
@@ -28,10 +28,35 @@ export default function Sobre() {
       <section className="py-12 md:py-16">
         <div className={secao}>
           <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-14">
-            <RetratoFundador />
+            <figure className="relative overflow-hidden rounded-[var(--raio)] border border-fio">
+              <Image
+                src="/imagens/angelo-vinci.jpg"
+                alt="Angelo Garcia, fundador da Psy Comunic, em um encontro da Vinci Society"
+                width={1440}
+                height={960}
+                sizes="(max-width: 1024px) 92vw, 560px"
+                className="aspect-square w-full object-cover object-[38%_center] brightness-[1.2] contrast-[1.06]"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-transparent mix-blend-soft-light"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-marinho-fundo via-marinho-fundo/70 to-transparent"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 p-7 md:p-8">
+                <p className="font-display text-2xl font-extrabold tracking-[-0.03em]">
+                  {site.fundador}
+                </p>
+                <p className="mt-1.5 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-magenta-texto">
+                  Fundador · {marca.nome}
+                </p>
+              </figcaption>
+            </figure>
 
             <div>
-              <h2 className="font-display text-titulo titulo-revista">
+              <h2 className="font-display text-titulo font-extrabold tracking-[-0.035em]">
                 Construída por quem já esteve do outro lado do balcão.
               </h2>
               <div className="mt-10 grid gap-5">
@@ -45,22 +70,22 @@ export default function Sobre() {
       </section>
 
       {/* Pilares */}
-      <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
+      <section className="border-y border-fio bg-marinho-fundo py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Pilares
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
             No que a operação se apoia.
           </h2>
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
             {marca.pilares.map((p, i) => (
               <li key={p} className="border-t border-fio pt-7">
-                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-acento">
+                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto">
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <p className="mt-4 text-lg leading-snug text-tinta">{p}</p>
+                <p className="mt-4 text-lg leading-snug text-neve">{p}</p>
               </li>
             ))}
           </ol>
@@ -70,11 +95,11 @@ export default function Sobre() {
       {/* Valores */}
       <section className="py-20 md:py-24">
         <div className={secao}>
-          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             Valores
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
             Como o time decide quando ninguém está olhando.
           </h2>
           <dl className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -83,7 +108,7 @@ export default function Sobre() {
                 <dt className="font-display text-xl font-bold tracking-[-0.02em]">
                   {v.nome}
                 </dt>
-                <dd className="mt-3 leading-relaxed text-tinta-fraca">{v.texto}</dd>
+                <dd className="mt-3 leading-relaxed text-cinza">{v.texto}</dd>
               </div>
             ))}
           </dl>
@@ -92,7 +117,7 @@ export default function Sobre() {
             <blockquote className="max-w-[46ch] font-display text-2xl font-semibold leading-snug tracking-[-0.02em] md:text-3xl">
               {marca.assinatura.frase}
             </blockquote>
-            <figcaption className="mt-4 text-[0.7rem] text-tinta-fraca">
+            <figcaption className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-cinza">
               {marca.assinatura.autor}
             </figcaption>
           </figure>

@@ -9,8 +9,10 @@ import {
 import { ligarAutomatico, desligarAutomatico } from '@/app/painel/acoes-cobranca';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo = 'campo';
-const rotuloCss = 'rotulo-campo';
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 function Aviso({ r }: { r: Resultado | null }) {
   if (!r) return null;
@@ -21,7 +23,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-rosa/40 bg-rosa-leve text-acento')
+          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -102,7 +104,7 @@ export function FormContrato({
     return (
       <div className="space-y-3">
         {confirmacao}
-        <p className="max-w-[62ch] text-sm leading-relaxed text-tinta-fraca">{bloqueado}</p>
+        <p className="max-w-[62ch] text-sm leading-relaxed text-cinza">{bloqueado}</p>
       </div>
     );
   }
@@ -113,7 +115,7 @@ export function FormContrato({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="inline-flex items-center gap-2.5 rounded-full bg-rosa px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte"
+          className="inline-flex items-center gap-2.5 rounded-full bg-magenta px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
         >
           <span aria-hidden className="text-base leading-none">+</span>
           Novo contrato
@@ -127,7 +129,7 @@ export function FormContrato({
     <form action={acao} className="cartao space-y-5 p-6">
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Novo contrato</h3>
-        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-cinza">
           É o contrato que diz o que faturar todo mês. Sem ele, o cliente não aparece na
           tela de cobrança. Serve para loja online e para cliente de tráfego igual.
         </p>
@@ -139,7 +141,7 @@ export function FormContrato({
           {contaFixa ? (
             <>
               <input type="hidden" name="conta_id" value={contaFixa.id} />
-              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-tinta">
+              <p className="mt-2 rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm font-semibold text-branco">
                 {contaFixa.nome}
               </p>
             </>
@@ -157,7 +159,7 @@ export function FormContrato({
               ))}
             </select>
           )}
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             O cliente precisa ter CNPJ ou CPF cadastrado: o Asaas exige documento para emitir.
           </p>
         </div>
@@ -190,7 +192,7 @@ export function FormContrato({
             placeholder="5.000"
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Só o fee. Verba de mídia é do cliente e não entra aqui.
           </p>
         </div>
@@ -207,7 +209,7 @@ export function FormContrato({
             defaultValue="10"
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             De 1 a 28. Dia 29, 30 e 31 não existem em todo mês.
           </p>
         </div>
@@ -217,7 +219,7 @@ export function FormContrato({
         <div>
           <label htmlFor="ct-fim" className={rotuloCss}>Fim</label>
           <input id="ct-fim" name="fim" type="date" className={`mt-2 ${campo}`} />
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Em branco significa sem prazo, que é o normal.
           </p>
         </div>
@@ -240,14 +242,14 @@ export function FormContrato({
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
           {pendente ? 'Salvando...' : 'Cadastrar contrato'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
         >
           Cancelar
         </button>
@@ -327,14 +329,14 @@ export function AcoesContrato({
           <button
             type="button"
             onClick={() => setAba('reajuste')}
-            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
           >
             Reajustar
           </button>
           <button
             type="button"
             onClick={() => setAba('fim')}
-            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento"
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto"
           >
             Encerrar
           </button>
@@ -356,7 +358,7 @@ export function AcoesContrato({
 
         {/* O aviso onde a dúvida nasce. Sem ele, a pessoa espera que
             "reajustar" edite o número, e estranha ver dois contratos. */}
-        <p className="text-xs leading-relaxed text-tinta-fraca">
+        <p className="text-xs leading-relaxed text-cinza">
           O contrato atual é encerrado na véspera e um novo começa com o fee novo. As
           faturas já emitidas continuam ligadas ao antigo, para o valor de cada mês
           continuar explicável.
@@ -393,14 +395,14 @@ export function AcoesContrato({
           <button
             type="submit"
             disabled={pReajuste}
-            className="rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+            className="rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
           >
             {pReajuste ? 'Salvando...' : 'Confirmar reajuste'}
           </button>
           <button
             type="button"
             onClick={() => setAba(null)}
-            className="rounded-full border border-fio px-4 py-2.5 text-xs text-tinta transition-colors hover:bg-tinta/12"
+            className="rounded-full border border-fio px-4 py-2.5 text-xs text-neve transition-colors hover:bg-white/5"
           >
             Cancelar
           </button>
@@ -413,7 +415,7 @@ export function AcoesContrato({
     <form action={aFim} className="space-y-3 rounded-xl border border-fio bg-white/[0.02] p-4">
       <input type="hidden" name="id" value={contratoId} />
 
-      <p className="text-xs leading-relaxed text-tinta-fraca">
+      <p className="text-xs leading-relaxed text-cinza">
         Encerrar não apaga. As faturas já emitidas continuam no histórico, e é o contrato
         encerrado que explica o valor delas.
       </p>
@@ -431,14 +433,14 @@ export function AcoesContrato({
         <button
           type="submit"
           disabled={pFim}
-          className="rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+          className="rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
           {pFim ? 'Encerrando...' : 'Confirmar encerramento'}
         </button>
         <button
           type="button"
           onClick={() => setAba(null)}
-          className="rounded-full border border-fio px-4 py-2.5 text-xs text-tinta transition-colors hover:bg-tinta/12"
+          className="rounded-full border border-fio px-4 py-2.5 text-xs text-neve transition-colors hover:bg-white/5"
         >
           Cancelar
         </button>
@@ -518,13 +520,13 @@ function AutomaticoDoContrato({
           <button
             type="submit"
             disabled={pDesligar}
-            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento disabled:opacity-60"
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto disabled:opacity-60"
           >
             {pDesligar ? 'Desligando...' : 'Desligar'}
           </button>
         </form>
         {rDesligar && !rDesligar.ok ? (
-          <span role="status" className="text-xs font-semibold text-acento">
+          <span role="status" className="text-xs font-semibold text-magenta-texto">
             {rDesligar.mensagem}
           </span>
         ) : null}
@@ -540,13 +542,13 @@ function AutomaticoDoContrato({
         className="w-full space-y-2.5 rounded-xl border border-fio bg-white/[0.02] p-4"
       >
         <input type="hidden" name="contrato_id" value={contratoId} />
-        <p className="text-xs leading-relaxed text-tinta-fraca">
+        <p className="text-xs leading-relaxed text-cinza">
           O Asaas passa a emitir a cobrança todo mês, no dia {diaVencimento}, sem ninguém
           clicar em nada. A primeira sai agora, e o cliente recebe por e-mail. Se o dia{' '}
           {diaVencimento} já passou neste mês, ela vai para o mês que vem.
         </p>
         {rLigar && !rLigar.ok ? (
-          <p role="status" className="text-xs font-semibold leading-relaxed text-acento">
+          <p role="status" className="text-xs font-semibold leading-relaxed text-magenta-texto">
             <span aria-hidden className="mr-1.5">■</span>
             {rLigar.mensagem}
           </p>
@@ -555,14 +557,14 @@ function AutomaticoDoContrato({
           <button
             type="submit"
             disabled={pLigar}
-            className="rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+            className="rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
           >
             {pLigar ? 'Ligando...' : 'Ligar cobrança automática'}
           </button>
           <button
             type="button"
             onClick={() => setConfirmando(false)}
-            className="rounded-full border border-fio px-4 py-2.5 text-xs text-tinta transition-colors hover:bg-tinta/12"
+            className="rounded-full border border-fio px-4 py-2.5 text-xs text-neve transition-colors hover:bg-white/5"
           >
             Agora não
           </button>
@@ -576,7 +578,7 @@ function AutomaticoDoContrato({
       <button
         type="button"
         onClick={() => setConfirmando(true)}
-        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+        className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
       >
         Cobrar automaticamente
       </button>

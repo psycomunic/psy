@@ -188,8 +188,8 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
             className={
               'rounded-full px-4 py-2 text-sm transition-colors ' +
               (filtro === f.k
-                ? 'bg-rosa font-semibold text-branco'
-                : 'border border-fio text-tinta hover:bg-tinta/12')
+                ? 'bg-magenta font-semibold text-branco'
+                : 'border border-fio text-neve hover:bg-white/5')
             }
           >
             {f.r}
@@ -199,7 +199,7 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
 
       <div className="mt-8">
         {ordenadas.length === 0 ? (
-          <p className="max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
+          <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
             Nada nesta lista.{' '}
             {filtro === 'abertas'
               ? 'Toda tarefa em aberto foi concluída ou não existe ainda.'
@@ -218,20 +218,20 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
                       <p
                         className={
                           feita || t.status === 'cancelada'
-                            ? 'text-tinta-fraca line-through'
-                            : 'font-semibold text-tinta'
+                            ? 'text-cinza line-through'
+                            : 'font-semibold text-branco'
                         }
                       >
                         {t.titulo}
                       </p>
 
                       {t.detalhe ? (
-                        <p className="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
+                        <p className="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-cinza">
                           {t.detalhe}
                         </p>
                       ) : null}
 
-                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] text-tinta-fraca">
+                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                         <span style={{ color: COR_PRIORIDADE[t.prioridade] }}>
                           <span aria-hidden className="mr-1.5">
                             {FORMA_PRIORIDADE[t.prioridade]}
@@ -252,13 +252,13 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
                     </div>
 
                     <p
-                      className="shrink-0 text-[0.75rem]"
+                      className="shrink-0 font-mono text-[0.75rem] uppercase tracking-[0.12em]"
                       style={{
                         color: feita
                           ? CORES_SITUACAO.saudavel
                           : emAtraso
                             ? CORES_SITUACAO.critico
-                            : 'var(--fg-muted)',
+                            : 'var(--cinza)',
                       }}
                     >
                       {feita

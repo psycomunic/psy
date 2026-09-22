@@ -94,7 +94,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
       {/* ---------------------------------------------------------- */}
       <header className="mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-fio pb-7">
         <div>
-          <p className="text-[0.75rem] text-acento">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.18em] text-magenta-texto">
             {hoje.toLocaleDateString('pt-BR', {
               timeZone: 'America/Sao_Paulo',
               weekday: 'long',
@@ -108,7 +108,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
           </h1>
         </div>
 
-        <p className="max-w-[38ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="max-w-[38ch] text-sm leading-relaxed text-cinza">
           {resumo.lojas === 0
             ? 'A operação ainda não tem loja cadastrada. Os passos abaixo abrem o painel de verdade.'
             : `${resumo.lojasAtivas} ${resumo.lojasAtivas === 1 ? 'loja ativa' : 'lojas ativas'}, ${resumo.leadsAbertos} ${resumo.leadsAbertos === 1 ? 'lead aberto' : 'leads abertos'} e ${resumo.tarefasAbertas} ${resumo.tarefasAbertas === 1 ? 'tarefa aberta' : 'tarefas abertas'}.`}
@@ -134,7 +134,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                     ? 'Nada configurado ainda'
                     : `${resumo.prontos} de ${resumo.total} prontos`}
                 </p>
-                <p className="mt-1.5 max-w-[56ch] text-sm leading-relaxed text-tinta-fraca">
+                <p className="mt-1.5 max-w-[56ch] text-sm leading-relaxed text-cinza">
                   {resumo.prontos === 0
                     ? 'Comece pela loja. Sem ela não há onde pendurar métrica, contrato nem tarefa.'
                     : 'O painel já funciona com o que está pronto. Cada passo que fecha liga mais uma tela.'}
@@ -151,7 +151,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                     style={
                       p.pronto
                         ? { color: CORES_SITUACAO.saudavel, background: `${CORES_SITUACAO.saudavel}1f` }
-                        : { color: 'var(--fg-muted)', border: '1px solid var(--fio)' }
+                        : { color: 'var(--cinza)', border: '1px solid var(--fio)' }
                     }
                   >
                     {p.pronto ? '✓' : String(i + 1).padStart(2, '0')}
@@ -160,15 +160,15 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                   <div className="min-w-0 grow">
                     <p
                       className={
-                        'text-sm font-semibold ' + (p.pronto ? 'text-tinta-fraca line-through' : 'text-tinta')
+                        'text-sm font-semibold ' + (p.pronto ? 'text-cinza line-through' : 'text-branco')
                       }
                     >
                       {p.titulo}
                     </p>
                     {!p.pronto ? (
-                      <p className="mt-1 max-w-[62ch] text-xs leading-relaxed text-tinta-fraca">
+                      <p className="mt-1 max-w-[62ch] text-xs leading-relaxed text-cinza">
                         {p.descricao}
-                        {p.espera ? <span className="text-tinta-fraca/80"> {p.espera}</span> : null}
+                        {p.espera ? <span className="text-cinza/80"> {p.espera}</span> : null}
                       </p>
                     ) : null}
                   </div>
@@ -176,7 +176,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                   {!p.pronto && p.href ? (
                     <Link
                       href={p.href}
-                      className="flex-none rounded-full bg-rosa px-4 py-2 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte"
+                      className="flex-none rounded-full bg-magenta px-4 py-2 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte"
                     >
                       Abrir
                     </Link>
@@ -351,7 +351,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
           acao={
             <Link
               href="/painel/contas"
-              className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+              className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
             >
               Ver todas
             </Link>
@@ -368,8 +368,8 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                     className="cartao flex flex-wrap items-center gap-x-5 gap-y-3 p-5 transition-transform duration-300 hover:-translate-y-0.5"
                   >
                     <div className="min-w-0 grow">
-                      <p className="font-semibold text-tinta">{c.nome}</p>
-                      <p className="mt-1 text-[0.75rem] text-tinta-fraca">
+                      <p className="font-semibold text-branco">{c.nome}</p>
+                      <p className="mt-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                         {c.plataforma ?? 'sem plataforma'}
                       </p>
                     </div>
@@ -377,7 +377,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
                       <p className="font-display text-lg font-extrabold tracking-[-0.03em]">
                         {dinheiroCurto(c.receita)}
                       </p>
-                      <p className="mt-0.5 text-xs text-tinta-fraca">MER {vezes(c.mer)}</p>
+                      <p className="mt-0.5 text-xs text-cinza">MER {vezes(c.mer)}</p>
                     </div>
                     <SeloSituacao situacao={c.situacao} />
                   </Link>

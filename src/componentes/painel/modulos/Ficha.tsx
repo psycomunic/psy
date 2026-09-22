@@ -67,11 +67,11 @@ export async function Ficha({
     return (
       <>
         <AvisoProcedencia procedencia={procedencia} />
-        <p className="cartao mt-8 p-8 text-tinta-fraca">
+        <p className="cartao mt-8 p-8 text-cinza">
           Loja não encontrada, ou fora do seu acesso.
         </p>
         <p className="mt-6">
-          <Link href="/painel/contas" className="inline-flex min-h-[24px] items-center text-sm font-semibold text-acento">
+          <Link href="/painel/contas" className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto">
             ← Voltar para a carteira
           </Link>
         </p>
@@ -87,7 +87,7 @@ export async function Ficha({
       <AvisoProcedencia procedencia={procedencia} />
 
       <p className="mt-6">
-        <Link href="/painel/contas" className="text-sm text-tinta-fraca transition-colors hover:text-tinta">
+        <Link href="/painel/contas" className="text-sm text-cinza transition-colors hover:text-neve">
           ← Carteira
         </Link>
       </p>
@@ -97,7 +97,7 @@ export async function Ficha({
           <h1 className="font-display text-3xl font-extrabold tracking-[-0.035em]">
             {conta.nome}
           </h1>
-          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] text-tinta-fraca">
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             <span>{rotuloSituacaoConta[conta.situacao]}</span>
             {conta.plataforma ? <span>· {conta.plataforma}</span> : null}
             {conta.responsavel ? <span>· {conta.responsavel}</span> : null}
@@ -108,7 +108,7 @@ export async function Ficha({
         {/* Health score com a razão junto: nota sem motivo obriga a
             procurar o que houve, e é esse tempo que ela deveria poupar. */}
         <div className="cartao min-w-[13rem] p-5">
-          <p className="text-[0.75rem] text-tinta-fraca">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             Health score
           </p>
           <p className="tabular mt-2 flex items-baseline gap-2">
@@ -135,25 +135,25 @@ export async function Ficha({
       {/* O que está descontando pontos, em texto */}
       <ul className="mt-6 flex flex-wrap gap-2">
         {conta.tarefasAtrasadas > 0 ? (
-          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-tinta">
+          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-neve">
             {conta.tarefasAtrasadas}{' '}
             {conta.tarefasAtrasadas === 1 ? 'tarefa atrasada' : 'tarefas atrasadas'}
           </li>
         ) : null}
         {conta.inadimplencia > 0 ? (
-          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-tinta">
+          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-neve">
             {dinheiro(conta.inadimplencia)} vencido e não pago
           </li>
         ) : null}
         {conta.diasSemRegistro !== null && conta.diasSemRegistro > 14 ? (
-          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-tinta">
+          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-neve">
             {conta.diasSemRegistro} dias sem registro no diário
           </li>
         ) : null}
         {conta.tarefasAtrasadas === 0 &&
         conta.inadimplencia === 0 &&
         (conta.diasSemRegistro === null || conta.diasSemRegistro <= 14) ? (
-          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-tinta-fraca">
+          <li className="rounded-full border border-fio bg-white/[0.03] px-4 py-2 text-xs text-cinza">
             Nada descontando pontos.
           </li>
         ) : null}
@@ -168,8 +168,8 @@ export async function Ficha({
             className={
               'rounded-full px-4 py-2 text-sm transition-colors ' +
               (aba === a.k
-                ? 'bg-rosa font-semibold text-branco'
-                : 'border border-fio text-tinta hover:bg-tinta/12')
+                ? 'bg-magenta font-semibold text-branco'
+                : 'border border-fio text-neve hover:bg-white/5')
             }
           >
             {a.r}
@@ -177,7 +177,7 @@ export async function Ficha({
         ))}
         <Link
           href={`/painel/metricas?conta=${conta.id}`}
-          className="rounded-full border border-fio px-4 py-2 text-sm text-tinta transition-colors hover:bg-tinta/12"
+          className="rounded-full border border-fio px-4 py-2 text-sm text-neve transition-colors hover:bg-white/5"
         >
           Métricas →
         </Link>
@@ -242,19 +242,19 @@ async function AbaDiario({
         apoio="O que explica os degraus no gráfico. Sem isso, três meses depois ninguém lembra por que a curva mudou."
       >
         {marcos.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">Nenhum marco registrado.</p>
+          <p className="cartao p-6 text-sm text-cinza">Nenhum marco registrado.</p>
         ) : (
           <ol className="space-y-3">
             {marcos.map((m) => (
               <li key={m.id} className="cartao flex flex-wrap gap-x-6 gap-y-2 p-5">
-                <span className="text-[0.75rem] text-acento">
+                <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {diaLongo(m.dia)}
                 </span>
                 <div className="min-w-0 grow">
                   <p className="font-semibold">{m.titulo}</p>
-                  {m.detalhe ? <p className="mt-1 text-sm text-tinta-fraca">{m.detalhe}</p> : null}
+                  {m.detalhe ? <p className="mt-1 text-sm text-cinza">{m.detalhe}</p> : null}
                 </div>
-                <span className="rounded-full border border-fio px-3 py-1 text-[0.75rem] text-tinta-fraca">
+                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                   {m.tipo}
                 </span>
               </li>
@@ -265,17 +265,17 @@ async function AbaDiario({
 
       <Secao titulo="Conversas" apoio="Ligação, reunião e mensagem registradas pelo time.">
         {interacoes.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">Nenhuma interação registrada.</p>
+          <p className="cartao p-6 text-sm text-cinza">Nenhuma interação registrada.</p>
         ) : (
           <ol className="space-y-3">
             {interacoes.map((i) => (
               <li key={i.id} className="cartao p-5">
                 <div className="flex flex-wrap items-baseline gap-x-3">
-                  <span className="rounded-full border border-fio px-3 py-1 text-[0.75rem] text-acento">
+                  <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-magenta-texto">
                     {i.tipo}
                   </span>
-                  <span className="text-sm text-tinta-fraca">{i.autor ?? 'Sistema'}</span>
-                  <span className="ml-auto text-[0.75rem] text-tinta-fraca">
+                  <span className="text-sm text-cinza">{i.autor ?? 'Sistema'}</span>
+                  <span className="ml-auto font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {new Date(i.em).toLocaleString('pt-BR', {
                       timeZone: 'America/Sao_Paulo',
                       day: '2-digit',
@@ -285,7 +285,7 @@ async function AbaDiario({
                     })}
                   </span>
                 </div>
-                <p className="mt-3 leading-relaxed text-tinta">{i.resumo}</p>
+                <p className="mt-3 leading-relaxed text-neve">{i.resumo}</p>
               </li>
             ))}
           </ol>
@@ -369,7 +369,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
           </div>
         ) : null}
         {conexoes.length === 0 ? (
-          <p className="cartao p-6 text-sm leading-relaxed text-tinta-fraca">
+          <p className="cartao p-6 text-sm leading-relaxed text-cinza">
             Nenhuma conexão cadastrada. Enquanto isso, o caminho é a importação de
             planilha abaixo, que grava exatamente na mesma tabela.
           </p>
@@ -380,20 +380,20 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
               return (
                 <li key={c.id} className="cartao p-5">
                   <div className="flex items-baseline justify-between gap-4">
-                    <p className="font-semibold text-tinta">{c.provedor}</p>
+                    <p className="font-semibold text-branco">{c.provedor}</p>
                     <p className="text-xs font-semibold" style={{ color: s.cor }}>
                       <span aria-hidden className="mr-1">{s.forma}</span>
                       {rotuloEstadoIntegracao[c.estado]}
                     </p>
                   </div>
-                  <p className="mt-2 text-[0.75rem] text-tinta-fraca">
+                  <p className="mt-2 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {c.identificador ?? 'sem identificador'} · janela de {c.janelaDias} dias
                   </p>
-                  <p className="mt-3 text-sm text-tinta-fraca">
+                  <p className="mt-3 text-sm text-cinza">
                     Última vez sem erro: {quando(c.ultimaSyncOk)}
                   </p>
                   {c.ultimoErro ? (
-                    <p className="mt-2 break-words rounded-lg border border-rosa/30 bg-rosa-leve px-3 py-2 text-xs text-acento">
+                    <p className="mt-2 break-words rounded-lg border border-magenta/30 bg-magenta/10 px-3 py-2 text-xs text-magenta-texto">
                       {c.ultimoErro}
                     </p>
                   ) : null}
@@ -429,7 +429,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
         apoio="É o que responde por que o número está velho: não rodou, rodou e falhou, ou rodou e veio vazio."
       >
         {rodadas.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">Nenhuma sincronização registrada.</p>
+          <p className="cartao p-6 text-sm text-cinza">Nenhuma sincronização registrada.</p>
         ) : (
           <Tabela>
             <caption className="sr-only">Histórico de sincronizações desta loja</caption>
@@ -447,8 +447,8 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                 <tr key={r.id}>
                   <td className={`${td} tabular whitespace-nowrap`}>{quando(r.comecouEm)}</td>
                   <th scope="row" className={`${td} font-normal`}>
-                    <span className="text-tinta">{r.provedor}</span>
-                    <span className="mt-1 block text-[0.75rem] text-tinta-fraca">
+                    <span className="text-branco">{r.provedor}</span>
+                    <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                       {r.origem}
                     </span>
                   </th>
@@ -459,7 +459,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                   </td>
                   <td className={`${td} tabular`}>
                     {r.linhasGravadas}
-                    <span className="text-tinta-fraca"> de {r.linhasLidas}</span>
+                    <span className="text-cinza"> de {r.linhasLidas}</span>
                   </td>
                   <td className={td}>
                     {r.status === 'sucesso' ? (
@@ -476,7 +476,7 @@ async function AbaDados({ contaId, papel }: { contaId: string; papel: Papel }) {
                         {r.erro ? r.erro.slice(0, 60) : 'erro'}
                       </span>
                     ) : (
-                      <span className="text-sm text-tinta-fraca">rodando</span>
+                      <span className="text-sm text-cinza">rodando</span>
                     )}
                   </td>
                 </tr>
@@ -506,7 +506,7 @@ async function AbaContrato({
      permissão". */
   if (!podeVer) {
     return (
-      <p className="cartao p-6 text-sm leading-relaxed text-tinta-fraca">
+      <p className="cartao p-6 text-sm leading-relaxed text-cinza">
         Contrato e fee são visíveis para administrador e financeiro. Não é ausência de
         contrato: é o recorte de acesso funcionando.
       </p>
@@ -522,7 +522,7 @@ async function AbaContrato({
   return (
     <div className="space-y-8">
       {contratos.length === 0 ? (
-        <p className="max-w-[70ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
           Nenhum contrato cadastrado. É o contrato que diz quanto cobrar todo mês — sem
           ele, este cliente não aparece na tela de cobrança.
         </p>
@@ -531,26 +531,26 @@ async function AbaContrato({
           {contratos.map((c) => (
             <li key={c.id} className="cartao space-y-4 p-6">
               <div>
-                <p className="text-[0.75rem] text-acento">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {c.plano}
                 </p>
                 <p className="tabular mt-3 font-display text-2xl font-extrabold tracking-[-0.03em]">
                   {dinheiro(c.feeMensal)}
-                  <span className="ml-1 text-sm font-normal text-tinta-fraca">/mês</span>
+                  <span className="ml-1 text-sm font-normal text-cinza">/mês</span>
                 </p>
               </div>
 
               <dl className="space-y-2 border-t border-fio pt-4 text-sm">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-tinta-fraca">Vencimento</dt>
+                  <dt className="text-cinza">Vencimento</dt>
                   <dd className="tabular">dia {c.diaVencimento}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-tinta-fraca">Início</dt>
+                  <dt className="text-cinza">Início</dt>
                   <dd className="tabular">{diaLongo(c.inicio)}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-tinta-fraca">Fim</dt>
+                  <dt className="text-cinza">Fim</dt>
                   <dd className="tabular">{c.fim ? diaLongo(c.fim) : 'sem prazo'}</dd>
                 </div>
               </dl>
@@ -586,7 +586,7 @@ async function AbaContrato({
             <h3 className="font-display text-base font-bold tracking-[-0.02em]">
               Todo mês, sempre o mesmo valor
             </h3>
-            <p className="max-w-[52ch] text-sm leading-relaxed text-tinta-fraca">
+            <p className="max-w-[52ch] text-sm leading-relaxed text-cinza">
               É o fee de gestão. Vira contrato, e o painel passa a cobrar todo mês — no
               clique ou sozinho, se você ligar a cobrança automática.
             </p>
@@ -604,7 +604,7 @@ async function AbaContrato({
             <h3 className="font-display text-base font-bold tracking-[-0.02em]">
               Uma vez só
             </h3>
-            <p className="max-w-[52ch] text-sm leading-relaxed text-tinta-fraca">
+            <p className="max-w-[52ch] text-sm leading-relaxed text-cinza">
               Setup, projeto, criativo extra, reembolso de mídia. Sai no Asaas na hora e
               não se repete. Dá para parcelar.
             </p>

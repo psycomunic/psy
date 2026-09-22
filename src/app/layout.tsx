@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Archivo, Inter } from 'next/font/google';
+import { Bricolage_Grotesque, Manrope, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { marca } from '@/conteudo/marca';
 import { site } from '@/conteudo/site';
@@ -9,30 +9,36 @@ import { DadosEstruturados } from '@/componentes/DadosEstruturados';
 import { Analytics } from '@/componentes/Analytics';
 
 /*
-  DUAS FAMÍLIAS: uma para bater, outra para ler.
+  Três fontes, três funções. Uma família só, variando o peso, é o que
+  fazia a página parecer um documento: sem contraste de DESENHO, só de
+  tamanho.
 
-  A serifada fina não funcionou. Fraunces em peso 300 dá página de
-  revista literária, e o que esta vende é loja de roupa: precisa bater,
-  não sussurrar.
-
-  Archivo é variável com eixo de LARGURA, e é isso que importa aqui.
-  Condensada em peso 800 ela é a grotesca de capa de revista: cabe mais
-  palavra por linha, então o título ocupa menos altura e pode crescer
-  mais. Uma família só faz o papel que exigiria duas.
-
-  Inter no corpo: neutra de verdade, desenhada para tela, e some atrás
-  do texto em vez de competir com o título.
+  Fontes provisórias. O escopo lista a fonte da marca como asset
+  pendente do cliente (seção 14).
 */
-const display = Archivo({
+
+/* Display: grotesca com aberturas fechadas e um leve desalinho nas
+   terminações. Segura tamanho grande sem parecer fonte de sistema. */
+const display = Bricolage_Grotesque({
   variable: '--font-display',
   subsets: ['latin'],
-  axes: ['wdth'],
+  weight: ['600', '700', '800'],
   display: 'swap',
 });
 
-const corpo = Inter({
+/* Corpo: neutra, alta legibilidade em parágrafo longo. */
+const corpo = Manrope({
   variable: '--font-corpo',
   subsets: ['latin'],
+  display: 'swap',
+});
+
+/* Mono: rótulos e números. Dá à página o vocabulário de operação e
+   painel, que é o que a Psy Comunic vende, em vez de folheto. */
+const mono = JetBrains_Mono({
+  variable: '--font-mono',
+  subsets: ['latin'],
+  weight: ['500'],
   display: 'swap',
 });
 
@@ -115,13 +121,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="pt-BR"
-      className={`${display.variable} ${corpo.variable} h-full`}
+      className={`${display.variable} ${corpo.variable} ${mono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
         {/* Atalho de teclado exigido pela WCAG: pular direto ao conteúdo */}
         <a
           href="#conteudo"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:bg-rosa focus:px-5 focus:py-2.5 focus:text-branco"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:bg-magenta focus:px-5 focus:py-2.5 focus:text-branco"
         >
           Pular para o conteúdo
         </a>

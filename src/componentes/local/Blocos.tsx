@@ -37,8 +37,8 @@ import { linkDaUnidade, type Unidade } from '@/conteudo/braganca';
  */
 
 const rotuloCss =
-  'flex items-center gap-3 text-[0.7rem] text-acento';
-const tituloCss = 'mt-5 font-display text-titulo titulo-revista';
+  'flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto';
+const tituloCss = 'mt-5 font-display text-titulo font-extrabold tracking-[-0.035em]';
 
 /**
  * Foto de fundo de um bloco, já com o véu.
@@ -90,28 +90,25 @@ function FundoLocal({
 
 export function HeroLocal({ u }: { u: Unidade }) {
   return (
-    /* `data-abertura` e o gatilho do popup de apresentacao: ele abre
-       quando esta secao termina de passar. Antes quem avisava era a
-       cena em video, por evento; a cena saiu e o sinal passou a ser
-       geometrico. Ver PopupApresentacao.tsx. */
-    <section
-      data-abertura
-      className="relative isolate overflow-hidden pb-16 pt-12 md:pb-24 md:pt-16"
-    >
+    <section className="relative isolate overflow-hidden pb-16 pt-12 md:pb-24 md:pt-16">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="grade absolute inset-0 opacity-70" />
+        <div className="brilho-magenta absolute -right-[18%] -top-[40%] h-[760px] w-[760px] opacity-40" />
+        <div className="brilho-frio absolute -left-[24%] top-[30%] h-[620px] w-[620px] opacity-25" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       <div className={secao}>
         <nav aria-label="Trilha de navegação">
-          <ol className="flex flex-wrap items-center gap-2 text-[0.66rem] text-tinta-fraca">
+          <ol className="flex flex-wrap items-center gap-2 font-mono text-[0.66rem] uppercase tracking-[0.16em] text-cinza">
             <li>
-              <Link href="/" className="transition-colors hover:text-tinta">
+              <Link href="/" className="transition-colors hover:text-neve">
                 Início
               </Link>
             </li>
             <li className="flex items-center gap-2">
               <span aria-hidden>/</span>
-              <span className="text-tinta">
+              <span className="text-neve">
                 {u.cidade}, {u.estado}
               </span>
             </li>
@@ -119,16 +116,16 @@ export function HeroLocal({ u }: { u: Unidade }) {
         </nav>
 
         <p className={`mt-6 ${rotuloCss}`}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           {u.heroi.rotulo}
         </p>
 
         {/* O único h1 da página, com a palavra-chave e a cidade. */}
         <h1 className="mt-5 max-w-[19ch] font-display text-mostro font-extrabold tracking-[-0.04em]">
-          {u.heroi.titulo} <span className="text-acento">{u.heroi.destaque}</span>
+          {u.heroi.titulo} <span className="text-magenta-texto">{u.heroi.destaque}</span>
         </h1>
 
-        <p className="mt-7 max-w-[56ch] text-guia text-tinta">{u.heroi.sub}</p>
+        <p className="mt-7 max-w-[56ch] text-guia text-neve">{u.heroi.sub}</p>
 
         <div className="mt-9 flex flex-wrap items-center gap-3.5">
           <BotaoZap u={u} mensagem={u.heroi.mensagem} secao="hero">
@@ -136,14 +133,14 @@ export function HeroLocal({ u }: { u: Unidade }) {
           </BotaoZap>
           <a
             href="#servicos"
-            className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-7 text-sm font-semibold text-tinta ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-tinta/12 hover:ring-white/45"
+            className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-7 text-sm font-semibold text-branco ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/5 hover:ring-white/45"
           >
             {u.heroi.acaoSecundaria}
             <span aria-hidden>↓</span>
           </a>
         </div>
 
-        <p className="mt-6 text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-6 text-sm leading-relaxed text-cinza">
           Atendimento por WhatsApp no {u.telefoneVisivel}. A análise não tem custo e não
           compromete você com nada.
         </p>
@@ -157,23 +154,23 @@ export function ProblemasLocal({ u }: { u: Unidade }) {
     <section aria-labelledby="problemas" className="border-t border-fio py-16 md:py-24">
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />O que costuma acontecer
+          <span aria-hidden className="h-px w-8 bg-magenta" />O que costuma acontecer
         </p>
         <h2 id="problemas" className={`${tituloCss} max-w-[22ch]`}>
           Se alguma destas for a sua,{' '}
-          <span className="text-acento">dá para resolver.</span>
+          <span className="text-magenta-texto">dá para resolver.</span>
         </h2>
 
         <ul className="mt-12 grid gap-5 md:grid-cols-2">
           {u.problemas.map((p, i) => (
             <li key={p.titulo} className="revelar cartao p-7 md:p-8">
-              <span className="tabular text-xs text-acento">
+              <span className="tabular font-mono text-xs text-magenta-texto">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3 className="mt-4 font-display text-xl font-bold tracking-[-0.02em]">
                 {p.titulo}
               </h3>
-              <p className="mt-3 leading-relaxed text-tinta-fraca">{p.texto}</p>
+              <p className="mt-3 leading-relaxed text-cinza">{p.texto}</p>
             </li>
           ))}
         </ul>
@@ -187,7 +184,7 @@ export function ServicosLocal({ u }: { u: Unidade }) {
     <section
       id="servicos"
       aria-labelledby="servicos-titulo"
-      className="relative isolate scroll-mt-24 overflow-clip border-t border-fio bg-papel-alt py-16 md:py-24"
+      className="relative isolate scroll-mt-24 overflow-clip border-t border-fio bg-marinho-fundo py-16 md:py-24"
     >
       {/* A rua comercial do centro, ao anoitecer. Bem escurecida: os
           cartões de vidro por cima precisam de fundo quase liso. */}
@@ -197,16 +194,16 @@ export function ServicosLocal({ u }: { u: Unidade }) {
         opacidade="opacity-[0.36]"
         posicao="center 45%"
         faixa="inset-x-0 top-0 h-[120vh] max-h-[1100px]"
-        veu="bg-[linear-gradient(180deg,var(--bg)_0%,rgba(255,255,255,0.35)_30%,rgba(255,255,255,0.7)_65%,var(--bg)_100%)]"
+        veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,rgba(11,23,48,0.35)_30%,rgba(11,23,48,0.7)_65%,var(--marinho-fundo)_100%)]"
       />
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />O que a Psy Comunic faz em{' '}
+          <span aria-hidden className="h-px w-8 bg-magenta" />O que a Psy Comunic faz em{' '}
           {u.cidade}
         </p>
         <h2 id="servicos-titulo" className={`${tituloCss} max-w-[24ch]`}>
           Quatro formas de trazer{' '}
-          <span className="text-acento">cliente para sua empresa.</span>
+          <span className="text-magenta-texto">cliente para sua empresa.</span>
         </h2>
 
         <div className="mt-12 space-y-5">
@@ -245,21 +242,21 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                 </h3>
                 {/* O termo de mercado fica aqui, em voz baixa: quem já
                     ouviu falar reconhece, e quem não ouviu não tropeça. */}
-                <span className="rounded-full border border-fio px-3 py-1 text-[0.66rem] text-tinta-fraca">
+                <span className="rounded-full border border-fio px-3 py-1 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-cinza">
                   {s.tecnico}
                 </span>
               </div>
 
-              <p className="mt-2 text-[0.72rem] text-acento">
+              <p className="mt-2 font-mono text-[0.72rem] uppercase tracking-[0.14em] text-magenta-texto">
                 {s.paraQuem}
               </p>
 
-              <p className="mt-5 max-w-[62ch] leading-relaxed text-tinta">{s.texto}</p>
+              <p className="mt-5 max-w-[62ch] leading-relaxed text-neve">{s.texto}</p>
 
               <ul className="mt-6 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
                 {s.entrega.map((e) => (
-                  <li key={e} className="flex gap-3 text-sm leading-relaxed text-tinta-fraca">
-                    <span aria-hidden className="mt-1 flex-none text-acento">
+                  <li key={e} className="flex gap-3 text-sm leading-relaxed text-cinza">
+                    <span aria-hidden className="mt-1 flex-none text-magenta-texto">
                       ●
                     </span>
                     {e}
@@ -283,7 +280,7 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                     identifica uma tela mora em cima. */}
                 <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
                   {s.imagem ? (
-                    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-papel-alt sm:aspect-[4/3]">
+                    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--raio-p)] border border-fio bg-marinho-fundo sm:aspect-[4/3]">
                       <Image
                         src={`/imagens/${s.imagem.arquivo}`}
                         alt={s.imagem.alt}
@@ -302,14 +299,14 @@ export function ServicosLocal({ u }: { u: Unidade }) {
         </div>
 
         {/* A loja virtual só como menção, com o caminho para a home. */}
-        <p className="mt-10 max-w-[64ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-10 max-w-[64ch] text-sm leading-relaxed text-cinza">
           Se o que você precisa é vender pela internet com catálogo, carrinho e pagamento, isso
           é loja virtual, e é o que a Psy Comunic faz desde o começo.{' '}
-          <Link href="/" className="text-acento underline underline-offset-4">
+          <Link href="/" className="text-magenta-texto underline underline-offset-4">
             Veja como funciona na página principal
           </Link>
           . Para gestão de anúncios em maior escala, há também a página de{' '}
-          <Link href="/trafego-pago" className="text-acento underline underline-offset-4">
+          <Link href="/trafego-pago" className="text-magenta-texto underline underline-offset-4">
             tráfego pago
           </Link>
           .
@@ -324,12 +321,12 @@ export function PassosLocal({ u }: { u: Unidade }) {
     <section aria-labelledby="passos" className="border-t border-fio py-16 md:py-24">
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           Como funciona
         </p>
         <h2 id="passos" className={`${tituloCss} max-w-[20ch]`}>
           Três passos, e o primeiro{' '}
-          <span className="text-acento">é só uma conversa.</span>
+          <span className="text-magenta-texto">é só uma conversa.</span>
         </h2>
 
         {/*
@@ -354,7 +351,7 @@ export function PassosLocal({ u }: { u: Unidade }) {
               nao intercepta toque. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute left-[27px] top-4 -z-10 w-px bg-[linear-gradient(180deg,transparent,var(--exp-tarja)_18%,var(--exp-tarja)_82%,transparent)] opacity-40 md:left-0 md:right-0 md:top-[27px] md:h-px md:w-auto md:bg-[linear-gradient(90deg,transparent,var(--exp-tarja)_18%,var(--exp-tarja)_82%,transparent)]"
+            className="pointer-events-none absolute left-[27px] top-4 -z-10 w-px bg-[linear-gradient(180deg,transparent,var(--magenta)_18%,var(--magenta)_82%,transparent)] opacity-40 md:left-0 md:right-0 md:top-[27px] md:h-px md:w-auto md:bg-[linear-gradient(90deg,transparent,var(--magenta)_18%,var(--magenta)_82%,transparent)]"
             style={{ bottom: '1rem' }}
           />
 
@@ -366,14 +363,14 @@ export function PassosLocal({ u }: { u: Unidade }) {
                 className={
                   'revelar cartao relative overflow-hidden p-7 pt-10 transition-all duration-500 md:p-8 md:pt-11 ' +
                   'hover:-translate-y-1 ' +
-                  (ultimo ? 'border-rosa/45' : 'hover:border-rosa/30')
+                  (ultimo ? 'border-magenta/45' : 'hover:border-magenta/30')
                 }
               >
                 {/* O numero grande, atras do texto. E o que da escala e
                     ritmo a fileira sem ocupar espaco de leitura. */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -right-2 -top-4 font-display text-[5.5rem] font-extrabold leading-none tracking-[-0.06em] text-tinta/[0.05] md:text-[6.5rem]"
+                  className="pointer-events-none absolute -right-2 -top-4 font-display text-[5.5rem] font-extrabold leading-none tracking-[-0.06em] text-branco/[0.05] md:text-[6.5rem]"
                 >
                   {p.n}
                 </span>
@@ -384,18 +381,18 @@ export function PassosLocal({ u }: { u: Unidade }) {
                   className={
                     'absolute left-7 top-6 h-3 w-3 rounded-full md:left-8 ' +
                     (ultimo
-                      ? 'bg-rosa shadow-[0_0_0_5px_rgba(255,46,99,0.18)]'
-                      : 'bg-rosa/60 shadow-[0_0_0_5px_rgba(255,46,99,0.1)]')
+                      ? 'bg-magenta shadow-[0_0_0_5px_rgba(228,21,95,0.18)]'
+                      : 'bg-magenta/60 shadow-[0_0_0_5px_rgba(228,21,95,0.1)]')
                   }
                 />
 
                 <h3 className="relative mt-3 font-display text-lg font-bold tracking-[-0.02em]">
                   {p.titulo}
                 </h3>
-                <p className="relative mt-3 text-sm leading-relaxed text-tinta-fraca">{p.texto}</p>
+                <p className="relative mt-3 text-sm leading-relaxed text-cinza">{p.texto}</p>
 
                 {ultimo ? (
-                  <p className="relative mt-5 text-[0.66rem] text-acento">
+                  <p className="relative mt-5 font-mono text-[0.66rem] uppercase tracking-[0.16em] text-magenta-texto">
                     E a decisão é sua
                   </p>
                 ) : null}
@@ -418,7 +415,7 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
   return (
     <section
       aria-labelledby="para-quem"
-      className="relative isolate overflow-clip border-t border-fio bg-papel-alt py-16 md:py-24"
+      className="relative isolate overflow-clip border-t border-fio bg-marinho-fundo py-16 md:py-24"
     >
       {/* O balcão de um comércio de verdade, com o celular apagado em
           cima: é o retrato de quem esta seção lista. */}
@@ -427,22 +424,22 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
         bloco="paraquem"
         opacidade="opacity-[0.42]"
         posicao="center 60%"
-        veu="bg-[linear-gradient(180deg,var(--bg)_0%,transparent_30%,transparent_65%,var(--bg)_100%)]"
+        veu="bg-[linear-gradient(180deg,var(--marinho-fundo)_0%,transparent_30%,transparent_65%,var(--marinho-fundo)_100%)]"
       />
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           Para quem é
         </p>
         <h2 id="para-quem" className={`${tituloCss} max-w-[24ch]`}>
           Negócios que vivem de{' '}
-          <span className="text-acento">cliente da região.</span>
+          <span className="text-magenta-texto">cliente da região.</span>
         </h2>
 
         {/*
           ICONE EM CADA SEGMENTO.
 
-          A era seis blocos de texto do mesmo peso, e o olho nao
+          A grade era seis blocos de texto do mesmo peso, e o olho nao
           tinha onde pousar: quem procura "pousada" precisava LER os seis
           titulos para se achar. O icone da o ponto de entrada, e a
           pessoa reconhece o proprio negocio antes de ler a palavra.
@@ -458,20 +455,21 @@ export function ParaQuemLocal({ u }: { u: Unidade }) {
           {u.paraQuem.map((g) => (
             <div
               key={g.grupo}
-              className="group bg-papel-alt px-7 py-8 transition-colors duration-500 hover:bg-papel-alt/40"
+              className="group bg-marinho-fundo px-7 py-8 transition-colors duration-500 hover:bg-marinho-alto/40"
             >
               {/* A pastilha com volume. 68px contra os 44 de antes, e o
                   traço do ícone em 34: o desenho vira o primeiro elemento
                   do bloco, e não um detalhe ao lado do título. O relevo
                   e a sombra estão em `icone-3d`, no globals.css. */}
-              <span aria-hidden className="icone-3d h-[68px] w-[68px] text-acento">
+              <span aria-hidden className="icone-3d h-[68px] w-[68px] text-magenta-texto">
+                <span className="icone-3d-luz" />
                 <IconeSegmento
                   grupo={g.grupo}
                   className="relative h-[34px] w-[34px] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]"
                 />
               </span>
               <dt className="mt-6 font-display text-lg font-bold tracking-[-0.02em]">{g.grupo}</dt>
-              <dd className="mt-2.5 text-sm leading-relaxed text-tinta-fraca">{g.exemplos}</dd>
+              <dd className="mt-2.5 text-sm leading-relaxed text-cinza">{g.exemplos}</dd>
             </div>
           ))}
         </dl>
@@ -494,21 +492,21 @@ export function CidadesLocal({ u }: { u: Unidade }) {
         bloco="cidades"
         opacidade="opacity-[0.72]"
         posicao="center 30%"
-        veu="bg-[linear-gradient(90deg,var(--bg)_0%,rgba(255,255,255,0.82)_38%,rgba(255,255,255,0.15)_72%,transparent_100%),linear-gradient(180deg,var(--bg)_0%,transparent_18%,transparent_82%,var(--bg)_100%)]"
+        veu="bg-[linear-gradient(90deg,var(--marinho)_0%,rgba(16,31,63,0.82)_38%,rgba(16,31,63,0.15)_72%,transparent_100%),linear-gradient(180deg,var(--marinho)_0%,transparent_18%,transparent_82%,var(--marinho)_100%)]"
       />
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           Onde atendemos
         </p>
         <h2 id="cidades" className={`${tituloCss} max-w-[22ch]`}>
           {u.cidade} e as cidades{' '}
-          <span className="text-acento">em volta.</span>
+          <span className="text-magenta-texto">em volta.</span>
         </h2>
         {/* Texto corrido de propósito. A mesma lista em bloco de
             etiquetas vira amontoado de palavra-chave, que é exatamente o
             que o Google aprendeu a descontar. */}
-        <p className="mt-7 max-w-[70ch] text-guia leading-relaxed text-tinta">
+        <p className="mt-7 max-w-[70ch] text-guia leading-relaxed text-neve">
           {u.cidadesTexto}
         </p>
       </div>
@@ -520,16 +518,16 @@ export function PerguntasLocal({ u }: { u: Unidade }) {
   return (
     <section
       aria-labelledby="perguntas"
-      className="border-t border-fio bg-papel-alt py-16 md:py-24"
+      className="border-t border-fio bg-marinho-fundo py-16 md:py-24"
     >
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           Perguntas frequentes
         </p>
         <h2 id="perguntas" className={`${tituloCss} max-w-[22ch]`}>
           O que as pessoas perguntam{' '}
-          <span className="text-acento">antes de começar.</span>
+          <span className="text-magenta-texto">antes de começar.</span>
         </h2>
 
         {/* `details` nativo: abre sem JavaScript e o texto da resposta
@@ -539,17 +537,17 @@ export function PerguntasLocal({ u }: { u: Unidade }) {
           {u.perguntas.map((p) => (
             <details key={p.pergunta} className="group py-5">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-6">
-                <h3 className="font-display text-lg font-bold tracking-[-0.02em] text-tinta">
+                <h3 className="font-display text-lg font-bold tracking-[-0.02em] text-branco">
                   {p.pergunta}
                 </h3>
                 <span
                   aria-hidden
-                  className="mt-1 flex-none text-acento transition-transform duration-300 group-open:rotate-45"
+                  className="mt-1 flex-none text-magenta-texto transition-transform duration-300 group-open:rotate-45"
                 >
                   +
                 </span>
               </summary>
-              <p className="mt-4 max-w-[70ch] leading-relaxed text-tinta-fraca">{p.resposta}</p>
+              <p className="mt-4 max-w-[70ch] leading-relaxed text-cinza">{p.resposta}</p>
             </details>
           ))}
         </div>
@@ -573,15 +571,15 @@ export function AutoridadeLocal({
     <section aria-labelledby="quem" className="border-t border-fio py-16 md:py-24">
       <div className={secao}>
         <p className={rotuloCss}>
-          <span aria-hidden className="h-px w-8 bg-rosa" />
+          <span aria-hidden className="h-px w-8 bg-magenta" />
           Quem está por trás
         </p>
         <h2 id="quem" className={`${tituloCss} max-w-[24ch]`}>
           A unidade é nova em {u.cidade}.{' '}
-          <span className="text-acento">A casa, não.</span>
+          <span className="text-magenta-texto">A casa, não.</span>
         </h2>
 
-        <p className="mt-7 max-w-[64ch] text-guia leading-relaxed text-tinta">
+        <p className="mt-7 max-w-[64ch] text-guia leading-relaxed text-neve">
           {anos} de mercado em design, tecnologia e anúncios, com marcas atendidas em todo o
           Brasil. A Psy Comunic é {parcerias.join(' e ')}, que são as certificações de quem
           opera as contas de anúncio do Google e da Meta.
@@ -613,13 +611,13 @@ export function AutoridadeLocal({
           ))}
         </ul>
 
-        <p className="mt-8 text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-8 text-sm leading-relaxed text-cinza">
           Mais trabalhos na{' '}
-          <Link href="/cases" className="text-acento underline underline-offset-4">
+          <Link href="/cases" className="text-magenta-texto underline underline-offset-4">
             página de trabalhos
           </Link>
           . Para falar com a equipe fora do WhatsApp, use a{' '}
-          <Link href="/contato" className="text-acento underline underline-offset-4">
+          <Link href="/contato" className="text-magenta-texto underline underline-offset-4">
             página de contato
           </Link>
           .
@@ -631,7 +629,7 @@ export function AutoridadeLocal({
 
 export function FechamentoLocal({ u }: { u: Unidade }) {
   return (
-    <section className="faixa-navy relative isolate overflow-clip secao-ar">
+    <section className="relative isolate overflow-clip bg-magenta py-20 md:py-24">
       {/* O mangue ao amanhecer, já gerado em magenta: a silhueta das
           raízes entra por baixo dos degradês que o bloco já tinha. */}
       <FundoLocal
@@ -639,19 +637,23 @@ export function FechamentoLocal({ u }: { u: Unidade }) {
         bloco="fechamento"
         opacidade="opacity-[0.55]"
         posicao="center 35%"
-        veu="bg-[linear-gradient(90deg,var(--exp-tarja)_0%,rgba(255,46,99,0.55)_40%,rgba(255,46,99,0.2)_100%)]"
+        veu="bg-[linear-gradient(90deg,var(--magenta)_0%,rgba(228,21,95,0.55)_40%,rgba(228,21,95,0.2)_100%)]"
       />
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(16,31,63,0.55))]" />
+      </div>
       <div className={secao}>
-        <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">
+        <h2 className="max-w-[18ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-branco">
           {u.fechamento.titulo}
         </h2>
-        <p className="mt-6 max-w-[54ch] text-guia text-tinta/90">{u.fechamento.texto}</p>
+        <p className="mt-6 max-w-[54ch] text-guia text-branco">{u.fechamento.texto}</p>
         <div className="mt-9 flex flex-wrap items-center gap-4">
           <BotaoZap u={u} mensagem={u.fechamento.mensagem} secao="fechamento" variante="claro">
             {u.fechamento.acao}
           </BotaoZap>
         </div>
-        <p className="mt-7 text-sm text-tinta/85">
+        <p className="mt-7 text-sm text-branco">
           {u.cidade}, {u.estado} · WhatsApp {u.telefoneVisivel}
         </p>
       </div>

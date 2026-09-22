@@ -62,17 +62,21 @@ export function HeroTrafego({
   return (
     <section
       aria-label="Abertura"
-      className="relative isolate w-full overflow-hidden bg-papel"
+      className="relative isolate w-full overflow-hidden bg-marinho"
       style={{ minHeight: 'calc(100svh - var(--cabecalho, 81px))' }}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <div className="grade absolute inset-0 opacity-60" />
+        <div className="brilho-magenta absolute -right-[16%] -top-[34%] h-[820px] w-[820px] opacity-45" />
+        <div className="brilho-frio absolute -left-[22%] top-[28%] h-[680px] w-[680px] opacity-30" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1180px] items-center px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1320px] items-center px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">
         <div className="grid w-full gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
           <div className="min-w-0 max-w-[min(640px,100%)]">
-          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             {rotulo}
           </p>
 
@@ -84,53 +88,34 @@ export function HeroTrafego({
             ))}
           </h1>
 
-          <p className="mt-7 max-w-[46ch] text-guia leading-relaxed text-tinta">{texto}</p>
+          <p className="mt-7 max-w-[46ch] text-guia leading-relaxed text-neve">{texto}</p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3.5">
             <Link
               href="#analise"
-              className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-rosa px-7 text-sm font-semibold text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-rosa-forte hover:shadow-[0_10px_40px_-8px_rgba(255,46,99,0.75)]"
+              className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-magenta px-7 text-sm font-semibold text-branco transition-all duration-300 hover:-translate-y-0.5 hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)]"
             >
               {acao}
+              <span aria-hidden>→</span>
             </Link>
             <a
               href={linkWhatsapp}
               target="_blank"
               rel="noopener"
-              className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-7 text-sm font-semibold text-tinta ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-tinta/12 hover:ring-white/45"
+              className="inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-7 text-sm font-semibold text-branco ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/5 hover:ring-white/45"
             >
               Falar no WhatsApp
+              <span aria-hidden>→</span>
             </a>
           </div>
 
-          <p className="mt-6 max-w-[42ch] text-sm leading-relaxed text-tinta-fraca">{apoio}</p>
+          <p className="mt-6 max-w-[42ch] text-sm leading-relaxed text-cinza">{apoio}</p>
           </div>
 
           {/* `scroll-mt` do tamanho do cabeçalho: sem isso o link
               `#analise` para com o topo do formulário debaixo da barra
               fixa, e a pessoa chega numa tela que parece cortada. */}
-          {/*
-            O BRILHO ATRAS DO VIDRO.
-
-            `backdrop-filter` so aparece quando ha alguma coisa
-            VARIANDO atras do painel: sobre papel chapado ele nao tem
-            o que borrar, e o vidro vira um retangulo escuro comum.
-            Medido: com o fundo liso, as listras de teste passavam
-            iguais com o borrado ligado e desligado.
-
-            Dois circulos de cor, bem suaves, dao o que borrar e
-            tambem o que refratar na borda do chanfro. Ficam atras do
-            formulario, e por isso `-z-10` e `pointer-events-none`.
-          */}
-          <div id="analise" className="relative min-w-0 scroll-mt-28">
-            {/* SEM `overflow-hidden` aqui: ele cortava os dois
-                circulos num retangulo de bordas duras, e o corte
-                aparecia como uma moldura clara em volta do painel.
-                O recorte de verdade e o da secao, bem mais longe. */}
-            <div aria-hidden className="pointer-events-none absolute -inset-16 -z-10">
-              <div className="absolute left-0 top-10 h-64 w-64 rounded-full bg-rosa/25 blur-[90px]" />
-              <div className="absolute bottom-4 right-0 h-72 w-72 rounded-full bg-marinho/20 blur-[90px]" />
-            </div>
+          <div id="analise" className="min-w-0 scroll-mt-28">
             {formulario}
           </div>
         </div>

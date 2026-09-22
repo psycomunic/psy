@@ -46,7 +46,7 @@ export default function Diagnostico() {
               Prefiro preencher um formulário
             </Botao>
           </div>
-          <p className="mt-5 text-[0.68rem] text-tinta-fraca">
+          <p className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em] text-cinza">
             Sem custo · sem compromisso · resposta em até 24h úteis
           </p>
         </div>
@@ -55,14 +55,14 @@ export default function Diagnostico() {
       {/* O que é analisado */}
       <section className="py-16 md:py-20">
         <div className={secao}>
-          <p className="flex items-center gap-3 text-[0.7rem] text-acento">
-            <span aria-hidden className="h-px w-8 bg-rosa" />
+          <p className="flex items-center gap-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-magenta-texto">
+            <span aria-hidden className="h-px w-8 bg-magenta" />
             O que é analisado
           </p>
-          <h2 className="mt-5 max-w-[22ch] font-display text-titulo titulo-revista">
+          <h2 className="mt-5 max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
             As perguntas que o diagnóstico responde.
           </h2>
-          <p className="mt-7 max-w-[62ch] text-guia text-tinta">
+          <p className="mt-7 max-w-[62ch] text-guia text-neve">
             Na maioria das vezes o problema não está no anúncio: está no checkout, no
             prazo de entrega, na aprovação do pagamento ou no cadastro do produto. Por
             isso a análise cobre as quatro frentes, e não só a mídia.
@@ -72,15 +72,15 @@ export default function Diagnostico() {
             {frentes.map((f) => (
               <div key={f.slug} className="cartao p-8 md:p-9">
                 <div className="flex items-center gap-4">
-                  <IconeFrente slug={f.slug} className="h-7 w-7 text-acento" />
+                  <IconeFrente slug={f.slug} className="h-7 w-7 text-magenta-texto" />
                   <h3 className="font-display text-xl font-bold tracking-[-0.02em]">
                     {f.nome}
                   </h3>
                 </div>
                 <ul className="mt-6 space-y-3 border-t border-fio pt-6">
                   {f.duvidas.map((d) => (
-                    <li key={d} className="flex gap-3 leading-relaxed text-tinta-fraca">
-                      <span aria-hidden className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-rosa" />
+                    <li key={d} className="flex gap-3 leading-relaxed text-cinza">
+                      <span aria-hidden className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-magenta" />
                       {d}
                     </li>
                   ))}
@@ -92,21 +92,21 @@ export default function Diagnostico() {
       </section>
 
       {/* Como funciona */}
-      <section className="border-y border-fio bg-papel-alt py-20 md:py-24">
+      <section className="border-y border-fio bg-marinho-fundo py-20 md:py-24">
         <div className={secao}>
-          <h2 className="max-w-[22ch] font-display text-titulo titulo-revista">
+          <h2 className="max-w-[22ch] font-display text-titulo font-extrabold tracking-[-0.035em]">
             Como funciona, na prática.
           </h2>
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
             {metodologia.map((m, i) => (
               <li key={m.nome} className="border-t border-fio pt-7">
-                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-acento">
+                <span className="tabular font-display text-3xl font-extrabold tracking-[-0.04em] text-magenta-texto">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-4 font-display text-xl font-bold tracking-[-0.02em]">
                   {m.nome}
                 </h3>
-                <p className="mt-3 leading-relaxed text-tinta-fraca">{m.texto}</p>
+                <p className="mt-3 leading-relaxed text-cinza">{m.texto}</p>
               </li>
             ))}
           </ol>
@@ -114,12 +114,16 @@ export default function Diagnostico() {
       </section>
 
       {/* CTA final */}
-      <section className="faixa-navy relative isolate overflow-hidden secao-ar">
+      <section className="relative isolate overflow-hidden bg-magenta py-20 md:py-24">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_15%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(200deg,transparent_35%,rgba(16,31,63,0.55))]" />
+        </div>
         <div className={secao}>
-          <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">
+          <h2 className="max-w-[18ch] font-display text-titulo font-extrabold tracking-[-0.04em] text-branco">
             Manda o link da sua loja que a gente olha.
           </h2>
-          <p className="mt-6 max-w-[52ch] text-guia text-tinta/90">
+          <p className="mt-6 max-w-[52ch] text-guia text-branco">
             Não precisa preparar nada nem montar planilha. O endereço da loja já basta
             para a primeira leitura.
           </p>

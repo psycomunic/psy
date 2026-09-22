@@ -9,8 +9,10 @@ import {
 } from '@/app/painel/acoes-proposta';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo = 'campo';
-const rotuloCss = 'rotulo-campo';
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 function Aviso({ r }: { r: Resultado | null }) {
   if (!r) return null;
@@ -21,7 +23,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-rosa/40 bg-rosa-leve text-acento')
+          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -156,7 +158,7 @@ export function FormProposta({
               ? `Proposta para ${lead.cliente}`
               : 'Gerar link de proposta'}
         </h3>
-        <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-cinza">
           {editando
             ? editando.status === 'rascunho'
               ? 'O link continua fechado enquanto for rascunho. Salvar aqui não publica nada.'
@@ -223,7 +225,7 @@ export function FormProposta({
               className={
                 'cursor-pointer rounded-xl border p-4 transition-colors ' +
                 (modo === m.k
-                  ? 'border-rosa bg-rosa-leve'
+                  ? 'border-magenta bg-magenta/10'
                   : 'border-fio bg-white/[0.02] hover:bg-white/[0.05]')
               }
             >
@@ -236,7 +238,7 @@ export function FormProposta({
                 className="sr-only"
               />
               <span className="font-display text-base font-bold">{m.t}</span>
-              <span className="mt-2 block text-xs leading-relaxed text-tinta-fraca">{m.d}</span>
+              <span className="mt-2 block text-xs leading-relaxed text-cinza">{m.d}</span>
             </label>
           ))}
         </div>
@@ -245,7 +247,7 @@ export function FormProposta({
       {modo === 'servicos' ? (
         <fieldset>
           <legend className={rotuloCss}>Serviços e valores *</legend>
-          <p className="mt-2 max-w-[70ch] text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-2 max-w-[70ch] text-xs leading-relaxed text-cinza">
             O que cada serviço entrega está no catálogo e aparece igual em toda proposta.
             O valor é desta: gestão de tráfego para quem vende curso e para uma
             concessionária não custam o mesmo, e uma tabela fixa aqui viraria preço que
@@ -261,7 +263,7 @@ export function FormProposta({
                   key={s.id}
                   className={
                     'rounded-xl border p-4 transition-colors ' +
-                    (marcado ? 'border-rosa bg-rosa-leve' : 'border-fio bg-white/[0.02]')
+                    (marcado ? 'border-magenta bg-magenta/10' : 'border-fio bg-white/[0.02]')
                   }
                 >
                   <label className="flex cursor-pointer items-start gap-3">
@@ -272,21 +274,21 @@ export function FormProposta({
                       onChange={(e) =>
                         setEscolhidos((a) => ({ ...a, [s.id]: e.target.checked }))
                       }
-                      className="mt-1 h-4 w-4 flex-none accent-[var(--exp-tarja)]"
+                      className="mt-1 h-4 w-4 flex-none accent-[var(--magenta)]"
                     />
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="font-display text-base font-bold">{s.nome}</span>
-                        <span className="rounded-full border border-fio px-2.5 py-0.5 text-[0.7rem] text-tinta-fraca">
+                        <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                           {s.cobranca === 'projeto' ? 'projeto' : 'todo mês'}
                         </span>
                         {s.papel === 'complemento' ? (
-                          <span className="rounded-full border border-fio px-2.5 py-0.5 text-[0.7rem] text-tinta-fraca">
+                          <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                             complemento
                           </span>
                         ) : null}
                       </span>
-                      <span className="mt-1.5 block text-xs leading-relaxed text-tinta-fraca">
+                      <span className="mt-1.5 block text-xs leading-relaxed text-cinza">
                         {s.paraQuem}
                       </span>
                     </span>
@@ -329,7 +331,7 @@ export function FormProposta({
               className={
                 'cursor-pointer rounded-xl border p-4 transition-colors ' +
                 (escolhido === p.id
-                  ? 'border-rosa bg-rosa-leve'
+                  ? 'border-magenta bg-magenta/10'
                   : 'border-fio bg-white/[0.02] hover:bg-white/[0.05]')
               }
             >
@@ -343,9 +345,9 @@ export function FormProposta({
               />
               <span className="flex items-baseline justify-between gap-2">
                 <span className="font-display text-base font-bold">{p.nome}</span>
-                <span className="tabular text-sm font-semibold text-acento">{p.fee}</span>
+                <span className="tabular text-sm font-semibold text-magenta-texto">{p.fee}</span>
               </span>
-              <span className="mt-2 block text-xs leading-relaxed text-tinta-fraca">{p.paraQuem}</span>
+              <span className="mt-2 block text-xs leading-relaxed text-cinza">{p.paraQuem}</span>
             </label>
           ))}
         </div>
@@ -363,7 +365,7 @@ export function FormProposta({
           placeholder={'Tráfego chega, mas a conversão fica abaixo da média do segmento.\nCheckout com etapas demais e sem recuperação de carrinho.\nMídia sem leitura de ROI por canal.'}
           className={`mt-2 ${campo}`}
         />
-        <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+        <p className="mt-1.5 text-xs leading-relaxed text-cinza">
           É a parte que faz a proposta parecer feita para este cliente, e não um modelo. Vale
           mais que o resto junto.
         </p>
@@ -392,7 +394,7 @@ export function FormProposta({
             defaultValue={editando?.validadeDias ?? 15}
             className={`mt-2 ${campo}`}
           />
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Depois disso a página avisa que venceu. Prazo é o que faz a proposta ser
             respondida em vez de esquecida.
           </p>
@@ -409,7 +411,7 @@ export function FormProposta({
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+        className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
       >
         {pendente
           ? editando
@@ -459,7 +461,7 @@ export function CopiarLink({ slug, versao = 1 }: { slug: string; versao?: number
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2500);
       }}
-      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-acento underline-offset-4 hover:underline"
+      className="inline-flex min-h-[24px] items-center text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline"
     >
       {copiado ? 'copiado ✓' : 'copiar link'}
     </button>
@@ -487,12 +489,12 @@ export function BotaoStatus({
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12 disabled:opacity-60"
+        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5 disabled:opacity-60"
       >
         {pendente ? '...' : rotulo}
       </button>
       {estado && !estado.ok ? (
-        <span className="ml-2 text-xs text-acento">{estado.mensagem}</span>
+        <span className="ml-2 text-xs text-magenta-texto">{estado.mensagem}</span>
       ) : null}
     </form>
   );
@@ -514,7 +516,7 @@ export function BotaoApagarProposta({ id, cliente }: { id: string; cliente: stri
 
   if (estado && !estado.ok) {
     return (
-      <span role="status" className="text-xs font-semibold leading-relaxed text-acento">
+      <span role="status" className="text-xs font-semibold leading-relaxed text-magenta-texto">
         <span aria-hidden className="mr-1.5">■</span>
         {estado.mensagem}
       </span>
@@ -526,7 +528,7 @@ export function BotaoApagarProposta({ id, cliente }: { id: string; cliente: stri
       <button
         type="button"
         onClick={() => setConfirmando(true)}
-        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento"
+        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto"
       >
         Remover
       </button>
@@ -536,18 +538,18 @@ export function BotaoApagarProposta({ id, cliente }: { id: string; cliente: stri
   return (
     <form action={acao} className="inline-flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={id} />
-      <span className="text-xs text-tinta-fraca">Apagar a de {cliente}?</span>
+      <span className="text-xs text-cinza">Apagar a de {cliente}?</span>
       <button
         type="submit"
         disabled={pendente}
-        className="rounded-full bg-rosa px-3 py-1.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+        className="rounded-full bg-magenta px-3 py-1.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
       >
         {pendente ? 'Apagando...' : 'Sim, apagar'}
       </button>
       <button
         type="button"
         onClick={() => setConfirmando(false)}
-        className="rounded-full border border-fio px-3 py-1.5 text-xs text-tinta transition-colors hover:bg-tinta/12"
+        className="rounded-full border border-fio px-3 py-1.5 text-xs text-neve transition-colors hover:bg-white/5"
       >
         Não
       </button>

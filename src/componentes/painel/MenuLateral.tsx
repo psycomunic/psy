@@ -87,8 +87,8 @@ export function MenuLateral({
           className={
             'menu-item group relative flex items-center gap-3 rounded-xl py-2.5 pl-3.5 pr-3 text-sm transition-colors ' +
             (ativo
-              ? 'bg-papel-alt font-semibold text-tinta'
-              : 'text-tinta hover:bg-white/[0.05] hover:text-tinta')
+              ? 'bg-marinho-alto font-semibold text-branco'
+              : 'text-neve hover:bg-white/[0.05] hover:text-branco')
           }
         >
           {/* Trilho de cor na aresta, só no ativo. É o que se vê de
@@ -96,14 +96,14 @@ export function MenuLateral({
           {ativo ? (
             <span
               aria-hidden
-              className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-rosa"
+              className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-magenta"
             />
           ) : null}
 
           <span
             className={
               'flex-none transition-colors ' +
-              (ativo ? 'text-acento' : 'text-tinta-fraca group-hover:text-tinta')
+              (ativo ? 'text-magenta-texto' : 'text-cinza group-hover:text-neve')
             }
           >
             <IconeModulo modulo={m} />
@@ -117,8 +117,8 @@ export function MenuLateral({
               className={
                 'menu-rotulo tabular flex-none rounded-full px-2 py-0.5 text-[0.75rem] font-semibold ' +
                 (c.grave
-                  ? 'bg-rosa text-branco'
-                  : 'border border-fio bg-white/[0.06] text-tinta')
+                  ? 'bg-magenta text-branco'
+                  : 'border border-fio bg-white/[0.06] text-neve')
               }
             >
               {c.n}
@@ -132,7 +132,7 @@ export function MenuLateral({
             <span
               aria-hidden
               className="menu-ponto absolute right-2 top-2 h-2 w-2 rounded-full"
-              style={{ background: c.grave ? 'var(--exp-tarja)' : 'var(--fg-muted)' }}
+              style={{ background: c.grave ? 'var(--magenta)' : 'var(--cinza)' }}
             />
           ) : null}
         </Link>
@@ -141,7 +141,7 @@ export function MenuLateral({
   };
 
   return (
-    <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-papel-alt/85 px-5 py-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
+    <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 px-5 py-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
       <div className="flex items-center justify-between gap-3">
         <span className="menu-rotulo min-w-0">
           <Marca />
@@ -162,20 +162,20 @@ export function MenuLateral({
           <div className="mt-7 flex items-center gap-3">
             <span
               aria-hidden
-              className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-rosa/15 font-display text-sm font-extrabold text-acento"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-magenta/15 font-display text-sm font-extrabold text-magenta-texto"
             >
               {iniciais || '—'}
             </span>
             <span className="menu-rotulo min-w-0">
-              <span className="block truncate text-sm font-semibold text-tinta">{nome}</span>
-              <span className="block text-[0.75rem] text-acento">
+              <span className="block truncate text-sm font-semibold text-branco">{nome}</span>
+              <span className="block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-magenta-texto">
                 {rotuloPapel[papel]}
               </span>
             </span>
           </div>
         ) : (
           <div className="menu-rotulo mt-7">
-            <p className="text-[0.75rem] text-acento">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
               Perfil em visualização
             </p>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function MenuLateral({
                     href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
                     className={
                       'inline-block rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors ' +
-                      (p === papel ? 'bg-rosa text-branco' : 'bg-tinta/12 text-tinta hover:bg-tinta/12')
+                      (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
                     }
                   >
                     {rotuloPapel[p]}
@@ -212,7 +212,7 @@ export function MenuLateral({
 
             return (
               <div key={grupo.titulo} className="mt-6">
-                <p className="menu-rotulo mb-2 px-3.5 text-[0.75rem] text-tinta-fraca">
+                <p className="menu-rotulo mb-2 px-3.5 font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
                   {grupo.titulo}
                 </p>
                 {/* Fio no lugar do título quando recolhido: sem ele os
@@ -225,7 +225,7 @@ export function MenuLateral({
         </nav>
 
         <div className="menu-rotulo mt-8 border-t border-fio pt-5">
-          <p className="text-xs leading-relaxed text-tinta-fraca">
+          <p className="text-xs leading-relaxed text-cinza">
             {papel === 'cliente' || papel === 'cliente_leitura'
               ? 'Você enxerga apenas os números da sua loja.'
               : `${rotuloPapel[papel]} enxerga ${visiveis.length} de ${MODULOS.length} módulos.`}
@@ -236,7 +236,7 @@ export function MenuLateral({
           {bancoConfigurado ? (
             <Sair />
           ) : (
-            <Link href="/entrar" className="text-sm text-acento underline underline-offset-4">
+            <Link href="/entrar" className="text-sm text-magenta-texto underline underline-offset-4">
               Trocar de perfil
             </Link>
           )}

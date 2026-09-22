@@ -49,7 +49,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
 
   if (serie.length < 2) {
     return (
-      <p className="py-16 text-center text-sm text-tinta-fraca">
+      <p className="py-16 text-center text-sm text-cinza">
         Ainda não há dias suficientes para desenhar a série.
       </p>
     );
@@ -69,7 +69,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
   const area = (sel: (d: DiaKpi) => number) =>
     `${linha(sel)} L ${px(serie.length - 1).toFixed(1)} ${py(0)} L ${px(0).toFixed(1)} ${py(0)} Z`;
 
-  /* Quatro marcas no eixo y bastam. Mais que isso vira de
+  /* Quatro marcas no eixo y bastam. Mais que isso vira grade de
      caderno e compete com o dado. */
   const marcas = [0, 0.25, 0.5, 0.75, 1].map((f) => f * teto);
 
@@ -88,7 +88,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
           { c: COR_RECEITA, n: 'Receita aprovada' },
           { c: COR_INVESTIMENTO, n: 'Investimento em mídia' },
         ].map((s) => (
-          <span key={s.n} className="flex items-center gap-2 text-xs text-tinta">
+          <span key={s.n} className="flex items-center gap-2 text-xs text-neve">
             <span
               aria-hidden
               className="h-2.5 w-2.5 rounded-full"
@@ -123,7 +123,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
               textAnchor="end"
               fontSize="10"
               fill={EIXO}
-              fontFamily="var(--font-corpo)"
+              fontFamily="var(--font-mono)"
             >
               {i === 0 ? '0' : dinheiroCurto(v).replace('R$ ', '')}
             </text>
@@ -147,7 +147,7 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
               textAnchor="middle"
               fontSize="10"
               fill={EIXO}
-              fontFamily="var(--font-corpo)"
+              fontFamily="var(--font-mono)"
             >
               {diaCurto(s.dia)}
             </text>
@@ -183,13 +183,13 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
           não precisar recriar quebra de linha em SVG. */}
       {d ? (
         <div
-          className="pointer-events-none absolute top-10 z-10 min-w-[13rem] rounded-xl border border-fio bg-papel-alt/95 p-4 shadow-2xl backdrop-blur"
+          className="pointer-events-none absolute top-10 z-10 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-4 shadow-2xl backdrop-blur"
           style={{
             left: `${(px(ativo!) / W) * 100}%`,
             transform: ativo! > serie.length / 2 ? 'translateX(-105%)' : 'translateX(5%)',
           }}
         >
-          <p className="text-[0.75rem] text-tinta-fraca">
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
             {diaLongo(d.dia)}
           </p>
           <dl className="mt-3 space-y-2 text-sm">
@@ -198,16 +198,16 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
               { c: COR_INVESTIMENTO, n: 'Investimento', v: dinheiro(d.investimento) },
             ].map((l) => (
               <div key={l.n} className="flex items-center justify-between gap-6">
-                <dt className="flex items-center gap-2 text-tinta-fraca">
+                <dt className="flex items-center gap-2 text-cinza">
                   <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: l.c }} />
                   {l.n}
                 </dt>
-                <dd className="tabular font-semibold text-tinta">{l.v}</dd>
+                <dd className="tabular font-semibold text-branco">{l.v}</dd>
               </div>
             ))}
             <div className="flex items-center justify-between gap-6 border-t border-fio pt-2">
-              <dt className="text-tinta-fraca">MER</dt>
-              <dd className="tabular font-semibold text-tinta">{vezes(d.mer)}</dd>
+              <dt className="text-cinza">MER</dt>
+              <dd className="tabular font-semibold text-branco">{vezes(d.mer)}</dd>
             </div>
           </dl>
         </div>
@@ -251,7 +251,7 @@ export function BarrasCanal({
             className="group relative"
           >
             <div className="flex items-baseline justify-between gap-4">
-              <span className="flex items-center gap-2.5 text-sm text-tinta">
+              <span className="flex items-center gap-2.5 text-sm text-neve">
                 <span
                   aria-hidden
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -261,7 +261,7 @@ export function BarrasCanal({
               </span>
               {/* Rótulo direto em toda barra: são cinco, e ler o valor
                   exato é o objetivo desta tela. */}
-              <span className="tabular text-sm font-semibold text-tinta">
+              <span className="tabular text-sm font-semibold text-branco">
                 {semInvestimento ? 'sem mídia' : fmt(c)}
               </span>
             </div>
@@ -277,7 +277,7 @@ export function BarrasCanal({
             </div>
 
             {ativo === c.canal ? (
-              <div className="absolute right-0 top-full z-10 mt-2 min-w-[12rem] rounded-xl border border-fio bg-papel-alt/95 p-3.5 text-xs shadow-2xl backdrop-blur">
+              <div className="absolute right-0 top-full z-10 mt-2 min-w-[12rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
                 <dl className="space-y-1.5">
                   {[
                     ['Receita', dinheiro(c.receita)],
@@ -287,8 +287,8 @@ export function BarrasCanal({
                     ['CTR', porcento(c.ctr, 2)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-6">
-                      <dt className="text-tinta-fraca">{k}</dt>
-                      <dd className="tabular text-tinta">{v}</dd>
+                      <dt className="text-cinza">{k}</dt>
+                      <dd className="tabular text-branco">{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -327,7 +327,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
 
   if (serie.length === 0) {
     return (
-      <p className="py-16 text-center text-sm text-tinta-fraca">
+      <p className="py-16 text-center text-sm text-cinza">
         Ainda não há histórico para desenhar.
       </p>
     );
@@ -365,7 +365,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
           ['Faturado', COR_FATURADO],
           ['Recebido', COR_RECEBIDO],
         ].map(([rotulo, cor]) => (
-          <span key={rotulo} className="flex items-center gap-2 text-tinta">
+          <span key={rotulo} className="flex items-center gap-2 text-neve">
             <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: cor }} />
             {rotulo}
           </span>
@@ -447,8 +447,8 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
         </svg>
 
         {m ? (
-          <div className="pointer-events-none absolute right-0 top-0 min-w-[13rem] rounded-xl border border-fio bg-papel-alt/95 p-3.5 text-xs shadow-2xl backdrop-blur">
-            <p className="text-[0.75rem] text-tinta-fraca">
+          <div className="pointer-events-none absolute right-0 top-0 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
               {rotuloMes(m.mes)}
             </p>
             <dl className="mt-2 space-y-1.5">
@@ -459,8 +459,8 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
                 ['Resultado', dinheiro(m.recebido - m.despesa)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-6">
-                  <dt className="text-tinta-fraca">{k}</dt>
-                  <dd className="tabular text-tinta">{v}</dd>
+                  <dt className="text-cinza">{k}</dt>
+                  <dd className="tabular text-branco">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -471,7 +471,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
       {/* A tabela é a mesma informação sem depender de enxergar o
           desenho, e é o que um leitor de tela lê. */}
       <details className="mt-4">
-        <summary className="cursor-pointer text-xs text-tinta-fraca hover:text-tinta">
+        <summary className="cursor-pointer text-xs text-cinza hover:text-neve">
           Ver os números
         </summary>
         <div className="mt-3 overflow-x-auto rounded-xl border border-fio">
@@ -483,7 +483,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
                   <th
                     key={h}
                     scope="col"
-                    className="px-4 py-3 text-[0.75rem] font-normal text-tinta-fraca"
+                    className="px-4 py-3 font-mono text-[0.75rem] uppercase tracking-[0.12em] font-normal text-cinza"
                   >
                     {h}
                   </th>
@@ -493,7 +493,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
             <tbody>
               {serie.map((mes) => (
                 <tr key={mes.mes}>
-                  <th scope="row" className="border-t border-fio px-4 py-2.5 font-normal text-tinta">
+                  <th scope="row" className="border-t border-fio px-4 py-2.5 font-normal text-neve">
                     {rotuloMes(mes.mes)}
                   </th>
                   <td className="tabular border-t border-fio px-4 py-2.5">{dinheiro(mes.faturado)}</td>

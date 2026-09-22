@@ -4,48 +4,49 @@ import type { ReactNode } from 'react';
 type Props = {
   href: string;
   children: ReactNode;
-  variante?: 'primario' | 'secundario' | 'claro' | 'fantasma';
+  variante?: 'primario' | 'secundario' | 'claro';
   externo?: boolean;
   className?: string;
 };
 
-/*
-  O rosa cheio só aparece como FUNDO de botão e em elemento gráfico.
-  Como texto sobre branco ele dá 3.6:1 e reprova nos 4.5:1 da WCAG, e
-  para isso existe o --accent-ink. Ver globals.css.
-
-  A SETA SAIU. Ela existia para o botão se anunciar como próximo passo
-  num fundo escuro cheio de brilho. No tema claro, com serifada e muito
-  ar em volta, um botão rosa sólido já é a única coisa colorida da
-  tela: a seta vira ruído.
-*/
+/* O magenta cheio só aparece como FUNDO de botão. Como texto sobre o
+   marinho ele reprova no contraste da WCAG, e para isso existe o
+   --magenta-texto. Ver comentário em globals.css. */
 const base =
-  'inline-flex items-center justify-center rounded-full px-[22px] py-[14px] ' +
-  'text-sm font-semibold transition-colors duration-200 active:scale-[0.98]';
+  'group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full ' +
+  'px-7 py-3.5 text-sm font-semibold tracking-wide transition-all duration-300 ' +
+  'active:scale-[0.98]';
 
 const variantes = {
-  /*
-    TINTA CHAPADA, e nao gradiente.
-
-    O mundo e documento impresso: etiqueta, carimbo, fio. Gradiente e
-    brilho pertencem a tela acesa, que e o oposto do objeto de luz
-    refletida que esta pagina imita.
-
-    O fundo e o rosa ESCURECIDO. Medido: branco sobre o #FF2E63 cheio
-    da marca da 3.61:1 e reprova nos 4.5 exigidos; sobre o escurecido
-    da 5.00.
-  */
-  primario: 'bg-rosa text-branco hover:bg-rosa-forte',
-  secundario: 'border border-fio-forte text-tinta hover:bg-papel-alt',
-  claro: 'bg-papel text-tinta hover:bg-papel-alt',
-  /* Sem estilo proprio: quem chama traz o visual inteiro em className. */
-  fantasma: '',
+  /* Halo magenta que cresce no hover. O botão principal é o único
+     elemento da página com luz própria, e é assim que ele se anuncia
+     como o próximo passo sem precisar de seta piscando. */
+  primario:
+    'bg-magenta text-branco shadow-[0_0_0_0_rgba(228,21,95,0.5)] ' +
+    'hover:bg-magenta-forte hover:shadow-[0_10px_40px_-8px_rgba(228,21,95,0.75)] hover:-translate-y-0.5',
+  secundario:
+    'text-branco ring-1 ring-inset ring-white/20 backdrop-blur-sm ' +
+    'hover:bg-white/5 hover:ring-white/45 hover:-translate-y-0.5',
+  /* Para uso sobre o magenta cheio da seção final. */
+  claro:
+    'bg-branco text-marinho hover:-translate-y-0.5 ' +
+    'hover:shadow-[0_10px_40px_-8px_rgba(0,0,0,0.45)]',
 } as const;
 
 export function Botao({ href, children, variante = 'primario', externo, className = '' }: Props) {
   const classe = `${base} ${variantes[variante]} ${className}`;
 
-  const conteudo = children;
+  const conteudo = (
+    <>
+      <span className="relative z-10">{children}</span>
+      <span
+        aria-hidden
+        className="relative z-10 translate-x-0 transition-transform duration-300 group-hover:translate-x-1"
+      >
+        →
+      </span>
+    </>
+  );
 
   if (externo) {
     return (

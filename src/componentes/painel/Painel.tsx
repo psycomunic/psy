@@ -62,7 +62,7 @@ export function Anel({
           cy={tamanho / 2}
           r={r}
           fill="none"
-          stroke={completo ? CORES_SITUACAO.saudavel : 'var(--exp-tarja)'}
+          stroke={completo ? CORES_SITUACAO.saudavel : 'var(--magenta)'}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={perimetro}
@@ -73,7 +73,7 @@ export function Anel({
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="tabular font-display text-xl font-extrabold leading-none tracking-[-0.04em]">
           {feito}
-          <span className="text-sm font-normal text-tinta-fraca">/{total}</span>
+          <span className="text-sm font-normal text-cinza">/{total}</span>
         </span>
       </div>
     </div>
@@ -96,7 +96,7 @@ export function Numero({
   rotulo,
   valor,
   apoio,
-  cor = 'var(--exp-tarja)',
+  cor = 'var(--magenta)',
   href,
   alerta = false,
 }: {
@@ -114,12 +114,12 @@ export function Numero({
         className="absolute inset-y-5 left-0 w-[3px] rounded-full transition-all duration-300 group-hover:inset-y-3"
         style={{ background: alerta ? CORES_SITUACAO.critico : cor }}
       />
-      <p className="text-[0.75rem] text-tinta-fraca">{rotulo}</p>
+      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">{rotulo}</p>
       <p className="tabular mt-2.5 font-display text-[2rem] font-extrabold leading-none tracking-[-0.04em]">
         {valor}
       </p>
       {apoio ? (
-        <p className="mt-2 text-xs leading-relaxed text-tinta-fraca">{apoio}</p>
+        <p className="mt-2 text-xs leading-relaxed text-cinza">{apoio}</p>
       ) : null}
     </>
   );
@@ -157,11 +157,11 @@ export function Bloco({
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <h2 className="flex items-center gap-3 font-display text-xl font-extrabold tracking-[-0.03em]">
-            <span aria-hidden className="h-4 w-1 flex-none rounded-full bg-rosa" />
+            <span aria-hidden className="h-4 w-1 flex-none rounded-full bg-magenta" />
             {titulo}
           </h2>
           {apoio ? (
-            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">{apoio}</p>
+            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-cinza">{apoio}</p>
           ) : null}
         </div>
         {acao ? <div className="flex-none">{acao}</div> : null}
@@ -215,14 +215,14 @@ export function Pendencia({
       </span>
 
       <div className="min-w-0 grow">
-        <p className="font-semibold text-tinta">{titulo}</p>
-        <p className="mt-1 text-xs leading-relaxed text-tinta-fraca">{detalhe}</p>
+        <p className="font-semibold text-branco">{titulo}</p>
+        <p className="mt-1 text-xs leading-relaxed text-cinza">{detalhe}</p>
       </div>
 
       {href ? (
         <Link
           href={href}
-          className="flex-none rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors group-hover:border-rosa group-hover:bg-rosa group-hover:text-branco"
+          className="flex-none rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors group-hover:border-magenta group-hover:bg-magenta group-hover:text-branco"
         >
           {acao ?? 'Abrir'}
         </Link>
@@ -253,13 +253,13 @@ export function Atalho({
     >
       <span
         aria-hidden
-        className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-rosa/12 font-display text-lg font-extrabold text-acento transition-colors group-hover:bg-rosa group-hover:text-branco"
+        className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-magenta/12 font-display text-lg font-extrabold text-magenta-texto transition-colors group-hover:bg-magenta group-hover:text-branco"
       >
         {simbolo}
       </span>
       <span className="min-w-0">
-        <span className="block font-semibold text-tinta">{titulo}</span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-tinta-fraca">{descricao}</span>
+        <span className="block font-semibold text-branco">{titulo}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-cinza">{descricao}</span>
       </span>
     </Link>
   );
@@ -292,7 +292,7 @@ export function LinhaDoTempo({
         <li key={e.chave} className="relative">
           <span
             aria-hidden
-            className="absolute -left-7 top-3.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border border-fio bg-papel-alt text-[0.55rem] text-acento"
+            className="absolute -left-7 top-3.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border border-fio bg-marinho-fundo text-[0.55rem] text-magenta-texto"
           >
             {SIMBOLO_EVENTO[e.tipo] ?? '•'}
           </span>
@@ -327,8 +327,8 @@ function ConteudoEvento({
   return (
     <>
       <p className="flex flex-wrap items-baseline gap-x-3">
-        <span className="text-sm text-tinta">{titulo}</span>
-        <span className="tabular text-[0.75rem] text-tinta-fraca">
+        <span className="text-sm text-neve">{titulo}</span>
+        <span className="tabular font-mono text-[0.75rem] uppercase tracking-[0.1em] text-cinza">
           {new Date(em).toLocaleString('pt-BR', {
             timeZone: 'America/Sao_Paulo',
             day: '2-digit',
@@ -338,7 +338,7 @@ function ConteudoEvento({
           })}
         </span>
       </p>
-      {detalhe ? <p className="mt-0.5 text-xs text-tinta-fraca">{detalhe}</p> : null}
+      {detalhe ? <p className="mt-0.5 text-xs text-cinza">{detalhe}</p> : null}
     </>
   );
 }

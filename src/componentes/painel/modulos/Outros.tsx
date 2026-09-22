@@ -122,11 +122,11 @@ export async function Crm({ papel }: { papel: Papel }) {
                   <span aria-hidden className="text-sm" style={{ color: '#FBBF24' }}>▲</span>
                   <div className="min-w-0 grow">
                     <p className="truncate text-sm font-semibold">{l.empresa ?? l.nome}</p>
-                    <p className="mt-0.5 text-xs text-tinta-fraca">
+                    <p className="mt-0.5 text-xs text-cinza">
                       {rotuloEstagio[l.estagio]} · {l.diasNoEstagio} dias
                     </p>
                   </div>
-                  <span className="tabular shrink-0 text-xs text-tinta">
+                  <span className="tabular shrink-0 text-xs text-neve">
                     {dinheiroCurto(l.valorFee ?? 0)}
                   </span>
                 </li>
@@ -162,7 +162,7 @@ export async function Crm({ papel }: { papel: Papel }) {
           <tbody>
             {funil.map((f) => (
               <tr key={f.estagio}>
-                <th scope="row" className={`${td} font-normal text-tinta`}>
+                <th scope="row" className={`${td} font-normal text-branco`}>
                   {rotuloEstagio[f.estagio]}
                 </th>
                 <td className={`${td} tabular`}>{f.quantidade}</td>
@@ -193,8 +193,8 @@ export async function Crm({ papel }: { papel: Papel }) {
               return (
                 <li key={origem} className="cartao p-5">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-semibold text-tinta">{origem}</span>
-                    <span className="tabular text-sm text-tinta">
+                    <span className="text-sm font-semibold text-branco">{origem}</span>
+                    <span className="tabular text-sm text-neve">
                       {d.n} {d.n === 1 ? 'lead' : 'leads'}
                     </span>
                   </div>
@@ -203,11 +203,11 @@ export async function Crm({ papel }: { papel: Papel }) {
                       relance entre seis linhas. */}
                   <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
                     <div
-                      className="h-full rounded-full bg-rosa"
+                      className="h-full rounded-full bg-magenta"
                       style={{ width: `${fatia}%` }}
                     />
                   </div>
-                  <p className="mt-2.5 flex items-baseline justify-between gap-3 text-xs text-tinta-fraca">
+                  <p className="mt-2.5 flex items-baseline justify-between gap-3 text-xs text-cinza">
                     <span>{fatia.toFixed(0)}% do funil aberto</span>
                     <span className="tabular">{dinheiroCurto(d.valor)} em jogo</span>
                   </p>
@@ -229,8 +229,8 @@ export async function Crm({ papel }: { papel: Papel }) {
               .map((l) => (
                 <li key={l.id} className="cartao flex flex-wrap gap-x-4 gap-y-1 px-5 py-4">
                   <span className="font-semibold">{l.empresa ?? l.nome}</span>
-                  <span className="text-sm text-tinta-fraca">{l.motivoPerda ?? 'sem motivo registrado'}</span>
-                  <span className="tabular ml-auto text-sm text-tinta-fraca">
+                  <span className="text-sm text-cinza">{l.motivoPerda ?? 'sem motivo registrado'}</span>
+                  <span className="tabular ml-auto text-sm text-cinza">
                     {dinheiro(l.valorFee)}
                   </span>
                 </li>
@@ -294,11 +294,11 @@ export async function Contas({ papel }: { papel: Papel }) {
                     <th scope="row" className={`${td} font-normal`}>
                       <Link
                         href={`/painel/contas?ficha=${c.id}`}
-                        className="font-semibold text-tinta underline-offset-4 hover:underline"
+                        className="font-semibold text-branco underline-offset-4 hover:underline"
                       >
                         {c.nome}
                       </Link>
-                      <span className="mt-1 block text-[0.75rem] text-tinta-fraca">
+                      <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                         {[
                           rotuloTipoConta[c.tipo],
                           c.segmento,
@@ -310,23 +310,23 @@ export async function Contas({ papel }: { papel: Papel }) {
                     </th>
                     <td className={td}><SeloSituacao situacao={c.situacao} /></td>
                     <td className={`${td} tabular`}>
-                      {vende ? dinheiro(c.receita) : <span className="text-tinta-fraca">—</span>}
+                      {vende ? dinheiro(c.receita) : <span className="text-cinza">—</span>}
                     </td>
                     <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
                     <td className={`${td} tabular`}>
-                      {vende ? vezes(c.mer) : <span className="text-tinta-fraca">—</span>}
+                      {vende ? vezes(c.mer) : <span className="text-cinza">—</span>}
                     </td>
                     <td className={`${td} w-40`}>
                       {vende ? (
                         <Progresso percentual={c.metaAtingida} />
                       ) : (
-                        <span className="text-xs text-tinta-fraca">sem meta de venda</span>
+                        <span className="text-xs text-cinza">sem meta de venda</span>
                       )}
                     </td>
                     <td className={td}>
                       <Link
                         href={`/painel/contas?ficha=${c.id}`}
-                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-acento"
+                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto"
                       >
                         Ficha →
                       </Link>
@@ -392,8 +392,8 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
             {equipe.map((p) => (
               <tr key={p.id}>
                 <th scope="row" className={`${td} font-normal`}>
-                  <span className="font-semibold text-tinta">{p.nome}</span>
-                  <span className="mt-1 block text-xs text-tinta-fraca">{p.email}</span>
+                  <span className="font-semibold text-branco">{p.nome}</span>
+                  <span className="mt-1 block text-xs text-cinza">{p.email}</span>
                 </th>
                 <td className={td}>{rotuloPapel[p.papel as Papel] ?? p.papel}</td>
                 <td className={`${td} min-w-[18rem]`}>
@@ -427,16 +427,16 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
       </Secao>
 
       <Secao titulo="Como o acesso funciona">
-        <div className="cartao space-y-4 p-6 text-sm leading-relaxed text-tinta-fraca">
+        <div className="cartao space-y-4 p-6 text-sm leading-relaxed text-cinza">
           <p>
             O convite grava o papel e a loja em{' '}
-            <code className="text-tinta">app_metadata</code>, que o usuário não consegue
+            <code className="text-neve">app_metadata</code>, que o usuário não consegue
             editar, e um gatilho do banco cria o perfil no primeiro acesso. Por isso não
             existe cadastro aberto: quem se cadastrasse sozinho entraria sem papel e sem
             loja, e ficaria logado sem lugar nenhum.
           </p>
           <p>
-            <strong className="text-tinta">Desativar não apaga.</strong> O acesso é cortado
+            <strong className="text-neve">Desativar não apaga.</strong> O acesso é cortado
             na mesma sessão, sem esperar o próximo login, e o histórico da pessoa continua
             na auditoria. Excluir apagaria quem fez o quê.
           </p>
@@ -529,7 +529,7 @@ export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
         apoio="As tabelas sensíveis, da alteração mais recente para trás. O log não se altera nem se apaga: se desse para editar, não seria log."
       >
         {registros.length === 0 ? (
-          <p className="cartao p-6 text-sm text-tinta-fraca">
+          <p className="cartao p-6 text-sm text-cinza">
             Nenhum registro ainda. A trilha começa na primeira alteração de contrato,
             fatura, acesso, integração ou meta.
           </p>
@@ -538,14 +538,14 @@ export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
             {registros.map((r) => (
               <li key={r.id} className="cartao p-5">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="font-semibold text-tinta">{r.autor ?? 'Sistema'}</span>
-                  <span className="text-sm text-tinta-fraca">
+                  <span className="font-semibold text-branco">{r.autor ?? 'Sistema'}</span>
+                  <span className="text-sm text-cinza">
                     {ROTULO_ACAO[r.acao] ?? r.acao}{' '}
-                    <span className="text-tinta">
+                    <span className="text-neve">
                       {ROTULO_TABELA[r.tabela] ?? r.tabela}
                     </span>
                   </span>
-                  <span className="ml-auto text-[0.75rem] text-tinta-fraca">
+                  <span className="ml-auto font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
                     {new Date(r.em).toLocaleString('pt-BR', {
                       timeZone: 'America/Sao_Paulo',
                       day: '2-digit',
@@ -563,20 +563,20 @@ export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
                   <ul className="mt-3 space-y-1.5 border-t border-fio pt-3">
                     {r.mudancas.slice(0, 6).map((m) => (
                       <li key={m.campo} className="flex flex-wrap items-baseline gap-2 text-xs">
-                        <span className="flex-none text-tinta-fraca">
+                        <span className="flex-none font-mono uppercase tracking-[0.1em] text-cinza">
                           {m.campo}
                         </span>
-                        <span className="min-w-0 break-words text-tinta-fraca line-through">
+                        <span className="min-w-0 break-words text-cinza line-through">
                           {valorLegivel(m.de)}
                         </span>
-                        <span aria-hidden className="flex-none text-acento">→</span>
-                        <span className="min-w-0 break-words text-tinta">
+                        <span aria-hidden className="flex-none text-magenta-texto">→</span>
+                        <span className="min-w-0 break-words text-neve">
                           {valorLegivel(m.para)}
                         </span>
                       </li>
                     ))}
                     {r.mudancas.length > 6 ? (
-                      <li className="text-xs text-tinta-fraca">
+                      <li className="text-xs text-cinza">
                         e mais {r.mudancas.length - 6} campos
                       </li>
                     ) : null}
@@ -601,7 +601,7 @@ export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
             {pagina > 0 ? (
               <Link
                 href={`/painel/auditoria?pagina=${pagina - 1}`}
-                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
               >
                 ← Mais recentes
               </Link>
@@ -609,14 +609,14 @@ export async function Auditoria({ pagina = 0 }: { pagina?: number }) {
               <span />
             )}
 
-            <span className="text-[0.75rem] text-tinta-fraca">
+            <span className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
               página {pagina + 1}
             </span>
 
             {temMais ? (
               <Link
                 href={`/painel/auditoria?pagina=${pagina + 1}`}
-                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+                className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
               >
                 Mais antigos →
               </Link>
@@ -639,7 +639,7 @@ export function EmConstrucao({ nome, itens }: { nome: string; itens: string[] })
     <Secao titulo={nome} apoio="Ainda não construído. O que vem aqui:">
       <ul className="grid gap-4 md:grid-cols-2">
         {itens.map((i) => (
-          <li key={i} className="cartao px-6 py-5 text-tinta">{i}</li>
+          <li key={i} className="cartao px-6 py-5 text-neve">{i}</li>
         ))}
       </ul>
     </Secao>

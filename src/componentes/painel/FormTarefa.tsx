@@ -17,10 +17,12 @@ import {
 } from '@/lib/dados/tipos';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo = 'campo';
-const rotuloCss = 'rotulo-campo';
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta focus:bg-white/[0.05]';
+const rotuloCss = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 const pilula =
-  'inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12 disabled:opacity-60';
+  'inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5 disabled:opacity-60';
 
 export type OpcaoSimples = { id: string; nome: string };
 
@@ -33,7 +35,7 @@ function Aviso({ r }: { r: Resultado | null }) {
         'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ' +
         (r.ok
           ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-          : 'border-rosa/40 bg-rosa-leve text-acento')
+          : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
       }
     >
       <span aria-hidden className="mt-0.5">{r.ok ? '●' : '■'}</span>
@@ -113,7 +115,7 @@ function Campos({
               <option key={p.id} value={p.id}>{p.nome}</option>
             ))}
           </select>
-          <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Sem responsável, o lembrete vai para os administradores.
           </p>
         </div>
@@ -172,7 +174,7 @@ function Campos({
             ))}
           </select>
           {recorrencia !== 'nenhuma' ? (
-            <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
               Ao concluir, a próxima nasce sozinha — contada a partir do prazo, e não do dia
               em que você concluiu.
             </p>
@@ -187,7 +189,7 @@ function Campos({
               defaultValue={tarefa?.prazo ? '' : ''}
               className={`mt-2 ${campo}`}
             />
-            <p className="mt-1.5 text-xs leading-relaxed text-tinta-fraca">
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
               Em branco, repete sem fim.
             </p>
           </div>
@@ -228,7 +230,7 @@ export function FormNovaTarefa({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="inline-flex items-center gap-2.5 rounded-full bg-rosa px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte"
+          className="inline-flex items-center gap-2.5 rounded-full bg-magenta px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
         >
           <span aria-hidden className="text-base leading-none">+</span>
           Nova tarefa
@@ -247,7 +249,7 @@ export function FormNovaTarefa({
     <form action={acao} className="cartao space-y-5 p-6">
       <div>
         <h3 className="font-display text-lg font-bold tracking-[-0.02em]">Nova tarefa</h3>
-        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-tinta-fraca">
+        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-cinza">
           O prazo é o que faz a tarefa virar lembrete. Sem ele, ela existe mas nunca cobra
           ninguém.
         </p>
@@ -261,14 +263,14 @@ export function FormNovaTarefa({
         <button
           type="submit"
           disabled={pendente}
-          className="rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+          className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
           {pendente ? 'Criando...' : 'Criar tarefa'}
         </button>
         <button
           type="button"
           onClick={() => setAberto(false)}
-          className="rounded-full border border-fio px-6 py-3 text-sm text-tinta transition-colors hover:bg-tinta/12"
+          className="rounded-full border border-fio px-6 py-3 text-sm text-neve transition-colors hover:bg-white/5"
         >
           Cancelar
         </button>
@@ -332,7 +334,7 @@ export function AcoesTarefa({
           <button
             type="submit"
             disabled={pEditar}
-            className="rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+            className="rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
           >
             {pEditar ? 'Salvando...' : 'Salvar'}
           </button>
@@ -365,7 +367,7 @@ export function AcoesTarefa({
               <button
                 type="submit"
                 disabled={pConcluir}
-                className="inline-flex min-h-[24px] items-center gap-2 rounded-full bg-rosa px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+                className="inline-flex min-h-[24px] items-center gap-2 rounded-full bg-magenta px-5 py-2.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
               >
                 {pConcluir ? 'Concluindo...' : 'Concluir'}
               </button>
@@ -391,7 +393,7 @@ export function AcoesTarefa({
               <button
                 type="submit"
                 disabled={pStatus}
-                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento disabled:opacity-60"
+                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto disabled:opacity-60"
               >
                 Cancelar
               </button>
@@ -405,7 +407,7 @@ export function AcoesTarefa({
             <button
               type="submit"
               disabled={pApagar}
-              className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-tinta-fraca transition-colors hover:bg-tinta/12 hover:text-acento disabled:opacity-60"
+              className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs text-cinza transition-colors hover:bg-white/5 hover:text-magenta-texto disabled:opacity-60"
             >
               {pApagar ? 'Removendo...' : 'Remover'}
             </button>
@@ -414,7 +416,7 @@ export function AcoesTarefa({
       </div>
 
       {erro ? (
-        <p role="status" className="text-xs font-semibold leading-relaxed text-acento">
+        <p role="status" className="text-xs font-semibold leading-relaxed text-magenta-texto">
           <span aria-hidden className="mr-1.5">■</span>
           {erro.mensagem}
         </p>

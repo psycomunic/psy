@@ -24,7 +24,9 @@ import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
 */
 const COLUNAS = ESTAGIOS.filter((e) => e !== 'ganho' && e !== 'perdido');
 
-const campo = 'campo';
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta';
 
 export function Kanban({
   leads,
@@ -99,7 +101,7 @@ export function Kanban({
       {erro ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-rosa/40 bg-rosa-leve px-4 py-3 text-sm text-acento"
+          className="mb-4 rounded-xl border border-magenta/40 bg-magenta/10 px-4 py-3 text-sm text-magenta-texto"
         >
           {erro}
         </p>
@@ -122,19 +124,19 @@ export function Kanban({
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por loja, contato ou origem"
           aria-label="Buscar no funil"
-          className="min-w-0 grow rounded-full border border-fio bg-white/[0.03] px-5 py-2.5 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa sm:max-w-sm"
+          className="min-w-0 grow rounded-full border border-fio bg-white/[0.03] px-5 py-2.5 text-sm text-branco outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta sm:max-w-sm"
         />
         {busca ? (
           <button
             type="button"
             onClick={() => setBusca('')}
-            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+            className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
           >
             Limpar
           </button>
         ) : null}
         {busca ? (
-          <span aria-live="polite" className="text-xs text-tinta-fraca">
+          <span aria-live="polite" className="text-xs text-cinza">
             {filtrados.length} de {otimista.length}
           </span>
         ) : null}
@@ -160,21 +162,21 @@ export function Kanban({
               className={
                 'rounded-2xl border p-4 transition-colors ' +
                 (sobre === estagio
-                  ? 'border-rosa bg-rosa-leve'
+                  ? 'border-magenta bg-magenta/10'
                   : 'border-fio bg-white/[0.02]')
               }
             >
               <header className="flex items-baseline justify-between gap-2">
-                <h3 className="text-[0.75rem] text-acento">
+                <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {rotuloEstagio[estagio]}
                 </h3>
                 <span className="tabular text-sm font-semibold">{daColuna.length}</span>
               </header>
-              <p className="tabular mt-1 text-xs text-tinta-fraca">{dinheiroCurto(total)}</p>
+              <p className="tabular mt-1 text-xs text-cinza">{dinheiroCurto(total)}</p>
 
               <ul className="mt-4 space-y-2.5">
                 {daColuna.length === 0 ? (
-                  <li className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs text-tinta-fraca">
+                  <li className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs text-cinza">
                     {podeEditar ? 'Arraste um lead para cá' : 'Vazio'}
                   </li>
                 ) : (
@@ -194,7 +196,7 @@ export function Kanban({
                           }}
                           onClick={() => setAberto(l)}
                           className={
-                            'w-full rounded-xl border bg-papel-alt/50 p-4 text-left transition-colors hover:bg-papel-alt ' +
+                            'w-full rounded-xl border bg-marinho-alto/50 p-4 text-left transition-colors hover:bg-marinho-alto ' +
                             (parado ? 'border-[#FBBF24]/40' : 'border-fio') +
                             (podeEditar ? ' cursor-grab active:cursor-grabbing' : '')
                           }
@@ -202,18 +204,18 @@ export function Kanban({
                           <p className="text-sm font-semibold leading-snug">
                             {l.empresa ?? l.nome}
                           </p>
-                          <p className="mt-1 text-xs text-tinta-fraca">{l.nome}</p>
+                          <p className="mt-1 text-xs text-cinza">{l.nome}</p>
 
                           <p className="tabular mt-2.5 text-xs">
-                            <span className="text-tinta">{dinheiro(l.valorFee)}</span>
+                            <span className="text-neve">{dinheiro(l.valorFee)}</span>
                             {l.probabilidade !== null ? (
-                              <span className="ml-2 text-tinta-fraca">{l.probabilidade}%</span>
+                              <span className="ml-2 text-cinza">{l.probabilidade}%</span>
                             ) : null}
                           </p>
 
                           {l.proximoPasso ? (
-                            <p className="mt-2.5 border-t border-fio pt-2.5 text-xs leading-snug text-tinta-fraca">
-                              <span aria-hidden className="mr-1 text-acento">→</span>
+                            <p className="mt-2.5 border-t border-fio pt-2.5 text-xs leading-snug text-cinza">
+                              <span aria-hidden className="mr-1 text-magenta-texto">→</span>
                               {l.proximoPasso}
                             </p>
                           ) : null}
@@ -240,7 +242,7 @@ export function Kanban({
       </div>
 
       {pendente ? (
-        <p className="mt-4 text-[0.75rem] text-tinta-fraca">
+        <p className="mt-4 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
           salvando...
         </p>
       ) : null}
@@ -298,18 +300,18 @@ function FichaLead({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
 
-      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-fio bg-papel-alt p-7">
+      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-fio bg-marinho-fundo p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
               {lead.empresa ?? lead.nome}
             </h2>
-            <p className="mt-1 text-sm text-tinta-fraca">{lead.nome}</p>
+            <p className="mt-1 text-sm text-cinza">{lead.nome}</p>
           </div>
           <button
             type="button"
             onClick={aoFechar}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fio text-tinta-fraca transition-colors hover:bg-tinta/12"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fio text-cinza transition-colors hover:bg-white/5"
           >
             <span aria-hidden>×</span>
             <span className="sr-only">Fechar</span>
@@ -318,25 +320,25 @@ function FichaLead({
 
         <dl className="mt-6 grid grid-cols-2 gap-4 border-y border-fio py-5 text-sm">
           <div>
-            <dt className="text-[0.75rem] text-tinta-fraca">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Fee estimado
             </dt>
             <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorFee)}</dd>
           </div>
           <div>
-            <dt className="text-[0.75rem] text-tinta-fraca">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Verba estimada
             </dt>
             <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorVerba)}</dd>
           </div>
           <div>
-            <dt className="text-[0.75rem] text-tinta-fraca">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Estágio
             </dt>
             <dd className="mt-1">{rotuloEstagio[lead.estagio]}</dd>
           </div>
           <div>
-            <dt className="text-[0.75rem] text-tinta-fraca">
+            <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
               Há quanto tempo
             </dt>
             <dd className="mt-1">{lead.diasNoEstagio} dias</dd>
@@ -344,8 +346,8 @@ function FichaLead({
         </dl>
 
         {lead.motivoPerda ? (
-          <p className="mt-5 rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-sm text-tinta-fraca">
-            <strong className="text-tinta">Motivo da perda:</strong> {lead.motivoPerda}
+          <p className="mt-5 rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-sm text-cinza">
+            <strong className="text-neve">Motivo da perda:</strong> {lead.motivoPerda}
           </p>
         ) : null}
 
@@ -359,7 +361,7 @@ function FichaLead({
                 href={`https://wa.me/55${lead.telefone.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener"
-                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
               >
                 WhatsApp
               </a>
@@ -367,7 +369,7 @@ function FichaLead({
             {lead.email ? (
               <a
                 href={`mailto:${lead.email}`}
-                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12"
+                className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
               >
                 {lead.email}
               </a>
@@ -388,7 +390,7 @@ function FichaLead({
         {podeEditar && lead.estagio !== 'ganho' && lead.estagio !== 'perdido' ? (
           <Link
             href={`/painel/propostas?lead=${lead.id}`}
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-rosa/50 bg-rosa-leve px-5 py-2.5 text-sm font-semibold text-acento transition-colors hover:bg-rosa hover:text-branco"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-magenta/50 bg-magenta/10 px-5 py-2.5 text-sm font-semibold text-magenta-texto transition-colors hover:bg-magenta hover:text-branco"
           >
             Gerar proposta para este lead
             <span aria-hidden>→</span>
@@ -411,7 +413,7 @@ function FichaLead({
                   aria-current={aba === t.k ? 'true' : undefined}
                   className={
                     'rounded-full px-4 py-2 text-xs font-semibold transition-colors ' +
-                    (aba === t.k ? 'bg-rosa text-branco' : 'border border-fio text-tinta hover:bg-tinta/12')
+                    (aba === t.k ? 'bg-magenta text-branco' : 'border border-fio text-neve hover:bg-white/5')
                   }
                 >
                   {t.r}
@@ -462,7 +464,7 @@ function FichaLead({
                   </form>
 
                   {conversas.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs leading-relaxed text-tinta-fraca">
+                    <p className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs leading-relaxed text-cinza">
                       Nenhuma conversa registrada. É esse histórico que responde
                       &ldquo;por que esse lead parou?&rdquo; três semanas depois.
                     </p>
@@ -471,11 +473,11 @@ function FichaLead({
                       {conversas.map((c) => (
                         <li key={c.id} className="rounded-xl border border-fio bg-white/[0.02] p-4">
                           <p className="flex flex-wrap items-baseline gap-x-3">
-                            <span className="rounded-full border border-fio px-2.5 py-0.5 text-[0.75rem] text-acento">
+                            <span className="rounded-full border border-fio px-2.5 py-0.5 font-mono text-[0.75rem] uppercase tracking-[0.1em] text-magenta-texto">
                               {c.tipo}
                             </span>
-                            <span className="text-xs text-tinta-fraca">{c.autor ?? 'Sistema'}</span>
-                            <span className="tabular ml-auto text-[0.75rem] text-tinta-fraca">
+                            <span className="text-xs text-cinza">{c.autor ?? 'Sistema'}</span>
+                            <span className="tabular ml-auto font-mono text-[0.75rem] text-cinza">
                               {new Date(c.em).toLocaleDateString('pt-BR', {
                                 timeZone: 'America/Sao_Paulo',
                                 day: '2-digit',
@@ -483,7 +485,7 @@ function FichaLead({
                               })}
                             </span>
                           </p>
-                          <p className="mt-2 text-sm leading-relaxed text-tinta">{c.resumo}</p>
+                          <p className="mt-2 text-sm leading-relaxed text-neve">{c.resumo}</p>
                         </li>
                       ))}
                     </ol>
@@ -495,7 +497,7 @@ function FichaLead({
                 <form onSubmit={enviar(atualizarLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="pp" className="rotulo-campo">
+                    <label htmlFor="pp" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Próximo passo
                     </label>
                     <input
@@ -508,7 +510,7 @@ function FichaLead({
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="ppe" className="rotulo-campo">
+                      <label htmlFor="ppe" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                         Quando
                       </label>
                       <input
@@ -520,7 +522,7 @@ function FichaLead({
                       />
                     </div>
                     <div>
-                      <label htmlFor="pb" className="rotulo-campo">
+                      <label htmlFor="pb" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                         Probabilidade
                       </label>
                       <input
@@ -535,7 +537,7 @@ function FichaLead({
                       />
                     </div>
                   </div>
-                  <p className="text-xs leading-relaxed text-tinta-fraca">
+                  <p className="text-xs leading-relaxed text-cinza">
                     A probabilidade pondera a previsão do funil. Sem ela, a soma trata
                     como certo o lead que ainda não respondeu.
                   </p>
@@ -546,13 +548,13 @@ function FichaLead({
               {aba === 'ganhar' ? (
                 <form onSubmit={enviar(converterEmCliente)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
-                  <p className="text-sm leading-relaxed text-tinta-fraca">
+                  <p className="text-sm leading-relaxed text-cinza">
                     Converter cria a loja, o contrato, o acesso do responsável e as cinco
                     tarefas de onboarding — tudo numa transação só. Se qualquer parte
                     falhar, nada é criado.
                   </p>
                   <div>
-                    <label htmlFor="fee" className="rotulo-campo">
+                    <label htmlFor="fee" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Fee mensal fechado *
                     </label>
                     <input
@@ -565,7 +567,7 @@ function FichaLead({
                     />
                   </div>
                   <div>
-                    <label htmlFor="plat" className="rotulo-campo">
+                    <label htmlFor="plat" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Plataforma da loja
                     </label>
                     <input
@@ -589,7 +591,7 @@ function FichaLead({
                 <form onSubmit={enviar(perderLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="mp" className="rotulo-campo">
+                    <label htmlFor="mp" className="block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                       Por que foi perdido? *
                     </label>
                     <textarea
@@ -601,7 +603,7 @@ function FichaLead({
                       className={`mt-2 ${campo}`}
                     />
                   </div>
-                  <p className="text-xs leading-relaxed text-tinta-fraca">
+                  <p className="text-xs leading-relaxed text-cinza">
                     O motivo é obrigatório. Sem ele, &ldquo;perdido&rdquo; vira um
                     cemitério sem aprendizado, e três meses depois ninguém sabe se o
                     padrão era preço, prazo ou um concorrente específico.
@@ -620,7 +622,7 @@ function FichaLead({
               'mt-5 rounded-xl border px-4 py-3 text-sm ' +
               (r.ok
                 ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
-                : 'border-rosa/40 bg-rosa-leve text-acento')
+                : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
             }
           >
             {r.mensagem}
@@ -636,7 +638,7 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
     <button
       type="submit"
       disabled={pendente}
-      className="w-full rounded-full bg-rosa px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-rosa-forte disabled:opacity-60"
+      className="w-full rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
     >
       {pendente ? 'Salvando...' : children}
     </button>
