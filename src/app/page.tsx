@@ -92,54 +92,32 @@ export default function Home() {
 
       <main id="conteudo">
         {/* ==========================================================
-            CONHECIMENTO DE EMBARQUE
+            A ABERTURA
 
-            A abertura é o documento que acompanha a carga: quem manda,
-            para quem, e o que está declarado dentro. O título ocupa o
-            campo de descrição, porque é ele o conteúdo.
+            ERA UM CABEÇALHO DE DOCUMENTO, E ESTAVA ERRADO.
+
+            A primeira tela abria com "CONHECIMENTO DE EMBARQUE",
+            "REMETENTE" e "DESTINATÁRIO", antes de uma palavra sobre o
+            que a Psy Comunic faz. O mundo é expedição, mas quem chega
+            não veio despachar carga: veio decidir se contrata. Gastar
+            a parte mais valiosa da tela com papelada é comprometer-se
+            com a FORMA e esconder a OFERTA, que é a falha que a
+            própria direção avisa.
+
+            O mundo fica: papel, fio, campo rotulado, tarja, rastreio.
+            O que sai é o jargão na posição de manchete. Rótulo aqui
+            volta a nomear DADO, e não a anunciar a página.
+
+            A natureza da carga desceu para baixo dos botões, onde as
+            quatro frentes são informação de verdade, e a contagem de
+            entregas foi para o manifesto, que é onde ela significa
+            alguma coisa.
             ========================================================== */}
-        <section className="border-b border-fio pb-14 pt-10 md:pb-20 md:pt-14">
+        <section className="border-b border-fio pb-14 pt-12 md:pb-20 md:pt-16">
           <div className={secao}>
-            <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-b border-fio pb-4">
-              <span className="campo-rotulo">Conhecimento de embarque</span>
-              <span className="tabular campo-rotulo">
-                {totalEntregas} entregas · 2 remessas
-              </span>
-            </div>
-
-            <div className="grid gap-x-10 gap-y-6 pt-6 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.4fr]">
-              <Campo rotulo="Remetente">
-                <p className="font-semibold">Psy Comunic</p>
-                <p className="mt-0.5 text-sm text-tinta-fraca">
-                  Operação de e-commerce de moda
-                </p>
-              </Campo>
-              <Campo rotulo="Destinatário">
-                <p className="font-semibold">A sua loja de moda</p>
-                <p className="mt-0.5 text-sm text-tinta-fraca">
-                  Que já vende, e quer vender mais
-                </p>
-              </Campo>
-              <Campo rotulo="Natureza da carga" className="sm:col-span-2 lg:col-span-1">
-                <ul className="flex flex-wrap gap-x-5 gap-y-2">
-                  {frentes.map((f) => (
-                    <li key={f.slug} className="flex items-center gap-2 text-sm">
-                      <IconeFrente slug={f.slug} className="h-4 w-4 text-acento" />
-                      {f.nome}
-                    </li>
-                  ))}
-                </ul>
-              </Campo>
-            </div>
-
-            {/* O conteúdo declarado. O título vive no campo, e não
-                flutuando acima dele. */}
-            <div className="mt-10 border-t border-fio pt-8 md:mt-12">
-              <span className="campo-rotulo">Conteúdo declarado</span>
-              <h1 className="mt-4 font-display text-mostro titulo-revista">
-                Sua loja de moda não precisa de mais uma agência.
-              </h1>
-            </div>
+            <h1 className="max-w-[20ch] font-display text-mostro titulo-revista">
+              Sua loja de moda não precisa de mais uma agência.
+            </h1>
 
             {/* A TARJA. Rosa ocupando campo inteiro, como PRIORITÁRIO
                 numa etiqueta: a virada da frase é o que essa carga tem
@@ -168,10 +146,24 @@ export default function Home() {
                   </Link>
                 </div>
 
+                {/* As quatro frentes, aqui embaixo e não no topo.
+                    Aqui elas informam o que está incluído; lá em cima
+                    eram só um rótulo de formulário. */}
+                <Campo rotulo="O que entra junto" className="mt-9 border-t border-fio pt-6">
+                  <ul className="flex flex-wrap gap-x-6 gap-y-2.5">
+                    {frentes.map((f) => (
+                      <li key={f.slug} className="flex items-center gap-2 text-sm">
+                        <IconeFrente slug={f.slug} className="h-4 w-4 text-acento" />
+                        {f.nome}
+                      </li>
+                    ))}
+                  </ul>
+                </Campo>
+
                 {/* O que acontece depois do botão. A dúvida que trava
                     o clique não é preço: é não saber o que vem a
                     seguir. Ver Rastreio.tsx. */}
-                <Rastreio className="mt-10 border-t border-fio pt-7" />
+                <Rastreio className="mt-9 border-t border-fio pt-7" />
               </div>
 
               <div className="min-w-0">
@@ -253,8 +245,13 @@ export default function Home() {
             ========================================================== */}
         <section id="jornada" aria-labelledby="remessas-titulo" className="faixa-navy secao-ar">
           <div className={secao}>
-            <span className="campo-rotulo">Manifesto</span>
-            <h2 id="remessas-titulo" className="mt-4 max-w-[26ch] font-display text-titulo titulo-revista">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-fio pb-4">
+              <span className="campo-rotulo">Manifesto de carga</span>
+              <span className="tabular campo-rotulo">
+                {totalEntregas} entregas · {jornada.length} remessas
+              </span>
+            </div>
+            <h2 id="remessas-titulo" className="mt-8 max-w-[26ch] font-display text-titulo titulo-revista">
               Construímos a loja de moda. E ficamos para fazer ela vender.
             </h2>
             <p className="mt-6 max-w-[68ch] leading-relaxed text-tinta-fraca">
