@@ -8,10 +8,8 @@ import {
 } from '@/app/painel/acoes-integracao';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotuloCss = 'rotulo-campo';
 
 /** O que pedir por provedor. Errar o formato do identificador é o
     primeiro erro de todo mundo, então o exemplo fica no campo. */

@@ -4,10 +4,8 @@ import { useActionState, useRef, useEffect } from 'react';
 import { registrarInteracao } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotulo = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotulo = 'rotulo-campo';
 
 const TIPOS = [
   { v: 'ligacao', r: 'Ligação' },

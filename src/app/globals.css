@@ -154,6 +154,86 @@
   --text-guia--line-height: 1.65;
 }
 
+/*
+  CAMPO DE FORMULARIO.
+
+  ============================================================
+  ESTAVA ESCRITO DOZE VEZES, E QUEBROU DE UMA VEZ SO
+  ============================================================
+  Cada formulario tinha o proprio `const campo`, quase igual aos
+  outros: doze copias de `border-white/15 bg-white/[0.04]`, que era um
+  fio branco translucido sobre superficie escura. Funcionava no tema
+  escuro.
+
+  Com o fundo branco, branco a 15% sobre branco e branco, e branco a
+  4% tambem: os campos de texto SUMIRAM. Sobravam o rotulo e um vao. O
+  select e a area de texto continuavam visiveis so porque o navegador
+  desenha os dois por conta propria.
+
+  Agora e uma definicao, aqui. A proxima troca de tema acerta os doze
+  de uma vez, do jeito certo.
+
+  ============================================================
+  POR QUE O FUNDO E PAPEL, E NAO BRANCO
+  ============================================================
+  Campo branco sobre cartao branco precisa de borda escura para
+  existir, e borda escura em volta de sete campos vira uma grade
+  pesada. Com o fundo um degrau mais escuro que o cartao, o campo se
+  le pela PROPRIA AREA, e a borda pode ficar leve.
+
+  O foco troca a borda para o rosa e adiciona um anel de 3px: a borda
+  sozinha, em 1px, e pouco para quem navega por teclado.
+*/
+@utility campo {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  padding: 0.75rem 1rem;
+  font-size: 0.925rem;
+  color: var(--fg);
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.campo::placeholder { color: color-mix(in oklab, var(--fg-muted) 75%, transparent); }
+
+.campo:hover { border-color: color-mix(in oklab, var(--fg) 25%, transparent); }
+
+.campo:focus {
+  border-color: var(--psy-pink-ink);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--psy-pink) 18%, transparent);
+}
+
+/* Campo recusado pelo navegador, depois que a pessoa mexeu nele.
+   `:user-invalid` e o que separa "ainda nao preencheu" de "preencheu
+   errado": com `:invalid` puro, todo campo obrigatorio nasce vermelho. */
+.campo:user-invalid {
+  border-color: #C4143F;
+}
+
+/* A seta do select, desenhada aqui: a do sistema muda de tamanho e de
+   cor em cada navegador, e uma delas vinha escura demais. */
+select.campo {
+  appearance: none;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23686F8C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px 8px;
+}
+
+textarea.campo { min-height: 7rem; resize: vertical; }
+
+/* Rotulo de campo. Tambem estava repetido em cada formulario. */
+@utility rotulo-campo {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
 /* Respiro vertical padrão de seção. */
 @utility secao-ar {
   padding-block: var(--ar);

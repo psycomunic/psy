@@ -14,10 +14,8 @@ import type { Resultado } from '@/app/painel/acoes';
 import { PAPEIS, rotuloPapel, descricaoPapel, type Papel } from '@/lib/papeis';
 
 /* Estilos compartilhados: campo e rótulo iguais em toda a plataforma. */
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotulo = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotulo = 'rotulo-campo';
 
 function Aviso({ r }: { r: Resultado | null }) {
   if (!r) return null;

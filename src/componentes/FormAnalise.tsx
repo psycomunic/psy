@@ -13,13 +13,12 @@ import { FAIXAS_DE_VERBA, CANAIS_HOJE, formulario } from '@/conteudo/trafego';
  * verba e canal existem porque mudam a conversa que vem depois.
  */
 
-const campo =
-  'w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3.5 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/70 focus:border-rosa focus:bg-white/[0.07]';
-/* 12px, e não os 0,7rem que o resto do site usa em rótulo decorativo.
-   Aqui o rótulo é funcional: quem não conseguir ler não preenche, e
-   este formulário é o objetivo inteiro da página. */
-const rotulo = 'block text-xs text-tinta-fraca';
+const campo = 'campo';
+/* O rótulo aqui é FUNCIONAL, e não decorativo: quem não conseguir ler
+   não preenche, e este formulário é o objetivo inteiro da página.
+   Estava em 12px e em cinza claro, o mesmo peso do texto de apoio.
+   Agora é 0.8rem em peso 600 e na tinta cheia. Ver `rotulo-campo`. */
+const rotulo = 'rotulo-campo';
 
 export function FormAnalise() {
   const [estado, acao, pendente] = useActionState<ResultadoLead | null, FormData>(
@@ -130,7 +129,16 @@ export function FormAnalise() {
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/*
+        OS DOIS SELECTS EM UMA COLUNA, e não lado a lado.
+
+        Medido: lado a lado eles ficavam com 203px, e a opção mais
+        longa, "Entre R$ 15.000 e R$ 50.000", pede cerca de 250px com
+        o espaço da seta. O texto saía cortado no meio, e select é o
+        único campo em que o valor escolhido FICA à vista o tempo
+        todo: cortado, ele mostra a escolha errada.
+      */}
+      <div className="grid gap-5">
         <div>
           <label htmlFor="an-canal" className={rotulo}>Onde você anuncia hoje</label>
           <select id="an-canal" name="canal" defaultValue="ambos" className={`mt-2 ${campo}`}>

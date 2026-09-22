@@ -5,12 +5,8 @@ import { importarPlanilha } from '@/app/painel/acoes-metricas';
 import type { Resultado } from '@/app/painel/acoes';
 import { PROVEDORES, rotuloProvedor, type ProvedorPlanilha } from '@/lib/ingestao/csv';
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors file:mr-4 file:rounded-full file:border-0 ' +
-  'file:bg-tinta/12 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-tinta ' +
-  'placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotulo = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotulo = 'rotulo-campo';
 
 /** As colunas que cada tipo de planilha aceita, para caber na tela sem
     virar documentação em outro lugar. */

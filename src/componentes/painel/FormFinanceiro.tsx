@@ -23,10 +23,8 @@ import type { Resultado } from '@/app/painel/acoes';
  * mas o retorno é o que evita a dúvida antes de virar clique.
  */
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotuloCss = 'rotulo-campo';
 const pilula =
   'inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-tinta transition-colors hover:bg-tinta/12 disabled:opacity-60';
 const principal =

@@ -56,9 +56,7 @@ export function FormularioEntrar({ destino }: { destino: string }) {
     router.push(destino);
   }
 
-  const campo =
-    'w-full rounded-2xl border border-fio bg-white/[0.03] px-5 py-3.5 text-tinta ' +
-    'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
+  const campo = 'campo';
 
   return (
     <form onSubmit={entrar} className="mt-10 space-y-5" noValidate>

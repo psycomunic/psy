@@ -24,9 +24,7 @@ import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
 */
 const COLUNAS = ESTAGIOS.filter((e) => e !== 'ganho' && e !== 'perdido');
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa';
+const campo = 'campo';
 
 export function Kanban({
   leads,
@@ -497,7 +495,7 @@ function FichaLead({
                 <form onSubmit={enviar(atualizarLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="pp" className="block text-[0.75rem] text-tinta-fraca">
+                    <label htmlFor="pp" className="rotulo-campo">
                       Próximo passo
                     </label>
                     <input
@@ -510,7 +508,7 @@ function FichaLead({
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="ppe" className="block text-[0.75rem] text-tinta-fraca">
+                      <label htmlFor="ppe" className="rotulo-campo">
                         Quando
                       </label>
                       <input
@@ -522,7 +520,7 @@ function FichaLead({
                       />
                     </div>
                     <div>
-                      <label htmlFor="pb" className="block text-[0.75rem] text-tinta-fraca">
+                      <label htmlFor="pb" className="rotulo-campo">
                         Probabilidade
                       </label>
                       <input
@@ -554,7 +552,7 @@ function FichaLead({
                     falhar, nada é criado.
                   </p>
                   <div>
-                    <label htmlFor="fee" className="block text-[0.75rem] text-tinta-fraca">
+                    <label htmlFor="fee" className="rotulo-campo">
                       Fee mensal fechado *
                     </label>
                     <input
@@ -567,7 +565,7 @@ function FichaLead({
                     />
                   </div>
                   <div>
-                    <label htmlFor="plat" className="block text-[0.75rem] text-tinta-fraca">
+                    <label htmlFor="plat" className="rotulo-campo">
                       Plataforma da loja
                     </label>
                     <input
@@ -591,7 +589,7 @@ function FichaLead({
                 <form onSubmit={enviar(perderLead)} className="space-y-4">
                   <input type="hidden" name="id" value={lead.id} />
                   <div>
-                    <label htmlFor="mp" className="block text-[0.75rem] text-tinta-fraca">
+                    <label htmlFor="mp" className="rotulo-campo">
                       Por que foi perdido? *
                     </label>
                     <textarea

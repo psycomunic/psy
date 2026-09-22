@@ -4,10 +4,8 @@ import { useActionState, useState } from 'react';
 import { salvarCredencial, desligarCredencial } from '@/app/painel/acoes-integracao';
 import type { Resultado } from '@/app/painel/acoes';
 
-const campo =
-  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-tinta ' +
-  'outline-none transition-colors placeholder:text-tinta-fraca/60 focus:border-rosa focus:bg-white/[0.05]';
-const rotuloCss = 'block text-[0.75rem] text-tinta-fraca';
+const campo = 'campo';
+const rotuloCss = 'rotulo-campo';
 
 /* Espelha `CAMPOS_DO_PROVEDOR`, em `credenciais.ts`. Duplicado porque
    aquele arquivo é `server-only` e este é componente de cliente:
