@@ -66,7 +66,6 @@ export function HeroTrafego({
       style={{ minHeight: 'calc(100svh - var(--cabecalho, 81px))' }}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--cabecalho,81px))] w-full max-w-[1180px] items-center px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">

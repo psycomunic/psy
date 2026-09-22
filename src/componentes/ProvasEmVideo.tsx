@@ -6,31 +6,32 @@ import { provasEmVideo } from '@/conteudo/prova';
  * Os depoimentos em vídeo vertical, logo abaixo dos números.
  *
  * ============================================================
- * O ESPAÇO APARECE ANTES DO VÍDEO, E É UMA ESCOLHA
+ * A SEÇÃO SÓ EXISTE QUANDO O VÍDEO EXISTE
  * ============================================================
- * A primeira versão escondia a seção inteira enquanto não houvesse
- * arquivo, pela mesma regra de `cases`: moldura vazia num site
- * comercial é promessa não cumprida à vista de quem decide.
+ * Ela chegou a mostrar três espaços reservados, com borda tracejada
+ * e o formato escrito, para dar de ver o layout antes de gravar.
+ * Saíram: serviram para aprovar o desenho e, a partir daí, eram três
+ * caixas vazias na segunda dobra de um site que está pedindo
+ * contato.
  *
- * O espaço ficou visível a pedido, para dar de ver o layout antes de
- * gravar. Então ele foi desenhado para NÃO parecer vídeo quebrado:
- * borda tracejada, ícone de contorno e o formato escrito. Lê-se como
- * lugar reservado, e não como player que falhou.
- *
- * ATENÇÃO: isto está no ar. Enquanto os arquivos não chegarem, quem
- * visita a página vê três espaços vazios.
+ * Vale a mesma regra de `cases`, logo acima: moldura vazia num site
+ * comercial não é espaço reservado, é promessa não cumprida à vista
+ * de quem está decidindo.
  *
  * Componente de SERVIDOR: confere no disco quais arquivos existem em
- * `public/video/`. Cada espaço vira vídeo sozinho quando o seu
- * arquivo aparece, sem mexer em código. Bastando os três chegarem, a
- * seção fica só de vídeo.
+ * `public/video/` e renderiza só esses. Nenhum existindo, devolve
+ * `null` e a seção some da página.
+ *
+ * PARA ELA VOLTAR não se mexe em código: basta largar prova-1.mp4,
+ * prova-2.mp4 e prova-3.mp4 em `public/video/`. Quem chegar primeiro
+ * já traz a seção junto.
  */
 const existe = (arquivo: string) =>
   fs.existsSync(path.join(process.cwd(), 'public', 'video', arquivo));
 
 export function ProvasEmVideo({ className = '' }: { className?: string }) {
-  const provas = provasEmVideo.map((p) => ({ ...p, pronto: existe(p.arquivo) }));
-  const quantos = provas.filter((p) => p.pronto).length;
+  const provas = provasEmVideo.filter((p) => existe(p.arquivo));
+  if (provas.length === 0) return null;
 
   return (
     <section aria-labelledby="provas-titulo" className={'secao-ar ' + className}>
@@ -62,42 +63,20 @@ export function ProvasEmVideo({ className = '' }: { className?: string }) {
           className="mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 md:mt-16
                      md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0"
         >
-          {provas.map((p, i) => (
+          {provas.map((p) => (
             <li key={p.arquivo} className="w-[72vw] flex-none snap-start sm:w-[48vw] md:w-auto">
-              {p.pronto ? (
-                <video
-                  /* `controls` e nada de autoplay: são três depoimentos,
-                     e três reproduções automáticas ao mesmo tempo brigam
-                     entre si e gastam dado de quem está no celular. */
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster={p.poster ? `/imagens/${p.poster}` : undefined}
-                  className="aspect-[9/16] w-full rounded-[var(--raio)] border border-fio bg-marinho object-cover"
-                >
-                  <source src={`/video/${p.arquivo}`} type="video/mp4" />
-                </video>
-              ) : (
-                <div
-                  className="grid aspect-[9/16] w-full place-items-center rounded-[var(--raio)]
-                             border border-dashed border-fio bg-papel-alt text-center"
-                >
-                  <div className="px-6">
-                    <span
-                      aria-hidden
-                      className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-fio text-acento"
-                    >
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                        <path d="M8 5.5v13l11-6.5-11-6.5Z" />
-                      </svg>
-                    </span>
-                    <p className="mt-5 font-semibold">Depoimento {i + 1}</p>
-                    <p className="mt-1.5 text-sm text-tinta-fraca">
-                      Espaço reservado · vídeo em 1080x1920
-                    </p>
-                  </div>
-                </div>
-              )}
+              <video
+                /* `controls` e nada de autoplay: são três depoimentos,
+                   e três reproduções automáticas ao mesmo tempo brigam
+                   entre si e gastam dado de quem está no celular. */
+                controls
+                playsInline
+                preload="metadata"
+                poster={p.poster ? `/imagens/${p.poster}` : undefined}
+                className="aspect-[9/16] w-full rounded-[var(--raio)] border border-fio bg-marinho object-cover"
+              >
+                <source src={`/video/${p.arquivo}`} type="video/mp4" />
+              </video>
 
               {p.quem ? (
                 <div className="mt-4">
@@ -111,13 +90,6 @@ export function ProvasEmVideo({ className = '' }: { className?: string }) {
           ))}
         </ul>
 
-        {quantos === 0 ? (
-          /* Só para quem edita: o leitor de tela não anuncia, e o
-             visitante já entende pelo espaço tracejado. */
-          <p className="sr-only">
-            Os depoimentos em vídeo entram assim que forem gravados.
-          </p>
-        ) : null}
       </div>
     </section>
   );

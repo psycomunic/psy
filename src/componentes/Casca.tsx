@@ -62,7 +62,6 @@ export function TopoPagina({
   return (
     <section className="relative isolate overflow-hidden pb-14 pt-12 md:pb-20 md:pt-16">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       <div className={secao}>

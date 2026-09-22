@@ -99,7 +99,6 @@ export function HeroLocal({ u }: { u: Unidade }) {
       className="relative isolate overflow-hidden pb-16 pt-12 md:pb-24 md:pt-16"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-marinho" />
       </div>
 
       <div className={secao}>
