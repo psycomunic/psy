@@ -25,6 +25,11 @@
   --psy-paper:      #F7F8FA;
   --psy-navy:       #0B1437;
   --psy-navy-soft:  #16204A;
+  /* Um degrau ABAIXO do marinho da marca, para o painel de vidro.
+     O #0B1437 a 82% sobre o papel claro subia para #353D5A, que e
+     mais claro do que o marinho das faixas: o painel parecia lavado
+     justamente onde devia ser o ponto mais escuro da tela. */
+  --psy-navy-deep:  #050C2B;
   --psy-slate:      #686F8C;
   --psy-line:       #E4E6EE;
 
@@ -274,7 +279,7 @@ textarea.campo { min-height: 7rem; resize: vertical; }
   position: relative;
   isolation: isolate;
   border-radius: var(--raio);
-  background: color-mix(in oklab, var(--psy-navy) 82%, transparent);
+  background: color-mix(in oklab, var(--psy-navy-deep) 90%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .16),
     inset 0 -1px 0 rgba(0, 0, 0, .35),
@@ -282,8 +287,10 @@ textarea.campo { min-height: 7rem; resize: vertical; }
     0 24px 60px -30px rgba(11, 20, 55, .55);
 
   color: #FFFFFF;
-  --bg:         var(--psy-navy);
-  --bg-alt:     rgba(255, 255, 255, .07);
+  --bg:         var(--psy-navy-deep);
+  /* 9%, e nao 7%: sobre o painel mais escuro o campo precisava de um
+     degrau maior para se separar dele. */
+  --bg-alt:     rgba(255, 255, 255, .09);
   --fg:         #FFFFFF;
   --fg-muted:   #A9B0C9;
   --border:     rgba(255, 255, 255, .16);
@@ -298,12 +305,19 @@ textarea.campo { min-height: 7rem; resize: vertical; }
   nao, e `getComputedStyle` devolvia `none`. As regras simples
   passaram intactas, entao e onde ele mora.
 
-  A TRANSLUCIDEZ E 82%, e nao mais.
+  O AZUL E O PROFUNDO, A 90%.
 
-  Medido: o texto do formulario e branco, e o painel fica sobre o
-  papel claro. A 82% o fundo efetivo da 11:1 com o branco, folgado.
-  Descendo para 55% ele cairia para 3.6:1 e reprovaria no corpo de
-  texto, que e o que a maior parte do formulario e.
+  Medido sobre o papel claro, que e o que fica atras:
+
+    marinho da marca a 82%  ->  #353D5A   10.7:1 com o branco
+    marinho profundo a 90%  ->  #1D2440   15.2:1
+
+  O primeiro subia ACIMA do marinho das faixas da pagina: o painel
+  ficava mais claro do que o fundo escuro do resto do site, quando
+  devia ser o ponto mais escuro da tela.
+
+  Os 10% que sobram de translucidez sao o que deixa o brilho de tras
+  subir pela borda. Fechando em 100% o vidro vira retangulo pintado.
 
   O BORRADO NAO MORA AQUI: mora no atributo `style` do componente.
 
@@ -333,11 +347,7 @@ textarea.campo { min-height: 7rem; resize: vertical; }
 .vidro-marinho .campo:user-invalid { border-color: #FF7BA0; }
 
 @media (prefers-reduced-transparency: reduce) {
-  .vidro-marinho {
-    background: var(--psy-navy);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
+  .vidro-marinho { background: var(--psy-navy-deep); }
 }
 
 /* Respiro vertical padrão de seção. */
