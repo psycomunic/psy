@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.56, .64, 1)",
+        "createdAt": "2026-09-22T23:16:22.780Z",
+        "reason": "Claude: movimento literal nas cenas de Braganca. .cena-curtir e o coracao enchendo ao curtir, .cena-pino e o pino caindo no mapa. As duas cenas imitam Instagram e Maps, onde esse repique e o gesto real do aplicativo. O terceiro achado, .cena-chip, nao era literal e foi corrigido para saida exponencial."
+      }
+    ]
+  }
+}
