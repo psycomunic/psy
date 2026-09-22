@@ -54,7 +54,7 @@ export function ColunasDeSites() {
         return (
           <li
             key={t.arquivo}
-            className="vitrine-capa group relative aspect-[3/4] overflow-hidden rounded-xl border border-fio bg-papel-alt"
+            className="vitrine-capa group relative aspect-[3/4] overflow-hidden cartao shadow-xl"
             style={{ ['--percurso' as string]: `${(percurso / JANELA) * 100}%` }}
           >
             <Image

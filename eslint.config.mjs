@@ -14,6 +14,21 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
 
     /*
+      Ferramentas de agente instaladas por npx (skills, impeccable).
+
+      Elas gravam JS proprio dentro do projeto: `live-browser.js` e um
+      bundle `modern-screenshot.umd.js` de terceiro, que sozinho traz
+      78 avisos. Sao ferramenta, e nao codigo deste site: com o gate
+      em `--max-warnings=0`, deixa-las dentro do alcance derruba o
+      lint do projeto por causa de um bundle que nem mantemos.
+    */
+    ".claude/**",
+    ".agents/**",
+    ".codex/**",
+    ".github/skills/**",
+    ".github/agents/**",
+
+    /*
       A landing page antiga é um ARTEFATO PRESERVADO, e não código que
       mantemos. Ela foi movida inteira, sem uma linha alterada, e o
       CLAUDE.md proíbe convertê-la sem pedido explícito.

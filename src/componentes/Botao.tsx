@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 type Props = {
   href: string;
   children: ReactNode;
-  variante?: 'primario' | 'secundario' | 'claro';
+  variante?: 'primario' | 'secundario' | 'claro' | 'fantasma';
   externo?: boolean;
   className?: string;
 };
@@ -24,13 +24,13 @@ const base =
   'text-sm font-semibold transition-colors duration-200 active:scale-[0.98]';
 
 const variantes = {
-  primario: 'bg-rosa text-branco hover:bg-rosa-forte',
-  /* A borda acompanha o fundo: sobre branco é #D9DBE4, e dentro da
-     faixa marinho o --border já é branco a 28%. Uma classe, dois
-     fundos, sem o componente saber em qual está. */
-  secundario: 'border border-fio text-tinta hover:bg-papel-alt',
-  /* Sobre o rosa cheio da chamada final. */
-  claro: 'bg-branco text-marinho hover:bg-rosa-leve',
+  primario: 'bg-gradient-to-r from-rosa-forte to-rosa text-branco hover:shadow-[0_0_20px_var(--psy-accent-glow)] hover:-translate-y-0.5 border border-rosa',
+  secundario: 'border border-fio bg-marinho-alto text-branco hover:bg-marinho hover:border-rosa shadow-lg hover:shadow-[0_0_15px_var(--psy-accent-glow)] hover:-translate-y-0.5',
+  claro: 'bg-marinho-alto border border-fio text-rosa-grafico hover:border-rosa hover:text-branco shadow-lg hover:-translate-y-0.5',
+  /* Sem estilo proprio: quem chama traz o visual inteiro em
+     `className`. Existia como `variante="fantasma"` no page.tsx e nao
+     existia aqui, e o type check do build parava nisso. */
+  fantasma: '',
 } as const;
 
 export function Botao({ href, children, variante = 'primario', externo, className = '' }: Props) {

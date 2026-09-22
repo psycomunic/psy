@@ -65,3 +65,29 @@ _t.html
 # Saidas de ferramenta: previa de tela, rascunho de imagem.
 # Nao sao do projeto e pesam mais que o codigo inteiro.
 Claude outputs/
+
+# Ferramentas de agente instaladas por npx (skills, impeccable).
+#
+# O QUE FICA DE FORA, E POR QUE:
+#
+# 1. O EXECUTAVEL. O instalador baixa `impeccable.exe`, 14 MB, e grava
+#    TRES copias identicas (mesmo md5) em .claude, .agents e .github:
+#    42 MB. E so `windows-x64`: quem abrir o projeto em Mac ou Linux
+#    clona 42 MB de binario que nao roda na maquina dele. Este
+#    repositorio e publico, e binario baixado da internet nao entra
+#    nele.
+#
+# 2. AS COPIAS. As mesmas definicoes de skill sao gravadas nas tres
+#    pastas, uma por harness. Versionar as tres e versionar a mesma
+#    coisa tres vezes.
+#
+# Para reinstalar em outra maquina, os dois comandos do README:
+#   npx skills@latest add emilkowalski/skills
+#   npx impeccable install
+.agents/
+.codex/
+.github/agents/
+.github/hooks/
+.github/skills/
+.claude/skills/*/scripts/bin/
+skills-lock.json

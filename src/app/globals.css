@@ -20,15 +20,11 @@
    nenhum componente saber em qual dos dois está.
    ================================================================= */
 :root {
-  /* base */
+  /* base: dark theme premium com CORES DA PSY */
   --psy-white:      #FFFFFF;
   --psy-paper:      #F7F8FA;
   --psy-navy:       #0B1437;
   --psy-navy-soft:  #16204A;
-  /* Um degrau ABAIXO do marinho da marca, para o painel de vidro.
-     O #0B1437 a 82% sobre o papel claro subia para #353D5A, que e
-     mais claro do que o marinho das faixas: o painel parecia lavado
-     justamente onde devia ser o ponto mais escuro da tela. */
   --psy-navy-deep:  #050C2B;
   --psy-slate:      #686F8C;
   --psy-line:       #E4E6EE;
@@ -39,43 +35,26 @@
   --psy-pink-deep:  #B01238;
   --psy-pink-wash:  #FFF1F5;
 
-  /* semânticos: é isto que a faixa marinho troca */
-  --bg:         var(--psy-white);
-  --bg-alt:     var(--psy-paper);
-  --fg:         var(--psy-navy);
-  --fg-muted:   var(--psy-slate);
-  --border:     var(--psy-line);
+  /* Premium Dark / Glass properties mantendo a identidade visual */
+  --psy-bg-glass:   rgba(255, 255, 255, 0.04);
+  --psy-border-glass: rgba(255, 255, 255, 0.12);
+  --psy-accent-glow: rgba(255, 46, 99, 0.45); /* Brilho rosa */
+
+  /* semânticos globais mapeados PARA DARK por padrão */
+  --bg:         var(--psy-navy);
+  --bg-alt:     var(--psy-navy-soft);
+  --fg:         #FFFFFF;
+  --fg-muted:   #A9B0C9;
+  --border:     var(--psy-border-glass);
+  
   --accent:     var(--psy-pink);
+  --accent-ink: #FF7BA0; /* Rosa contrastante no dark */
 
-  /*
-    Acento de TEXTO e FUNDO DE BOTÃO, separado do acento gráfico.
+  --sombra: 0 10px 30px rgba(0, 0, 0, 0.5);
 
-    Os números vieram de medição, e corrigem o documento do tema em
-    dois pontos:
+  --raio:      16px;
+  --raio-p:    12px;
 
-    1. Branco sobre #FF2E63 dá 3.61:1 e REPROVA nos 4.5:1 exigidos
-       para texto de 14px. O documento dava esse par como aprovado. O
-       botão primário usa o tom escurecido, onde branco dá 4.81:1.
-    2. O par de texto foi calculado contra a superfície clara mais
-       ESCURA da paleta, que é o lavado rosa #FFF1F5 e não o branco.
-       #E01B4C e #6B7290 passavam no branco e reprovavam por pouco no
-       lavado e no papel: 4.46:1. Os valores atuais passam nos três.
-
-    O #FF2E63 cheio continua existindo, restrito a elemento gráfico,
-    onde o mínimo é 3:1.
-  */
-  --accent-ink: var(--psy-pink-ink);
-
-  /* Sombra quase não existe: a separação vem de linha e de espaço.
-     Quando precisa, é esta e só esta. */
-  --sombra: 0 1px 2px rgba(11, 20, 55, .06);
-
-  --raio:      14px;
-  --raio-p:    14px;
-
-  /* Respiro entre seções. O tema claro precisa de mais ar que o
-     escuro: sem isso a página parece apertada, porque não há
-     escuridão nenhuma separando um bloco do outro. */
   --ar: clamp(72px, 10vw, 140px);
 }
 
@@ -111,7 +90,7 @@
 }
 
 @theme inline {
-  /* --- papéis, e não cores. Uma classe, dois fundos. --- */
+  /* --- papéis mapeados para o dark premium --- */
   --color-tinta:        var(--fg);
   --color-tinta-fraca:  var(--fg-muted);
   --color-fio:          var(--border);
@@ -119,10 +98,10 @@
   --color-papel-alt:    var(--bg-alt);
   --color-acento:       var(--accent-ink);
 
-  /* --- cores literais, para quando o papel não serve --- */
-  --color-rosa:       var(--psy-pink-ink);
+  /* --- cores literais originais da Psy --- */
+  --color-rosa:       var(--psy-pink);
   --color-rosa-forte: var(--psy-pink-deep);
-  --color-rosa-grafico: var(--psy-pink);
+  --color-rosa-grafico: var(--psy-pink-ink);
   --color-rosa-leve:  var(--psy-pink-wash);
   --color-marinho:    var(--psy-navy);
   --color-marinho-alto: var(--psy-navy-soft);
@@ -402,19 +381,11 @@ html {
     controle.
   */
   /*
-    CLARO, E SEM ALTERNÂNCIA AUTOMÁTICA.
-
-    `color-scheme: light` é o que faz o navegador desenhar a lista do
-    <select>, o seletor de data, a barra de rolagem e o autofill no
-    tema certo. Sem ele a lista do select abre com as cores do sistema
-    e some no fundo, que foi exatamente o defeito que existia quando o
-    site era escuro, ao contrário.
-
-    Não existe bloco `prefers-color-scheme`: o site é claro por opção
-    de marca, e inverter sozinho no aparelho do visitante trocaria a
-    identidade por uma preferência de sistema.
+    TEMA ESCURO NATIVO.
+    Isto diz ao navegador para renderizar barras de rolagem, autofill e selects
+    usando as cores do sistema escuro.
   */
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* Reforço para os navegadores que ainda pintam a lista pelo elemento.
@@ -427,6 +398,8 @@ optgroup {
 
 body {
   background: var(--bg);
+  background-image: radial-gradient(circle at 80% 20%, rgba(255, 46, 99, 0.04) 0%, transparent 50%),
+                    radial-gradient(circle at 20% 80%, rgba(255, 46, 99, 0.02) 0%, transparent 40%);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -446,6 +419,16 @@ body {
 /* Números tabulares em tudo que é dado: sem isso, "17" e "26" têm
    larguras diferentes e a coluna de estatísticas dança. */
 .tabular { font-variant-numeric: tabular-nums; }
+
+.grao-camada {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
 
 
 
@@ -475,10 +458,13 @@ body {
   display: grid;
   place-items: center;
   border-radius: var(--raio);
-  background: var(--psy-pink-wash);
-  border: 1px solid color-mix(in oklab, var(--psy-pink) 18%, transparent);
-  color: var(--psy-pink-ink);
-  transition: transform .35s cubic-bezier(.22,.61,.36,1), background .35s ease;
+  background: var(--psy-bg-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--psy-border-glass);
+  color: var(--psy-accent-gold);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s ease, border-color .35s ease;
 }
 
 /* Dentro da faixa marinho o lavado rosa desaparece: vira um sinal de
@@ -513,11 +499,23 @@ body {
   Sombra quase não existe neste tema. Quando precisa, é --sombra.
 */
 @utility cartao {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--raio);
   position: relative;
   isolation: isolate;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.cartao:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 46, 99, 0.1);
+  transform: translateY(-4px);
 }
 
 /* O fio de luz na aresta superior. É o detalhe que faz o card parecer

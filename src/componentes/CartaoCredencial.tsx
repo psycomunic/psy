@@ -26,20 +26,20 @@ export function CartaoCredencial({
   return (
     <div
       className={
-        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-rosa/35 md:p-9 ' +
+        'cartao relative flex gap-6 overflow-hidden p-7 transition-colors duration-500 hover:border-rosa/40 md:p-9 ' +
         className
       }
       data-inclina
     >
-      <span className="tabular relative shrink-0 text-xs text-acento">
+      <span className="tabular relative shrink-0 text-sm font-semibold text-rosa">
         {item.i}
       </span>
 
       <div className="relative min-w-0">
-        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
+        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl text-branco">
           {item.t}
         </p>
-        <p className="mt-3 max-w-[56ch] leading-relaxed text-tinta-fraca">{item.d}</p>
+        <p className="mt-3 max-w-[56ch] leading-relaxed text-branco/60">{item.d}</p>
 
         {selos ? <FileiraDeSelos selos={selos} /> : null}
       </div>
@@ -64,9 +64,9 @@ function FileiraDeSelos({
   selos: readonly { nome: string; arquivo: string | null; largura?: number; altura?: number }[];
 }) {
   return (
-    <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-fio pt-5">
-      <li className="text-[0.6rem] text-tinta-fraca">
-        Onde ela construiu
+    <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/10 pt-5">
+      <li className="text-[0.65rem] font-semibold uppercase tracking-widest text-branco/40">
+        Onde ele construiu
       </li>
       {selos.map((s) =>
         s.arquivo ? (
@@ -74,11 +74,7 @@ function FileiraDeSelos({
             <span
               role="img"
               aria-label={s.nome}
-              /* 22px, e não 15. Medido: a 15px o logotipo rendia 338
-                 pixels de letra em 15930, contra 0 do controle sem
-                 máscara. Pintava, e mesmo assim era um borrão: o
-                 traço da fonte fica abaixo de um pixel. */
-              className="block h-[22px] bg-tinta"
+              className="block h-[22px] bg-branco"
               style={{
                 width: `${((s.largura ?? 100) / (s.altura ?? 100)) * 22}px`,
                 WebkitMaskImage: `url(${s.arquivo})`,
@@ -95,7 +91,7 @@ function FileiraDeSelos({
         ) : (
           <li
             key={s.nome}
-            className="rounded-full border border-fio px-3 py-1 text-[0.72rem] font-semibold text-tinta"
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.72rem] font-semibold text-branco/80"
           >
             {s.nome}
           </li>
