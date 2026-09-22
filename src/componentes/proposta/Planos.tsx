@@ -128,7 +128,7 @@ export function SlideVisaoGeral({ recomendado }: { recomendado: Plano }) {
                     className="h-full rounded-full"
                     style={{
                       width: `${(inclusos / total) * 100}%`,
-                      background: alvo ? 'var(--psy-pink)' : SIM,
+                      background: alvo ? 'var(--exp-tarja)' : SIM,
                     }}
                   />
                 </div>

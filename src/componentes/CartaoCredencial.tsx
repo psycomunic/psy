@@ -31,15 +31,15 @@ export function CartaoCredencial({
       }
       data-inclina
     >
-      <span className="tabular relative shrink-0 text-sm font-semibold text-rosa">
+      <span className="tabular relative shrink-0 text-sm font-semibold text-acento">
         {item.i}
       </span>
 
       <div className="relative min-w-0">
-        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl text-branco">
+        <p className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl text-tinta">
           {item.t}
         </p>
-        <p className="mt-3 max-w-[56ch] leading-relaxed text-branco/60">{item.d}</p>
+        <p className="mt-3 max-w-[56ch] leading-relaxed text-tinta-fraca">{item.d}</p>
 
         {selos ? <FileiraDeSelos selos={selos} /> : null}
       </div>
@@ -64,8 +64,8 @@ function FileiraDeSelos({
   selos: readonly { nome: string; arquivo: string | null; largura?: number; altura?: number }[];
 }) {
   return (
-    <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/10 pt-5">
-      <li className="text-[0.65rem] font-semibold uppercase tracking-widest text-branco/40">
+    <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-fio pt-5">
+      <li className="text-[0.65rem] font-semibold uppercase tracking-widest text-tinta-fraca">
         Onde ele construiu
       </li>
       {selos.map((s) =>
@@ -74,7 +74,7 @@ function FileiraDeSelos({
             <span
               role="img"
               aria-label={s.nome}
-              className="block h-[22px] bg-branco"
+              className="block h-[22px] bg-tinta"
               style={{
                 width: `${((s.largura ?? 100) / (s.altura ?? 100)) * 22}px`,
                 WebkitMaskImage: `url(${s.arquivo})`,
@@ -91,7 +91,7 @@ function FileiraDeSelos({
         ) : (
           <li
             key={s.nome}
-            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.72rem] font-semibold text-branco/80"
+            className="rounded-full border border-fio bg-papel-alt px-3 py-1 text-[0.72rem] font-semibold text-tinta-fraca"
           >
             {s.nome}
           </li>

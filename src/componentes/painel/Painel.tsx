@@ -62,7 +62,7 @@ export function Anel({
           cy={tamanho / 2}
           r={r}
           fill="none"
-          stroke={completo ? CORES_SITUACAO.saudavel : 'var(--psy-pink)'}
+          stroke={completo ? CORES_SITUACAO.saudavel : 'var(--exp-tarja)'}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={perimetro}
@@ -96,7 +96,7 @@ export function Numero({
   rotulo,
   valor,
   apoio,
-  cor = 'var(--psy-pink)',
+  cor = 'var(--exp-tarja)',
   href,
   alerta = false,
 }: {

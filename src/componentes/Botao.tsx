@@ -24,12 +24,21 @@ const base =
   'text-sm font-semibold transition-colors duration-200 active:scale-[0.98]';
 
 const variantes = {
-  primario: 'bg-gradient-to-r from-rosa-forte to-rosa text-branco hover:shadow-[0_0_20px_var(--psy-accent-glow)] hover:-translate-y-0.5 border border-rosa',
-  secundario: 'border border-fio bg-marinho-alto text-branco hover:bg-marinho hover:border-rosa shadow-lg hover:shadow-[0_0_15px_var(--psy-accent-glow)] hover:-translate-y-0.5',
-  claro: 'bg-marinho-alto border border-fio text-rosa-grafico hover:border-rosa hover:text-branco shadow-lg hover:-translate-y-0.5',
-  /* Sem estilo proprio: quem chama traz o visual inteiro em
-     `className`. Existia como `variante="fantasma"` no page.tsx e nao
-     existia aqui, e o type check do build parava nisso. */
+  /*
+    TINTA CHAPADA, e nao gradiente.
+
+    O mundo e documento impresso: etiqueta, carimbo, fio. Gradiente e
+    brilho pertencem a tela acesa, que e o oposto do objeto de luz
+    refletida que esta pagina imita.
+
+    O fundo e o rosa ESCURECIDO. Medido: branco sobre o #FF2E63 cheio
+    da marca da 3.61:1 e reprova nos 4.5 exigidos; sobre o escurecido
+    da 5.00.
+  */
+  primario: 'bg-rosa text-branco hover:bg-rosa-forte',
+  secundario: 'border border-fio-forte text-tinta hover:bg-papel-alt',
+  claro: 'bg-papel text-tinta hover:bg-papel-alt',
+  /* Sem estilo proprio: quem chama traz o visual inteiro em className. */
   fantasma: '',
 } as const;
 

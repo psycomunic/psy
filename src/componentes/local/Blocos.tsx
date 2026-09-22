@@ -354,7 +354,7 @@ export function PassosLocal({ u }: { u: Unidade }) {
               nao intercepta toque. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute left-[27px] top-4 -z-10 w-px bg-[linear-gradient(180deg,transparent,var(--psy-pink)_18%,var(--psy-pink)_82%,transparent)] opacity-40 md:left-0 md:right-0 md:top-[27px] md:h-px md:w-auto md:bg-[linear-gradient(90deg,transparent,var(--psy-pink)_18%,var(--psy-pink)_82%,transparent)]"
+            className="pointer-events-none absolute left-[27px] top-4 -z-10 w-px bg-[linear-gradient(180deg,transparent,var(--exp-tarja)_18%,var(--exp-tarja)_82%,transparent)] opacity-40 md:left-0 md:right-0 md:top-[27px] md:h-px md:w-auto md:bg-[linear-gradient(90deg,transparent,var(--exp-tarja)_18%,var(--exp-tarja)_82%,transparent)]"
             style={{ bottom: '1rem' }}
           />
 
@@ -639,7 +639,7 @@ export function FechamentoLocal({ u }: { u: Unidade }) {
         bloco="fechamento"
         opacidade="opacity-[0.55]"
         posicao="center 35%"
-        veu="bg-[linear-gradient(90deg,var(--psy-pink)_0%,rgba(255,46,99,0.55)_40%,rgba(255,46,99,0.2)_100%)]"
+        veu="bg-[linear-gradient(90deg,var(--exp-tarja)_0%,rgba(255,46,99,0.55)_40%,rgba(255,46,99,0.2)_100%)]"
       />
       <div className={secao}>
         <h2 className="max-w-[18ch] font-display text-titulo titulo-revista text-tinta">

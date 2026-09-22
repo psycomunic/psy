@@ -77,7 +77,7 @@ function CenaAnuncio() {
         <div className="cena-post overflow-hidden rounded-xl border border-fio bg-papel-alt/80 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
           {/* Cabeçalho do post */}
           <div className="flex items-center gap-2 px-3 py-2">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[conic-gradient(from_210deg,var(--psy-pink),#F59E0B,#7C3AED,var(--psy-pink))]">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[conic-gradient(from_210deg,var(--exp-tarja),#F59E0B,#7C3AED,var(--exp-tarja))]">
               <span className="h-[22px] w-[22px] rounded-full bg-papel-alt" />
             </span>
             <span className="min-w-0">
@@ -94,7 +94,7 @@ function CenaAnuncio() {
           </div>
 
           {/* A arte do anúncio */}
-          <div className="relative h-[60px] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--psy-pink)_42%,transparent),color-mix(in_oklab,#2B6BFF_32%,transparent))]">
+          <div className="relative h-[60px] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--exp-tarja)_42%,transparent),color-mix(in_oklab,#2B6BFF_32%,transparent))]">
             <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(6,9,26,0.55))]" />
             <span className="absolute bottom-2 left-3 right-3 flex flex-col gap-1">
               <Barra w="62%" claro />
@@ -266,7 +266,7 @@ function CenaMapa() {
         {/* A ficha da empresa no Maps */}
         <div className="cena-ficha rounded-xl border border-fio bg-papel-alt/85 p-3 shadow-[0_16px_36px_-14px_rgba(0,0,0,0.85)]">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[linear-gradient(135deg,var(--psy-pink),#7C3AED)]">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[linear-gradient(135deg,var(--exp-tarja),#7C3AED)]">
               <svg viewBox="0 0 24 24" className="h-4 w-4 text-tinta" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z" />
                 <path d="M3 9l1.6-4.2A1 1 0 0 1 5.5 4h13a1 1 0 0 1 .9.8L21 9" />

@@ -272,7 +272,7 @@ export function FormProposta({
                       onChange={(e) =>
                         setEscolhidos((a) => ({ ...a, [s.id]: e.target.checked }))
                       }
-                      className="mt-1 h-4 w-4 flex-none accent-[var(--psy-pink)]"
+                      className="mt-1 h-4 w-4 flex-none accent-[var(--exp-tarja)]"
                     />
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">

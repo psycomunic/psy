@@ -98,7 +98,7 @@ export function SlideDaConta({
                   type="checkbox"
                   checked={querem[s.id] ?? false}
                   onChange={(e) => setQuerem((a) => ({ ...a, [s.id]: e.target.checked }))}
-                  className="h-6 w-6 flex-none accent-[var(--psy-pink)]"
+                  className="h-6 w-6 flex-none accent-[var(--exp-tarja)]"
                 />
                 <span className={querem[s.id] ? 'text-tinta' : 'text-tinta-fraca'}>
                   {s.nome}

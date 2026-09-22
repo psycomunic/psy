@@ -132,7 +132,7 @@ export function MenuLateral({
             <span
               aria-hidden
               className="menu-ponto absolute right-2 top-2 h-2 w-2 rounded-full"
-              style={{ background: c.grave ? 'var(--psy-pink)' : 'var(--fg-muted)' }}
+              style={{ background: c.grave ? 'var(--exp-tarja)' : 'var(--fg-muted)' }}
             />
           ) : null}
         </Link>

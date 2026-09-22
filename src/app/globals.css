@@ -20,43 +20,118 @@
    nenhum componente saber em qual dos dois está.
    ================================================================= */
 :root {
-  /* base: dark theme premium com CORES DA PSY */
-  --psy-white:      #FFFFFF;
-  --psy-paper:      #F7F8FA;
-  --psy-navy:       #0B1437;
-  --psy-navy-soft:  #16204A;
-  --psy-navy-deep:  #050C2B;
-  --psy-slate:      #686F8C;
-  --psy-line:       #E4E6EE;
+  /*
+    EXPEDIÇÃO.
 
-  /* acento */
-  --psy-pink:       #FF2E63;
-  --psy-pink-ink:   #D91A4A;
-  --psy-pink-deep:  #B01238;
-  --psy-pink-wash:  #FFF1F5;
+    A operação vendida como carga despachada. O leitor deste site passa
+    o dia dentro deste vocabulário: etiqueta, lista de separação,
+    conferência, rastreio. A palavra que o conteúdo já usava para o que
+    a Psy Comunic faz todo mês é ENTREGA.
 
-  /* Premium Dark / Glass properties mantendo a identidade visual */
-  --psy-bg-glass:   rgba(255, 255, 255, 0.04);
-  --psy-border-glass: rgba(255, 255, 255, 0.12);
-  --psy-accent-glow: rgba(255, 46, 99, 0.45); /* Brilho rosa */
+    TRADUÇÃO DO MATERIAL: o mundo é papel kraft e cinza de papelão, e a
+    marca é marinho e rosa. Marca fixada vence material sorteado, então
+    o PAPEL fica, a TINTA é o marinho, a TARJA é o rosa, e o papelão
+    sai. Ver DESIGN.md.
+  */
+  --exp-papel:        #F4F2ED;
+  --exp-fundo:        #EAE7E0;
+  --exp-tinta:        #0B1437;
+  --exp-tinta-fraca:  #5C6178;
+  --exp-tarja:        #FF2E63;
+  /* O rosa que aceita texto em cima. Medido: branco sobre o #FF2E63
+     cheio da marca da 3.61:1 e reprova nos 4.5 exigidos para corpo de
+     texto; sobre este da 5.00. E ele, e nao o cheio, que forra a
+     tarja. */
+  --exp-tarja-tinta:  #D91A4A;
+  /*
+    O rosa para TEXTO sobre superficie clara.
 
-  /* semânticos globais mapeados PARA DARK por padrão */
-  --bg:         var(--psy-navy);
-  --bg-alt:     var(--psy-navy-soft);
-  --fg:         #FFFFFF;
-  --fg-muted:   #A9B0C9;
-  --border:     var(--psy-border-glass);
-  
-  --accent:     var(--psy-pink);
-  --accent-ink: #FF7BA0; /* Rosa contrastante no dark */
+    Calibrado contra a superficie clara mais ESCURA da paleta, que e o
+    papel-fundo #EAE7E0, e nao contra o papel. Duas versoes passaram
+    no papel e reprovaram no fundo, onde vivem os titulos do rodape:
+    #D91A4A deu 4.47 e #DE0038 deu 4.08. Este da 4.52 no fundo e 4.99
+    no papel.
+  */
+  --exp-tarja-texto:  #D10035;
+  --exp-papel-puro:   #FFFFFF;
 
-  --sombra: 0 10px 30px rgba(0, 0, 0, 0.5);
+  /*
+    CLARO, e não por categoria: pela cena de uso.
 
-  --raio:      16px;
-  --raio-p:    12px;
+    Quem abre este site é lojista, no celular, no meio do expediente,
+    muitas vezes dentro da loja ou na rua, com luz alta. Etiqueta é
+    objeto de luz refletida, não de tela acesa.
+  */
+  --bg:         var(--exp-papel);
+  --bg-alt:     var(--exp-fundo);
+  --fg:         var(--exp-tinta);
+  --fg-muted:   var(--exp-tinta-fraca);
+  --border:     color-mix(in oklab, var(--exp-tinta) 14%, transparent);
+  --border-forte: color-mix(in oklab, var(--exp-tinta) 34%, transparent);
+
+  --accent:     var(--exp-tarja);
+  /*
+    Acento de TEXTO, separado do gráfico. Medido: branco sobre #FF2E63
+    dá 3.61:1 e reprova nos 4.5 exigidos para corpo de texto; o
+    escurecido dá 4.8. O #FF2E63 cheio fica em REGIÃO (tarja, faixa,
+    fundo de botão), onde o mínimo é 3:1.
+  */
+  --accent-ink: var(--exp-tarja-texto);
+
+  /* Documento impresso não tem sombra difusa. O que separa um campo do
+     outro é fio, e o que levanta um documento do fundo é um
+     deslocamento curto com pouca dispersão. */
+  --sombra: 0 2px 4px rgba(11, 20, 55, .07);
+
+  /* Canto de etiqueta: pouco. Papel cortado não tem raio grande. */
+  --raio:      6px;
+  --raio-p:    4px;
 
   --ar: clamp(72px, 10vw, 140px);
 }
+
+/*
+  A FAIXA INVERTIDA: papel escuro, tinta clara.
+
+  Não pinta texto: troca os tokens, e todo componente dentro dela se
+  ajusta sozinho. É o verso da etiqueta.
+*/
+.faixa-navy {
+  background: var(--exp-tinta);
+  color: var(--exp-papel);
+  --bg:         var(--exp-tinta);
+  --bg-alt:     #16204A;
+  --fg:         var(--exp-papel);
+  --fg-muted:   #A9AEC2;
+  --border:     color-mix(in oklab, var(--exp-papel) 20%, transparent);
+  --border-forte: color-mix(in oklab, var(--exp-papel) 42%, transparent);
+  --accent-ink: #FF7BA0;
+}
+
+/*
+  A TARJA. Rosa que ocupa REGIÃO, e não respingo que decora.
+
+  É a disciplina tomada do desafiante vencido: numa etiqueta, a faixa
+  de PRIORITÁRIO preenche um campo inteiro e o texto vira papel dentro
+  dela.
+*/
+.faixa-tarja {
+  /* O escurecido, e nao o cheio: e a unica forma de a tarja aceitar
+     texto. Ver --exp-tarja-tinta. */
+  background: var(--exp-tarja-tinta);
+  color: var(--exp-papel-puro);
+  --bg:         var(--exp-tarja-tinta);
+  --bg-alt:     #B01238;
+  --fg:         var(--exp-papel-puro);
+  /* Branco cheio, sem alfa. Medido: a 86% o rotulo de campo dava
+     3.51:1 sobre a tarja. Superficie colorida nao aceita texto
+     secundario rebaixado por transparencia. */
+  --fg-muted:   var(--exp-papel-puro);
+  --border:     rgba(255, 255, 255, .34);
+  --border-forte: rgba(255, 255, 255, .6);
+  --accent-ink: var(--exp-papel-puro);
+}
+
 
 /*
   A FAIXA MARINHO.
@@ -65,47 +140,35 @@
   página. Ela não pinta texto: troca os tokens, e todo componente
   dentro dela se ajusta sozinho.
 */
-.faixa-navy {
-  background: var(--psy-navy);
-  color: var(--psy-white);
-  --bg:         var(--psy-navy);
-  --bg-alt:     var(--psy-navy-soft);
-  --fg:         #FFFFFF;
-  --fg-muted:   #A9B0C9;
-  --border:     rgba(255, 255, 255, .14);
-  /* Sobre marinho o rosa cheio volta a ter contraste, e o escurecido
-     perderia. O acento de texto inverte junto com o resto. */
-  --accent-ink: #FF7BA0;
-}
+
 
 /* A faixa rosa da chamada final, pelo mesmo mecanismo. */
-.faixa-pink {
-  background: var(--psy-pink);
-  color: var(--psy-white);
-  --bg:         var(--psy-pink);
-  --fg:         #FFFFFF;
-  --fg-muted:   rgba(255, 255, 255, .82);
-  --border:     rgba(255, 255, 255, .28);
-  --accent-ink: #FFFFFF;
-}
+
 
 @theme inline {
   /* --- papéis mapeados para o dark premium --- */
   --color-tinta:        var(--fg);
   --color-tinta-fraca:  var(--fg-muted);
   --color-fio:          var(--border);
+  --color-fio-forte:    var(--border-forte);
   --color-papel:        var(--bg);
   --color-papel-alt:    var(--bg-alt);
   --color-acento:       var(--accent-ink);
 
-  /* --- cores literais originais da Psy --- */
-  --color-rosa:       var(--psy-pink);
-  --color-rosa-forte: var(--psy-pink-deep);
-  --color-rosa-grafico: var(--psy-pink-ink);
-  --color-rosa-leve:  var(--psy-pink-wash);
-  --color-marinho:    var(--psy-navy);
-  --color-marinho-alto: var(--psy-navy-soft);
-  --color-branco:     var(--psy-white);
+  /*
+    `rosa` e o que ACEITA TEXTO EM CIMA, e nao o rosa cheio da marca.
+
+    Medido: branco sobre o #FF2E63 cheio da 3.61:1, e todo botao do
+    site tem texto branco. O cheio fica em `rosa-grafico`, para ponto,
+    fio e area sem texto, onde o minimo e 3:1.
+  */
+  --color-rosa:       var(--exp-tarja-tinta);
+  --color-rosa-forte: #B01238;
+  --color-rosa-grafico: var(--exp-tarja);
+  --color-rosa-leve:  color-mix(in oklab, var(--exp-tarja) 10%, var(--exp-papel));
+  --color-marinho:    var(--exp-tinta);
+  --color-marinho-alto: #16204A;
+  --color-branco:     var(--exp-papel-puro);
 
   --font-sans:    var(--font-corpo);
   --font-display: var(--font-display);
@@ -185,9 +248,9 @@
 .campo:hover { border-color: color-mix(in oklab, var(--fg) 25%, transparent); }
 
 .campo:focus {
-  border-color: var(--psy-pink-ink);
+  border-color: var(--exp-tarja-tinta);
   background: var(--bg);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--psy-pink) 18%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--exp-tarja) 18%, transparent);
 }
 
 /* Campo recusado pelo navegador, depois que a pessoa mexeu nele.
@@ -258,7 +321,7 @@ textarea.campo { min-height: 7rem; resize: vertical; }
   position: relative;
   isolation: isolate;
   border-radius: var(--raio);
-  background: color-mix(in oklab, var(--psy-navy-deep) 90%, transparent);
+  background: color-mix(in oklab, var(--exp-tinta) 90%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .16),
     inset 0 -1px 0 rgba(0, 0, 0, .35),
@@ -266,7 +329,7 @@ textarea.campo { min-height: 7rem; resize: vertical; }
     0 24px 60px -30px rgba(11, 20, 55, .55);
 
   color: #FFFFFF;
-  --bg:         var(--psy-navy-deep);
+  --bg:         var(--exp-tinta);
   /* 9%, e nao 7%: sobre o painel mais escuro o campo precisava de um
      degrau maior para se separar dele. */
   --bg-alt:     rgba(255, 255, 255, .09);
@@ -326,7 +389,126 @@ textarea.campo { min-height: 7rem; resize: vertical; }
 .vidro-marinho .campo:user-invalid { border-color: #FF7BA0; }
 
 @media (prefers-reduced-transparency: reduce) {
-  .vidro-marinho { background: var(--psy-navy-deep); }
+  .vidro-marinho { background: var(--exp-tinta); }
+}
+
+/*
+  O QUE O NAVEGADOR DESENHA TAMBEM E O DESIGN.
+
+  Seleção, cursor, barra de rolagem e sublinhado vêm com um padrão
+  que não pertence a sistema de design nenhum. São o sinal mais barato
+  de que uma página foi CONSTRUÍDA e não montada, e o que mais se
+  esquece.
+*/
+::selection {
+  background: var(--exp-tarja);
+  color: var(--exp-papel-puro);
+}
+
+html { caret-color: var(--exp-tinta); scrollbar-color: color-mix(in oklab, var(--exp-tinta) 30%, transparent) var(--exp-fundo); }
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--exp-fundo); }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--exp-tinta) 30%, transparent);
+  border: 3px solid var(--exp-fundo);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--exp-tinta) 50%, transparent); }
+
+a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Documento de carga com número dançando é documento falso. */
+.tabular, table, time, [data-numero] { font-variant-numeric: tabular-nums; }
+
+/*
+  CAMPO ROTULADO.
+
+  A unidade do documento: um rótulo pequeno nomeia o dado, e o valor
+  vem abaixo. NÃO é o olho acima do título que o piso de qualidade
+  probe: aquele anunciava um título que já se anuncia sozinho. Este
+  nomeia um DADO, que sem nome não se lê.
+*/
+@utility campo-rotulo {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* O fio que divide campos, como numa etiqueta impressa. */
+@utility fio-campo {
+  border-top: 1px solid var(--border);
+}
+
+/*
+  O PICOTE: onde o documento se separa em duas partes.
+
+  Tracejado de verdade, com o mesmo passo de um picote de formulário
+  contínuo, e não uma borda pontilhada genérica.
+*/
+@utility picote {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--border-forte) 0 6px,
+    transparent 6px 12px
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 0;
+}
+
+/*
+  O CÓDIGO DE BARRAS.
+
+  Desenhado em gradiente, e não imagem: são barras de larguras
+  irregulares, que é o que distingue um código de uma textura listrada.
+  Decorativo, e por isso `aria-hidden` em quem usa.
+*/
+@utility codigo-barras {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--fg) 0 2px, transparent 2px 5px,
+    var(--fg) 5px 6px, transparent 6px 10px,
+    var(--fg) 10px 13px, transparent 13px 15px,
+    var(--fg) 15px 16px, transparent 16px 21px,
+    var(--fg) 21px 24px, transparent 24px 26px
+  );
+}
+
+/*
+  O CARIMBO: o ÚNICO momento autorado da página.
+
+  Entra levemente girado e assenta com saída exponencial. Nada mais
+  aqui anima sozinho, e nenhuma seção repete a mesma entrada.
+*/
+@utility carimbo {
+  position: absolute;
+  pointer-events: none;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  padding: 0.3rem 0.7rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: rotate(-14deg) scale(1.35);
+  transition: opacity .18s ease-out, transform .18s cubic-bezier(.16, 1, .3, 1);
+}
+
+.grupo-despacho:hover .carimbo,
+.grupo-despacho:focus-within .carimbo {
+  opacity: .85;
+  transform: rotate(-8deg) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carimbo { transition: none; }
+  .grupo-despacho:hover .carimbo,
+  .grupo-despacho:focus-within .carimbo { transform: rotate(-8deg) scale(1); }
 }
 
 /* Respiro vertical padrão de seção. */
@@ -392,8 +574,8 @@ html {
    `color-scheme` resolve na maioria; estes dois fecham o resto. */
 option,
 optgroup {
-  background-color: var(--psy-white);
-  color: var(--psy-navy);
+  background-color: var(--exp-papel-puro);
+  color: var(--exp-tinta);
 }
 
 body {
@@ -458,11 +640,11 @@ body {
   display: grid;
   place-items: center;
   border-radius: var(--raio);
-  background: var(--psy-bg-glass);
+  background: rgba(255, 255, 255, .07);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--psy-border-glass);
-  color: var(--psy-accent-gold);
+  border: 1px solid rgba(255, 255, 255, .16);
+  color: var(--exp-tarja);
   box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
   transition: transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s ease, border-color .35s ease;
 }
@@ -476,7 +658,7 @@ body {
 }
 
 .group:hover .icone-3d {
-  background: color-mix(in oklab, var(--psy-pink) 12%, var(--psy-pink-wash));
+  background: color-mix(in oklab, var(--exp-tarja) 12%, color-mix(in oklab, var(--exp-tarja) 10%, var(--exp-papel)));
   transform: translateY(-2px);
 }
 
@@ -524,7 +706,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in oklab, var(--psy-white) 45%, transparent),
+    color-mix(in oklab, var(--exp-papel-puro) 45%, transparent),
     transparent
   );
 }
@@ -694,7 +876,7 @@ body {
   z-index: 60;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, var(--psy-pink), var(--accent-ink));
+  background: linear-gradient(90deg, var(--exp-tarja), var(--accent-ink));
   transform-origin: left;
   transform: scaleX(0);
   pointer-events: none;
@@ -719,7 +901,7 @@ body {
   pointer-events: none;
   background: radial-gradient(
     240px circle at var(--mx) var(--my),
-    color-mix(in oklab, var(--psy-pink) 32%, transparent),
+    color-mix(in oklab, var(--exp-tarja) 32%, transparent),
     transparent 70%
   );
   opacity: 0;
@@ -745,9 +927,9 @@ body {
   /* O rosa ESCURECIDO, e nao o grafico: a pastilha leva o numero em
      branco de 12px, e branco sobre #FF2E63 da 3.61:1, abaixo dos 4.5
      exigidos. Sobre #D91A4A da 4.81. Medido, nao estimado. */
-  background: var(--psy-pink-ink);
-  border-color: var(--psy-pink-ink);
-  color: var(--psy-white);
+  background: var(--exp-tarja-tinta);
+  border-color: var(--exp-tarja-tinta);
+  color: var(--exp-papel-puro);
 }
 
 /* Linha de órbita que se desenha, e o satélite que viaja nela. */
@@ -773,7 +955,7 @@ body {
   height: 10px;
   margin: -5px 0 0 -5px;
   border-radius: 50%;
-  background: var(--psy-white);
+  background: var(--exp-papel-puro);
   box-shadow: 0 0 0 4px rgba(255, 255, 255, .12), 0 0 22px rgba(255, 107, 150, .9);
   pointer-events: none;
   opacity: 0;
@@ -875,12 +1057,12 @@ body {
 @keyframes cenaCurtir {
   0%, 20%   { transform: scale(1); color: var(--fg-muted); }
   26%       { transform: scale(1.5); }
-  32%, 100% { transform: scale(1); color: var(--psy-pink); }
+  32%, 100% { transform: scale(1); color: var(--exp-tarja); }
 }
 @keyframes cenaCta {
-  0%, 32%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--psy-pink) 60%, transparent); }
-  40%       { box-shadow: 0 0 0 7px color-mix(in oklab, var(--psy-pink) 0%, transparent); }
-  41%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--psy-pink) 0%, transparent); }
+  0%, 32%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--exp-tarja) 60%, transparent); }
+  40%       { box-shadow: 0 0 0 7px color-mix(in oklab, var(--exp-tarja) 0%, transparent); }
+  41%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--exp-tarja) 0%, transparent); }
 }
 @keyframes cenaZap {
   0%, 42%   { opacity: 0; transform: translateY(18px) scale(.97); }
@@ -1005,6 +1187,6 @@ body {
   /* Sem movimento, a conversa mostra o fim: a resposta ja enviada. O
      "digitando" e um estado de passagem e nao faz sentido parado. */
   .cena-digitando { display: none; }
-  .cena-curtir { color: var(--psy-pink); }
+  .cena-curtir { color: var(--exp-tarja); }
   .cena-mapa-tracado { stroke-dashoffset: 0; }
 }
