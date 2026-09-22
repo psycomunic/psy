@@ -70,7 +70,12 @@ export function FormAnalise() {
         fd.set('aberto_em', String(abertoEm.current));
         return acao(fd);
       }}
-      className="cartao space-y-5 p-6 md:p-8"
+      className="vidro-marinho space-y-5 p-6 md:p-8"
+      /* O borrado do vidro vive AQUI, e nao na folha: as duas
+         tentativas em CSS sairam quebradas na minificacao, uma
+         colando duas funcoes de filtro sem espaco e outra descartando
+         a propriedade sem prefixo. Ver o comentario em globals.css. */
+      style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
     >
 
       {/*

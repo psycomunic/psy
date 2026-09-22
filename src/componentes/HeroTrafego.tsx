@@ -109,7 +109,28 @@ export function HeroTrafego({
           {/* `scroll-mt` do tamanho do cabeçalho: sem isso o link
               `#analise` para com o topo do formulário debaixo da barra
               fixa, e a pessoa chega numa tela que parece cortada. */}
-          <div id="analise" className="min-w-0 scroll-mt-28">
+          {/*
+            O BRILHO ATRAS DO VIDRO.
+
+            `backdrop-filter` so aparece quando ha alguma coisa
+            VARIANDO atras do painel: sobre papel chapado ele nao tem
+            o que borrar, e o vidro vira um retangulo escuro comum.
+            Medido: com o fundo liso, as listras de teste passavam
+            iguais com o borrado ligado e desligado.
+
+            Dois circulos de cor, bem suaves, dao o que borrar e
+            tambem o que refratar na borda do chanfro. Ficam atras do
+            formulario, e por isso `-z-10` e `pointer-events-none`.
+          */}
+          <div id="analise" className="relative min-w-0 scroll-mt-28">
+            {/* SEM `overflow-hidden` aqui: ele cortava os dois
+                circulos num retangulo de bordas duras, e o corte
+                aparecia como uma moldura clara em volta do painel.
+                O recorte de verdade e o da secao, bem mais longe. */}
+            <div aria-hidden className="pointer-events-none absolute -inset-16 -z-10">
+              <div className="absolute left-0 top-10 h-64 w-64 rounded-full bg-rosa/25 blur-[90px]" />
+              <div className="absolute bottom-4 right-0 h-72 w-72 rounded-full bg-marinho/20 blur-[90px]" />
+            </div>
             {formulario}
           </div>
         </div>

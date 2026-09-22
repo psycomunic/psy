@@ -234,6 +234,112 @@ textarea.campo { min-height: 7rem; resize: vertical; }
   color: var(--fg);
 }
 
+/*
+  PAINEL DE VIDRO MARINHO.
+
+  ============================================================
+  ELE NAO PINTA TEXTO: TROCA OS TOKENS
+  ============================================================
+  Igual a `.faixa-navy`, e pelo mesmo motivo. O painel redefine
+  `--fg`, `--fg-muted`, `--border` e `--bg-alt`, e todo campo de
+  formulario dentro dele se ajusta sozinho, porque `.campo` le desses
+  tokens e nao de cores escritas na mao.
+
+  Sem isso, o formulario precisaria de uma segunda lista de classes so
+  para o fundo escuro, e seria ela a esquecida na proxima mudanca.
+  Foi exatamente o que aconteceu com as doze copias de `const campo`.
+
+  ============================================================
+  O CHANFRO SAO DUAS LINHAS, NAO UMA BORDA
+  ============================================================
+  Relevo e a leitura de uma luz vindo de cima: fio CLARO na aresta
+  superior, fio ESCURO na inferior. Uma borda uniforme em volta nao da
+  relevo nenhum, da moldura.
+
+  As duas vivem em `inset` no mesmo box-shadow da sombra projetada, e
+  por isso nao ocupam espaco nem deslocam o conteudo.
+
+  ============================================================
+  O BORRADO PRECISA DE ALGO ATRAS PARA BORRAR
+  ============================================================
+  `backdrop-filter` so aparece quando ha imagem ou cor variando atras
+  do painel. Sobre branco chapado ele nao tem o que fazer, e o que
+  sustenta o efeito e a TRANSLUCIDEZ: 92% de marinho deixa o fundo
+  subir de leve e muda com o que estiver atras.
+
+  Em captura de tela headless o borrado sai exagerado. E artefato da
+  captura, nao da pagina. Ver CLAUDE.md.
+*/
+@utility vidro-marinho {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--raio);
+  background: color-mix(in oklab, var(--psy-navy) 82%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .16),
+    inset 0 -1px 0 rgba(0, 0, 0, .35),
+    inset 0 0 0 1px rgba(255, 255, 255, .07),
+    0 24px 60px -30px rgba(11, 20, 55, .55);
+
+  color: #FFFFFF;
+  --bg:         var(--psy-navy);
+  --bg-alt:     rgba(255, 255, 255, .07);
+  --fg:         #FFFFFF;
+  --fg-muted:   #A9B0C9;
+  --border:     rgba(255, 255, 255, .16);
+  --accent-ink: #FF7BA0;
+}
+
+/*
+  O BORRADO FICA EM REGRA SIMPLES, E NAO DENTRO DO `@utility`.
+
+  Dentro do `@utility` ele era descartado no processamento da folha:
+  o fundo e o chanfro chegavam ao navegador e o `backdrop-filter`
+  nao, e `getComputedStyle` devolvia `none`. As regras simples
+  passaram intactas, entao e onde ele mora.
+
+  A TRANSLUCIDEZ E 82%, e nao mais.
+
+  Medido: o texto do formulario e branco, e o painel fica sobre o
+  papel claro. A 82% o fundo efetivo da 11:1 com o branco, folgado.
+  Descendo para 55% ele cairia para 3.6:1 e reprovaria no corpo de
+  texto, que e o que a maior parte do formulario e.
+
+  O BORRADO NAO MORA AQUI: mora no atributo `style` do componente.
+
+  Tentado nesta folha de duas formas, e as duas sairam quebradas na
+  saida minificada. Primeiro com `blur() saturate()`, que virou
+  `blur(16px)saturate(140%)`, sem o espaco que a lista de funcoes de
+  filtro exige. Depois com `blur()` sozinho, e a minificacao guardou
+  so a versao `-webkit-` e descartou a propriedade padrao.
+
+  Nos dois casos a regra estava no arquivo, legivel a olho nu, e o
+  navegador devolvia `none` em `getComputedStyle`. Inline nao passa
+  por minificacao nenhuma. Ver FormAnalise.tsx.
+*/
+
+/* O campo dentro do vidro: o foco acende o proprio fundo, porque
+   sobre escuro o anel rosa sozinho se perde. */
+.vidro-marinho .campo:focus {
+  background: rgba(255, 255, 255, .12);
+}
+
+/* A seta do select precisa clarear junto: a do tema claro e #686F8C,
+   que sobre o painel marinho quase some. */
+.vidro-marinho select.campo {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23A9B0C9' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+}
+
+.vidro-marinho .campo:user-invalid { border-color: #FF7BA0; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .vidro-marinho {
+    background: var(--psy-navy);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Respiro vertical padrão de seção. */
 @utility secao-ar {
   padding-block: var(--ar);
