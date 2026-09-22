@@ -88,6 +88,24 @@
   --raio-p:    4px;
 
   --ar: clamp(72px, 10vw, 140px);
+
+  /*
+    CURVAS.
+
+    O projeto tinha cinco literais diferentes espalhados, nenhum
+    nomeado: `.22,.61,.36,1` oito vezes, `.16,1,.3,1` tres, e duas com
+    repique. Curva repetida a mao e curva que diverge na proxima
+    edicao.
+
+    Estas tres sao as canonicas, e nao aproximacoes: saida forte para
+    o que entra e sai, entrada-e-saida forte para o que se move na
+    tela, e a curva de gaveta do iOS. `ease-in` nao existe aqui: ela
+    comeca devagar e atrasa exatamente o instante em que a pessoa esta
+    olhando.
+  */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /*
@@ -496,7 +514,7 @@ a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
   text-transform: uppercase;
   opacity: 0;
   transform: rotate(-14deg) scale(1.35);
-  transition: opacity .18s ease-out, transform .18s cubic-bezier(.16, 1, .3, 1);
+  transition: opacity .18s ease-out, transform .18s var(--ease-out);
 }
 
 .grupo-despacho:hover .carimbo,
@@ -509,6 +527,80 @@ a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
   .carimbo { transition: none; }
   .grupo-despacho:hover .carimbo,
   .grupo-despacho:focus-within .carimbo { transform: rotate(-8deg) scale(1); }
+}
+
+/*
+  O RASTREIO.
+
+  A ÚNICA peça explicativa da página, e o segundo momento autorado
+  depois do carimbo. Ela existe porque o botão abre o WhatsApp e some:
+  quem clica não sabe o que vem depois, e essa é a dúvida que trava o
+  clique.
+
+  O propósito é EXPLICAÇÃO, que é a única razão pela qual uma página
+  de venda pode gastar movimento: ela demonstra como a coisa funciona.
+  Não é enfeite e não é feedback.
+
+  TOCA UMA VEZ, quando entra na tela, e para. Laço infinito numa
+  página de marketing é bateria do celular gasta com decoração. O
+  gatilho é a mesma classe `.visivel` que o observador de revelação já
+  aplica, então não entra JavaScript novo.
+
+  Animação CSS, e não requestAnimationFrame: roda fora da thread
+  principal e continua lisa enquanto a página ainda carrega imagem, que
+  é exatamente quando ela aparece no celular.
+*/
+.rastreio-linha {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.rastreio-ponto {
+  opacity: .28;
+  transform: scale(.92);
+}
+
+.rastreio-texto { opacity: 0; transform: translateY(6px); }
+
+.rastreio.visivel .rastreio-linha {
+  animation: rastreioLinha 1.4s var(--ease-out) forwards;
+}
+
+.rastreio.visivel .rastreio-ponto {
+  animation: rastreioPonto .32s var(--ease-out) forwards;
+}
+
+.rastreio.visivel .rastreio-texto {
+  animation: rastreioTexto .4s var(--ease-out) forwards;
+}
+
+/* O ponto acende quando a linha chega nele, e não antes: a linha leva
+   1,4s para atravessar, então os marcos caem em 0%, 45% e 90% dela. */
+.rastreio.visivel [data-marco='1'] .rastreio-ponto { animation-delay: .1s; }
+.rastreio.visivel [data-marco='2'] .rastreio-ponto { animation-delay: .73s; }
+.rastreio.visivel [data-marco='3'] .rastreio-ponto { animation-delay: 1.36s; }
+.rastreio.visivel [data-marco='1'] .rastreio-texto { animation-delay: .16s; }
+.rastreio.visivel [data-marco='2'] .rastreio-texto { animation-delay: .79s; }
+.rastreio.visivel [data-marco='3'] .rastreio-texto { animation-delay: 1.42s; }
+
+@keyframes rastreioLinha { to { transform: scaleX(1); } }
+@keyframes rastreioPonto { to { opacity: 1; transform: none; } }
+@keyframes rastreioTexto { to { opacity: 1; transform: none; } }
+
+/*
+  Menos movimento: o rastreio chega INTEIRO e parado.
+
+  Reduzir não é zerar: quem pediu menos movimento continua precisando
+  da informação, e ela é o estado final. O que sai é o deslocamento,
+  não o conteúdo.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .rastreio-linha { transform: none; }
+  .rastreio-ponto { opacity: 1; transform: none; }
+  .rastreio-texto { opacity: 1; transform: none; }
+  .rastreio.visivel .rastreio-linha,
+  .rastreio.visivel .rastreio-ponto,
+  .rastreio.visivel .rastreio-texto { animation: none; }
 }
 
 /* Respiro vertical padrão de seção. */
@@ -646,7 +738,7 @@ body {
   border: 1px solid rgba(255, 255, 255, .16);
   color: var(--exp-tarja);
   box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
-  transition: transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s ease, border-color .35s ease;
+  transition: transform .35s var(--ease-out), box-shadow .35s ease, border-color .35s ease;
 }
 
 /* Dentro da faixa marinho o lavado rosa desaparece: vira um sinal de
@@ -704,7 +796,7 @@ body {
   transition:
     border-color .25s ease,
     box-shadow .25s ease,
-    transform .25s cubic-bezier(.16, 1, .3, 1);
+    transform .25s var(--ease-out);
 }
 
 .cartao:hover {
@@ -785,10 +877,31 @@ body {
 .revelar { opacity: 1; }
 [data-animar='sim'] .revelar {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity .7s cubic-bezier(.22,.61,.36,1),
-              transform .7s cubic-bezier(.22,.61,.36,1);
+  transform: translateY(14px);
+  /* 500ms, e nao 700. A revelacao nao e o assunto: ela existe para o
+     bloco nao teleportar para dentro da tela. Meio segundo ja e o
+     limite do que se le como chegada em vez de espera. */
+  transition: opacity .5s var(--ease-out),
+              transform .5s var(--ease-out);
 }
+
+/*
+  ESCALONAMENTO: 60ms entre irmaos, ate o sexto.
+
+  Tudo entrando no mesmo quadro le como um bloco so piscando. O atraso
+  da ordem de leitura sem fazer ninguem esperar: o sexto item chega
+  300ms depois do primeiro, que e menos que o tempo de levar o olho de
+  um ao outro.
+
+  Para no sexto de proposito. Uma lista de dezessete com atraso
+  cumulativo terminaria um segundo depois de comecar, e ai o
+  escalonamento vira fila.
+*/
+[data-animar='sim'] .revelar:nth-child(2)  { transition-delay: .06s; }
+[data-animar='sim'] .revelar:nth-child(3)  { transition-delay: .12s; }
+[data-animar='sim'] .revelar:nth-child(4)  { transition-delay: .18s; }
+[data-animar='sim'] .revelar:nth-child(5)  { transition-delay: .24s; }
+[data-animar='sim'] .revelar:nth-child(n+6) { transition-delay: .3s; }
 [data-animar='sim'] .revelar.visivel {
   opacity: 1;
   transform: none;
@@ -997,7 +1110,7 @@ body {
     rgba(255, 255, 255, .18) 14px 15px
   );
   transform: translateX(-100%) skewX(-20deg);
-  transition: transform .7s cubic-bezier(.22, .61, .36, 1);
+  transition: transform .7s var(--ease-out);
   pointer-events: none;
 }
 .warp:hover::before { transform: translateX(100%) skewX(-20deg); }
@@ -1057,16 +1170,16 @@ body {
    pisca, a conversa desliza, a pessoa escreve, e a resposta sai com os
    dois tiques. É a promessa do bloco na sequência em que ela acontece.
    Ciclo de 9s: mais curto que isso e a leitura vira pressa. */
-.cena-post   { animation: cenaSobe 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-post   { animation: cenaSobe 9s var(--ease-out) infinite; }
 .cena-curtir { animation: cenaCurtir 9s cubic-bezier(.34,1.56,.64,1) infinite; }
 .cena-cta    { animation: cenaCta 9s ease-in-out infinite; }
-.cena-zap    { animation: cenaZap 9s cubic-bezier(.22,.61,.36,1) infinite; }
-.cena-balao  { animation: cenaBalao 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-zap    { animation: cenaZap 9s var(--ease-out) infinite; }
+.cena-balao  { animation: cenaBalao 9s var(--ease-out) infinite; }
 .cena-digitando { animation: cenaDigitando 9s ease-out infinite; }
 .cena-ponto  { animation: cenaPonto 1.2s ease-in-out infinite; }
 .cena-ponto:nth-child(2) { animation-delay: .15s; }
 .cena-ponto:nth-child(3) { animation-delay: .3s; }
-.cena-balao-2 { animation: cenaBalao2 9s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-balao-2 { animation: cenaBalao2 9s var(--ease-out) infinite; }
 .cena-tique  { animation: cenaTique 9s ease-out infinite; }
 
 @keyframes cenaSobe {
@@ -1138,7 +1251,7 @@ body {
 /* ---------- 3. O perfil que aparece no mapa ---------- */
 .cena-pino { animation: cenaPino 7s cubic-bezier(.34,1.56,.64,1) infinite; }
 .cena-onda { animation: cenaOnda 7s ease-out infinite; }
-.cena-ficha { animation: cenaFicha 7s cubic-bezier(.22,.61,.36,1) infinite; }
+.cena-ficha { animation: cenaFicha 7s var(--ease-out) infinite; }
 .cena-estrela { animation: cenaEstrela 7s ease-out infinite; }
 .cena-estrela:nth-child(2) { animation-delay: .1s; }
 .cena-estrela:nth-child(3) { animation-delay: .2s; }
@@ -1166,7 +1279,7 @@ body {
 /* Peças que as três cenas compartilham: a fileira de ações que aparece
    depois do conteúdo, e a etiqueta de estado. */
 .cena-acoes { animation: cenaAcoes 9s ease-out infinite; }
-.cena-chip  { animation: cenaChip 9s cubic-bezier(.16,1,.3,1) infinite; }
+.cena-chip  { animation: cenaChip 9s var(--ease-out) infinite; }
 .cena-mapa-tracado { animation: cenaTracado 9s ease-out infinite; }
 
 @keyframes cenaAcoes {

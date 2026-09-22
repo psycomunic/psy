@@ -12,6 +12,7 @@ import { ProvasEmVideo } from '@/componentes/ProvasEmVideo';
 import { BotaoWhatsapp } from '@/componentes/BotaoWhatsapp';
 import { BarraDeAcao } from '@/componentes/BarraDeAcao';
 import { Interacoes } from '@/componentes/Interacoes';
+import { Rastreio } from '@/componentes/Rastreio';
 import { credenciais, numerosDaCapa } from '@/conteudo/marca';
 import { frentes } from '@/conteudo/frentes';
 import { marcasAtendidas, parcerias } from '@/conteudo/prova';
@@ -48,9 +49,12 @@ function Campo({
 /**
  * O botão de despacho, com o carimbo.
  *
- * O carimbo é o ÚNICO momento autorado da página: entra girado e
- * assenta em 180ms com saída exponencial. Nenhuma seção repete uma
- * entrada, e nada mais anima sozinho.
+ * O carimbo é um dos DOIS momentos autorados da página: entra girado
+ * e assenta em 180ms com saída exponencial. O propósito aqui é
+ * FEEDBACK, confirmar que a interface ouviu.
+ *
+ * O outro é o rastreio, cujo propósito é EXPLICAÇÃO. Fora esses dois,
+ * nada anima sozinho, e nenhuma seção repete uma entrada.
  */
 function Despachar({
   children = 'Quero meu diagnóstico gratuito',
@@ -164,15 +168,10 @@ export default function Home() {
                   </Link>
                 </div>
 
-                {/* Rastreio: o código de barras é o objeto que diz "isto
-                    é um documento de carga" sem uma palavra. Decorativo,
-                    e o número ao lado é que carrega o sentido. */}
-                <div className="mt-10 flex items-end gap-5 border-t border-fio pt-6">
-                  <span aria-hidden className="codigo-barras h-12 w-40 opacity-70" />
-                  <Campo rotulo="Rastreio">
-                    <p className="tabular text-sm">Resposta no mesmo dia útil</p>
-                  </Campo>
-                </div>
+                {/* O que acontece depois do botão. A dúvida que trava
+                    o clique não é preço: é não saber o que vem a
+                    seguir. Ver Rastreio.tsx. */}
+                <Rastreio className="mt-10 border-t border-fio pt-7" />
               </div>
 
               <div className="min-w-0">
