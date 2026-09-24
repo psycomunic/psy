@@ -594,7 +594,17 @@ function ListaDeMensagens({ partes }: { partes: string[] }) {
         ))}
       </ol>
 
-      <BotaoCopiar texto={partes.join('\n\n')} rotulo="Copiar as quatro" />
+      <div className="space-y-2">
+        <BotaoCopiar texto={partes.join('\n\n')} rotulo="Copiar todas" />
+        {/* O lugar do elogio que não dá para gravar: contagem de
+            seguidor envelhece entre o levantamento e o envio, e errar o
+            número na frase em que se elogia a pessoa é pior do que não
+            citar. Quem manda confere no perfil e encaixa na hora. */}
+        <p className="text-xs leading-relaxed text-cinza">
+          O número de seguidores fica de fora da 2ª de propósito. Confira no perfil e encaixe
+          na hora, com o parabéns.
+        </p>
+      </div>
     </>
   );
 }

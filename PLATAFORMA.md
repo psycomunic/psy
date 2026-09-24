@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 33 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 34 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -156,6 +156,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0031_abordagem_com_o_dono.sql` | as 50 mensagens passam a falar com a pessoa, e não com a marca. O nome entra por `{dono}` na hora de copiar, porque o dono é descoberto depois da carga |
 | `0032_abordagem_com_a_credencial.sql` | a abordagem passa a carregar o que o site inteiro afirma: não é agência de mídia, quem conduz foi sócio de um e-commerce de R$ 17 milhões por ano, e o convite vira o diagnóstico gratuito |
 | `0033_abordagem_em_quatro_mensagens.sql` | a abertura passa a vir quebrada em quatro, separadas por linha em branco, porque é assim que ela é enviada no direct |
+| `0034_cinco_mensagens_sem_seguidores.sql` | a credencial vira mensagem sozinha (cinco ao todo) e o número de seguidores sai do texto: ele envelhece, e quem envia confere no perfil na hora |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
