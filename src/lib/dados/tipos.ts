@@ -530,6 +530,10 @@ export type Prospecto = {
   oportunidade: string | null;
   gancho: string | null;
   mensagemAbertura: string | null;
+  /** A SEGUNDA mensagem: uma pergunta só, para a pessoa responder.
+      Não confundir com `perguntas`, que é a qualificação de quando a
+      conversa já existe. */
+  perguntaSeguinte: string | null;
   perguntas: string | null;
   canal: string | null;
   notas: string | null;

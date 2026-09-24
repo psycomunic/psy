@@ -256,7 +256,7 @@ function CartaoProspecto({
           <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
             <span aria-hidden className="mr-2 text-magenta-texto group-open:hidden">+</span>
             <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">−</span>
-            Mensagem de abertura
+            1. Mensagem de abertura
             {p.canal ? <span className="ml-2 font-normal text-cinza">{p.canal}</span> : null}
           </summary>
 
@@ -264,12 +264,31 @@ function CartaoProspecto({
             <p className="text-sm leading-relaxed text-neve">{p.mensagemAbertura}</p>
             <BotaoCopiar texto={p.mensagemAbertura} />
 
+            {/* A segunda mensagem, com botão próprio. São dois envios de
+                propósito: mensagem com duas coisas dentro é respondida
+                pela primeira ou por nenhuma. O número "2" está escrito,
+                e não só sugerido pela ordem na tela. */}
+            {p.perguntaSeguinte ? (
+              <div className="border-t border-fio pt-3">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
+                  2. Manda depois, se não responder
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntaSeguinte}</p>
+                <div className="mt-3">
+                  <BotaoCopiar texto={p.perguntaSeguinte} rotulo="Copiar pergunta" />
+                </div>
+              </div>
+            ) : null}
+
             {p.perguntas ? (
               <div className="border-t border-fio pt-3">
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                   Perguntas de qualificação
                 </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntas}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-cinza">{p.perguntas}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+                  Para a conversa, quando ela existir. Não mande as três numa DM.
+                </p>
               </div>
             ) : null}
           </div>

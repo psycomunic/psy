@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 28 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 29 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -151,6 +151,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0026_prospeccao_moda_sc.sql` | carga da primeira lista: 50 fábricas de moda de Santa Catarina, idempotente pelo código `L001`–`L050` |
 | `0027_dinheiro_em_portugues.sql` | as notificações param de escrever `R$ 1,000.00`: `to_char` com `G`/`D` obedece ao `lc_numeric` do servidor, que no Supabase é `en_US` |
 | `0028_mensagem_de_abertura_da_psy.sql` | as 50 mensagens da lista passam a ser da Psy Comunic, com a oferta certa para quem só vende no atacado, só no varejo, ou já tem o site de atacado |
+| `0029_pergunta_seguinte.sql` | `prospeccao.pergunta_seguinte`: a SEGUNDA mensagem da abordagem, uma pergunta só. Não é `perguntas`, que é a qualificação de quando a conversa já existe |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
