@@ -517,6 +517,12 @@ export type Prospecto = {
   codigo: string | null;
   instagram: string | null;
   instagramUrl: string | null;
+  /** O @ do PERFIL PESSOAL do dono, preenchido à mão. O nome dele mora
+      em `nomeContato`, que vem de `lead.nome`: é a mesma pessoa, e não
+      podia ficar guardada em dois lugares. */
+  instagramDono: string | null;
+  /** Só os 14 dígitos. É por ele que se acha a razão social. */
+  cnpj: string | null;
   cidade: string | null;
   uf: string | null;
   regiao: string | null;
@@ -540,6 +546,9 @@ export type Prospecto = {
 
   /* Do lead, e não da pesquisa. */
   empresa: string | null;
+  /** `lead.nome`. Nasce com o @ da marca e vira o nome do dono quando
+      alguém descobre quem é. */
+  nomeContato: string;
   estagio: Estagio;
   proximoPasso: string | null;
   /** Ainda em 'novo': ninguém mandou a primeira mensagem. */

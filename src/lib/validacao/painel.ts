@@ -205,6 +205,49 @@ export const esquemaAbordagem = z.object({
   nota: textoOpcional.optional().transform((v) => v ?? null),
 });
 
+/**
+ * O dono da marca, preenchido à mão a partir do CNPJ.
+ *
+ * Os três campos são opcionais porque a pesquisa acontece em partes:
+ * acha-se o CNPJ numa hora, o perfil pessoal em outra. Exigir os três
+ * juntos faria a pessoa não salvar nenhum.
+ *
+ * A normalização é aqui, e não na tela, porque a tela não é o único
+ * jeito de chegar no banco. Cola-se o que vier: `45.160.542/0001-60`,
+ * `instagram.com/fulana/`, `@Fulana`.
+ */
+export const esquemaDono = z.object({
+  lead_id: z.uuid('Lead inválido.'),
+  nome: textoOpcional.optional().transform((v) => v ?? null),
+  instagram_dono: textoOpcional
+    .optional()
+    .transform((v) => {
+      if (!v) return null;
+      /* Do endereço inteiro sobra o identificador; do identificador
+         sobra ele mesmo. `split('?')` tira o rastro de campanha que
+         vem colado quando o link é copiado do aplicativo. */
+      const bruto = v
+        .split('?')[0]
+        .replace(/^https?:\/\//i, '')
+        .replace(/^(www\.)?instagram\.com\//i, '')
+        .replace(/^@/, '')
+        .replace(/\/+$/, '')
+        .trim();
+      return bruto === '' ? null : `@${bruto}`;
+    })
+    .refine(
+      (v) => v === null || /^@[A-Za-z0-9._]{1,30}$/.test(v),
+      'Perfil inválido. Cole o @ ou o endereço do Instagram.',
+    ),
+  cnpj: textoOpcional
+    .optional()
+    .transform((v) => {
+      const so = (v ?? '').replace(/\D/g, '');
+      return so === '' ? null : so;
+    })
+    .refine((v) => v === null || v.length === 14, 'CNPJ precisa ter 14 dígitos.'),
+});
+
 export const esquemaLead = z.object({
   id: z.uuid('Lead inválido.'),
   proximo_passo: textoOpcional,

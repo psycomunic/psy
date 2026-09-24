@@ -1022,7 +1022,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('prospeccao')
-    .select('id, lead_id, codigo, instagram, instagram_url, cidade, uf, regiao, segmento, modelo_venda, fabricacao_propria, situacao_site, seguidores, prioridade, oportunidade, gancho, mensagem_abertura, pergunta_seguinte, perguntas, canal, notas, lead:lead_id(empresa, estagio, proximo_passo)')
+    .select('id, lead_id, codigo, instagram, instagram_url, instagram_dono, cnpj, cidade, uf, regiao, segmento, modelo_venda, fabricacao_propria, situacao_site, seguidores, prioridade, oportunidade, gancho, mensagem_abertura, pergunta_seguinte, perguntas, canal, notas, lead:lead_id(nome, empresa, estagio, proximo_passo)')
     .order('prioridade', { ascending: true, nullsFirst: false })
     .order('seguidores', { ascending: false, nullsFirst: false })
     .limit(500);
@@ -1032,6 +1032,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
   return doBanco(
     (data ?? []).map((p) => {
       const l = p.lead as unknown as {
+        nome: string;
         empresa: string | null;
         estagio: Estagio;
         proximo_passo: string | null;
@@ -1043,6 +1044,8 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         codigo: (p.codigo as string) ?? null,
         instagram: (p.instagram as string) ?? null,
         instagramUrl: (p.instagram_url as string) ?? null,
+        instagramDono: (p.instagram_dono as string) ?? null,
+        cnpj: (p.cnpj as string) ?? null,
         cidade: (p.cidade as string) ?? null,
         uf: (p.uf as string) ?? null,
         regiao: (p.regiao as string) ?? null,
@@ -1060,6 +1063,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         canal: (p.canal as string) ?? null,
         notas: (p.notas as string) ?? null,
         empresa: l?.empresa ?? null,
+        nomeContato: l?.nome ?? '',
         estagio: l?.estagio ?? 'novo',
         proximoPasso: l?.proximo_passo ?? null,
         aguardandoAbordagem: (l?.estagio ?? 'novo') === 'novo',

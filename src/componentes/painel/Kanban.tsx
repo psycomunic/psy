@@ -736,6 +736,32 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
         </p>
       ) : null}
 
+      {/* O perfil do DONO vem antes do da marca: a abordagem acontece
+          com a pessoa, e o da marca serve para conferir que é ela. */}
+      {p.instagramDono ? (
+        <a
+          href={`https://www.instagram.com/${p.instagramDono.replace('@', '')}/`}
+          target="_blank"
+          rel="noopener"
+          className="mt-4 mr-2 inline-flex min-h-[24px] items-center gap-2 rounded-full border border-magenta/50 bg-magenta/10 px-4 py-2 text-xs font-semibold text-magenta-texto transition-colors hover:bg-magenta hover:text-branco"
+        >
+          Abrir {p.instagramDono}
+          <span aria-hidden>&#8599;</span>
+        </a>
+      ) : null}
+
+      {p.cnpj ? (
+        <a
+          href={`https://cnpj.biz/${p.cnpj}`}
+          target="_blank"
+          rel="noopener"
+          className="mt-4 mr-2 inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+        >
+          Ver o CNPJ
+          <span aria-hidden>&#8599;</span>
+        </a>
+      ) : null}
+
       {p.instagramUrl ? (
         <a
           href={p.instagramUrl}

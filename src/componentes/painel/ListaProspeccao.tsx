@@ -1,12 +1,17 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
-import { marcarAbordado } from '@/app/painel/acoes-prospeccao';
+import { marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
 import type { Resultado } from '@/app/painel/acoes';
 import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
+
+const campo =
+  'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-2.5 text-sm text-branco ' +
+  'outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta';
+const rotuloCampo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
 
 /**
  * A lista de prospecção ativa.
@@ -251,6 +256,8 @@ function CartaoProspecto({
         </p>
       ) : null}
 
+      <BlocoDono prospecto={p} podeEditar={podeEditar} />
+
       {p.mensagemAbertura ? (
         <details className="group mt-4 rounded-xl border border-fio bg-white/[0.02]">
           <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
@@ -343,5 +350,176 @@ function CartaoProspecto({
         ) : null}
       </div>
     </article>
+  );
+}
+
+/* ================================================================== */
+/* O dono da marca                                                     */
+/* ================================================================== */
+
+/**
+ * Quem é a pessoa, e onde ela está.
+ *
+ * ============================================================
+ * POR QUE É UM CAMPO, E NÃO UMA BUSCA AUTOMÁTICA
+ * ============================================================
+ * O caminho é conhecido e curto: consulta o CNPJ, lê a razão social,
+ * acha o perfil pessoal. Numa empresa individual a razão social É o
+ * nome da pessoa. Automatizar isso significaria raspar um site de
+ * terceiro, que muda de formato e bloqueia robô, para economizar trinta
+ * segundos por marca. O que o painel faz é o que importa: guardar o
+ * resultado, para ninguém refazer a busca na semana seguinte.
+ *
+ * ============================================================
+ * DOBRADO, E RESUMIDO NA PRÓPRIA DOBRA
+ * ============================================================
+ * Cinquenta formulários abertos são cinquenta caixas de texto entre a
+ * pessoa e a lista. Fechado, o título já mostra o nome e o arroba, que
+ * é o que se quer ler depois de preencher.
+ */
+function BlocoDono({
+  prospecto: p,
+  podeEditar,
+}: {
+  prospecto: Prospecto;
+  podeEditar: boolean;
+}) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(salvarDono, null);
+
+  /* `nomeContato` nasce com o @ da marca, da importação. Igual ao
+     `instagram`, quer dizer "ninguém descobriu ainda". */
+  const nome = p.nomeContato && p.nomeContato !== p.instagram ? p.nomeContato : null;
+  const sabido = nome || p.instagramDono || p.cnpj;
+
+  if (!podeEditar) {
+    if (!sabido) return null;
+    return (
+      <p className="mt-3 text-sm text-neve">
+        {nome ?? 'Dono'}
+        {p.instagramDono ? <span className="text-cinza"> · {p.instagramDono}</span> : null}
+      </p>
+    );
+  }
+
+  return (
+    <details className="group mt-4 rounded-xl border border-fio bg-white/[0.02]">
+      <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
+        <span aria-hidden className="mr-2 text-magenta-texto group-open:hidden">+</span>
+        <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">-</span>
+        {sabido ? (
+          <>
+            Dono: <span className="font-normal text-cinza">{nome ?? 'sem nome'}</span>
+            {p.instagramDono ? (
+              <span className="ml-2 font-normal text-magenta-texto">{p.instagramDono}</span>
+            ) : null}
+          </>
+        ) : (
+          'Quem é o dono?'
+        )}
+      </summary>
+
+      <div className="space-y-4 px-4 pb-4">
+        {/* Os atalhos primeiro: com o dado preenchido, o que se quer
+            daqui é sair para o perfil, e não reeditar o campo. */}
+        {p.instagramDono || p.cnpj ? (
+          <p className="flex flex-wrap gap-2">
+            {p.instagramDono ? (
+              <a
+                href={`https://www.instagram.com/${p.instagramDono.replace('@', '')}/`}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                Abrir {p.instagramDono}
+                <span aria-hidden>&#8599;</span>
+              </a>
+            ) : null}
+            {p.cnpj ? (
+              <a
+                href={`https://cnpj.biz/${p.cnpj}`}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+              >
+                Ver o CNPJ
+                <span aria-hidden>&#8599;</span>
+              </a>
+            ) : null}
+          </p>
+        ) : null}
+
+        <form action={acao} className="space-y-3">
+          <input type="hidden" name="lead_id" value={p.leadId} />
+
+          <div>
+            <label htmlFor={`cnpj-${p.id}`} className={rotuloCampo}>
+              CNPJ
+            </label>
+            <input
+              id={`cnpj-${p.id}`}
+              name="cnpj"
+              defaultValue={p.cnpj ?? ''}
+              inputMode="numeric"
+              placeholder="45.160.542/0001-60"
+              className={`mt-1.5 ${campo}`}
+            />
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+              Cole com pontuação ou sem. Em empresa individual, a razão social é o nome do dono.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor={`dono-${p.id}`} className={rotuloCampo}>
+              Nome do dono
+            </label>
+            <input
+              id={`dono-${p.id}`}
+              name="nome"
+              defaultValue={nome ?? ''}
+              placeholder="Mirian Alves Maia"
+              className={`mt-1.5 ${campo}`}
+            />
+          </div>
+
+          <div>
+            <label htmlFor={`iga-${p.id}`} className={rotuloCampo}>
+              Instagram do dono
+            </label>
+            <input
+              id={`iga-${p.id}`}
+              name="instagram_dono"
+              defaultValue={p.instagramDono ?? ''}
+              placeholder="@mirianalves"
+              className={`mt-1.5 ${campo}`}
+            />
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+              Vale colar o endereço inteiro do perfil.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={pendente}
+              className="rounded-full border border-fio px-5 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5 disabled:opacity-60"
+            >
+              {pendente ? 'Salvando...' : 'Salvar'}
+            </button>
+            {estado ? (
+              <span
+                role="status"
+                className={
+                  'text-xs font-semibold ' +
+                  (estado.ok ? 'text-[#4ADE80]' : 'text-magenta-texto')
+                }
+              >
+                <span aria-hidden className="mr-1.5">{estado.ok ? '●' : '■'}</span>
+                {estado.mensagem}
+              </span>
+            ) : null}
+          </div>
+        </form>
+      </div>
+    </details>
   );
 }
