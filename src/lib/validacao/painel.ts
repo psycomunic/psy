@@ -189,6 +189,22 @@ export const esquemaMoverLead = z.object({
   estagio: z.enum(ESTAGIOS_VALIDOS),
 });
 
+/**
+ * Marcar que a abordagem saiu.
+ *
+ * `nota` é opcional porque o caso comum é enviar a mensagem que já
+ * estava escrita na lista. Exigir um resumo aqui faria o comercial
+ * digitar "enviei" cinquenta vezes.
+ */
+export const esquemaAbordagem = z.object({
+  lead_id: z.uuid('Lead inválido.'),
+  /* `.optional()` e não só `.nullable()`: o formulário da lista não tem
+     campo de nota nenhum, então a chave chega AUSENTE, e não vazia.
+     Sem isto, todo clique em "Marcar abordagem enviada" respondia
+     "expected string, received undefined" e não gravava nada. */
+  nota: textoOpcional.optional().transform((v) => v ?? null),
+});
+
 export const esquemaLead = z.object({
   id: z.uuid('Lead inválido.'),
   proximo_passo: textoOpcional,

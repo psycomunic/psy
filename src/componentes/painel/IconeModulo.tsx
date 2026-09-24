@@ -6,14 +6,14 @@ import type { Modulo } from '@/lib/papeis';
  * ============================================================
  * POR QUE SVG À MÃO, E NÃO UMA BIBLIOTECA
  * ============================================================
- * São onze ícones. A biblioteca mais leve do ramo traz mil e cobra o
+ * São doze ícones. A biblioteca mais leve do ramo traz mil e cobra o
  * peso de todas na hora de resolver a árvore, num projeto que hoje tem
- * sete dependências ao todo. Onze traçados escritos aqui custam alguns
+ * sete dependências ao todo. Doze traçados escritos aqui custam alguns
  * kilobytes e não envelhecem.
  *
  * Todos com o mesmo vocabulário: caixa de 20, traço de 1.6, pontas
- * arredondadas, `currentColor`. É isso que faz onze desenhos diferentes
- * parecerem um conjunto em vez de onze ícones baixados de lugares
+ * arredondadas, `currentColor`. É isso que faz doze desenhos diferentes
+ * parecerem um conjunto em vez de doze ícones baixados de lugares
  * diferentes.
  *
  * `aria-hidden` em todos. O nome do módulo está no texto ao lado, e no
@@ -24,6 +24,9 @@ import type { Modulo } from '@/lib/papeis';
 const TRACOS: Record<Modulo, string> = {
   /* Painel: quatro blocos, o retrato de uma visão geral. */
   visao: 'M3 3h6v6H3zM11 3h6v4h-6zM11 9h6v8h-6zM3 11h6v6H3z',
+
+  /* Alvo com mira: procurar quem ainda não chegou. */
+  prospeccao: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14M10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6M10 1v2M10 17v2M1 10h2M17 10h2',
 
   /* Funil: três linhas que estreitam. */
   crm: 'M2 4h16M5 10h10M8 16h4',

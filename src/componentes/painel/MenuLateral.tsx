@@ -216,7 +216,7 @@ export function MenuLateral({
                   {grupo.titulo}
                 </p>
                 {/* Fio no lugar do título quando recolhido: sem ele os
-                    onze itens voltam a ser uma lista só. */}
+                    doze itens voltam a ser uma lista só. */}
                 <span aria-hidden className="menu-fio mx-3 mb-2 block h-px bg-fio" />
                 <ul className="space-y-1">{doGrupo.map(item)}</ul>
               </div>

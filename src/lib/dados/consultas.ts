@@ -29,6 +29,8 @@ import type {
   Despesa,
   TipoConta,
   Notificacao,
+  Prospecto,
+  PrioridadeProspeccao,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -993,6 +995,76 @@ export async function leadPorId(id: string): Promise<Lead | null> {
 
   const { dados } = await listarLeads();
   return dados.find((l) => l.id === id) ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Prospecção ativa                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A lista de prospecção, com o estágio do lead junto.
+ *
+ * Um join, e não duas consultas: a tela mostra as duas coisas na mesma
+ * linha, e separar daria uma lista de pesquisa que não sabe quem já foi
+ * abordado — que é exatamente a pergunta que ela existe para responder.
+ *
+ * A ordem sai do banco: prioridade A primeiro, e dentro dela quem tem
+ * mais seguidores. Ordenar na tela faria a primeira pintura mostrar uma
+ * ordem e a segunda outra.
+ *
+ * `nullsFirst: false` nas duas: quem não tem prioridade nem contagem vai
+ * para o fim. Sem isso o Postgres põe nulo primeiro em ordem
+ * decrescente, e a lista abriria justamente pelo que menos importa.
+ */
+export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('prospeccao')
+    .select('id, lead_id, codigo, instagram, instagram_url, cidade, uf, regiao, segmento, modelo_venda, fabricacao_propria, situacao_site, seguidores, prioridade, oportunidade, gancho, mensagem_abertura, perguntas, canal, notas, lead:lead_id(empresa, estagio, proximo_passo)')
+    .order('prioridade', { ascending: true, nullsFirst: false })
+    .order('seguidores', { ascending: false, nullsFirst: false })
+    .limit(500);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((p) => {
+      const l = p.lead as unknown as {
+        empresa: string | null;
+        estagio: Estagio;
+        proximo_passo: string | null;
+      } | null;
+
+      return {
+        id: p.id as string,
+        leadId: p.lead_id as string,
+        codigo: (p.codigo as string) ?? null,
+        instagram: (p.instagram as string) ?? null,
+        instagramUrl: (p.instagram_url as string) ?? null,
+        cidade: (p.cidade as string) ?? null,
+        uf: (p.uf as string) ?? null,
+        regiao: (p.regiao as string) ?? null,
+        segmento: (p.segmento as string) ?? null,
+        modeloVenda: (p.modelo_venda as string) ?? null,
+        fabricacaoPropria: (p.fabricacao_propria as string) ?? null,
+        situacaoSite: (p.situacao_site as string) ?? null,
+        seguidores: p.seguidores === null ? null : Number(p.seguidores),
+        prioridade: (p.prioridade as PrioridadeProspeccao) ?? null,
+        oportunidade: (p.oportunidade as string) ?? null,
+        gancho: (p.gancho as string) ?? null,
+        mensagemAbertura: (p.mensagem_abertura as string) ?? null,
+        perguntas: (p.perguntas as string) ?? null,
+        canal: (p.canal as string) ?? null,
+        notas: (p.notas as string) ?? null,
+        empresa: l?.empresa ?? null,
+        estagio: l?.estagio ?? 'novo',
+        proximoPasso: l?.proximo_passo ?? null,
+        aguardandoAbordagem: (l?.estagio ?? 'novo') === 'novo',
+      };
+    }),
+  );
 }
 
 /* ------------------------------------------------------------------ */

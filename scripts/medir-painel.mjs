@@ -48,7 +48,7 @@ const EMAIL = `medida-${Date.now()}@teste.local`;
 const SENHA = 'Medida-Painel-2026-xyz';
 
 const ROTAS = [
-  'visao', 'crm', 'propostas', 'financeiro', 'contas',
+  'visao', 'prospeccao', 'crm', 'propostas', 'financeiro', 'contas',
   'metricas', 'tarefas', 'relatorios', 'equipe', 'auditoria', 'configuracoes',
 ];
 

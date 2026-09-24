@@ -25,6 +25,7 @@ import { Financeiro, abaFinanceiro } from '@/componentes/painel/modulos/Financei
 import { Tarefas, filtroDaUrl } from '@/componentes/painel/modulos/Tarefas';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
+import { Prospeccao } from '@/componentes/painel/modulos/Prospeccao';
 import { MenuLateral } from '@/componentes/painel/MenuLateral';
 import { resumoDaOperacao } from '@/lib/dados/operacao';
 import { minhasNotificacoes } from '@/lib/dados/consultas';
@@ -153,7 +154,7 @@ export default async function PainelModulo({
         <div className="brilho-magenta absolute -right-[22%] -top-[28%] h-[680px] w-[680px] opacity-[0.22]" />
         <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
       </div>
-      {/* Navegação lateral. Agrupada, com ícone e contador: onze itens
+      {/* Navegação lateral. Agrupada, com ícone e contador: doze itens
           no mesmo peso visual não são um menu, são uma lista. */}
       <MenuLateral
         papel={papel}
@@ -198,6 +199,7 @@ export default async function PainelModulo({
             <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
               {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
+              {moduloAtual === 'prospeccao' ? <Prospeccao papel={papel} /> : null}
               {moduloAtual === 'crm' ? <Crm papel={papel} /> : null}
               {naFicha ? (
                 <Ficha contaId={ficha!} aba={abaDaUrl(aba)} papel={papel} />

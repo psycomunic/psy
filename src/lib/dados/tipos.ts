@@ -478,3 +478,66 @@ export type ContratoAtivo = {
   /** A fatura do mês corrente já existe? */
   faturadoNoMes: boolean;
 };
+
+/* ------------------------------------------------------------------ */
+/* Prospecção ativa                                                    */
+/* ------------------------------------------------------------------ */
+
+/*
+  A, B, C, e NÃO `Prioridade`.
+
+  `PRIORIDADES` já existe neste arquivo, valendo baixa/média/alta/urgente
+  para tarefa. Duas listas com o mesmo nome e significados diferentes é
+  como alguém acaba escrevendo `prioridade: 'alta'` numa marca da lista
+  de prospecção sem o compilador reclamar.
+*/
+export const PRIORIDADES_PROSPECCAO = ['A', 'B', 'C'] as const;
+export type PrioridadeProspeccao = (typeof PRIORIDADES_PROSPECCAO)[number];
+
+/** O que cada letra quer dizer, para a tela não pedir decoreba. */
+export const explicaPrioridadeProspeccao: Record<PrioridadeProspeccao, string> = {
+  A: 'Aborda primeiro',
+  B: 'Aborda depois dos A',
+  C: 'Só se sobrar tempo',
+};
+
+/**
+ * Uma linha da lista de prospecção, com o essencial do lead junto.
+ *
+ * A pesquisa e o funil moram em tabelas diferentes de propósito (ver
+ * a migração 0025). Aqui eles voltam juntos porque a tela precisa das
+ * duas coisas na mesma linha: o gancho para escrever, e o estágio para
+ * saber se já foi abordado.
+ */
+export type Prospecto = {
+  id: string;
+  leadId: string;
+  /** Código da lista de origem, tipo L007. É por ele que a carga sabe
+      que já rodou. */
+  codigo: string | null;
+  instagram: string | null;
+  instagramUrl: string | null;
+  cidade: string | null;
+  uf: string | null;
+  regiao: string | null;
+  segmento: string | null;
+  modeloVenda: string | null;
+  fabricacaoPropria: string | null;
+  situacaoSite: string | null;
+  /** Aproximado, do dia do levantamento. Serve para ordenar. */
+  seguidores: number | null;
+  prioridade: PrioridadeProspeccao | null;
+  oportunidade: string | null;
+  gancho: string | null;
+  mensagemAbertura: string | null;
+  perguntas: string | null;
+  canal: string | null;
+  notas: string | null;
+
+  /* Do lead, e não da pesquisa. */
+  empresa: string | null;
+  estagio: Estagio;
+  proximoPasso: string | null;
+  /** Ainda em 'novo': ninguém mandou a primeira mensagem. */
+  aguardandoAbordagem: boolean;
+};

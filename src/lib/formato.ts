@@ -39,6 +39,24 @@ export function dinheiroCurto(v: number | null | undefined) {
   return BRL.format(v);
 }
 
+/**
+ * Contagem abreviada, sem cifrão: 158 -> "158" · 10000 -> "10 mil".
+ *
+ * Separado de `dinheiroCurto` de propósito. Número de seguidor com
+ * "R$" na frente é o tipo de erro que ninguém vê na revisão e todo
+ * mundo vê na tela.
+ */
+export function contagemCurta(v: number | null | undefined) {
+  if (v === null || v === undefined) return '—';
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')} mi`;
+  if (v >= 1_000) {
+    const mil = v / 1_000;
+    /* Sem casa decimal quando ela seria zero: "10 mil", e não "10,0 mil". */
+    return `${(Number.isInteger(mil) ? mil : mil.toFixed(1)).toString().replace('.', ',')} mil`;
+  }
+  return NUM.format(v);
+}
+
 export const porcento = (v: number | null | undefined, casas = 1) =>
   v === null || v === undefined ? '—' : `${v.toFixed(casas).replace('.', ',')}%`;
 

@@ -15,11 +15,12 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 11 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 26 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
-| Painel: visão geral, métricas, CRM, contas, financeiro, tarefas, equipe, auditoria | **Funcionando** contra o banco |
+| Painel: visão geral, prospecção, métricas, CRM, contas, financeiro, tarefas, equipe, auditoria | **Funcionando** contra o banco |
+| Prospecção ativa: lista pesquisada, filtro por prioridade e cidade, mensagem de abertura pronta | **Funcionando** — 50 marcas carregadas |
 | Ficha da loja em abas, com health score | **Funcionando** |
 | CRM com kanban, funil e conversão de lead em cliente | **Funcionando** |
 | Ingestão de métrica: planilha, `/api/ingestao`, frescor | **Funcionando** |
@@ -37,6 +38,29 @@ dado de demonstração exibe um aviso.
 Isso existe para o sistema poder ser visto e corrigido antes do banco. Nenhum
 nome de cliente real aparece na demonstração, de propósito: número inventado ao
 lado de uma marca de verdade é como um print vira "resultado" por engano.
+
+A prospecção é a exceção: **não tem versão de demonstração**. Uma lista
+inventada mostraria marcas que não existem com mensagem pronta para enviar, e é
+o tipo de tela onde alguém copia antes de perceber. Sem banco, ela diz que não
+há lista.
+
+### Prospecção ativa, e por que ela não é uma aba do CRM
+
+O CRM responde "como está o funil". A prospecção responde "para quem eu falo
+hoje". São duas perguntas, e a segunda tem cinquenta respostas empilhadas no
+primeiro estágio: jogadas no quadro, afogariam a coluna "novo" e esconderiam
+quem já respondeu.
+
+O lead é o **mesmo** nos dois lugares, e é uma linha só de banco: marcar a
+abordagem em `/painel/prospeccao` move o card em `/painel/crm`.
+
+A pesquisa (cidade, segmento, seguidores, prioridade, gancho, mensagem) vive em
+`prospeccao`. O funil (estágio, próximo passo, responsável) continua em `lead`.
+**Nenhum campo mora nas duas**, porque dado repetido em dois lugares é dado que
+um dia vai divergir.
+
+As listas entram por migração, com código próprio (`L001`...), e a carga é
+idempotente: rodar de novo não duplica ninguém.
 
 ---
 
@@ -122,8 +146,11 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0021_cliente_de_qualquer_nicho.sql` | `conta.tipo`, health score por tipo, `contrato.dia_vencimento`, assinatura do Asaas |
 | `0022_saude_conta_completa.sql` | devolve à `saude_conta` as colunas que a 0021 derrubou |
 | `0023_tarefas_e_lembretes.sql` | prioridade e recorrência em `tarefa`, `concluir_tarefa()`, tabela `notificacao`, `gerar_lembretes()` |
+| `0024_lead_do_site.sql` | `registrar_lead_do_site()`, a única porta de escrita em `lead` vinda do site: `lead` continua fechada para a chave pública |
+| `0025_prospeccao_ativa.sql` | `prospeccao`, um-para-um com `lead`, com a pesquisa que antecede o primeiro contato |
+| `0026_prospeccao_moda_sc.sql` | carga da primeira lista: 50 fábricas de moda de Santa Catarina, idempotente pelo código `L001`–`L050` |
 
-22 tabelas, 11 views, 51 políticas. `npm run testar-banco` confere o que não
+23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
 gravação idempotente de métrica, cobrança que não duplica, e o ciclo de vida do
 contrato pela tela de verdade (`npm run testar-contratos`, que precisa do

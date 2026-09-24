@@ -179,6 +179,7 @@ try {
   /* Dados internos da agência                                         */
   /* ================================================================ */
   const { data: leads } = await dono.from('lead').select('id');
+  const { data: prospeccao } = await dono.from('prospeccao').select('id');
   const { data: contratos } = await dono.from('contrato').select('id');
   const { data: integracoes } = await dono.from('integracao').select('id');
   const { data: contatos } = await dono.from('contato').select('id');
@@ -187,6 +188,7 @@ try {
 
   console.log('\nDados internos da agencia');
   ok((leads ?? []).length === 0, 'nao ve o CRM');
+  ok((prospeccao ?? []).length === 0, 'nao ve a lista de prospeccao da agencia');
   ok((contratos ?? []).length === 0, 'nao ve contratos');
   ok((integracoes ?? []).length === 0, 'nao ve tokens de integracao');
   ok((contatos ?? []).length === 0, 'nao ve os contatos cadastrados da propria loja');

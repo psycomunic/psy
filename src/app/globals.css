@@ -403,7 +403,7 @@ body {
 
 /* Menu recolhido: o que muda além da largura. */
 @media (min-width: 1024px) {
-  /* O fio substitui o título do grupo. Sem ele, os onze itens voltam a
+  /* O fio substitui o título do grupo. Sem ele, os doze itens voltam a
      ser uma lista só, que é justamente o que o agrupamento resolveu. */
   .menu-fio { display: none; }
   [data-menu='recolhido'] .menu-fio { display: block; }

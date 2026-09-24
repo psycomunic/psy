@@ -73,6 +73,7 @@ export const descricaoPapel: Record<Papel, string> = {
 /** Módulos da plataforma. Cada um é uma rota de /painel. */
 export const MODULOS = [
   'visao',
+  'prospeccao',
   'crm',
   'propostas',
   'financeiro',
@@ -88,6 +89,7 @@ export type Modulo = (typeof MODULOS)[number];
 
 export const rotuloModulo: Record<Modulo, string> = {
   visao: 'Visão geral',
+  prospeccao: 'Prospecção ativa',
   crm: 'CRM',
   propostas: 'Propostas',
   financeiro: 'Financeiro',
@@ -109,6 +111,10 @@ type Matriz = Record<Papel, Partial<Record<Modulo, Acao[]>>>;
  * Matriz de permissões.
  *
  * As escolhas que valem explicação:
+ *
+ * PROSPECÇÃO ATIVA anda junto com o CRM: quem vê o funil vê a lista de
+ * quem ainda não entrou nele. Operador e financeiro não veem nenhum dos
+ * dois, e o RLS de `prospeccao` é o mesmo de `lead`.
  *
  * O COMERCIAL não vê financeiro. Quem vende não precisa da margem nem
  * da lista de inadimplentes para trabalhar, e menos acesso é menos
@@ -139,6 +145,7 @@ type Matriz = Record<Papel, Partial<Record<Modulo, Acao[]>>>;
 export const permissoes: Matriz = {
   administrador: {
     visao: ['ver'],
+    prospeccao: ['ver', 'editar', 'excluir'],
     crm: ['ver', 'editar', 'excluir'],
     propostas: ['ver', 'editar', 'excluir'],
     financeiro: ['ver', 'editar', 'excluir'],
@@ -153,6 +160,7 @@ export const permissoes: Matriz = {
 
   gestor: {
     visao: ['ver'],
+    prospeccao: ['ver', 'editar'],
     crm: ['ver', 'editar'],
     propostas: ['ver', 'editar'],
     contas: ['ver', 'editar'],
@@ -168,6 +176,7 @@ export const permissoes: Matriz = {
 
   comercial: {
     visao: ['ver'],
+    prospeccao: ['ver', 'editar'],
     crm: ['ver', 'editar'],
     propostas: ['ver', 'editar'],
     contas: ['ver'],
@@ -243,7 +252,7 @@ export const rotaInicial: Record<Papel, string> = {
  *   Administração  — o que sustenta a agência por trás
  */
 export const GRUPOS_DE_MODULOS: { titulo: string; modulos: Modulo[] }[] = [
-  { titulo: 'Prospecção', modulos: ['crm', 'propostas'] },
+  { titulo: 'Prospecção', modulos: ['prospeccao', 'crm', 'propostas'] },
   { titulo: 'Operação', modulos: ['contas', 'metricas', 'tarefas', 'relatorios'] },
   { titulo: 'Administração', modulos: ['financeiro', 'equipe', 'auditoria', 'configuracoes'] },
 ];
