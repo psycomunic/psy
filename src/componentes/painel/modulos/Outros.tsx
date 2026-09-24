@@ -6,6 +6,7 @@ import {
   listarAuditoria,
   listarFunil,
   interacoesDosLeads,
+  listarProspeccao,
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { rotuloEstagio, rotuloTipoConta } from '@/lib/dados/tipos';
@@ -28,8 +29,22 @@ import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 /* ================================================================== */
 
 export async function Crm({ papel }: { papel: Papel }) {
-  const [{ dados: leads, procedencia }, { dados: funil }, { dados: conversas }] =
-    await Promise.all([listarLeads(), listarFunil(), interacoesDosLeads()]);
+  const [
+    { dados: leads, procedencia },
+    { dados: funil },
+    { dados: conversas },
+    { dados: prospectos },
+  ] = await Promise.all([
+    listarLeads(),
+    listarFunil(),
+    interacoesDosLeads(),
+    listarProspeccao(),
+  ]);
+
+  /* A pesquisa indexada por lead, e não uma consulta por ficha aberta.
+     Objeto simples, e não Map: atravessa a fronteira servidor →
+     cliente, e o React serializa objeto enquanto Map vira `{}`. */
+  const pesquisas = Object.fromEntries(prospectos.map((p) => [p.leadId, p]));
 
   const podeEditar =
     ['administrador', 'gestor', 'comercial'].includes(papel) && procedencia === 'banco';
@@ -143,7 +158,12 @@ export async function Crm({ papel }: { papel: Papel }) {
             : 'Clique num card para abrir a ficha.'
         }
       >
-        <Kanban leads={leads} podeEditar={podeEditar} interacoes={conversas} />
+        <Kanban
+          leads={leads}
+          podeEditar={podeEditar}
+          interacoes={conversas}
+          pesquisas={pesquisas}
+        />
       </Secao>
 
       <Secao titulo="Tempo em cada estágio" apoio="Onde o funil trava.">

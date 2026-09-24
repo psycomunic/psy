@@ -10,8 +10,10 @@ import {
   registrarInteracao,
 } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
-import type { Lead, Estagio, Interacao } from '@/lib/dados/tipos';
-import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
+import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
+import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao } from '@/lib/dados/tipos';
+import { contagemCurta } from '@/lib/formato';
+import { BotaoCopiar } from './BotaoCopiar';
 import { dinheiro, dinheiroCurto } from '@/lib/formato';
 import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
 
@@ -32,12 +34,17 @@ export function Kanban({
   leads,
   podeEditar,
   interacoes = {},
+  pesquisas = {},
 }: {
   leads: Lead[];
   podeEditar: boolean;
   /** Conversas já registradas, por lead. Vêm prontas do servidor: uma
       consulta por card seria N+1 com o funil inteiro na tela. */
   interacoes?: Record<string, Interacao[]>;
+  /** A pesquisa de prospecção, para os leads que vieram de uma lista.
+      Quem chegou pelo site não tem, e a ficha simplesmente não mostra
+      o bloco. */
+  pesquisas?: Record<string, Prospecto>;
 }) {
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
@@ -252,6 +259,7 @@ export function Kanban({
           lead={aberto}
           podeEditar={podeEditar}
           conversas={interacoes[aberto.id] ?? []}
+          pesquisa={pesquisas[aberto.id]}
           aoFechar={() => setAberto(null)}
         />
       ) : null}
@@ -267,11 +275,13 @@ function FichaLead({
   lead,
   podeEditar,
   conversas,
+  pesquisa,
   aoFechar,
 }: {
   lead: Lead;
   podeEditar: boolean;
   conversas: Interacao[];
+  pesquisa?: Prospecto;
   aoFechar: () => void;
 }) {
   const [aba, setAba] = useState<'passo' | 'conversa' | 'ganhar' | 'perder'>('passo');
@@ -306,7 +316,24 @@ function FichaLead({
             <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
               {lead.empresa ?? lead.nome}
             </h2>
-            <p className="mt-1 text-sm text-cinza">{lead.nome}</p>
+            {/* O @ vira link quando a pesquisa trouxe o endereço. É o
+                gesto que a pessoa faria de qualquer jeito: copiar o
+                arroba e procurar no Instagram. */}
+            <p className="mt-1 text-sm text-cinza">
+              {pesquisa?.instagramUrl ? (
+                <a
+                  href={pesquisa.instagramUrl}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-magenta-texto underline-offset-4 hover:underline"
+                >
+                  {lead.nome}
+                </a>
+              ) : (
+                lead.nome
+              )}
+              {pesquisa?.cidade ? <span> · {pesquisa.cidade}</span> : null}
+            </p>
           </div>
           <button
             type="button"
@@ -377,6 +404,8 @@ function FichaLead({
           </div>
         ) : null}
 
+        {pesquisa ? <BlocoPesquisa pesquisa={pesquisa} /> : null}
+
         {/*
           Proposta a partir do lead.
 
@@ -399,7 +428,9 @@ function FichaLead({
 
         {podeEditar && lead.estagio !== 'ganho' && lead.estagio !== 'perdido' ? (
           <>
-            <nav className="mt-7 flex gap-2" aria-label="O que fazer com este lead">
+            {/* `flex-wrap`: com "Conversas (3)" os quatro rótulos passavam de
+                  390px e a ficha ganhava 1px de rolagem lateral. */}
+            <nav className="mt-7 flex flex-wrap gap-2" aria-label="O que fazer com este lead">
               {[
                 { k: 'passo' as const, r: 'Próximo passo' },
                 { k: 'conversa' as const, r: `Conversas${conversas.length ? ` (${conversas.length})` : ''}` },
@@ -642,5 +673,122 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
     >
       {pendente ? 'Salvando...' : children}
     </button>
+  );
+}
+
+/* ================================================================== */
+/* A pesquisa, quando o lead veio de uma lista de prospecção           */
+/* ================================================================== */
+
+/**
+ * O que se sabia da empresa ANTES de falar com ela.
+ *
+ * Aparece só para quem veio de prospecção ativa. Um lead que chegou
+ * pelo site não tem pesquisa nenhuma, e um bloco vazio dizendo "—"
+ * quatro vezes só ocuparia a ficha.
+ *
+ * A ordem é a da conversa: quem é e onde fica, como vende, o que
+ * chamou atenção, e por último a mensagem pronta. O painel tem 448px,
+ * então nada aqui assume duas colunas.
+ */
+function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
+  const fatos = [
+    p.segmento,
+    p.modeloVenda,
+    p.fabricacaoPropria === 'Sim' ? 'Fabricação própria' : 'Fabricação a confirmar',
+    p.situacaoSite,
+    p.seguidores !== null ? `${contagemCurta(p.seguidores)} seguidores` : null,
+  ].filter(Boolean) as string[];
+
+  return (
+    <section className="mt-6 rounded-2xl border border-fio bg-white/[0.02] p-5">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
+          Prospecção
+        </h3>
+        {p.prioridade ? (
+          <span
+            title={explicaPrioridadeProspeccao[p.prioridade]}
+            className="rounded-full border border-fio px-3 py-1 font-mono text-[0.75rem] font-semibold tracking-[0.1em] text-neve"
+          >
+            Prioridade {p.prioridade}
+          </span>
+        ) : null}
+      </header>
+
+      {p.regiao || p.oportunidade ? (
+        <p className="mt-3 text-sm leading-relaxed text-neve">
+          {[p.regiao, p.oportunidade].filter(Boolean).join(' · ')}
+        </p>
+      ) : null}
+
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {fatos.map((f) => (
+          <li key={f} className="rounded-full border border-fio px-3 py-1 text-xs text-cinza">
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      {p.gancho ? (
+        <p className="mt-4 border-l-2 border-magenta/50 pl-3 text-sm leading-relaxed text-neve">
+          {p.gancho}
+        </p>
+      ) : null}
+
+      {p.instagramUrl ? (
+        <a
+          href={p.instagramUrl}
+          target="_blank"
+          rel="noopener"
+          className="mt-4 inline-flex min-h-[24px] items-center gap-2 rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+        >
+          Abrir {p.instagram ?? 'o perfil'}
+          <span aria-hidden>↗</span>
+        </a>
+      ) : null}
+
+      {/* Fechada por padrão: a ficha existe para decidir o próximo
+          passo, e a mensagem inteira empurraria os botões para fora da
+          primeira tela. O Ctrl+F acha o texto mesmo assim. */}
+      {p.mensagemAbertura ? (
+        <details className="group mt-4 rounded-xl border border-fio">
+          <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
+            <span aria-hidden className="mr-2 text-magenta-texto group-open:hidden">+</span>
+            <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">−</span>
+            Mensagem de abertura
+            {p.canal ? <span className="ml-2 font-normal text-cinza">{p.canal}</span> : null}
+          </summary>
+
+          <div className="space-y-3 px-4 pb-4">
+            <p className="text-sm leading-relaxed text-neve">{p.mensagemAbertura}</p>
+            <BotaoCopiar texto={p.mensagemAbertura} />
+
+            {p.perguntas ? (
+              <div className="border-t border-fio pt-3">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+                  Perguntas de qualificação
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntas}</p>
+              </div>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
+
+      {p.notas ? (
+        <p className="mt-3 text-xs leading-relaxed text-cinza">{p.notas}</p>
+      ) : null}
+
+      <p className="mt-4 text-xs text-cinza">
+        <Link
+          href="/painel/prospeccao"
+          className="text-magenta-texto underline-offset-4 hover:underline"
+        >
+          Ver a lista de prospecção
+        </Link>
+        {p.codigo ? <span className="ml-2">· {p.codigo}</span> : null}
+      </p>
+    </section>
   );
 }

@@ -6,6 +6,7 @@ import type { Resultado } from '@/app/painel/acoes';
 import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
+import { BotaoCopiar } from './BotaoCopiar';
 
 /**
  * A lista de prospecção ativa.
@@ -323,42 +324,5 @@ function CartaoProspecto({
         ) : null}
       </div>
     </article>
-  );
-}
-
-/**
- * Copiar a mensagem.
- *
- * `navigator.clipboard` não existe fora de HTTPS e pode ser negado por
- * permissão. Quando falha, o botão não finge que deu certo: ele SELECIONA
- * o texto e diz para copiar à mão, que é o que sobra.
- */
-function BotaoCopiar({ texto }: { texto: string }) {
-  const [copiado, setCopiado] = useState<'nao' | 'sim' | 'falhou'>('nao');
-
-  async function copiar() {
-    try {
-      await navigator.clipboard.writeText(texto);
-      setCopiado('sim');
-      setTimeout(() => setCopiado('nao'), 2500);
-    } catch {
-      setCopiado('falhou');
-    }
-  }
-
-  return (
-    <p className="flex flex-wrap items-center gap-3">
-      <button
-        type="button"
-        onClick={copiar}
-        className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
-      >
-        Copiar mensagem
-      </button>
-      <span aria-live="polite" className="text-xs text-cinza">
-        {copiado === 'sim' ? 'Copiada.' : null}
-        {copiado === 'falhou' ? 'O navegador não deixou copiar. Selecione o texto acima.' : null}
-      </span>
-    </p>
   );
 }
