@@ -67,3 +67,41 @@ export function textoDaAbordagem(
   const nome = (nomeDoDono ?? '').trim();
   return texto.split(MARCADOR).join(nome ? `, ${primeiroNome(nome)}` : '');
 }
+
+/**
+ * A abertura quebrada nas mensagens que vão ser enviadas.
+ *
+ * ============================================================
+ * POR QUE PARTES, E NÃO UM TEXTO SÓ
+ * ============================================================
+ * No direct, um parágrafo de cem palavras chega como um bloco que a
+ * pessoa precisa decidir se lê. Quatro mensagens curtas chegam como
+ * alguém falando: a saudação, quem é e por que achou você, a prova, e
+ * o convite. Cada uma delas cabe na tela sem "ver mais".
+ *
+ * Era isso que já estava sendo feito à mão, recortando o texto do
+ * painel antes de colar. O painel passa a entregar recortado.
+ *
+ * ============================================================
+ * A LINHA EM BRANCO É O SEPARADOR
+ * ============================================================
+ * E não uma coluna de lista, nem um caractere inventado. `mensagem_
+ * abertura` continua sendo UM campo, legível e editável por SQL do
+ * jeito que sempre foi, e a divisão é a convenção que qualquer pessoa
+ * reconhece ao ler o texto.
+ *
+ * Mensagem sem linha em branco devolve uma parte só, que é o
+ * comportamento certo para as mensagens antigas e para a pergunta de
+ * seguimento.
+ */
+export function partesDaAbordagem(
+  texto: string | null | undefined,
+  nomeDoDono: string | null | undefined,
+): string[] {
+  const inteiro = textoDaAbordagem(texto, nomeDoDono);
+  if (!inteiro) return [];
+  return inteiro
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}

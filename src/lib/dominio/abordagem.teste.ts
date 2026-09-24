@@ -1,6 +1,11 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { donoConhecido, primeiroNome, textoDaAbordagem } from './abordagem.ts';
+import {
+  donoConhecido,
+  partesDaAbordagem,
+  primeiroNome,
+  textoDaAbordagem,
+} from './abordagem.ts';
 
 /*
   O que se testa aqui é a PONTUAÇÃO e o "não sei ainda".
@@ -70,5 +75,27 @@ describe('textoDaAbordagem', () => {
   test('sem texto devolve string vazia, e nao "undefined" na tela', () => {
     assert.equal(textoDaAbordagem(null, 'Mirian'), '');
     assert.equal(textoDaAbordagem(undefined, null), '');
+  });
+});
+
+describe('partesDaAbordagem', () => {
+  test('quebra na linha em branco, e ja com o nome trocado', () => {
+    assert.deepEqual(
+      partesDaAbordagem('Oi{dono}, tudo bem?\n\nAqui é da Psy Comunic.\n\nFaz sentido?', 'Mirian Alves'),
+      ['Oi, Mirian, tudo bem?', 'Aqui é da Psy Comunic.', 'Faz sentido?'],
+    );
+  });
+
+  test('sem linha em branco, uma parte so: e o caso da pergunta de seguimento', () => {
+    assert.deepEqual(partesDaAbordagem('Uma pergunta unica.', null), ['Uma pergunta unica.']);
+  });
+
+  test('linha em branco com espacos tambem separa, e nao vira parte vazia', () => {
+    assert.deepEqual(partesDaAbordagem('Um.\n   \nDois.\n\n\nTres.', null), ['Um.', 'Dois.', 'Tres.']);
+  });
+
+  test('sem texto, lista vazia: a tela nao pinta um cartao de nada', () => {
+    assert.deepEqual(partesDaAbordagem(null, 'Mirian'), []);
+    assert.deepEqual(partesDaAbordagem('   ', null), []);
   });
 });

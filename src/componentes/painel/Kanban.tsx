@@ -14,7 +14,7 @@ import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
 import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
-import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
+import { donoConhecido, partesDaAbordagem } from '@/lib/dominio/abordagem.ts';
 import { dinheiro, dinheiroCurto } from '@/lib/formato';
 import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
 
@@ -693,7 +693,7 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
  * então nada aqui assume duas colunas.
  */
 function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
-  const abertura = textoDaAbordagem(
+  const partes = partesDaAbordagem(
     p.mensagemAbertura,
     donoConhecido(p.nomeContato, p.instagram),
   );
@@ -793,8 +793,24 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
           </summary>
 
           <div className="space-y-3 px-4 pb-4">
-            <p className="text-sm leading-relaxed text-neve">{abertura}</p>
-            <BotaoCopiar texto={abertura} />
+            {/* Na ficha, as partes numeradas sem moldura: o painel tem
+                448px, e quatro caixas dentro de uma dobra dentro de um
+                painel viram borda demais para pouco texto. */}
+            <ol className="space-y-3">
+              {partes.map((parte, i) => (
+                <li key={parte}>
+                  <p className="text-sm leading-relaxed text-neve">
+                    <span aria-hidden className="mr-2 font-bold text-magenta-texto">
+                      {i + 1}
+                    </span>
+                    {parte}
+                  </p>
+                  <div className="mt-2">
+                    <BotaoCopiar texto={parte} rotulo={`Copiar a ${i + 1}ª`} />
+                  </div>
+                </li>
+              ))}
+            </ol>
 
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">

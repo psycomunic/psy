@@ -7,7 +7,7 @@ import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
-import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
+import { donoConhecido, partesDaAbordagem } from '@/lib/dominio/abordagem.ts';
 
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-2.5 text-sm text-branco ' +
@@ -186,7 +186,7 @@ function CartaoProspecto({
      carga e o dono é descoberto depois, um a um. Ver
      `src/lib/dominio/abordagem.ts`. */
   const dono = donoConhecido(p.nomeContato, p.instagram);
-  const abertura = textoDaAbordagem(p.mensagemAbertura, dono);
+  const partes = partesDaAbordagem(p.mensagemAbertura, dono);
 
   const fatos = [
     p.modeloVenda,
@@ -272,11 +272,13 @@ function CartaoProspecto({
             <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">−</span>
             1. Mensagem de abertura
             {p.canal ? <span className="ml-2 font-normal text-cinza">{p.canal}</span> : null}
+            <span className="ml-2 font-normal text-cinza">
+              {partes.length} {partes.length === 1 ? 'mensagem' : 'mensagens'}
+            </span>
           </summary>
 
           <div className="space-y-3 px-4 pb-4">
-            <p className="text-sm leading-relaxed text-neve">{abertura}</p>
-            <BotaoCopiar texto={abertura} />
+            <ListaDeMensagens partes={partes} />
 
             {!dono ? (
               <p className="text-xs leading-relaxed text-cinza">
@@ -533,5 +535,66 @@ function BlocoDono({
         </form>
       </div>
     </details>
+  );
+}
+
+/* ================================================================== */
+/* As mensagens da abertura, uma a uma                                 */
+/* ================================================================== */
+
+/**
+ * Cada parte com o seu botão.
+ *
+ * ============================================================
+ * POR QUE NÃO UM BOTÃO SÓ, COM O TEXTO INTEIRO
+ * ============================================================
+ * Porque não é assim que a mensagem é enviada. No direct ela sai em
+ * quatro: a saudação, quem é e por que achou a pessoa, a prova, e o
+ * convite. Um botão só devolveria o bloco que já estava sendo
+ * recortado à mão antes de colar.
+ *
+ * O número na frente não é enfeite: ele diz que existe uma ORDEM, e
+ * que a terceira só faz sentido depois da segunda.
+ *
+ * O "copiar tudo" continua embaixo, para quem preferir mandar de uma
+ * vez ou colar noutro lugar.
+ */
+function ListaDeMensagens({ partes }: { partes: string[] }) {
+  if (partes.length === 0) return null;
+  if (partes.length === 1) {
+    return (
+      <>
+        <p className="text-sm leading-relaxed text-neve">{partes[0]}</p>
+        <BotaoCopiar texto={partes[0]} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ol className="space-y-2.5">
+        {partes.map((parte, i) => (
+          <li
+            key={parte}
+            className="flex items-start gap-3 rounded-xl border border-fio bg-white/[0.02] p-3"
+          >
+            <span
+              aria-hidden
+              className="tabular mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-magenta/15 text-[0.75rem] font-bold text-magenta-texto"
+            >
+              {i + 1}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm leading-relaxed text-neve">{parte}</span>
+              <span className="mt-2 block">
+                <BotaoCopiar texto={parte} rotulo={`Copiar a ${i + 1}ª`} />
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <BotaoCopiar texto={partes.join('\n\n')} rotulo="Copiar as quatro" />
+    </>
   );
 }
