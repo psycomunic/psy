@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { marcarLidas } from '@/app/painel/acoes-tarefa';
 import type { Notificacao } from '@/lib/dados/tipos';
@@ -61,11 +61,69 @@ export function Sino({
   const [aberto, setAberto] = useState(false);
   const [rLer, aLer, pLer] = useActionState<Resultado | null, FormData>(marcarLidas, null);
 
+  /*
+    ============================================================
+    POR QUE A POSIÇÃO É MEDIDA, E NÃO ESCRITA NO CSS
+    ============================================================
+    A caixa alinhava pela direita do sino e crescia para a esquerda.
+    O sino não fica na borda da tela: no celular tem o botão do menu ao
+    lado, e no computador ele mora DENTRO da coluna de 256px. Medido, o
+    corte era de 20px em 390 e de 165px em 1440.
+
+    E ninguém via a caixa rolar para achar o resto, porque quem corta é
+    o `overflow-x: clip` do `body` — que existe para o `position:
+    sticky` funcionar e não vai sair daqui.
+
+    CSS sozinho não resolve: a distância entre o sino e a borda muda com
+    a largura da tela, com o menu recolhido e com a faixa virar coluna.
+    Então a conta é feita no clique, com o retângulo do próprio botão.
+
+    Só o horizontal. O vertical continua sendo `top-11` no CSS, e é por
+    isso que a caixa acompanha o sino quando a página rola: uma caixa
+    `fixed` ficaria parada no ar enquanto o sino sobe.
+  */
+  const botao = useRef<HTMLButtonElement>(null);
+  const [caixa, setCaixa] = useState<{ left: number; width: number } | null>(null);
+
+  const medir = useCallback(() => {
+    const b = botao.current;
+    const parente = b?.parentElement;
+    if (!b || !parente) return;
+
+    const RESPIRO = 12;
+    const r = b.getBoundingClientRect();
+    const largura = Math.min(352, window.innerWidth - RESPIRO * 2);
+
+    /* Encosta a direita da caixa na direita do sino, e empurra de volta
+       para dentro quando isso jogaria a borda esquerda para fora. */
+    const limite = window.innerWidth - RESPIRO - largura;
+    const esquerda = Math.min(Math.max(r.right - largura, RESPIRO), Math.max(limite, RESPIRO));
+
+    /* Guardado em relação ao pai posicionado, e não à janela: a caixa é
+       `absolute`, e é ele que define a origem. */
+    setCaixa({ left: esquerda - parente.getBoundingClientRect().left, width: largura });
+  }, []);
+
+  /* Girar o aparelho ou arrastar a janela com a caixa aberta muda a
+     conta inteira. Sem isto, ela voltaria a sair da tela. */
+  useEffect(() => {
+    if (!aberto) return;
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, [aberto, medir]);
+
   return (
     <div className="relative">
       <button
+        ref={botao}
         type="button"
-        onClick={() => setAberto((a) => !a)}
+        onClick={() => {
+          /* Mede ANTES de abrir: medir depois, num efeito, pintaria a
+             caixa uma vez no lugar errado e a corrigiria no quadro
+             seguinte, que é um pulo visível. */
+          medir();
+          setAberto((a) => !a);
+        }}
         aria-expanded={aberto}
         aria-label={
           naoLidas > 0
@@ -105,7 +163,17 @@ export function Sino({
             className="fixed inset-0 z-40 cursor-default"
           />
 
-          <div className="absolute right-0 top-11 z-50 max-h-[70vh] w-[min(22rem,calc(100vw-3rem))] overflow-y-auto rounded-2xl border border-fio bg-marinho-fundo/95 shadow-2xl backdrop-blur">
+          <div
+            style={caixa ? { left: caixa.left, width: caixa.width } : undefined}
+            className={
+              'absolute top-11 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border border-fio ' +
+              'bg-marinho-fundo/95 shadow-2xl backdrop-blur ' +
+              /* Sem medida ainda (JavaScript não rodou), a caixa nasce
+                 encostada na direita do sino e estreita o bastante para
+                 caber em qualquer tela. Pior enquadrada, nunca cortada. */
+              (caixa ? '' : 'right-0 w-[min(22rem,calc(100vw-3rem))]')
+            }
+          >
             <div className="flex items-center justify-between gap-3 border-b border-fio px-4 py-3">
               <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
                 Avisos
