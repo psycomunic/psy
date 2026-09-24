@@ -7,6 +7,7 @@ import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
+import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
 
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-2.5 text-sm text-branco ' +
@@ -181,6 +182,12 @@ function CartaoProspecto({
     null,
   );
 
+  /* O nome entra no texto aqui, e não no banco: a mensagem chega pela
+     carga e o dono é descoberto depois, um a um. Ver
+     `src/lib/dominio/abordagem.ts`. */
+  const dono = donoConhecido(p.nomeContato, p.instagram);
+  const abertura = textoDaAbordagem(p.mensagemAbertura, dono);
+
   const fatos = [
     p.modeloVenda,
     p.fabricacaoPropria === 'Sim' ? 'Fabricação própria' : 'Fabricação a confirmar',
@@ -268,8 +275,15 @@ function CartaoProspecto({
           </summary>
 
           <div className="space-y-3 px-4 pb-4">
-            <p className="text-sm leading-relaxed text-neve">{p.mensagemAbertura}</p>
-            <BotaoCopiar texto={p.mensagemAbertura} />
+            <p className="text-sm leading-relaxed text-neve">{abertura}</p>
+            <BotaoCopiar texto={abertura} />
+
+            {!dono ? (
+              <p className="text-xs leading-relaxed text-cinza">
+                Sem o nome do dono, a mensagem abre com &ldquo;Oi, tudo bem?&rdquo;. Preencha em
+                &ldquo;Quem é o dono?&rdquo; e ela passa a chamar a pessoa pelo nome.
+              </p>
+            ) : null}
 
             {/* A segunda mensagem, com botão próprio. São dois envios de
                 propósito: mensagem com duas coisas dentro é respondida
@@ -386,9 +400,7 @@ function BlocoDono({
 }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(salvarDono, null);
 
-  /* `nomeContato` nasce com o @ da marca, da importação. Igual ao
-     `instagram`, quer dizer "ninguém descobriu ainda". */
-  const nome = p.nomeContato && p.nomeContato !== p.instagram ? p.nomeContato : null;
+  const nome = donoConhecido(p.nomeContato, p.instagram);
   const sabido = nome || p.instagramDono || p.cnpj;
 
   if (!podeEditar) {

@@ -14,6 +14,7 @@ import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
 import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
+import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
 import { dinheiro, dinheiroCurto } from '@/lib/formato';
 import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
 
@@ -692,6 +693,11 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
  * então nada aqui assume duas colunas.
  */
 function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
+  const abertura = textoDaAbordagem(
+    p.mensagemAbertura,
+    donoConhecido(p.nomeContato, p.instagram),
+  );
+
   const fatos = [
     p.segmento,
     p.modeloVenda,
@@ -787,8 +793,8 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
           </summary>
 
           <div className="space-y-3 px-4 pb-4">
-            <p className="text-sm leading-relaxed text-neve">{p.mensagemAbertura}</p>
-            <BotaoCopiar texto={p.mensagemAbertura} />
+            <p className="text-sm leading-relaxed text-neve">{abertura}</p>
+            <BotaoCopiar texto={abertura} />
 
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">

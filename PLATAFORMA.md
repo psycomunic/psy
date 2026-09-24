@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 30 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 31 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -153,6 +153,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0028_mensagem_de_abertura_da_psy.sql` | as 50 mensagens da lista passam a ser da Psy Comunic, com a oferta certa para quem só vende no atacado, só no varejo, ou já tem o site de atacado |
 | `0029_pergunta_seguinte.sql` | `prospeccao.pergunta_seguinte`: a SEGUNDA mensagem da abordagem, uma pergunta só. Não é `perguntas`, que é a qualificação de quando a conversa já existe |
 | `0030_dono_da_marca.sql` | `prospeccao.cnpj` e `prospeccao.instagram_dono`. O NOME do dono não ganha coluna: ele é `lead.nome`, e uma segunda cópia divergiria |
+| `0031_abordagem_com_o_dono.sql` | as 50 mensagens passam a falar com a pessoa, e não com a marca. O nome entra por `{dono}` na hora de copiar, porque o dono é descoberto depois da carga |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
