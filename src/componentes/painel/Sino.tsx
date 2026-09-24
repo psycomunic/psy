@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { marcarLidas } from '@/app/painel/acoes-tarefa';
 import type { Notificacao } from '@/lib/dados/tipos';
@@ -63,53 +64,84 @@ export function Sino({
 
   /*
     ============================================================
-    POR QUE A POSIÇÃO É MEDIDA, E NÃO ESCRITA NO CSS
+    POR QUE A CAIXA SAI DA ÁRVORE, E POR QUE A POSIÇÃO É MEDIDA
     ============================================================
-    A caixa alinhava pela direita do sino e crescia para a esquerda.
-    O sino não fica na borda da tela: no celular tem o botão do menu ao
-    lado, e no computador ele mora DENTRO da coluna de 256px. Medido, o
-    corte era de 20px em 390 e de 165px em 1440.
+    Três defeitos moravam aqui, e os três têm a mesma raiz: a caixa era
+    filha da barra lateral.
 
-    E ninguém via a caixa rolar para achar o resto, porque quem corta é
-    o `overflow-x: clip` do `body` — que existe para o `position:
-    sticky` funcionar e não vai sair daqui.
+    1. ELA SAÍA PELA ESQUERDA. Alinhava pela direita do sino e crescia
+       para a esquerda, mas o sino não fica na borda da tela: no celular
+       tem o botão do menu ao lado, e no computador ele mora DENTRO da
+       coluna de 256px. Medido, o corte era de 20px em 390 e de 165px em
+       1440. E ninguém via a caixa rolar para achar o resto, porque quem
+       corta é o `overflow-x: clip` do `body`, que existe para o
+       `position: sticky` funcionar e não vai sair daqui.
 
-    CSS sozinho não resolve: a distância entre o sino e a borda muda com
-    a largura da tela, com o menu recolhido e com a faixa virar coluna.
-    Então a conta é feita no clique, com o retângulo do próprio botão.
+    2. O CONTEÚDO PINTAVA POR CIMA DELA. A barra tem `z-10` e
+       `backdrop-blur`, e cada um dos dois já abre um contexto de
+       empilhamento. Dentro dele, `z-50` só disputa com irmãos: o
+       `<main>`, que também é `z-10` e vem depois no HTML, ganhava
+       sempre. Enquanto a caixa ficava escondida atrás da barra ninguém
+       notava; assim que ela passou a sobrar para o lado, o título da
+       página apareceu por cima.
 
-    Só o horizontal. O vertical continua sendo `top-11` no CSS, e é por
-    isso que a caixa acompanha o sino quando a página rola: uma caixa
-    `fixed` ficaria parada no ar enquanto o sino sobe.
+    3. CLICAR FORA NÃO FECHAVA. A tela de captura era `fixed inset-0`, e
+       `backdrop-filter` no ancestral faz `fixed` se medir POR ELE, e não
+       pela janela. A captura cobria a barra lateral, e só.
+
+    O portal resolve os três de uma vez: a caixa vira filha do `body`,
+    onde não há contexto de empilhamento por cima dela, nem ancestral
+    que a corte ou a prenda.
+
+    O preço é a posição, que passa a ser medida. E isso é bom: a
+    distância entre o sino e a borda muda com a largura da tela, com o
+    menu recolhido e com a faixa do topo virar coluna, e nenhuma regra
+    de CSS acerta as três.
+
+    A ORDEM DAS TENTATIVAS é o que faz a caixa parecer pendurada no sino
+    em vez de jogada na tela:
+
+      1. encostar a direita da caixa na direita do sino;
+      2. não coube pela esquerda? abrir para a DIREITA, a partir da
+         esquerda do sino. É o caso do computador, onde o sino está a
+         178px da borda e a caixa tem 352;
+      3. ainda não coube? aí sim, encostar no respiro da borda.
+
+    Medida também na rolagem, e não só no clique: `fixed` fica parado
+    enquanto o sino sobe, e sem isso a caixa se soltaria do botão.
   */
   const botao = useRef<HTMLButtonElement>(null);
-  const [caixa, setCaixa] = useState<{ left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const medir = useCallback(() => {
     const b = botao.current;
-    const parente = b?.parentElement;
-    if (!b || !parente) return;
+    if (!b) return;
 
     const RESPIRO = 12;
     const r = b.getBoundingClientRect();
     const largura = Math.min(352, window.innerWidth - RESPIRO * 2);
 
-    /* Encosta a direita da caixa na direita do sino, e empurra de volta
-       para dentro quando isso jogaria a borda esquerda para fora. */
-    const limite = window.innerWidth - RESPIRO - largura;
-    const esquerda = Math.min(Math.max(r.right - largura, RESPIRO), Math.max(limite, RESPIRO));
+    let esquerda = r.right - largura;
+    if (esquerda < RESPIRO) esquerda = r.left;
+    if (esquerda + largura > window.innerWidth - RESPIRO) {
+      esquerda = Math.max(RESPIRO, window.innerWidth - RESPIRO - largura);
+    }
 
-    /* Guardado em relação ao pai posicionado, e não à janela: a caixa é
-       `absolute`, e é ele que define a origem. */
-    setCaixa({ left: esquerda - parente.getBoundingClientRect().left, width: largura });
+    setPos({ top: r.bottom + 8, left: esquerda, width: largura });
   }, []);
 
-  /* Girar o aparelho ou arrastar a janela com a caixa aberta muda a
-     conta inteira. Sem isto, ela voltaria a sair da tela. */
+  /* Girar o aparelho, arrastar a janela ou rolar a página com a caixa
+     aberta muda a conta inteira. `capture` porque a rolagem pode
+     acontecer num elemento interno, e esse evento não sobe. */
   useEffect(() => {
     if (!aberto) return;
-    window.addEventListener('resize', medir);
-    return () => window.removeEventListener('resize', medir);
+    const refazer = () => medir();
+    window.addEventListener('resize', refazer);
+    window.addEventListener('scroll', refazer, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('resize', refazer);
+      window.removeEventListener('scroll', refazer, { capture: true });
+    };
   }, [aberto, medir]);
 
   return (
@@ -152,113 +184,110 @@ export function Sino({
         ) : null}
       </button>
 
-      {aberto ? (
-        <>
-          {/* Clicar fora fecha. Sem isso a caixa fica aberta cobrindo o
-              menu, e a saída vira adivinhação. */}
-          <button
-            type="button"
-            aria-label="Fechar avisos"
-            onClick={() => setAberto(false)}
-            className="fixed inset-0 z-40 cursor-default"
-          />
+      {aberto && pos
+        ? createPortal(
+            <>
+              {/* Clicar fora fecha. Sem isso a caixa fica aberta cobrindo
+                  o menu, e a saída vira adivinhação. Aqui no `body` ela
+                  cobre a janela inteira, e não só a barra lateral. */}
+              <button
+                type="button"
+                aria-label="Fechar avisos"
+                onClick={() => setAberto(false)}
+                className="fixed inset-0 z-[60] cursor-default"
+              />
 
-          <div
-            style={caixa ? { left: caixa.left, width: caixa.width } : undefined}
-            className={
-              'absolute top-11 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border border-fio ' +
-              'bg-marinho-fundo/95 shadow-2xl backdrop-blur ' +
-              /* Sem medida ainda (JavaScript não rodou), a caixa nasce
-                 encostada na direita do sino e estreita o bastante para
-                 caber em qualquer tela. Pior enquadrada, nunca cortada. */
-              (caixa ? '' : 'right-0 w-[min(22rem,calc(100vw-3rem))]')
-            }
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-fio px-4 py-3">
-              <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
-                Avisos
-              </p>
-              {naoLidas > 0 ? (
-                <form action={aLer}>
-                  <button
-                    type="submit"
-                    disabled={pLer}
-                    className="text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
-                  >
-                    {pLer ? 'marcando...' : 'marcar tudo como lido'}
-                  </button>
-                </form>
-              ) : null}
-            </div>
+              <div
+                style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width }}
+                className="z-[61] max-h-[70vh] overflow-y-auto rounded-2xl border border-fio bg-marinho-fundo/95 shadow-2xl backdrop-blur"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-fio px-4 py-3">
+                  <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+                    Avisos
+                  </p>
+                  {naoLidas > 0 ? (
+                    <form action={aLer}>
+                      <button
+                        type="submit"
+                        disabled={pLer}
+                        className="text-xs font-semibold text-magenta-texto underline-offset-4 hover:underline disabled:opacity-60"
+                      >
+                        {pLer ? 'marcando...' : 'marcar tudo como lido'}
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
 
-            {rLer && !rLer.ok ? (
-              <p role="status" className="px-4 py-3 text-xs font-semibold text-magenta-texto">
-                <span aria-hidden className="mr-1.5">■</span>
-                {rLer.mensagem}
-              </p>
-            ) : null}
+                {rLer && !rLer.ok ? (
+                  <p role="status" className="px-4 py-3 text-xs font-semibold text-magenta-texto">
+                    <span aria-hidden className="mr-1.5">■</span>
+                    {rLer.mensagem}
+                  </p>
+                ) : null}
 
-            {lista.length === 0 ? (
-              <p className="px-4 py-6 text-sm leading-relaxed text-cinza">
-                Nada por aqui. Os avisos aparecem quando uma tarefa se aproxima do prazo,
-                atrasa, ou quando uma cobrança vence.
-              </p>
-            ) : (
-              <ul className="divide-y divide-fio">
-                {lista.map((n) => {
-                  const corpo = (
-                    <>
-                      <span className="flex items-start gap-3">
-                        <span
-                          aria-hidden
-                          className="mt-0.5 flex-none text-xs"
-                          style={{ color: CORES[n.tipo] }}
-                        >
-                          {FORMAS[n.tipo]}
-                        </span>
-                        <span className="min-w-0">
-                          <span
-                            className={
-                              'block text-sm leading-snug ' +
-                              (n.lidaEm ? 'text-cinza' : 'font-semibold text-branco')
-                            }
-                          >
-                            {n.titulo}
-                          </span>
-                          {n.corpo ? (
-                            <span className="mt-1 block text-xs leading-relaxed text-cinza">
-                              {n.corpo}
+                {lista.length === 0 ? (
+                  <p className="px-4 py-6 text-sm leading-relaxed text-cinza">
+                    Nada por aqui. Os avisos aparecem quando uma tarefa se aproxima do prazo,
+                    atrasa, ou quando uma cobrança vence.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-fio">
+                    {lista.map((n) => {
+                      const corpo = (
+                        <>
+                          <span className="flex items-start gap-3">
+                            <span
+                              aria-hidden
+                              className="mt-0.5 flex-none text-xs"
+                              style={{ color: CORES[n.tipo] }}
+                            >
+                              {FORMAS[n.tipo]}
                             </span>
-                          ) : null}
-                          <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
-                            {quando(n.criadaEm, agora)}
+                            <span className="min-w-0">
+                              <span
+                                className={
+                                  'block text-sm leading-snug ' +
+                                  (n.lidaEm ? 'text-cinza' : 'font-semibold text-branco')
+                                }
+                              >
+                                {n.titulo}
+                              </span>
+                              {n.corpo ? (
+                                <span className="mt-1 block text-xs leading-relaxed text-cinza">
+                                  {n.corpo}
+                                </span>
+                              ) : null}
+                              <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                                {quando(n.criadaEm, agora)}
+                              </span>
+                            </span>
                           </span>
-                        </span>
-                      </span>
-                    </>
-                  );
+                        </>
+                      );
 
-                  return (
-                    <li key={n.id}>
-                      {n.link ? (
-                        <Link
-                          href={n.link}
-                          onClick={() => setAberto(false)}
-                          className="block px-4 py-3.5 transition-colors hover:bg-white/[0.04]"
-                        >
-                          {corpo}
-                        </Link>
-                      ) : (
-                        <div className="px-4 py-3.5">{corpo}</div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </>
-      ) : null}
+                      return (
+                        <li key={n.id}>
+                          {n.link ? (
+                            <Link
+                              href={n.link}
+                              onClick={() => setAberto(false)}
+                              className="block px-4 py-3.5 transition-colors hover:bg-white/[0.04]"
+                            >
+                              {corpo}
+                            </Link>
+                          ) : (
+                            <div className="px-4 py-3.5">{corpo}</div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
