@@ -693,9 +693,10 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
  * então nada aqui assume duas colunas.
  */
 function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
-  const dono = donoConhecido(p.nomeContato, p.instagram);
-  const partes = partesDaAbordagem(p.mensagemAbertura, dono);
-  const oferta = partesDaAbordagem(p.mensagemOferta, dono);
+  const partes = partesDaAbordagem(
+    p.mensagemAbertura,
+    donoConhecido(p.nomeContato, p.instagram),
+  );
 
   const fatos = [
     p.segmento,
@@ -811,26 +812,10 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
               ))}
             </ol>
 
-            {oferta.length > 0 ? (
-              <div className="border-t border-fio pt-3">
-                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  2. Quando ele responder
-                </p>
-                {oferta.map((parte, i) => (
-                  <div key={parte} className="mt-2.5">
-                    <p className="text-sm leading-relaxed text-neve">{parte}</p>
-                    <div className="mt-2">
-                      <BotaoCopiar texto={parte} rotulo={`Copiar a ${i + 1}ª`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  3. Se ficar no vácuo
+                  2. Se ficar no vácuo
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntaSeguinte}</p>
                 <div className="mt-3">

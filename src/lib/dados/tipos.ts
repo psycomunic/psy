@@ -536,9 +536,6 @@ export type Prospecto = {
   oportunidade: string | null;
   gancho: string | null;
   mensagemAbertura: string | null;
-  /** O que se manda DEPOIS que a pessoa responde: o que a Psy monta, e
-      o convite. Fora da abertura de propósito, porque ali seria pitch. */
-  mensagemOferta: string | null;
   /** A SEGUNDA mensagem: uma pergunta só, para a pessoa responder.
       Não confundir com `perguntas`, que é a qualificação de quando a
       conversa já existe. */

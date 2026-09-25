@@ -197,7 +197,6 @@ function CartaoProspecto({
      `src/lib/dominio/abordagem.ts`. */
   const dono = donoConhecido(p.nomeContato, p.instagram);
   const partes = partesDaAbordagem(p.mensagemAbertura, dono);
-  const oferta = partesDaAbordagem(p.mensagemOferta, dono);
 
   const fatos = [
     p.modeloVenda,
@@ -302,24 +301,10 @@ function CartaoProspecto({
                 propósito: mensagem com duas coisas dentro é respondida
                 pela primeira ou por nenhuma. O número "2" está escrito,
                 e não só sugerido pela ordem na tela. */}
-            {/* A oferta vem ANTES da cobranca na tela porque vem antes
-                na conversa: quem responde recebe isto, e só quem fica
-                em silêncio recebe o lembrete. */}
-            {oferta.length > 0 ? (
-              <div className="border-t border-fio pt-3">
-                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  2. Quando ele responder
-                </p>
-                <div className="mt-2.5">
-                  <ListaDeMensagens partes={oferta} />
-                </div>
-              </div>
-            ) : null}
-
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  3. Se ficar no vácuo
+                  2. Se ficar no vácuo
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntaSeguinte}</p>
                 <div className="mt-3">

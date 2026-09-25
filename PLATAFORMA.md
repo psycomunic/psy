@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 37 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 38 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -160,6 +160,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0035_auditoria_ao_apagar_lead.sql` | gatilho de auditoria só no DELETE de `lead`: é a única operação sem volta, e leva a pesquisa e as conversas junto por cascata |
 | `0036_abordagem_em_primeira_pessoa.sql` | a abordagem passa a ser de uma pessoa: o direct sai do perfil pessoal, e "eu fui sócio" é uma frase que só quem foi consegue sustentar na resposta |
 | `0037_abertura_sem_pitch.sql` | `prospeccao.mensagem_oferta`: o que a Psy monta sai da abertura e vira a mensagem de quando a pessoa responde. A abertura cai de 136 para 62 palavras e termina em pergunta |
+| `0038_abordagem_com_a_call.sql` | a abordagem volta a oferecer, com a oportunidade justificada, os serviços do site e a call de 30 minutos. `mensagem_oferta` sai: com a oferta na abertura ela duplicaria |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
