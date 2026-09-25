@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 35 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 36 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -158,6 +158,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0033_abordagem_em_quatro_mensagens.sql` | a abertura passa a vir quebrada em quatro, separadas por linha em branco, porque é assim que ela é enviada no direct |
 | `0034_cinco_mensagens_sem_seguidores.sql` | a credencial vira mensagem sozinha (cinco ao todo) e o número de seguidores sai do texto: ele envelhece, e quem envia confere no perfil na hora |
 | `0035_auditoria_ao_apagar_lead.sql` | gatilho de auditoria só no DELETE de `lead`: é a única operação sem volta, e leva a pesquisa e as conversas junto por cascata |
+| `0036_abordagem_em_primeira_pessoa.sql` | a abordagem passa a ser de uma pessoa: o direct sai do perfil pessoal, e "eu fui sócio" é uma frase que só quem foi consegue sustentar na resposta |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
