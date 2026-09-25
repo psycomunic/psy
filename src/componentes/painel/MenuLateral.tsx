@@ -142,11 +142,27 @@ export function MenuLateral({
 
   return (
     <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 px-5 py-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
-      <div className="flex items-center justify-between gap-3">
+      {/*
+        DUAS LINHAS NA COLUNA, UMA SÓ NA FAIXA DO TOPO.
+
+        No celular a barra é uma faixa de 390px e sobra espaço: marca à
+        esquerda, botões à direita, medido sem encosto.
+
+        No computador ela é uma coluna de 256px, e aí não cabe. Medido:
+        o lockup precisa de 141px, os dois botões de 84, os respiros de
+        20, e sobram 215. O nome COMUNIC terminava 9px DENTRO do sino.
+
+        Encolher o lockup era a saída óbvia e é a errada: para caber, a
+        letra teria que ir abaixo dos 12px que valem no painel inteiro,
+        ou o espacejamento da marca teria que mudar só aqui, e aí o
+        cabeçalho do painel e o do site deixariam de ser o mesmo
+        desenho.
+      */}
+      <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-stretch lg:gap-4">
         <span className="menu-rotulo min-w-0">
           <Marca />
         </span>
-        <span className="flex items-center gap-2">
+        <span className="menu-acoes flex flex-none items-center gap-2 lg:justify-end">
           {/* O sino no topo do menu, e nao dentro de um modulo: e o
               unico lugar por onde toda navegacao passa. Lembrete que
               exige abrir a tela certa nao e lembrete. */}
