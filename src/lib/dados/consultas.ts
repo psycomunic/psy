@@ -1022,7 +1022,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('prospeccao')
-    .select('id, lead_id, codigo, instagram, instagram_url, instagram_dono, cnpj, cidade, uf, regiao, segmento, modelo_venda, fabricacao_propria, situacao_site, seguidores, prioridade, oportunidade, gancho, mensagem_abertura, pergunta_seguinte, perguntas, canal, notas, lead:lead_id(nome, empresa, estagio, proximo_passo)')
+    .select('id, lead_id, codigo, instagram, instagram_url, instagram_dono, cnpj, cidade, uf, regiao, segmento, modelo_venda, fabricacao_propria, situacao_site, seguidores, prioridade, oportunidade, gancho, mensagem_abertura, mensagem_oferta, pergunta_seguinte, perguntas, canal, notas, lead:lead_id(nome, empresa, estagio, proximo_passo)')
     .order('prioridade', { ascending: true, nullsFirst: false })
     .order('seguidores', { ascending: false, nullsFirst: false })
     .limit(500);
@@ -1058,6 +1058,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         oportunidade: (p.oportunidade as string) ?? null,
         gancho: (p.gancho as string) ?? null,
         mensagemAbertura: (p.mensagem_abertura as string) ?? null,
+        mensagemOferta: (p.mensagem_oferta as string) ?? null,
         perguntaSeguinte: (p.pergunta_seguinte as string) ?? null,
         perguntas: (p.perguntas as string) ?? null,
         canal: (p.canal as string) ?? null,

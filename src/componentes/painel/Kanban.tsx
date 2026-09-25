@@ -693,10 +693,9 @@ function Botao({ pendente, children }: { pendente: boolean; children: React.Reac
  * então nada aqui assume duas colunas.
  */
 function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
-  const partes = partesDaAbordagem(
-    p.mensagemAbertura,
-    donoConhecido(p.nomeContato, p.instagram),
-  );
+  const dono = donoConhecido(p.nomeContato, p.instagram);
+  const partes = partesDaAbordagem(p.mensagemAbertura, dono);
+  const oferta = partesDaAbordagem(p.mensagemOferta, dono);
 
   const fatos = [
     p.segmento,
@@ -788,7 +787,7 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
           <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
             <span aria-hidden className="mr-2 text-magenta-texto group-open:hidden">+</span>
             <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">−</span>
-            1. Mensagem de abertura
+            1. A abordagem
             {p.canal ? <span className="ml-2 font-normal text-cinza">{p.canal}</span> : null}
           </summary>
 
@@ -812,10 +811,26 @@ function BlocoPesquisa({ pesquisa: p }: { pesquisa: Prospecto }) {
               ))}
             </ol>
 
+            {oferta.length > 0 ? (
+              <div className="border-t border-fio pt-3">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
+                  2. Quando ele responder
+                </p>
+                {oferta.map((parte, i) => (
+                  <div key={parte} className="mt-2.5">
+                    <p className="text-sm leading-relaxed text-neve">{parte}</p>
+                    <div className="mt-2">
+                      <BotaoCopiar texto={parte} rotulo={`Copiar a ${i + 1}ª`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  2. Manda depois, se não responder
+                  3. Se ficar no vácuo
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntaSeguinte}</p>
                 <div className="mt-3">

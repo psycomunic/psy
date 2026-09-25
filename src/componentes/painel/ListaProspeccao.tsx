@@ -197,6 +197,7 @@ function CartaoProspecto({
      `src/lib/dominio/abordagem.ts`. */
   const dono = donoConhecido(p.nomeContato, p.instagram);
   const partes = partesDaAbordagem(p.mensagemAbertura, dono);
+  const oferta = partesDaAbordagem(p.mensagemOferta, dono);
 
   const fatos = [
     p.modeloVenda,
@@ -280,7 +281,7 @@ function CartaoProspecto({
           <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold text-neve transition-colors hover:bg-white/5">
             <span aria-hidden className="mr-2 text-magenta-texto group-open:hidden">+</span>
             <span aria-hidden className="mr-2 hidden text-magenta-texto group-open:inline">−</span>
-            1. Mensagem de abertura
+            1. A abordagem
             {p.canal ? <span className="ml-2 font-normal text-cinza">{p.canal}</span> : null}
             <span className="ml-2 font-normal text-cinza">
               {partes.length} {partes.length === 1 ? 'mensagem' : 'mensagens'}
@@ -301,10 +302,24 @@ function CartaoProspecto({
                 propósito: mensagem com duas coisas dentro é respondida
                 pela primeira ou por nenhuma. O número "2" está escrito,
                 e não só sugerido pela ordem na tela. */}
+            {/* A oferta vem ANTES da cobranca na tela porque vem antes
+                na conversa: quem responde recebe isto, e só quem fica
+                em silêncio recebe o lembrete. */}
+            {oferta.length > 0 ? (
+              <div className="border-t border-fio pt-3">
+                <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
+                  2. Quando ele responder
+                </p>
+                <div className="mt-2.5">
+                  <ListaDeMensagens partes={oferta} />
+                </div>
+              </div>
+            ) : null}
+
             {p.perguntaSeguinte ? (
               <div className="border-t border-fio pt-3">
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-                  2. Manda depois, se não responder
+                  3. Se ficar no vácuo
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-neve">{p.perguntaSeguinte}</p>
                 <div className="mt-3">
