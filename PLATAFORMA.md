@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 39 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 40 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -162,6 +162,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0037_abertura_sem_pitch.sql` | `prospeccao.mensagem_oferta`: o que a Psy monta sai da abertura e vira a mensagem de quando a pessoa responde. A abertura cai de 136 para 62 palavras e termina em pergunta |
 | `0038_abordagem_com_a_call.sql` | a abordagem volta a oferecer, com a oportunidade justificada, os serviços do site e a call de 30 minutos. `mensagem_oferta` sai: com a oferta na abertura ela duplicaria |
 | `0039_abordagem_enxuta.sql` | a mesma oferta em 82 palavras no lugar de 155, sem perder informação: saíram rodeios, o nome da empresa repetido e explicações do óbvio |
+| `0040_volta_a_abordagem_da_0038.sql` | desfaz a 0039: cortar sem perder informação deixou o texto seco. Volta o texto EXATO da 0038, copiado dela e não regerado |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
