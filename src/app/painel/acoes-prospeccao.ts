@@ -2,7 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { sessaoAtual, clienteServidor } from '@/lib/supabase/servidor';
-import { esquemaAbordagem, esquemaDono, validar } from '@/lib/validacao/painel';
+import {
+  esquemaAbordagem,
+  esquemaDono,
+  esquemaExcluirLead,
+  validar,
+} from '@/lib/validacao/painel';
 import type { Resultado } from './acoes';
 
 /**
@@ -146,6 +151,62 @@ export async function salvarDono(
     revalidatePath('/painel/crm');
 
     return { ok: true, mensagem: nome ? `Salvo. Agora é ${nome}.` : 'Salvo.' };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Apaga o lead, e com ele a pesquisa e o histórico.
+ *
+ * ============================================================
+ * SÓ O ADMINISTRADOR, EM TRÊS CAMADAS
+ * ============================================================
+ * A tela não mostra o botão (`pode(papel, 'prospeccao', 'excluir')`),
+ * esta ação recusa, e a política `lead_admin_exclui` recusaria de novo
+ * se as duas primeiras falhassem. A terceira é a que protege: as outras
+ * duas existem para dar mensagem clara e não mostrar botão inútil.
+ *
+ * ============================================================
+ * O QUE SOME JUNTO
+ * ============================================================
+ * `prospeccao` e `interacao` apontam para `lead` com `on delete
+ * cascade`: a pesquisa e as conversas vão junto, porque nenhuma das
+ * duas responde pergunta nenhuma sem o lead.
+ *
+ * `proposta` é `on delete set null`, e por isso sobrevive. Proposta é
+ * documento comercial, e pode ter sido enviada: ela perde o vínculo,
+ * e não a existência.
+ *
+ * ============================================================
+ * E SOBRA RASTRO
+ * ============================================================
+ * O gatilho `lead_auditoria_delete` grava a linha inteira em
+ * `log_auditoria` antes de ela sumir (migração 0035). É o que permite
+ * responder "quem apagou, e o que tinha ali" depois de um engano.
+ */
+export async function excluirProspecto(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await sessaoAtual();
+    if (!sessao) return { ok: false, mensagem: 'Sessão expirada. Entre de novo.' };
+    if (sessao.papel !== 'administrador') {
+      return { ok: false, mensagem: 'Só o administrador apaga lead. Isso é irreversível.' };
+    }
+
+    const v = validar(esquemaExcluirLead, fd);
+    if (!v.ok) return v;
+
+    const supabase = await clienteServidor();
+    const { error } = await supabase.from('lead').delete().eq('id', v.dados.id);
+    if (error) return { ok: false, mensagem: error.message };
+
+    revalidatePath('/painel/prospeccao');
+    revalidatePath('/painel/crm');
+
+    return { ok: true, mensagem: 'Apagado.' };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }

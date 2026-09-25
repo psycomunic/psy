@@ -3,7 +3,7 @@ import { listarProspeccao } from '@/lib/dados/consultas';
 import { Kpi, Secao } from '../base';
 import { ListaProspeccao } from '../ListaProspeccao';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao } from '@/lib/dados/tipos';
-import type { Papel } from '@/lib/papeis';
+import { pode, type Papel } from '@/lib/papeis';
 
 /* ================================================================== */
 /* Prospecção ativa: quem ainda não sabe que a agência existe          */
@@ -35,6 +35,12 @@ export async function Prospeccao({ papel }: { papel: Papel }) {
 
   const podeEditar =
     ['administrador', 'gestor', 'comercial'].includes(papel) && procedencia === 'banco';
+
+  /* Quem apaga sai da MATRIZ, e não de uma lista escrita aqui. Apagar é
+     irreversível, e a resposta já está em `src/lib/papeis.ts`, com a
+     política `lead_admin_exclui` do outro lado. Repetir os papéis aqui
+     criaria um terceiro lugar para discordar dos outros dois. */
+  const podeExcluir = pode(papel, 'prospeccao', 'excluir') && procedencia === 'banco';
 
   const faltam = prospectos.filter((p) => p.aguardandoAbordagem);
   const porPrioridade = PRIORIDADES_PROSPECCAO.map((p) => ({
@@ -91,7 +97,11 @@ export async function Prospeccao({ papel }: { papel: Papel }) {
           </Link>
         }
       >
-        <ListaProspeccao prospectos={prospectos} podeEditar={podeEditar} />
+        <ListaProspeccao
+          prospectos={prospectos}
+          podeEditar={podeEditar}
+          podeExcluir={podeExcluir}
+        />
       </Secao>
     </>
   );

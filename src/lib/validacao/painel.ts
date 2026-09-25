@@ -216,6 +216,19 @@ export const esquemaAbordagem = z.object({
  * jeito de chegar no banco. Cola-se o que vier: `45.160.542/0001-60`,
  * `instagram.com/fulana/`, `@Fulana`.
  */
+/**
+ * Apagar um lead da lista.
+ *
+ * O `confirmo` não é decoração de tela: Server Action é um endpoint
+ * HTTP, e um POST com só o id apagaria a linha sem passar por nenhuma
+ * confirmação. A tela pede a confirmação, e o servidor exige a prova
+ * dela.
+ */
+export const esquemaExcluirLead = z.object({
+  id: z.uuid('Lead inválido.'),
+  confirmo: z.literal('sim', { message: 'Confirme antes de apagar.' }),
+});
+
 export const esquemaDono = z.object({
   lead_id: z.uuid('Lead inválido.'),
   nome: textoOpcional.optional().transform((v) => v ?? null),

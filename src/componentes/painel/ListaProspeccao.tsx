@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
-import { marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
+import { excluirProspecto, marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
 import type { Resultado } from '@/app/painel/acoes';
 import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
@@ -41,9 +41,13 @@ const rotuloCampo = 'block font-mono text-[0.75rem] uppercase tracking-[0.14em] 
 export function ListaProspeccao({
   prospectos,
   podeEditar,
+  podeExcluir = false,
 }: {
   prospectos: Prospecto[];
   podeEditar: boolean;
+  /** Só o administrador. Vem da matriz de permissões, e o RLS diz o
+      mesmo: esconder o botão é conforto, quem impede é o Postgres. */
+  podeExcluir?: boolean;
 }) {
   const [prioridade, setPrioridade] = useState<PrioridadeProspeccao | 'todas'>('todas');
   const [cidade, setCidade] = useState('todas');
@@ -153,7 +157,11 @@ export function ListaProspeccao({
         <ul className="mt-6 grid gap-4 xl:grid-cols-2">
           {visiveis.map((p) => (
             <li key={p.id}>
-              <CartaoProspecto prospecto={p} podeEditar={podeEditar} />
+              <CartaoProspecto
+                prospecto={p}
+                podeEditar={podeEditar}
+                podeExcluir={podeExcluir}
+              />
             </li>
           ))}
         </ul>
@@ -173,9 +181,11 @@ const corPrioridade: Record<PrioridadeProspeccao, string> = {
 function CartaoProspecto({
   prospecto: p,
   podeEditar,
+  podeExcluir,
 }: {
   prospecto: Prospecto;
   podeEditar: boolean;
+  podeExcluir: boolean;
 }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
     marcarAbordado,
@@ -364,8 +374,91 @@ function CartaoProspecto({
             {estado.mensagem}
           </p>
         ) : null}
+
+        {podeExcluir ? <BotaoExcluir prospecto={p} /> : null}
       </div>
     </article>
+  );
+}
+
+/**
+ * Tirar a marca da lista.
+ *
+ * ============================================================
+ * DOIS CLIQUES, E O SEGUNDO DIZ O QUE VAI SUMIR
+ * ============================================================
+ * `confirm()` do navegador é bloqueado, some em aba de fundo e não dá
+ * para escrever nele o que vai ser perdido. A confirmação mora aqui,
+ * no cartão, e nomeia a marca: "Apagar Dukali?" é uma pergunta que se
+ * responde; "Tem certeza?" é uma que se clica sem ler.
+ *
+ * ============================================================
+ * DISCRETO DE PROPÓSITO
+ * ============================================================
+ * A tela existe para abordar, e não para limpar. O botão fica no pé do
+ * cartão, pequeno e sem cor de alerta enquanto não foi tocado: o
+ * vermelho aparece só na confirmação, onde ele realmente avisa de algo.
+ */
+function BotaoExcluir({ prospecto: p }: { prospecto: Prospecto }) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    excluirProspecto,
+    null,
+  );
+  const [confirmando, setConfirmando] = useState(false);
+
+  if (estado && !estado.ok) {
+    return (
+      <p role="status" className="mt-4 text-xs font-semibold text-magenta-texto">
+        <span aria-hidden className="mr-1.5">■</span>
+        {estado.mensagem}
+      </p>
+    );
+  }
+
+  if (!confirmando) {
+    return (
+      <div className="mt-4 border-t border-fio pt-3">
+        <button
+          type="button"
+          onClick={() => setConfirmando(true)}
+          /* `min-h-[24px]` como os outros links pequenos do painel: um
+             botão de texto puro fica com 16px de altura de toque, e foi
+             o menor alvo da rota inteira na medição. */
+          className="inline-flex min-h-[24px] items-center text-xs text-cinza underline-offset-4 transition-colors hover:text-neve hover:underline"
+        >
+          Apagar da lista
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form action={acao} className="mt-4 border-t border-fio pt-3">
+      <input type="hidden" name="id" value={p.leadId} />
+      <input type="hidden" name="confirmo" value="sim" />
+
+      <p className="text-xs leading-relaxed text-neve">
+        Apagar {p.empresa ?? p.instagram}? Some a pesquisa e o histórico de conversa, e não
+        tem volta.
+      </p>
+
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={pendente}
+          className="rounded-full border border-magenta/50 bg-magenta/10 px-4 py-2 text-xs font-semibold text-magenta-texto transition-colors hover:bg-magenta hover:text-branco disabled:opacity-60"
+        >
+          {pendente ? 'Apagando...' : 'Apagar'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmando(false)}
+          className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
   );
 }
 
