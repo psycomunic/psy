@@ -14,10 +14,28 @@ import { frentes } from '@/conteudo/frentes';
  * `priority` é uma dica fraca e relativa dentro do próprio site, não uma
  * nota. O que ela diz é: se o robô tiver orçamento para poucas páginas,
  * comece pelas de conversão.
+ *
+ * ============================================================
+ * POR QUE NÃO TEM `lastModified`
+ * ============================================================
+ * Tinha, e era mentira. Era `new Date()`, o mesmo carimbo para as 16
+ * páginas. Como esta rota é estática, virava a hora do BUILD: a cada
+ * deploy o sitemap passava a jurar que todas as 16 tinham mudado,
+ * inclusive a política de privacidade, que não muda há meses.
+ *
+ * Isso é dado falso, que este projeto não publica. E não é só
+ * princípio: o Google diz que, quando o `lastmod` de um site não se
+ * confirma, ele para de considerar o campo NAQUELE SITE. Um valor
+ * errado custa o campo inteiro; a ausência não custa nada.
+ *
+ * Para voltar a ter o campo seria preciso uma data por página, que uma
+ * pessoa atualiza ao editar a página. Não fiz porque essa data apodrece
+ * em silêncio: quem esquecer de mexer nela devolve a mentira, e sem
+ * aviso nenhum. Com 16 páginas o Google rastreia todas de qualquer
+ * jeito, então o campo renderia pouco e cobraria manutenção para
+ * sempre.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const agora = new Date();
-
   const paginas: { caminho: string; prioridade: number; frequencia: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
     { caminho: '/', prioridade: 1.0, frequencia: 'weekly' },
     /* Prioridade alta: é a página que recebe anúncio, e a que responde
@@ -50,7 +68,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return paginas.map((p) => ({
     url: urlAbsoluta(p.caminho),
-    lastModified: agora,
     changeFrequency: p.frequencia,
     priority: p.prioridade,
   }));
