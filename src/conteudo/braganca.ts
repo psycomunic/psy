@@ -290,8 +290,19 @@ export const braganca: Unidade = {
     'O atendimento sai de Bragança e alcança toda a região. Se a sua empresa fica em Tracuateua, Augusto Corrêa, Capanema, Primavera, Quatipuru ou Santa Luzia do Pará, atendemos. O mesmo vale para Peixe-Boi, Bonito, Nova Timboteua, Salinópolis, São João de Pirabas, Santarém Novo, Ourém, Capitão Poço, Viseu e Cachoeira do Piriá. A conversa acontece por WhatsApp e por chamada de vídeo, que é como a maior parte dos clientes prefere.',
 
   apresentacao: {
-    /* AQUI entra o vídeo: aponte para o arquivo em /public/video e o
-       player aparece no lugar da lista, sem mexer em componente. */
+    /*
+      AQUI entra o vídeo da VSL. Aponte para o arquivo em /public/video
+      e DUAS coisas acontecem sozinhas, sem mexer em componente:
+
+        1. o popup troca a lista de tópicos pelo player, centralizado,
+           com o site desfocado atrás;
+        2. a seção de rever passa a existir logo abaixo da abertura,
+           para quem já viu e quiser assistir de novo.
+
+      Sem o arquivo, o popup mostra os tópicos em texto e a seção de
+      rever não é pintada: uma segunda cópia da mesma lista no meio da
+      página não ajudaria ninguém.
+    */
     poster: '/imagens/braganca-pa-frame-b.jpg',
     titulo: 'Tudo o que a Psy Comunic faz aqui na região',
     texto:

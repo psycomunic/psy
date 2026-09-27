@@ -179,6 +179,67 @@ export function ProblemasLocal({ u }: { u: Unidade }) {
   );
 }
 
+/*
+  As logos das plataformas que cada bloco nomeia.
+
+  ============================================================
+  POR QUE ELAS ENTRAM
+  ============================================================
+  O título já diz "Anúncios no Instagram e no Facebook", mas quem passa
+  os olhos numa página de serviços lê as figuras antes das frases. Duas
+  logos conhecidas dizem em um piscar o que a linha de texto leva uma
+  leitura para dizer.
+
+  ============================================================
+  POR QUE SÓ ONDE A PLATAFORMA É NOMEADA
+  ============================================================
+  `sites` não ganha nenhuma, porque não existe plataforma de terceiro
+  ali: o site é da própria empresa. Logo enfileirada em bloco que não
+  fala dela vira enfeite, e enfeite ensina a ignorar a fileira toda.
+
+  ============================================================
+  POR QUE `alt` VAZIO
+  ============================================================
+  O nome da plataforma está escrito no título logo abaixo, em texto. Um
+  leitor de tela anunciando "Instagram, Facebook" e em seguida "Anúncios
+  no Instagram e no Facebook" leria a mesma coisa duas vezes.
+*/
+const LOGOS: Record<string, { arquivo: string; nome: string }[]> = {
+  instagram: [
+    { arquivo: 'instagram.svg', nome: 'Instagram' },
+    { arquivo: 'facebook.svg', nome: 'Facebook' },
+  ],
+  google: [{ arquivo: 'google.svg', nome: 'Google' }],
+  /* A vitrine, e nao o G solto: este bloco nao e sobre anunciar no
+     Google, e sobre o perfil da empresa aparecer na busca e no mapa. */
+  'google-meu-negocio': [{ arquivo: 'google-meu-negocio.svg', nome: 'Google Meu Negócio' }],
+};
+
+function LogosDaPlataforma({ id }: { id: string }) {
+  const logos = LOGOS[id];
+  if (!logos) return null;
+
+  return (
+    <p aria-hidden className="mb-4 flex items-center gap-2.5">
+      {logos.map((l) => (
+        <Image
+          key={l.arquivo}
+          src={`/imagens/plataformas/${l.arquivo}`}
+          alt=""
+          width={26}
+          height={26}
+          /* `unoptimized` porque é vetor: não há o que o otimizador faça
+             além de custar uma passagem, e evita ligar
+             `dangerouslyAllowSVG` no next.config. Mesmo motivo da
+             marca, em `Marca.tsx`. */
+          unoptimized
+          className="h-[26px] w-auto"
+        />
+      ))}
+    </p>
+  );
+}
+
 export function ServicosLocal({ u }: { u: Unidade }) {
   return (
     <section
@@ -236,6 +297,8 @@ export function ServicosLocal({ u }: { u: Unidade }) {
                 }
               >
                 <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
+              <LogosDaPlataforma id={s.id} />
+
               <div className="flex flex-wrap items-baseline gap-3">
                 <h3 className="font-display text-xl font-bold tracking-[-0.02em] md:text-2xl">
                   {s.nome}

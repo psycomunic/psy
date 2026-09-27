@@ -13,6 +13,7 @@ import {
 } from '@/componentes/local/Blocos';
 import { HeroCinemaLocal } from '@/componentes/local/HeroCinemaLocal';
 import { PopupApresentacao } from '@/componentes/local/PopupApresentacao';
+import { ApresentacaoNaPagina } from '@/componentes/local/ApresentacaoNaPagina';
 import {
   PerguntasFrequentes,
   Trilha,
@@ -114,6 +115,9 @@ export default function PaginaBraganca() {
       <Trilha itens={[{ nome: `${u.cidade}, ${u.estado}`, caminho: `/${u.slug}` }]} />
 
       <HeroCinemaLocal u={u} />
+      {/* Só existe depois que o popup foi visto, e só se houver vídeo.
+          É a porta de "quero rever", que o popup fecha para sempre. */}
+      <ApresentacaoNaPagina u={u} />
       <ProblemasLocal u={u} />
       <ServicosLocal u={u} />
       <PassosLocal u={u} />

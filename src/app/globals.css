@@ -1167,6 +1167,28 @@ body {
 .cena-balao-2 { animation: cenaBalao2 9s cubic-bezier(.22,.61,.36,1) infinite; }
 .cena-tique  { animation: cenaTique 9s ease-out infinite; }
 
+/*
+   A seção de rever a apresentação entrando.
+
+   Só opacidade. Ela aparece quando o popup fecha, muitas vezes fora da
+   vista, e qualquer deslocamento empurraria o que a pessoa estivesse
+   lendo. Quem não tem animação ligada recebe o `forwards` do mesmo
+   jeito e vê a seção opaca, que é o estado final.
+*/
+.clarear {
+  opacity: 0;
+  animation: clarear .5s ease-out forwards;
+}
+
+@keyframes clarear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clarear { animation: none; opacity: 1; }
+}
+
 @keyframes cenaSobe {
   0%, 5%    { opacity: 0; transform: translateY(14px); }
   14%, 100% { opacity: 1; transform: none; }

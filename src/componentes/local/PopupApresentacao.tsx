@@ -81,6 +81,10 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
       document.body.style.overflow = '';
       const v = video.current;
       if (v && !v.paused) v.pause();
+      /* Avisa a seção da página que o vídeo já foi visto, para ela
+         poder existir. Quem fechou aqui é justamente quem pode querer
+         rever depois. */
+      window.dispatchEvent(new Event('apresentacao-vista'));
     }
 
     window.addEventListener('cena-terminou', abrir as EventListener);
@@ -119,8 +123,23 @@ export function PopupApresentacao({ u }: { u: Unidade }) {
       ref={caixa}
       aria-labelledby="apresentacao-titulo"
       className={
-        'popup-apresentacao rounded-[var(--raio)] border border-fio bg-marinho-fundo p-0 text-branco ' +
-        'backdrop:bg-[rgba(6,9,26,0.88)] backdrop:backdrop-blur-sm ' +
+        /*
+          `m-auto` NÃO É ENFEITE: é o que centraliza o modal.
+
+          Um `<dialog>` aberto com `showModal()` fica no meio da tela
+          por causa do `margin: auto` que o navegador aplica. O
+          preflight do Tailwind zera a margem de TODO elemento, e com
+          isso o modal caía no canto superior esquerdo. Medido antes:
+          left 0, top 0, em 390 e em 1440.
+
+          O FUNDO PRECISA APARECER PARA O DESFOQUE EXISTIR. A cor estava
+          em 0.88 de opacidade, que é quase chapada: o `blur` rodava e
+          não havia nada para ver através. Em 0.55 o site continua lá,
+          desfocado, e é isso que dá a sensação de que o vídeo está POR
+          CIMA da página, e não no lugar dela.
+        */
+        'popup-apresentacao m-auto rounded-[var(--raio)] border border-fio bg-marinho-fundo p-0 text-branco ' +
+        'backdrop:bg-[rgba(6,9,26,0.55)] backdrop:backdrop-blur-[14px] ' +
         (a.video ? 'w-[min(58rem,94vw)]' : 'w-[min(46rem,92vw)]')
       }
     >
