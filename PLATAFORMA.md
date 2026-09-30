@@ -15,7 +15,7 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 40 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 41 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
@@ -163,6 +163,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0038_abordagem_com_a_call.sql` | a abordagem volta a oferecer, com a oportunidade justificada, os serviços do site e a call de 30 minutos. `mensagem_oferta` sai: com a oferta na abertura ela duplicaria |
 | `0039_abordagem_enxuta.sql` | a mesma oferta em 82 palavras no lugar de 155, sem perder informação: saíram rodeios, o nome da empresa repetido e explicações do óbvio |
 | `0040_volta_a_abordagem_da_0038.sql` | desfaz a 0039: cortar sem perder informação deixou o texto seco. Volta o texto EXATO da 0038, copiado dela e não regerado |
+| `0041_abordagem_em_uma_mensagem.sql` | a abordagem vira UMA mensagem, na estrutura de um molde real: como cheguei, o elogio específico, o nicho, 15 minutos com entregável e a pergunta fechada |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,
