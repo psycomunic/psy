@@ -31,6 +31,9 @@ import type {
   Notificacao,
   Prospecto,
   PrioridadeProspeccao,
+  Projeto,
+  TipoProjeto,
+  SituacaoProjeto,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -995,6 +998,75 @@ export async function leadPorId(id: string): Promise<Lead | null> {
 
   const { dados } = await listarLeads();
   return dados.find((l) => l.id === id) ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Projetos                                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Os projetos, do mais urgente para o menos.
+ *
+ * A ordem sai do BANCO, e não da tela: `situacao` primeiro, porque é o
+ * que a pessoa veio ver, e `prazo` dentro dela. Ordenar no cliente faria
+ * a primeira pintura mostrar uma ordem e a segunda outra.
+ *
+ * `nullsFirst: false` no prazo: projeto sem data combinada vai para o
+ * fim. Sem isso o Postgres põe nulo primeiro em ordem crescente, e a
+ * lista abriria justamente pelo que não tem compromisso de entrega.
+ *
+ * Os entregues vêm junto, e a tela filtra. São eles que respondem
+ * "o que saiu este mês", e uma segunda consulta para isso seria uma ida
+ * ao banco para dividir uma lista que já cabe inteira na memória.
+ */
+export async function listarProjetos(): Promise<Resposta<Projeto[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('projeto')
+    .select('id, nome, tipo, situacao, cliente, conta_id, responsavel_id, prazo, link, observacoes, entregue_em, situacao_desde, criado_em, conta:conta_id(nome), perfil:responsavel_id(nome)')
+    .order('situacao', { ascending: true })
+    .order('prazo', { ascending: true, nullsFirst: false })
+    .limit(300);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const agora = Date.now();
+  const hoje = new Date(hojeBR()).getTime();
+
+  return doBanco(
+    (data ?? []).map((p) => {
+      const conta = p.conta as unknown as { nome: string } | null;
+      const prazo = (p.prazo as string) ?? null;
+
+      return {
+        id: p.id as string,
+        nome: p.nome as string,
+        tipo: p.tipo as TipoProjeto,
+        situacao: p.situacao as SituacaoProjeto,
+        /* A conta MANDA sobre o texto livre. São duas fontes para o
+           mesmo fato, e quem decide é a consulta, para não existirem
+           duas verdades guardadas. */
+        cliente: conta?.nome ?? ((p.cliente as string) || null),
+        contaId: (p.conta_id as string) ?? null,
+        responsavel: (p.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        responsavelId: (p.responsavel_id as string) ?? null,
+        prazo,
+        link: (p.link as string) ?? null,
+        observacoes: (p.observacoes as string) ?? null,
+        entregueEm: (p.entregue_em as string) ?? null,
+        diasNaSituacao: Math.floor(
+          (agora - new Date(p.situacao_desde as string).getTime()) / 86400000,
+        ),
+        /* Em dias de calendário, e não em milissegundos corridos: o que
+           importa é se a data já passou, e não quantas horas faltam. */
+        diasAteOPrazo:
+          prazo === null ? null : Math.round((new Date(prazo).getTime() - hoje) / 86400000),
+        criadoEm: p.criado_em as string,
+      };
+    }),
+  );
 }
 
 /* ------------------------------------------------------------------ */

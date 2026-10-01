@@ -224,6 +224,57 @@ export const esquemaAbordagem = z.object({
  * confirmação. A tela pede a confirmação, e o servidor exige a prova
  * dela.
  */
+/* ------------------------------------------------------------------ */
+/* Projetos                                                            */
+/* ------------------------------------------------------------------ */
+
+const TIPOS_PROJETO = [
+  'site', 'lp', 'ecommerce', 'sistema', 'logo', 'identidade', 'outro',
+] as const;
+
+const SITUACOES_PROJETO = [
+  'briefing', 'andamento', 'alteracao', 'aguardando_cliente', 'entregue', 'pausado',
+] as const;
+
+/**
+ * Um projeto.
+ *
+ * Só o NOME é obrigatório, pelo mesmo motivo do formulário de lead:
+ * exigir cliente, prazo e responsável antes de deixar salvar empurra a
+ * pessoa de volta para o bloco de notas, e é lá que o projeto some.
+ *
+ * `conta_id` e `cliente` convivem porque projeto aparece antes do
+ * contrato: a logo é feita para quem ainda é lead. Quando há conta, a
+ * consulta ignora o texto, então não há duas verdades no banco.
+ */
+export const esquemaProjeto = z.object({
+  nome: textoObrigatorio(2, 'Diga o que é o projeto.'),
+  tipo: z.enum(TIPOS_PROJETO).default('site'),
+  situacao: z.enum(SITUACOES_PROJETO).default('briefing'),
+  conta_id: textoOpcional.optional().transform((v) => v ?? null),
+  cliente: textoOpcional.optional().transform((v) => v ?? null),
+  responsavel_id: textoOpcional.optional().transform((v) => v ?? null),
+  prazo: textoOpcional.optional().transform((v) => v ?? null),
+  /* URL só é validada quando existe: campo opcional vazio não pode
+     falhar por "endereço inválido". */
+  link: textoOpcional
+    .optional()
+    .transform((v) => v ?? null)
+    .refine((v) => v === null || /^https?:\/\/.+\..+/.test(v), 'Link inválido. Comece com https://'),
+  observacoes: textoOpcional.optional().transform((v) => v ?? null),
+});
+
+/** Mover de situação, que é o gesto mais repetido da tela. */
+export const esquemaSituacaoProjeto = z.object({
+  id: z.uuid('Projeto inválido.'),
+  situacao: z.enum(SITUACOES_PROJETO),
+});
+
+export const esquemaExcluirProjeto = z.object({
+  id: z.uuid('Projeto inválido.'),
+  confirmo: z.literal('sim', { message: 'Confirme antes de apagar.' }),
+});
+
 export const esquemaExcluirLead = z.object({
   id: z.uuid('Lead inválido.'),
   confirmo: z.literal('sim', { message: 'Confirme antes de apagar.' }),

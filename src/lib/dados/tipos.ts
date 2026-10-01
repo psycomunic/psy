@@ -554,3 +554,79 @@ export type Prospecto = {
   /** Ainda em 'novo': ninguém mandou a primeira mensagem. */
   aguardandoAbordagem: boolean;
 };
+
+/* ------------------------------------------------------------------ */
+/* Projetos                                                            */
+/* ------------------------------------------------------------------ */
+
+export const TIPOS_PROJETO = [
+  'site', 'lp', 'ecommerce', 'sistema', 'logo', 'identidade', 'outro',
+] as const;
+export type TipoProjeto = (typeof TIPOS_PROJETO)[number];
+
+export const rotuloTipoProjeto: Record<TipoProjeto, string> = {
+  site: 'Site',
+  lp: 'Landing page',
+  ecommerce: 'E-commerce',
+  sistema: 'Sistema',
+  logo: 'Logo',
+  identidade: 'Identidade visual',
+  outro: 'Outro',
+};
+
+export const SITUACOES_PROJETO = [
+  'briefing', 'andamento', 'alteracao', 'aguardando_cliente', 'entregue', 'pausado',
+] as const;
+export type SituacaoProjeto = (typeof SITUACOES_PROJETO)[number];
+
+export const rotuloSituacaoProjeto: Record<SituacaoProjeto, string> = {
+  briefing: 'Briefing',
+  andamento: 'Em andamento',
+  alteracao: 'Em alteração',
+  aguardando_cliente: 'Aguardando cliente',
+  entregue: 'Entregue',
+  pausado: 'Pausado',
+};
+
+/**
+ * O que cada situação quer dizer, em uma linha.
+ *
+ * `alteracao` e `aguardando_cliente` param o projeto do mesmo jeito, e
+ * a diferença é de quem é a vez. Sem a explicação ao lado, as duas
+ * viram sinônimo na cabeça de quem preenche, e aí a lista deixa de
+ * responder "o que eu tenho para fazer hoje".
+ */
+export const explicaSituacaoProjeto: Record<SituacaoProjeto, string> = {
+  briefing: 'Combinado, ainda não começou',
+  andamento: 'Está sendo feito agora',
+  alteracao: 'Voltou com ajuste pedido. A vez é sua',
+  aguardando_cliente: 'Parado esperando material, acesso ou resposta',
+  entregue: 'Fechado',
+  pausado: 'Parado por decisão, e não por espera',
+};
+
+/** As situações que significam "ainda tenho isto na mão". */
+export const SITUACOES_ABERTAS: SituacaoProjeto[] = [
+  'briefing', 'andamento', 'alteracao', 'aguardando_cliente',
+];
+
+export type Projeto = {
+  id: string;
+  nome: string;
+  tipo: TipoProjeto;
+  situacao: SituacaoProjeto;
+  /** O nome da conta quando existe, senão o texto livre. */
+  cliente: string | null;
+  contaId: string | null;
+  responsavel: string | null;
+  responsavelId: string | null;
+  prazo: string | null;
+  link: string | null;
+  observacoes: string | null;
+  entregueEm: string | null;
+  /** Dias na situação atual. Mantido pelo BANCO, por gatilho. */
+  diasNaSituacao: number;
+  /** Negativo já passou. Null quando não há prazo. */
+  diasAteOPrazo: number | null;
+  criadoEm: string;
+};

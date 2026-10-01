@@ -15,11 +15,12 @@ mesmo lugar.
 |---|---|
 | Página de proposta por link (`/proposta/[slug]`) | **Funcionando** |
 | Modelo de papéis e permissões (`src/lib/papeis.ts`) | **Funcionando** |
-| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 43 migrações |
+| Schema do banco com RLS (`supabase/migrations/`) | **Aplicado** — 44 migrações |
 | Camada de KPIs de e-commerce | **Aplicada** |
 | Login real (`/entrar`) | **Funcionando** |
 | Sessão e trava de rota (`src/middleware.ts`) | **Funcionando** |
-| Painel: visão geral, prospecção, métricas, CRM, contas, financeiro, tarefas, equipe, auditoria | **Funcionando** contra o banco |
+| Painel: visão geral, prospecção, métricas, CRM, contas, financeiro, projetos, tarefas, equipe, auditoria | **Funcionando** contra o banco |
+| Projetos: entregas com ciclo de vida, situação no cartão, atraso e tempo parado | **Funcionando** |
 | Prospecção ativa: lista pesquisada, filtro por prioridade e cidade, mensagem de abertura pronta | **Funcionando** — 50 marcas carregadas |
 | Ficha da loja em abas, com health score | **Funcionando** |
 | CRM com kanban, funil e conversão de lead em cliente | **Funcionando** |
@@ -166,6 +167,7 @@ Migrações em `supabase/migrations/`, para rodar **em ordem** (`npm run migrar`
 | `0041_abordagem_em_uma_mensagem.sql` | a abordagem vira UMA mensagem, na estrutura de um molde real: como cheguei, o elogio específico, o nicho, 15 minutos com entregável e a pergunta fechada |
 | `0042_pegamos_e_nao_a_gente_pega.sql` | corrige a troca de registro no meio do parágrafo: "Nós somos" seguido de "a gente pega". A concordância vai em cadeia nos quatro verbos |
 | `0043_mais_respiro_na_abordagem.sql` | os dois parágrafos pesados viram quatro. O maior cai de 44 para 29 palavras, e nenhuma palavra muda |
+| `0044_projetos.sql` | `projeto`: as entregas com ciclo de vida (site, LP, e-commerce, sistema, logo, identidade). Gatilho mantém `situacao_desde` e `entregue_em` |
 
 23 tabelas, 11 views, 55 políticas. `npm run testar-banco` confere o que não
 pode quebrar: RLS ligado em tudo, isolamento entre lojas, conversão de lead,

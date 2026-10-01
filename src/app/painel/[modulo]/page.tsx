@@ -26,6 +26,7 @@ import { Tarefas, filtroDaUrl } from '@/componentes/painel/modulos/Tarefas';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { Prospeccao } from '@/componentes/painel/modulos/Prospeccao';
+import { Projetos } from '@/componentes/painel/modulos/Projetos';
 import { MenuLateral } from '@/componentes/painel/MenuLateral';
 import { resumoDaOperacao } from '@/lib/dados/operacao';
 import { minhasNotificacoes } from '@/lib/dados/consultas';
@@ -154,7 +155,7 @@ export default async function PainelModulo({
         <div className="brilho-magenta absolute -right-[22%] -top-[28%] h-[680px] w-[680px] opacity-[0.22]" />
         <div className="brilho-frio absolute -left-[20%] bottom-[-24%] h-[600px] w-[600px] opacity-[0.16]" />
       </div>
-      {/* Navegação lateral. Agrupada, com ícone e contador: doze itens
+      {/* Navegação lateral. Agrupada, com ícone e contador: treze itens
           no mesmo peso visual não são um menu, são uma lista. */}
       <MenuLateral
         papel={papel}
@@ -207,6 +208,7 @@ export default async function PainelModulo({
                 <Contas papel={papel} />
               ) : null}
               {moduloAtual === 'financeiro' ? <Financeiro aba={abaFinanceiro(aba)} /> : null}
+              {moduloAtual === 'projetos' ? <Projetos papel={papel} /> : null}
               {moduloAtual === 'tarefas' ? (
                 <Tarefas papel={papel} filtro={filtroDaUrl(filtro)} />
               ) : null}

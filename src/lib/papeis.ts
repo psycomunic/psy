@@ -79,6 +79,7 @@ export const MODULOS = [
   'financeiro',
   'contas',
   'metricas',
+  'projetos',
   'tarefas',
   'relatorios',
   'equipe',
@@ -95,6 +96,7 @@ export const rotuloModulo: Record<Modulo, string> = {
   financeiro: 'Financeiro',
   contas: 'Clientes',
   metricas: 'Métricas',
+  projetos: 'Projetos',
   tarefas: 'Tarefas',
   relatorios: 'Relatórios',
   equipe: 'Equipe',
@@ -115,6 +117,12 @@ type Matriz = Record<Papel, Partial<Record<Modulo, Acao[]>>>;
  * PROSPECÇÃO ATIVA anda junto com o CRM: quem vê o funil vê a lista de
  * quem ainda não entrou nele. Operador e financeiro não veem nenhum dos
  * dois, e o RLS de `prospeccao` é o mesmo de `lead`.
+ *
+ * PROJETOS é o único módulo que o COMERCIAL edita fora do funil. O
+ * motivo é prático: é ele quem recebe do cliente o pedido de alteração,
+ * quase sempre pelo WhatsApp, e fazê-lo pedir para outra pessoa marcar
+ * garantiria que o pedido se perdesse. O financeiro continua de fora: o
+ * que se entrega não muda o que se cobra.
  *
  * O COMERCIAL não vê financeiro. Quem vende não precisa da margem nem
  * da lista de inadimplentes para trabalhar, e menos acesso é menos
@@ -151,6 +159,7 @@ export const permissoes: Matriz = {
     financeiro: ['ver', 'editar', 'excluir'],
     contas: ['ver', 'editar', 'excluir'],
     metricas: ['ver', 'editar'],
+    projetos: ['ver', 'editar', 'excluir'],
     tarefas: ['ver', 'editar', 'excluir'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver', 'editar', 'excluir'],
@@ -165,6 +174,7 @@ export const permissoes: Matriz = {
     propostas: ['ver', 'editar'],
     contas: ['ver', 'editar'],
     metricas: ['ver', 'editar'],
+    projetos: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver'],
@@ -181,6 +191,7 @@ export const permissoes: Matriz = {
     propostas: ['ver', 'editar'],
     contas: ['ver'],
     metricas: ['ver'],
+    projetos: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver'],
   },
@@ -189,6 +200,7 @@ export const permissoes: Matriz = {
     visao: ['ver'],
     contas: ['ver', 'editar'],
     metricas: ['ver', 'editar'],
+    projetos: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
   },
@@ -253,7 +265,7 @@ export const rotaInicial: Record<Papel, string> = {
  */
 export const GRUPOS_DE_MODULOS: { titulo: string; modulos: Modulo[] }[] = [
   { titulo: 'Prospecção', modulos: ['prospeccao', 'crm', 'propostas'] },
-  { titulo: 'Operação', modulos: ['contas', 'metricas', 'tarefas', 'relatorios'] },
+  { titulo: 'Operação', modulos: ['contas', 'metricas', 'projetos', 'tarefas', 'relatorios'] },
   { titulo: 'Administração', modulos: ['financeiro', 'equipe', 'auditoria', 'configuracoes'] },
 ];
 
