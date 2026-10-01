@@ -630,3 +630,100 @@ export type Projeto = {
   diasAteOPrazo: number | null;
   criadoEm: string;
 };
+
+/* ------------------------------------------------------------------ */
+/* Postagens                                                           */
+/* ------------------------------------------------------------------ */
+
+export const PERFIS_SOCIAIS = ['reysonmkt', 'psycomunic'] as const;
+export type PerfilSocial = (typeof PERFIS_SOCIAIS)[number];
+
+/** O @ como ele aparece no Instagram, que é como a pessoa reconhece. */
+export const rotuloPerfilSocial: Record<PerfilSocial, string> = {
+  reysonmkt: '@reysonmkt',
+  psycomunic: '@psycomunic',
+};
+
+/** Quem fala em cada um. É o que decide o tom da legenda. */
+export const quemFalaNoPerfil: Record<PerfilSocial, string> = {
+  reysonmkt: 'Angelo, em primeira pessoa',
+  psycomunic: 'A Psy Comunic, como empresa',
+};
+
+export const FORMATOS_POST = ['feed', 'carrossel', 'reels', 'story'] as const;
+export type FormatoPost = (typeof FORMATOS_POST)[number];
+
+export const rotuloFormatoPost: Record<FormatoPost, string> = {
+  feed: 'Feed',
+  carrossel: 'Carrossel',
+  reels: 'Reels',
+  story: 'Story',
+};
+
+export const SITUACOES_POST = [
+  'ideia', 'roteiro', 'gravar', 'editar', 'pronto', 'agendado', 'publicado',
+] as const;
+export type SituacaoPost = (typeof SITUACOES_POST)[number];
+
+export const rotuloSituacaoPost: Record<SituacaoPost, string> = {
+  ideia: 'Ideia',
+  roteiro: 'Roteiro',
+  gravar: 'Gravar',
+  editar: 'Editar',
+  pronto: 'Pronto',
+  agendado: 'Agendado',
+  publicado: 'Publicado',
+};
+
+/**
+ * O que falta em cada situação.
+ *
+ * A lista existe para responder "o que eu faço hoje", e a resposta é o
+ * próximo passo, não o nome do estado. Sem isto, "Editar" e "Pronto"
+ * viram rótulos que só quem criou entende.
+ */
+export const faltaNaSituacao: Record<SituacaoPost, string> = {
+  ideia: 'Falta decidir o que é',
+  roteiro: 'Falta escrever o roteiro',
+  gravar: 'Falta gravar ou fotografar',
+  editar: 'Falta editar o material',
+  pronto: 'Pronto, falta marcar a data',
+  agendado: 'Agendado, é só esperar',
+  publicado: 'No ar',
+};
+
+/** As situações que ainda dão trabalho. `agendado` já saiu da mão. */
+export const SITUACOES_POST_ABERTAS: SituacaoPost[] = [
+  'ideia', 'roteiro', 'gravar', 'editar', 'pronto',
+];
+
+export type ArquivoDaPostagem = {
+  id: string;
+  nome: string;
+  caminho: string;
+  tipo: string | null;
+  tamanho: number | null;
+  /** Assinado na hora da consulta, vale uma hora. Null se falhou. */
+  url: string | null;
+  /** Para a tela decidir entre miniatura e ícone de arquivo. */
+  imagem: boolean;
+  video: boolean;
+};
+
+export type Postagem = {
+  id: string;
+  perfil: PerfilSocial;
+  formato: FormatoPost;
+  tema: string;
+  legenda: string | null;
+  data: string | null;
+  hora: string | null;
+  situacao: SituacaoPost;
+  responsavel: string | null;
+  responsavelId: string | null;
+  observacoes: string | null;
+  link: string | null;
+  publicadoEm: string | null;
+  arquivos: ArquivoDaPostagem[];
+  criadoEm: string;
+};

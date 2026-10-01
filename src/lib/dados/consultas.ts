@@ -34,6 +34,11 @@ import type {
   Projeto,
   TipoProjeto,
   SituacaoProjeto,
+  Postagem,
+  PerfilSocial,
+  FormatoPost,
+  SituacaoPost,
+  ArquivoDaPostagem,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -998,6 +1003,114 @@ export async function leadPorId(id: string): Promise<Lead | null> {
 
   const { dados } = await listarLeads();
   return dados.find((l) => l.id === id) ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Postagens                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * As postagens de um mês, com os arquivos já assinados.
+ *
+ * ============================================================
+ * UM MÊS POR VEZ, E AS SEM DATA SEMPRE
+ * ============================================================
+ * Calendário de conteúdo cresce para sempre, e carregar tudo faria a
+ * tela ficar mais lenta a cada mês que passa. O recorte é o mês pedido.
+ *
+ * As SEM DATA vêm junto em qualquer mês, de propósito: são as ideias, e
+ * ideia que só aparece no mês em que foi digitada é ideia perdida.
+ *
+ * ============================================================
+ * OS ENDEREÇOS SÃO ASSINADOS EM UMA CHAMADA SÓ
+ * ============================================================
+ * O bucket é privado, então cada arquivo precisa de um endereço
+ * assinado para a tela mostrar. Assinar um a um seria uma ida ao
+ * Storage por imagem, e um carrossel tem dez.
+ *
+ * `createSignedUrls` recebe a lista inteira e devolve tudo de uma vez:
+ * uma ida, independente de quantos arquivos o mês tiver.
+ *
+ * Uma hora de validade. O endereço não é guardado em lugar nenhum
+ * justamente porque vence: guardar um vencido é guardar lixo que parece
+ * link.
+ */
+export async function listarPostagens(mes: string): Promise<Resposta<Postagem[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+
+  /* O mês chega como "2026-10". Daqui sai o primeiro dia dele e o
+     primeiro do seguinte, que é o jeito de pegar o mês inteiro sem
+     depender de quantos dias ele tem. */
+  const [ano, m] = mes.split('-').map(Number);
+  const inicio = `${mes}-01`;
+  const fim = m === 12 ? `${ano + 1}-01-01` : `${ano}-${String(m + 1).padStart(2, '0')}-01`;
+
+  const { data, error } = await supabase
+    .from('postagem')
+    .select('id, perfil, formato, tema, legenda, data, hora, situacao, responsavel_id, observacoes, link, publicado_em, criado_em, perfil_responsavel:responsavel_id(nome), postagem_arquivo(id, nome, caminho, tipo, tamanho)')
+    .or(`and(data.gte.${inicio},data.lt.${fim}),data.is.null`)
+    .order('data', { ascending: true, nullsFirst: false })
+    .order('hora', { ascending: true, nullsFirst: false })
+    .limit(400);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const linhas = data ?? [];
+
+  /* Todos os caminhos do mês, de uma vez. */
+  const caminhos = linhas.flatMap((p) =>
+    ((p.postagem_arquivo as unknown as { caminho: string }[]) ?? []).map((a) => a.caminho),
+  );
+
+  const assinados = new Map<string, string>();
+  if (caminhos.length > 0) {
+    const { data: urls } = await supabase.storage
+      .from('midia')
+      .createSignedUrls(caminhos, 3600);
+    for (const u of urls ?? []) {
+      if (u.path && u.signedUrl) assinados.set(u.path, u.signedUrl);
+    }
+  }
+
+  return doBanco(
+    linhas.map((p) => {
+      const brutos = (p.postagem_arquivo as unknown as {
+        id: string; nome: string; caminho: string; tipo: string | null; tamanho: number | null;
+      }[]) ?? [];
+
+      const arquivos: ArquivoDaPostagem[] = brutos.map((a) => ({
+        id: a.id,
+        nome: a.nome,
+        caminho: a.caminho,
+        tipo: a.tipo,
+        tamanho: a.tamanho === null ? null : Number(a.tamanho),
+        url: assinados.get(a.caminho) ?? null,
+        imagem: (a.tipo ?? '').startsWith('image/'),
+        video: (a.tipo ?? '').startsWith('video/'),
+      }));
+
+      return {
+        id: p.id as string,
+        perfil: p.perfil as PerfilSocial,
+        formato: p.formato as FormatoPost,
+        tema: p.tema as string,
+        legenda: (p.legenda as string) ?? null,
+        data: (p.data as string) ?? null,
+        hora: (p.hora as string) ?? null,
+        situacao: p.situacao as SituacaoPost,
+        responsavel:
+          (p.perfil_responsavel as unknown as { nome: string } | null)?.nome ?? null,
+        responsavelId: (p.responsavel_id as string) ?? null,
+        observacoes: (p.observacoes as string) ?? null,
+        link: (p.link as string) ?? null,
+        publicadoEm: (p.publicado_em as string) ?? null,
+        arquivos,
+        criadoEm: p.criado_em as string,
+      };
+    }),
+  );
 }
 
 /* ------------------------------------------------------------------ */

@@ -225,6 +225,80 @@ export const esquemaAbordagem = z.object({
  * dela.
  */
 /* ------------------------------------------------------------------ */
+/* Postagens                                                           */
+/* ------------------------------------------------------------------ */
+
+const PERFIS_SOCIAIS = ['reysonmkt', 'psycomunic'] as const;
+const FORMATOS_POST = ['feed', 'carrossel', 'reels', 'story'] as const;
+const SITUACOES_POST = [
+  'ideia', 'roteiro', 'gravar', 'editar', 'pronto', 'agendado', 'publicado',
+] as const;
+
+/**
+ * Uma postagem.
+ *
+ * Perfil e tema são obrigatórios, e só eles: sem o perfil a postagem não
+ * sabe de quem é a voz, e sem o tema ninguém reconhece a linha na lista.
+ * Data, legenda e arquivos entram conforme a semana anda.
+ */
+export const esquemaPostagem = z.object({
+  perfil: z.enum(PERFIS_SOCIAIS, { message: 'Escolha o perfil.' }),
+  formato: z.enum(FORMATOS_POST).default('feed'),
+  situacao: z.enum(SITUACOES_POST).default('ideia'),
+  tema: textoObrigatorio(2, 'Diga do que é a postagem.'),
+  legenda: textoOpcional.optional().transform((v) => v ?? null),
+  data: textoOpcional.optional().transform((v) => v ?? null),
+  hora: textoOpcional.optional().transform((v) => v ?? null),
+  responsavel_id: textoOpcional.optional().transform((v) => v ?? null),
+  observacoes: textoOpcional.optional().transform((v) => v ?? null),
+  link: textoOpcional
+    .optional()
+    .transform((v) => v ?? null)
+    .refine((v) => v === null || /^https?:\/\/.+\..+/.test(v), 'Link inválido. Comece com https://'),
+});
+
+export const esquemaSituacaoPostagem = z.object({
+  id: z.uuid('Postagem inválida.'),
+  situacao: z.enum(SITUACOES_POST),
+});
+
+export const esquemaExcluirPostagem = z.object({
+  id: z.uuid('Postagem inválida.'),
+  confirmo: z.literal('sim', { message: 'Confirme antes de apagar.' }),
+});
+
+/**
+ * O arquivo que o navegador acabou de mandar ao Storage.
+ *
+ * O `caminho` é conferido contra o formato que o servidor emite, e não
+ * aceito como veio: quem assina a permissão de envio é o servidor, e um
+ * caminho de outro formato aqui só pode ter sido inventado.
+ */
+export const esquemaArquivo = z.object({
+  postagem_id: z.uuid('Postagem inválida.'),
+  caminho: z
+    .string()
+    .trim()
+    .regex(
+      /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.[a-z0-9]{1,8}$/i,
+      'Caminho de arquivo inválido.',
+    ),
+  nome: textoObrigatorio(1, 'Arquivo sem nome.'),
+  tipo: textoOpcional.optional().transform((v) => v ?? null),
+  tamanho: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : Number(v)))
+    .nullable()
+    .refine((v) => v === null || (Number.isFinite(v) && v >= 0), 'Tamanho inválido.'),
+});
+
+export const esquemaRemoverArquivo = z.object({
+  id: z.uuid('Arquivo inválido.'),
+  caminho: textoObrigatorio(3, 'Caminho inválido.'),
+});
+
+/* ------------------------------------------------------------------ */
 /* Projetos                                                            */
 /* ------------------------------------------------------------------ */
 

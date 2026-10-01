@@ -180,6 +180,9 @@ try {
   /* ================================================================ */
   const { data: leads } = await dono.from('lead').select('id');
   const { data: prospeccao } = await dono.from('prospeccao').select('id');
+  const { data: projetos } = await dono.from('projeto').select('id');
+  const { data: postagens } = await dono.from('postagem').select('id');
+  const { data: arquivos } = await dono.from('postagem_arquivo').select('id');
   const { data: contratos } = await dono.from('contrato').select('id');
   const { data: integracoes } = await dono.from('integracao').select('id');
   const { data: contatos } = await dono.from('contato').select('id');
@@ -189,6 +192,9 @@ try {
   console.log('\nDados internos da agencia');
   ok((leads ?? []).length === 0, 'nao ve o CRM');
   ok((prospeccao ?? []).length === 0, 'nao ve a lista de prospeccao da agencia');
+  ok((projetos ?? []).length === 0, 'nao ve os projetos em andamento');
+  ok((postagens ?? []).length === 0, 'nao ve o calendario de conteudo');
+  ok((arquivos ?? []).length === 0, 'nao ve os arquivos das postagens');
   ok((contratos ?? []).length === 0, 'nao ve contratos');
   ok((integracoes ?? []).length === 0, 'nao ve tokens de integracao');
   ok((contatos ?? []).length === 0, 'nao ve os contatos cadastrados da propria loja');

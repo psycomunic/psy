@@ -80,6 +80,7 @@ export const MODULOS = [
   'contas',
   'metricas',
   'projetos',
+  'postagens',
   'tarefas',
   'relatorios',
   'equipe',
@@ -97,6 +98,7 @@ export const rotuloModulo: Record<Modulo, string> = {
   contas: 'Clientes',
   metricas: 'Métricas',
   projetos: 'Projetos',
+  postagens: 'Postagens',
   tarefas: 'Tarefas',
   relatorios: 'Relatórios',
   equipe: 'Equipe',
@@ -160,6 +162,7 @@ export const permissoes: Matriz = {
     contas: ['ver', 'editar', 'excluir'],
     metricas: ['ver', 'editar'],
     projetos: ['ver', 'editar', 'excluir'],
+    postagens: ['ver', 'editar', 'excluir'],
     tarefas: ['ver', 'editar', 'excluir'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver', 'editar', 'excluir'],
@@ -175,6 +178,7 @@ export const permissoes: Matriz = {
     contas: ['ver', 'editar'],
     metricas: ['ver', 'editar'],
     projetos: ['ver', 'editar'],
+    postagens: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
     equipe: ['ver'],
@@ -192,6 +196,7 @@ export const permissoes: Matriz = {
     contas: ['ver'],
     metricas: ['ver'],
     projetos: ['ver', 'editar'],
+    postagens: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver'],
   },
@@ -201,6 +206,7 @@ export const permissoes: Matriz = {
     contas: ['ver', 'editar'],
     metricas: ['ver', 'editar'],
     projetos: ['ver', 'editar'],
+    postagens: ['ver', 'editar'],
     tarefas: ['ver', 'editar'],
     relatorios: ['ver', 'editar'],
   },
@@ -265,7 +271,7 @@ export const rotaInicial: Record<Papel, string> = {
  */
 export const GRUPOS_DE_MODULOS: { titulo: string; modulos: Modulo[] }[] = [
   { titulo: 'Prospecção', modulos: ['prospeccao', 'crm', 'propostas'] },
-  { titulo: 'Operação', modulos: ['contas', 'metricas', 'projetos', 'tarefas', 'relatorios'] },
+  { titulo: 'Operação', modulos: ['contas', 'metricas', 'projetos', 'postagens', 'tarefas', 'relatorios'] },
   { titulo: 'Administração', modulos: ['financeiro', 'equipe', 'auditoria', 'configuracoes'] },
 ];
 

@@ -28,6 +28,7 @@ import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { Prospeccao } from '@/componentes/painel/modulos/Prospeccao';
 import { Projetos } from '@/componentes/painel/modulos/Projetos';
+import { Postagens, mesDaUrl } from '@/componentes/painel/modulos/Postagens';
 import { MenuLateral } from '@/componentes/painel/MenuLateral';
 import { resumoDaOperacao } from '@/lib/dados/operacao';
 import { minhasNotificacoes } from '@/lib/dados/consultas';
@@ -81,11 +82,11 @@ export default async function PainelModulo({
   params: Promise<{ modulo: string }>;
   searchParams: Promise<{
     papel?: string; conta?: string; ficha?: string; aba?: string;
-    pagina?: string; lead?: string; filtro?: string; editar?: string;
+    pagina?: string; lead?: string; filtro?: string; editar?: string; mes?: string;
   }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar } =
+  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes } =
     await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
@@ -255,7 +256,7 @@ export default async function PainelModulo({
               chegar, o que parece travamento.
             */}
             <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
-              <Suspense key={`${moduloAtual}:${ficha ?? ''}`} fallback={<Carregando />}>
+              <Suspense key={`${moduloAtual}:${ficha ?? ''}:${mes ?? ''}`} fallback={<Carregando />}>
               {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
               {moduloAtual === 'prospeccao' ? <Prospeccao papel={papel} /> : null}
@@ -267,6 +268,7 @@ export default async function PainelModulo({
               ) : null}
               {moduloAtual === 'financeiro' ? <Financeiro aba={abaFinanceiro(aba)} /> : null}
               {moduloAtual === 'projetos' ? <Projetos papel={papel} /> : null}
+              {moduloAtual === 'postagens' ? <Postagens papel={papel} mes={mesDaUrl(mes)} /> : null}
               {moduloAtual === 'tarefas' ? (
                 <Tarefas papel={papel} filtro={filtroDaUrl(filtro)} />
               ) : null}
