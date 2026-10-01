@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { exigirCredenciais } from './ambiente';
@@ -50,7 +51,19 @@ export type Sessao = {
  * gravável pelo próprio usuário em várias configurações, e papel que o
  * usuário escreve não é permissão.
  */
-export async function sessaoAtual(): Promise<Sessao | null> {
+/*
+  MEMORIZADA POR REQUISIÇÃO.
+
+  O layout do painel precisa do papel para montar o menu, e a página do
+  módulo precisa dele para decidir o que mostrar. Sem `cache`, seriam
+  duas conferências de token e duas consultas a `perfil` por
+  carregamento, para responder exatamente a mesma pergunta.
+
+  O `cache` do React vale dentro de UMA requisição e some no fim dela:
+  não é cache entre visitas, e não guarda sessão de ninguém entre
+  pessoas diferentes.
+*/
+export const sessaoAtual = cache(async (): Promise<Sessao | null> => {
   const supabase = await clienteServidor();
 
   /*
@@ -89,4 +102,4 @@ export async function sessaoAtual(): Promise<Sessao | null> {
     papel: perfil.papel as Papel,
     contaId: perfil.conta_id,
   };
-}
+});

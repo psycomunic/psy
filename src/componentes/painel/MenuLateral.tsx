@@ -1,3 +1,6 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Marca } from '@/componentes/Marca';
 import { BotaoMenu } from './BotaoMenu';
@@ -47,18 +50,27 @@ type Contadores = Partial<Record<Modulo, { n: number; grave?: boolean; titulo: s
 export function MenuLateral({
   papel,
   nome,
-  moduloAtual,
   bancoConfigurado,
   contadores = {},
   avisos,
 }: {
   papel: Papel;
   nome: string | null;
-  moduloAtual: Modulo;
   bancoConfigurado: boolean;
   contadores?: Contadores;
   avisos?: { lista: Notificacao[]; naoLidas: number; agora: string };
 }) {
+  /*
+    QUAL ITEM ESTÁ ATIVO SAI DA URL, E NÃO DE UMA PROPRIEDADE.
+
+    O menu mora no layout do painel agora, e layout não sabe qual
+    módulo está aberto: ele não é refeito quando o filho muda, que é
+    justamente o motivo de ele estar lá. `usePathname` reage à
+    navegação sem nenhuma ida ao servidor, então o item acende no
+    mesmo instante do clique, antes de o conteúdo novo chegar.
+  */
+  const caminho = usePathname();
+  const moduloAtual = (caminho?.split('/')[2] ?? '') as Modulo;
   const visiveis = modulosDoPapel(papel);
   const temAcesso = (m: Modulo) => visiveis.includes(m);
 
