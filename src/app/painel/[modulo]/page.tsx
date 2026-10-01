@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import {
   MODULOS,
@@ -43,6 +44,35 @@ const AINDA_NAO: Partial<Record<Modulo, string[]>> = {
     'Envio automático no fechamento do mês',
   ],
 };
+
+/**
+ * O que aparece enquanto o módulo carrega.
+ *
+ * Blocos do tamanho do que vem depois, e não um relógio girando: a
+ * forma já no lugar faz a chegada do conteúdo parecer continuação, e
+ * não troca de tela. `animate-pulse` diz que está vivo.
+ *
+ * `aria-hidden` com um aviso de leitor de tela ao lado: a forma é
+ * decoração, e quem não enxerga precisa da palavra.
+ */
+function Carregando() {
+  return (
+    <div>
+      <p role="status" className="sr-only">
+        Carregando
+      </p>
+      <div aria-hidden className="animate-pulse space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-[136px] rounded-[var(--raio-p)] border border-fio bg-white/[0.02]" />
+          ))}
+        </div>
+        <div className="h-[52px] rounded-[var(--raio-p)] border border-fio bg-white/[0.02]" />
+        <div className="h-[280px] rounded-[var(--raio-p)] border border-fio bg-white/[0.02]" />
+      </div>
+    </div>
+  );
+}
 
 export default async function PainelModulo({
   params,
@@ -102,15 +132,25 @@ export default async function PainelModulo({
 
     Só para papel interno. Cliente não tem tarefa da agência nem lead.
   */
-  const resumo = eInterno(papel) && bancoConfigurado ? await resumoDaOperacao() : null;
 
   /* Os avisos vem aqui, e nao dentro do menu: o menu e componente de
      cliente, e consulta de banco em componente de cliente nao existe.
      O relogio vai junto pelo mesmo motivo de sempre - Date.now() no
      render do navegador divergiria do HTML que o servidor mandou. */
-  const avisos = bancoConfigurado
-    ? await minhasNotificacoes().then((r) => ({ ...r.dados, agora: new Date().toISOString() }))
-    : undefined;
+  /*
+    AS DUAS JUNTAS, E NÃO UMA DEPOIS DA OUTRA.
+
+    Elas não dependem uma da outra, e estavam em dois `await` seguidos:
+    o segundo só começava quando o primeiro voltasse. Cada um é uma ida
+    ao banco, e a página inteira esperava as duas antes de pintar
+    qualquer coisa.
+  */
+  const [resumo, avisos] = await Promise.all([
+    eInterno(papel) && bancoConfigurado ? resumoDaOperacao() : Promise.resolve(null),
+    bancoConfigurado
+      ? minhasNotificacoes().then((r) => ({ ...r.dados, agora: new Date().toISOString() }))
+      : Promise.resolve(undefined),
+  ]);
 
   const contadores = resumo
     ? {
@@ -197,7 +237,25 @@ export default async function PainelModulo({
               </header>
             ) : null}
 
+            {/*
+              O MÓDULO CHEGA DEPOIS DA CASCA, E NÃO JUNTO.
+
+              Sem isto a página inteira esperava as consultas do módulo
+              para pintar o primeiro pixel: medido em produção, o HTML
+              levava de 1,5 a 3,5 segundos para fechar, e desses, 11 a
+              84ms eram do navegador. Era tudo espera de banco, e a
+              pessoa olhava para o nada enquanto durava.
+
+              Com `Suspense`, o Next manda o cabeçalho e o menu na hora e
+              transmite o conteúdo quando ele fica pronto. O tempo total
+              é o mesmo; o tempo até ver alguma coisa deixa de ser.
+
+              A `key` é o módulo: sem ela, trocar de página reaproveita a
+              fronteira e a tela fica no conteúdo ANTIGO até o novo
+              chegar, o que parece travamento.
+            */}
             <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
+              <Suspense key={`${moduloAtual}:${ficha ?? ''}`} fallback={<Carregando />}>
               {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
               {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
               {moduloAtual === 'prospeccao' ? <Prospeccao papel={papel} /> : null}
@@ -226,6 +284,7 @@ export default async function PainelModulo({
                   itens={AINDA_NAO[moduloAtual]!}
                 />
               ) : null}
+              </Suspense>
             </div>
           </>
         )}

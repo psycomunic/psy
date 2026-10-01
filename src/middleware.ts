@@ -60,12 +60,29 @@ export async function middleware(req: NextRequest) {
     },
   });
 
-  // getUser e não getSession: getSession lê o cookie e acredita nele.
-  // getUser valida o token no servidor de auth. Numa decisão de acesso,
-  // a diferença é entre confiar e verificar.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  /*
+    getClaims, e não getSession nem getUser.
+
+    `getSession` lê o cookie e acredita nele, que é o que não se faz numa
+    decisão de acesso.
+
+    `getUser` verifica, mas verifica PERGUNTANDO ao servidor de auth: uma
+    ida à rede em toda navegação do painel, e outra igual acontecia
+    dentro da página, logo depois. Medido em produção, o HTML levava de
+    1,5 a 3,5 segundos para fechar, e o navegador gastava 11 a 84ms
+    depois dele: o tempo era todo em espera de rede no servidor.
+
+    `getClaims` verifica a ASSINATURA do token com a chave pública do
+    projeto, baixada uma vez e guardada. Este projeto assina em ES256 e
+    publica o JWKS, então a conferência acontece aqui mesmo, sem sair
+    para a rede, e com a mesma garantia criptográfica.
+
+    O que ela NÃO pega é token revogado antes de expirar. Quem pega isso
+    é o `perfil.ativo` em `sessaoAtual`, e são as políticas de RLS, que
+    rodam no Postgres a cada consulta e não dependem de nada disto.
+  */
+  const { data: claims } = await supabase.auth.getClaims();
+  const user = claims?.claims ? { id: claims.claims.sub } : null;
 
   if (logada && !user) {
     const destino = req.nextUrl.clone();

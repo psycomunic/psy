@@ -53,13 +53,29 @@ export type Sessao = {
 export async function sessaoAtual(): Promise<Sessao | null> {
   const supabase = await clienteServidor();
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return null;
+  /*
+    `getClaims` confere a assinatura do token COM A CHAVE PÚBLICA do
+    projeto, que é baixada uma vez e fica guardada. Antes era `getUser`,
+    que faz a mesma conferência PERGUNTANDO ao servidor de auth: uma ida
+    à rede por requisição, em sequência com tudo o mais.
+
+    Aqui doía duas vezes. O middleware já tinha perguntado, e esta
+    segunda pergunta acontecia antes de qualquer consulta do painel
+    poder começar, porque é daqui que sai o papel.
+
+    A garantia é a mesma: ES256 verificado é ES256 verificado, venha a
+    resposta da rede ou do cálculo local. E o que a assinatura não diz,
+    a linha abaixo diz: perfil que não existe ou foi desativado não
+    passa, e isso continua sendo uma consulta de verdade ao banco.
+  */
+  const { data: claims } = await supabase.auth.getClaims();
+  const idDoUsuario = claims?.claims?.sub;
+  if (!idDoUsuario) return null;
 
   const { data: perfil } = await supabase
     .from('perfil')
     .select('id, nome, email, papel, conta_id, ativo')
-    .eq('id', auth.user.id)
+    .eq('id', idDoUsuario)
     .single();
 
   // Sem perfil ou desativado, não há acesso. Existir em auth.users não
