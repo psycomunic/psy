@@ -135,6 +135,58 @@ export function SlideDeUmServico({
   );
 }
 
+/**
+ * A tela da implantação de um serviço mensal.
+ *
+ * ============================================================
+ * POR QUE É UM SLIDE, E NÃO MAIS MARCADORES NO ANTERIOR
+ * ============================================================
+ * O ecossistema de tráfego dá onze entregas. Somadas às oito da
+ * operação do mês, davam dezenove marcadores na coluna "o que entra", e
+ * a mesma armadilha de altura que o comentário no topo deste arquivo
+ * descreve: no telefone, a tela do serviço engolia a conta e as
+ * condições.
+ *
+ * E separar é melhor do que caber. Esta é a tela que responde "por que
+ * a mensalidade é essa": o trabalho que existe antes de a primeira
+ * campanha subir. Enterrado numa lista de dezenove itens, ele não é
+ * lido, e serviço que não é lido é serviço que não foi vendido.
+ *
+ * ============================================================
+ * ELA DIZ QUE NÃO É OUTRA COBRANÇA
+ * ============================================================
+ * Em letras, no parágrafo de abertura. Uma tela inteira de entregas
+ * logo depois de um preço mensal convida a pergunta "e isso custa
+ * quanto?", e a resposta precisa chegar antes da pergunta.
+ */
+export function SlideDaImplantacao({ nome, itens }: { nome: string; itens: string[] }) {
+  return (
+    <Slide
+      rotulo="Antes do primeiro anúncio"
+      titulo={
+        <>
+          A implantação do <span className="text-magenta-texto">ecossistema.</span>
+        </>
+      }
+    >
+      <p className="max-w-[72ch] text-sm leading-relaxed text-neve sm:text-[1.05rem]">
+        Acontece uma vez, no primeiro mês, e já está dentro da mensalidade de{' '}
+        {nome.toLowerCase()}. É a estrutura que faz todo o resto ter sentido: sem ela, a
+        verba vira gasto que ninguém consegue explicar depois.
+      </p>
+
+      <ul className="mt-6 grid gap-3.5 sm:mt-8 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-4">
+        {itens.map((e) => (
+          <li key={e} className="flex gap-3 text-sm leading-relaxed text-neve">
+            <span aria-hidden className="mt-0.5 flex-none text-magenta-texto">●</span>
+            {e}
+          </li>
+        ))}
+      </ul>
+    </Slide>
+  );
+}
+
 export function SlideSempre({
   sempre,
   complementos,

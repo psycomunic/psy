@@ -66,6 +66,7 @@ import 'server-only';
 
 export type Servico =
   | 'ecommerce'
+  | 'repaginacao'
   | 'siteServicos'
   | 'institucional'
   | 'landing'
@@ -80,6 +81,7 @@ export type Servico =
  */
 export const SERVICOS: Servico[] = [
   'ecommerce',
+  'repaginacao',
   'siteServicos',
   'institucional',
   'landing',
@@ -115,6 +117,25 @@ export type FichaServico = {
    */
   precoSugerido?: number;
   entregas: string[];
+  /**
+   * O trabalho que acontece UMA VEZ, dentro de um serviço mensal.
+   *
+   * Existe separado de `entregas` por dois motivos, e o primeiro é de
+   * leitura: montar o ecossistema de anúncio dá onze entregas, e na
+   * mesma lista da operação do mês elas viram um paredão de vinte
+   * marcadores num slide que passa de três mil pixels no telefone. Com
+   * campo próprio, a implantação ganha a tela dela.
+   *
+   * O segundo é de preço. O que sustenta a mensalidade do primeiro mês
+   * é justamente isto, e o que não está escrito o cliente conclui que
+   * não existe.
+   *
+   * Não é outra cobrança: continua dentro da mensalidade, e por isso
+   * `cobranca` não muda. Quem quiser faturar a implantação à parte cria
+   * um serviço `projeto` para ela, e aí os dois totais se fecham
+   * separados, como manda o cabeçalho deste arquivo.
+   */
+  implantacao?: string[];
   /** O que este serviço NÃO cobre. Dito antes, e não na primeira
       cobrança de algo que o cliente achava incluso. */
   naoInclui: string[];
@@ -147,6 +168,37 @@ export const fichasDeServico: Record<Servico, FichaServico> = {
       'Integração com ERP, estoque ou emissor fiscal, que depende do sistema e é orçada à parte',
       'Cadastro em massa dos produtos, quando a base não vem pronta para importação',
       'A operação de anúncio depois do lançamento, que é o serviço de tráfego',
+    ],
+  },
+
+  repaginacao: {
+    id: 'repaginacao',
+    nome: 'Repaginação da loja virtual',
+    papel: 'principal',
+    cobranca: 'projeto',
+    paraQuem: 'Quem já vende pela internet e sente que a loja atrapalha em vez de ajudar',
+    promessa:
+      'A loja que já existe refeita onde a venda se perde. Começa pelo lugar em que o visitante desiste hoje, que é medido e não adivinhado, e termina com as telas de produto, carrinho e checkout reconstruídas, o celular tratado como principal e o rastreamento conferido evento por evento. Catálogo, pedidos e endereço continuam os mesmos, então ninguém recomeça do zero nem perde histórico.',
+    entregas: [
+      'Leitura do que a loja faz hoje: por onde entra o acesso, em que tela ele desiste, e quanto disso é velocidade, texto ou navegação confusa',
+      'Redesenho das telas que decidem a compra, que são a de produto, a do carrinho e a do checkout',
+      'Navegação, categorias, filtros e busca reorganizados a partir do catálogo real, e não de um menu que cresceu sem plano',
+      'Página inicial refeita para levar à categoria e ao produto, em vez de ser um mural de banners',
+      'Identidade aplicada na loja inteira, com um padrão só de tipografia, cor, botão e espaçamento',
+      'Velocidade atacada onde ela custa venda, que é no celular: peso de imagem, script sobrando e o que atrasa a primeira pintura',
+      'Resposta à dúvida na tela em que ela aparece: frete, prazo, troca, devolução e formas de pagamento ditos antes de o cliente ir procurar',
+      'Padrão de cadastro revisado e aplicado nos itens que mais vendem: título, foto, descrição, variação e estoque',
+      'Rastreamento conferido evento por evento, porque loja repaginada com medição errada não consegue provar que melhorou',
+      'Publicação acompanhada, com o comparativo do antes e do depois nos números que importam',
+    ],
+    naoInclui: [
+      'Troca de plataforma, que é mudança de endereço e de base de dados, e é orçada à parte',
+      'Mensalidade de plataforma, domínio, certificado e licença de extensão',
+      'Fotografia e vídeo de produto',
+      'Reescrita das descrições do catálogo inteiro, que é orçada pelo volume de itens',
+      'Integração com ERP, estoque ou emissor fiscal, que depende do sistema',
+      'Criação de marca nova, que é outro trabalho',
+      'A operação de anúncio depois da entrega, que é o serviço de tráfego',
     ],
   },
 
@@ -235,13 +287,30 @@ export const fichasDeServico: Record<Servico, FichaServico> = {
     paraQuem:
       'Quem precisa de cliente entrando com previsibilidade, e não de sorte no algoritmo',
     promessa:
-      'Google e Meta operados por quem responde pelo resultado. A primeira decisão é definir o que conta como conversão no seu negócio: matrícula, orçamento, reserva, consulta ou pedido. Daí para frente, tudo é medido contra isso.',
+      'Google e Meta operados por quem responde pelo resultado. O primeiro mês não é só subir campanha: é construir o ecossistema inteiro, que são as contas, a medição e a presença nas duas plataformas, e definir o que conta como conversão no seu negócio, seja matrícula, orçamento, reserva, consulta ou pedido. Daí para frente, tudo é medido contra isso.',
+    /* A implantação vive em campo próprio e ganha o slide dela. Nesta
+       lista ela virava mais oito marcadores no meio da operação do mês,
+       e era justamente o que o cliente precisava ver para entender o
+       que está pagando. Ver `implantacao` no tipo, acima. */
+    implantacao: [
+      'Business Manager da Meta criada ou arrumada, com a página, o Instagram, o domínio verificado e os acessos da equipe organizados num lugar só',
+      'Conta de anúncio em nome da sua empresa, com forma de pagamento, fuso, moeda e limite de gasto conferidos antes de a primeira verba rodar',
+      'Google Ads criado e vinculado ao Analytics, ao Search Console e, quando o catálogo é de produto, ao Merchant Center, para as ferramentas trocarem dados em vez de cada uma contar a sua versão',
+      'Gerenciador de tags instalado no site, com o pixel da Meta e a tag do Google saindo de um lugar só, e não de cinco scripts colados em épocas diferentes',
+      'Eventos de conversão nomeados, instalados e testados um por um, com o valor do pedido ou do orçamento viajando junto',
+      'API de conversões da Meta ligada, porque evento que depende só do navegador chega pela metade e faz a plataforma otimizar com dado errado',
+      'Analytics configurado com as conversões marcadas e os públicos prontos, para a audiência começar a crescer no primeiro dia',
+      'Perfil da Empresa no Google reivindicado e completo, que é o que aparece quando alguém procura o seu nome depois de ver o anúncio',
+      'Públicos de remarketing e listas de clientes criados e aquecendo desde o começo, porque público frio é o anúncio mais caro que existe',
+      'Caminho inteiro conferido com um pedido ou um envio de verdade, antes de a primeira campanha subir',
+      'Inventário dos acessos entregue por escrito: o que foi criado, onde mora e quem entra',
+    ],
     entregas: [
-      'Definição do que conta como conversão, antes de subir campanha',
-      'Conferência e correção do rastreamento: evento que não dispara ou que conta duas vezes invalida qualquer decisão tomada depois',
+      'Operação diária das duas plataformas, com a verba acompanhada e remanejada para o que está entregando',
       'Estrutura de campanha montada por canal, oferta e público, para dar para saber qual funcionou',
       'Criativos de anúncio testados em variação, com o vencedor decidido pelo número',
       'Ajuste semanal de verba, com o que mudou registrado por data',
+      'Vigilância do rastreamento mês a mês: evento que parou de disparar ou que passou a contar duas vezes invalida toda decisão tomada depois dele',
       'Painel com o que entrou, o que foi investido e o retorno por canal, atualizado sozinho',
       'WhatsApp direto com quem opera a conta, resposta no mesmo dia',
       'Reunião mensal de leitura dos números e do plano do mês seguinte',

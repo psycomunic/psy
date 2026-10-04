@@ -118,7 +118,12 @@ function lerCampos(
       if (fd.get(`servico_${s}`) !== 'on') continue;
       const fee = paraNumero(String(fd.get(`fee_${s}`) ?? ''));
       if (!Number.isFinite(fee) || fee <= 0) {
-        return { ok: false, mensagem: `Informe o valor mensal de ${fichaDoServico(s).nome}.` };
+        /* "mensal" era fixo na frase, e metade do catálogo é projeto:
+           pedir o valor mensal de uma obra de entrega única é o erro
+           que este arquivo inteiro existe para evitar. */
+        const ficha = fichaDoServico(s);
+        const qual = ficha.cobranca === 'projeto' ? 'o valor do projeto' : 'o valor mensal';
+        return { ok: false, mensagem: `Informe ${qual} de ${ficha.nome}.` };
       }
       servicos.push({ id: s, fee });
     }

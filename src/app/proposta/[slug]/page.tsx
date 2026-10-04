@@ -12,7 +12,7 @@ import {
   SlideSempreIncluso,
 } from '@/componentes/proposta/Planos';
 import { SlideMarcas } from '@/componentes/proposta/Marcas';
-import { SlideDeUmServico, SlideSempre } from '@/componentes/proposta/Servicos';
+import { SlideDeUmServico, SlideDaImplantacao, SlideSempre } from '@/componentes/proposta/Servicos';
 import { SlideDaConta } from '@/componentes/proposta/ContaDaProposta';
 import { SlideJornada, SlidePorQueCompleta } from '@/componentes/proposta/Jornada';
 import { SlideCusto, SlideLancamento, SlideInclusoes } from '@/componentes/proposta/Custo';
@@ -324,9 +324,13 @@ export default async function PaginaProposta({
       */}
       {p.servicos.length > 0
         ? [
-            ...p.servicos.map((s) => {
+            /* flatMap, e nao map: um servico com implantacao rende DOIS
+               slides, e devolver um fragmento com os dois dentro faria
+               o Deck contar um filho so e empilhar as duas telas numa.
+               E a mesma armadilha que o comentario acima descreve. */
+            ...p.servicos.flatMap((s) => {
               const f = fichaDoServico(s.id);
-              return (
+              return [
                 <SlideDeUmServico
                   key={`servico-${f.id}`}
                   precoNaConta={p.etapas.length > 0}
@@ -342,8 +346,15 @@ export default async function PaginaProposta({
                     fee: s.fee,
                     feeTexto: emReais(s.fee),
                   }}
-                />
-              );
+                />,
+                f.implantacao && f.implantacao.length > 0 ? (
+                  <SlideDaImplantacao
+                    key={`implantacao-${f.id}`}
+                    nome={f.nome}
+                    itens={f.implantacao}
+                  />
+                ) : null,
+              ];
             }),
             p.etapas.length > 0 ? null : (
               <SlideDaConta
