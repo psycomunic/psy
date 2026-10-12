@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { exigirCredenciais } from './ambiente';
+import { buscaComPrazo } from './rede';
 import type { Papel } from '@/lib/papeis';
 
 /**
@@ -17,6 +18,10 @@ export async function clienteServidor() {
   const jar = await cookies();
 
   return createServerClient(url, chave, {
+    /* Ver `rede.ts`: consulta sem prazo contra banco fora do ar segura
+       a requisição até a plataforma matar a função, e a página morre
+       sem dizer por que. */
+    global: { fetch: buscaComPrazo() },
     cookies: {
       getAll: () => jar.getAll(),
       setAll: (novos) => {
@@ -81,8 +86,20 @@ export const sessaoAtual = cache(async (): Promise<Sessao | null> => {
     a linha abaixo diz: perfil que não existe ou foi desativado não
     passa, e isso continua sendo uma consulta de verdade ao banco.
   */
-  const { data: claims } = await supabase.auth.getClaims();
-  const idDoUsuario = claims?.claims?.sub;
+  /*
+    Dentro de um try: com o servidor de auth fora do ar, a conferência
+    do token estoura o prazo e LEVANTA erro, em vez de devolver
+    `{ data: null }`. Sem isto, a exceção subiria pela árvore e a
+    resposta do painel seria um 500 sem explicação. Sessão que não se
+    confere é sessão que não vale, e a rota leva para o login.
+  */
+  let idDoUsuario: string | undefined;
+  try {
+    const { data: claims } = await supabase.auth.getClaims();
+    idDoUsuario = claims?.claims?.sub;
+  } catch {
+    return null;
+  }
   if (!idDoUsuario) return null;
 
   const { data: perfil } = await supabase

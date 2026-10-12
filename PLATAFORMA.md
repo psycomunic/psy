@@ -91,6 +91,37 @@ com as variaveis, em producao, sem sessao:
   /painel/crm        307  ->  /entrar?destino=/painel/crm
 ```
 
+### Configurado e fora do ar não são a mesma coisa
+
+A trava acima cobre credencial que não existe. Ela não cobre credencial que
+existe e aponta para um projeto que **parou de responder**, que é o que
+acontece sozinho: projeto do plano gratuito do Supabase pausa por
+inatividade depois de uns sete dias, e o host deixa de resolver.
+
+Aconteceu em 12 de outubro de 2026, oito dias depois do último deploy. O que
+a produção registrou:
+
+```
+GET /painel/visao [error/middleware]
+Error: Your function was stopped as it did not return an initial response
+within 25s
+count=15  users=1  routes=/middleware   18:33 -> 22:20
+```
+
+E o que a pessoa via: o login respondendo **"e-mail ou senha incorretos"**
+com a senha certa, porque a tela tratava falha de rede como credencial
+errada. Duas horas procurando o erro no lugar errado.
+
+O conserto não ressuscita o banco, encurta o diagnóstico. O cliente do
+Supabase passou a ter prazo (`src/lib/supabase/rede.ts`): 6 segundos nas
+consultas, 4 na middleware, que divide os 25 segundos da função com a
+página. E a conferência de sessão virou `try/catch` nos dois lugares, porque
+o estouro do prazo é levantado e middleware que lança exceção devolve 500 em
+toda navegação do painel.
+
+Religar é no painel do Supabase, em **Restore project**. Os dados voltam
+inteiros.
+
 ---
 
 ## 3. Onde a segurança mora (três camadas, não uma)

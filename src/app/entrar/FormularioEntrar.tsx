@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { clienteNavegador } from '@/lib/supabase/navegador';
+import { ePanneDeRede } from '@/lib/supabase/rede';
 
 /**
  * Login.
@@ -41,10 +42,25 @@ export function FormularioEntrar({ destino }: { destino: string }) {
         A exceção é o limite de tentativas, que precisa ser dito, senão a
         pessoa fica repetindo a senha certa achando que errou.
       */
+      /*
+        A terceira mensagem existe porque a segunda já mentiu.
+
+        Com o projeto do Supabase fora do ar, a resposta era "e-mail ou
+        senha incorretos", e a senha estava certa. A pessoa repetiu,
+        trocou de navegador, desconfiou do próprio acesso, e a tela
+        nunca disse que o problema não era dela.
+
+        Falha de rede não é credencial errada, e dizer isso não entrega
+        nada a ninguém: quem está do lado de fora descobre que um
+        servidor não responde tentando, não lendo esta frase.
+      */
       setErro(
-        /rate|too many/i.test(error.message)
-          ? 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'
-          : 'E-mail ou senha incorretos.',
+        ePanneDeRede(error)
+          ? 'O servidor de autenticação não respondeu. Isso não é a sua senha: ' +
+              'espere alguns minutos e tente de novo.'
+          : /rate|too many/i.test(error.message)
+            ? 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'
+            : 'E-mail ou senha incorretos.',
       );
       setEnviando(false);
       return;

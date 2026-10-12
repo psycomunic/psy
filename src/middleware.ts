@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { bancoConfigurado, urlSupabase, chavePublica } from '@/lib/supabase/ambiente';
+import { buscaComPrazo, PRAZO_MIDDLEWARE_MS } from '@/lib/supabase/rede';
 
 /**
  * Porta de entrada da área logada.
@@ -48,6 +49,20 @@ export async function middleware(req: NextRequest) {
   let resposta = NextResponse.next({ request: req });
 
   const supabase = createServerClient(urlSupabase, chavePublica, {
+    /*
+      Com prazo, e o mais curto do projeto.
+
+      Esta função já foi parada 15 vezes aos 25 segundos, com o projeto
+      do Supabase pausado por inatividade:
+
+        GET /painel/visao [error/middleware]
+        Your function was stopped as it did not return an initial
+        response within 25s
+
+      Quem tentava entrar via o navegador rodando e desistindo, sem
+      nunca receber uma frase sobre o que estava errado. Ver `rede.ts`.
+    */
+    global: { fetch: buscaComPrazo(PRAZO_MIDDLEWARE_MS) },
     cookies: {
       getAll: () => req.cookies.getAll(),
       setAll: (novos) => {
@@ -81,8 +96,16 @@ export async function middleware(req: NextRequest) {
     é o `perfil.ativo` em `sessaoAtual`, e são as políticas de RLS, que
     rodam no Postgres a cada consulta e não dependem de nada disto.
   */
-  const { data: claims } = await supabase.auth.getClaims();
-  const user = claims?.claims ? { id: claims.claims.sub } : null;
+  /* O erro do prazo é LEVANTADO, e middleware que lança exceção
+     devolve 500 em toda navegação do painel. Sem conferência não há
+     sessão, e sem sessão o caminho é o login. */
+  let user: { id: string | undefined } | null = null;
+  try {
+    const { data: claims } = await supabase.auth.getClaims();
+    user = claims?.claims ? { id: claims.claims.sub } : null;
+  } catch {
+    user = null;
+  }
 
   if (logada && !user) {
     const destino = req.nextUrl.clone();
