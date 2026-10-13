@@ -120,7 +120,42 @@ o estouro do prazo é levantado e middleware que lança exceção devolve 500 em
 toda navegação do painel.
 
 Religar é no painel do Supabase, em **Restore project**. Os dados voltam
-inteiros.
+inteiros. Quando o projeto some de vez, não.
+
+### A troca de projeto, em 13 de outubro de 2026
+
+O projeto `dowqyqzrokcidsxlbkah` não voltou. A listagem da conta pela API
+do Supabase passou a devolver **um único projeto**, e não era aquele: ele
+foi apagado, e com ele os leads editados à mão, as propostas, os projetos
+e as postagens.
+
+O painel foi reerguido em `ukxyijgudvyomviivruj`, um projeto que já
+existia na conta com um CRM antigo dentro, feito em inglês. As 45
+migrations rodaram por cima dele, aplicadas pela **API de gerenciamento**
+(`POST /v1/projects/{ref}/database/query`), porque a senha do banco não
+foi recuperada. Os dois esquemas convivem sem colidir:
+
+| | o CRM antigo | o nosso |
+|---|---|---|
+| tabelas | `leads`, `clients`, `profiles`, `tasks` | `lead`, `conta`, `perfil`, `tarefa` |
+| funções | `handle_new_user`, `is_admin` | `criar_perfil_novo_usuario`, `e_admin` |
+| gatilho em `auth.users` | `on_auth_user_created` | `ao_criar_usuario`, `ao_atualizar_metadados` |
+
+Os três gatilhos disparam juntos a cada usuário novo, e isso foi
+verificado antes de aplicar: o do CRM antigo lê `role` de
+`raw_user_meta_data`, que o nosso `criar-admin` não preenche, então ele
+cai no padrão e insere uma linha inofensiva na `profiles` dele. Se algum
+dia o nosso script passar a gravar `role` ali, com um valor que não
+exista no enum `user_role` dele, **nenhum usuário novo será criado**: o
+cast falha e derruba o insert em `auth.users`.
+
+Duas pendências que ficaram desta troca:
+
+- O projeto está no **plano Livre**, que pausa por inatividade. A
+  organização `psycomunic` é Pro e seria o lugar certo.
+- `SUPABASE_DB_URL` continua sem a senha correta, então `npm run migrar`
+  e `npm run auditar-rls` não rodam. Resolve-se com um **Reset database
+  password** no painel.
 
 ---
 
