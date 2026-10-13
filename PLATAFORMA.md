@@ -157,6 +157,28 @@ Duas pendências que ficaram desta troca:
   e `npm run auditar-rls` não rodam. Resolve-se com um **Reset database
   password** no painel.
 
+### A função renderiza do lado do banco
+
+`vercel.json` fixa `regions: ["gru1"]`. **Se o projeto do Supabase mudar
+de região, esta linha muda junto.**
+
+Sem ela, a Vercel renderizava em `iad1`, Washington, com o banco em São
+Paulo. A requisição entrava por `gru1` e o cabeçalho entregava o
+problema: `X-Vercel-Id: gru1::iad1::…`. Cada consulta atravessava o
+hemisfério duas vezes, e um módulo que faz nove delas pagava nove
+travessias:
+
+| aba | em Washington | em São Paulo |
+|---|---|---|
+| financeiro | 5253ms | 145ms |
+| visão | 2911ms | 228ms |
+| CRM | 1898ms | 140ms |
+
+Medido com `npm run medir-abas`, que compara produção e local. Foi a
+comparação que achou a causa: o mesmo código, com rede PIOR até o banco,
+respondia em 148ms aqui, o que eliminou código, consulta e navegador de
+uma vez só.
+
 ---
 
 ## 3. Onde a segurança mora (três camadas, não uma)
