@@ -111,9 +111,9 @@ describe('montarAbordagem', () => {
     assert.equal(textoDaAbordagem(m, null).split(QUEBRA)[0], 'Opa, tudo bem?');
   });
 
-  test('quatro blocos, e nenhum deles vira um paredao', () => {
+  test('cinco blocos, e nenhum deles vira um paredao', () => {
     const blocos = montarAbordagem().split(QUEBRA + QUEBRA);
-    assert.equal(blocos.length, 4);
+    assert.equal(blocos.length, 5);
     /* A migração 0043 mediu onde o olho desiste num direct, e era um
        bloco de 44 palavras. Trinta e seis é o teto. */
     for (const b of blocos) {
@@ -128,6 +128,14 @@ describe('montarAbordagem', () => {
     /* "Somos especialistas em soluções" é o que todo mundo escreve, e
        por isso não prova nada. Número e plataforma, sim. */
     assert.doesNotMatch(m, /soluções|excelência|parceiro ideal/i);
+  });
+
+  test('o meu contato vai junto, para quem nao quer repassar o de ninguem', () => {
+    const m = montarAbordagem();
+    assert.match(m, /47 99240-6661/);
+    /* Depois do pedido, e nao no lugar dele: a pergunta pelo
+       responsável tem que vir primeiro. */
+    assert.ok(m.indexOf('Com quem eu consigo falar') < m.indexOf('47 99240-6661'));
   });
 
   test('a mensagem inteira continua curta o bastante para um direct', () => {

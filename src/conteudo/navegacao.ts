@@ -64,3 +64,14 @@ export const whatsapp = {
 };
 
 export const linkWhatsapp = `https://wa.me/${whatsapp.numero}?text=${encodeURIComponent(whatsapp.mensagem)}`;
+
+/**
+ * O mesmo número, escrito como se escreve numa conversa.
+ *
+ * Derivado, e não digitado de novo: número de contato repetido à mão
+ * em dois lugares vira dois números diferentes no dia em que um deles
+ * muda, e o que fica errado é sempre o que ninguém lembra que existe.
+ */
+export const whatsappEscrito = whatsapp.numero
+  .replace(/^55/, '')
+  .replace(/^(\d{2})(\d{5})(\d{4})$/, '$1 $2-$3');

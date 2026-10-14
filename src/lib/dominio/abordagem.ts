@@ -14,6 +14,10 @@
  * recebe "Oi, tudo bem?", que é uma frase inteira, e não um buraco.
  */
 
+/* Caminho relativo e com extensao: os testes deste diretorio rodam no
+   `node --test`, que nao conhece o atalho `@/` do Next. */
+import { whatsappEscrito } from '../../conteudo/navegacao.ts';
+
 /** O marcador que as mensagens gravadas carregam. */
 const MARCADOR = '{dono}';
 
@@ -108,6 +112,22 @@ export function montarAbordagem(): string {
      e a conversa morre lida. */
   blocos.push(
     'Com quem eu consigo falar sobre novos projetos e canais de venda de vocês? Consegue me passar o WhatsApp ou o e-mail do responsável?',
+  );
+
+  /*
+    O MEU CONTATO VEM DEPOIS DO PEDIDO, E NÃO NO LUGAR DELE
+
+    Dar o número antes de perguntar seria trocar um pedido que quem lê
+    consegue atender ("me passa o contato de quem decide") por um que
+    não depende dele ("peça para me chamarem"), e esse segundo morre na
+    primeira pessoa que esquecer.
+
+    Depois, ele faz o contrário: abre a saída fácil para quem não quer
+    passar contato de ninguém sem autorização. Repassar um número é
+    coisa que social media faz sem pedir licença.
+  */
+  blocos.push(
+    `Se for mais fácil, pode repassar o meu contato para essa pessoa: ${whatsappEscrito}.`,
   );
 
   return blocos.join('\n\n');
