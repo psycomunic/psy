@@ -1,0 +1,30 @@
+-- ===================================================================
+-- UMA FILA ENTRE PESQUISAR E ABORDAR
+--
+-- "Novo" acumulava duas coisas diferentes: o lead que acabou de entrar
+-- na lista e ainda está sendo pesquisado, e o lead já aprovado,
+-- esperando só a mensagem sair. Com cinquenta cards na coluna, saber
+-- qual era qual exigia abrir um por um.
+--
+-- `pronto` separa os dois. Novo é a caixa de entrada da pesquisa;
+-- pronto é a fila de quem já passou pelo filtro e pode receber a
+-- abordagem hoje.
+--
+-- ===================================================================
+-- POR QUE `BEFORE 'contato'`
+-- ===================================================================
+-- A ordem do enum é a ordem do funil, e ela manda em qualquer
+-- `order by estagio` que exista agora ou venha a existir. Acrescentar
+-- no fim colocaria "pronto para abordar" depois de "perdido", e
+-- qualquer relatório ordenado sairia com o funil embaralhado.
+--
+-- ===================================================================
+-- O VALOR NÃO PODE SER USADO NESTE MESMO ARQUIVO
+-- ===================================================================
+-- O Postgres aceita `alter type ... add value` dentro de transação,
+-- mas recusa USAR o valor novo antes do commit, com "unsafe use of new
+-- value of enum type". Por isso aqui só se cria o valor: nenhum update,
+-- nenhuma comparação. Quem move lead para ele é a tela.
+-- ===================================================================
+
+alter type estagio_lead add value if not exists 'pronto' before 'contato';

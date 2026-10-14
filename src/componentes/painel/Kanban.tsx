@@ -41,10 +41,11 @@ const COLUNAS = ESTAGIOS.filter((e) => e !== 'ganho' && e !== 'perdido');
  * `paleta.ts`.
  */
 const FORCA_DO_ESTAGIO: Record<string, number> = {
-  novo: 0.32,
-  contato: 0.49,
-  diagnostico: 0.66,
-  proposta: 0.83,
+  novo: 0.3,
+  pronto: 0.44,
+  contato: 0.58,
+  diagnostico: 0.72,
+  proposta: 0.86,
   negociacao: 1,
 };
 
@@ -183,7 +184,11 @@ export function Kanban({
         ) : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      {/* Seis colunas a partir de `xl`, e não cinco: a fila de
+          abordagem entrou entre "novo" e "contato". Abaixo disso elas
+          continuam em duas, porque seis colunas num notebook dariam
+          cards de 150px, onde o nome da empresa não cabe. */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {COLUNAS.map((estagio) => {
           const daColuna = filtrados.filter((l) => l.estagio === estagio);
           const mensal = daColuna

@@ -181,6 +181,7 @@ const COBRANCAS_VALIDAS = ['mensal', 'projeto'] as const;
 
 const ESTAGIOS_VALIDOS = [
   'novo',
+  'pronto',
   'contato',
   'diagnostico',
   'proposta',

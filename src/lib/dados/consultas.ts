@@ -1256,7 +1256,9 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         nomeContato: l?.nome ?? '',
         estagio: l?.estagio ?? 'novo',
         proximoPasso: l?.proximo_passo ?? null,
-        aguardandoAbordagem: (l?.estagio ?? 'novo') === 'novo',
+        /* 'pronto' também aguarda: ele passou pelo filtro, e não pela
+           caixa de entrada. Quem já foi abordado está em 'contato'. */
+        aguardandoAbordagem: ['novo', 'pronto'].includes(l?.estagio ?? 'novo'),
       };
     }),
   );

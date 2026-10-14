@@ -118,6 +118,7 @@ export type Despesa = {
 
 export const ESTAGIOS = [
   'novo',
+  'pronto',
   'contato',
   'diagnostico',
   'proposta',
@@ -128,7 +129,11 @@ export const ESTAGIOS = [
 export type Estagio = (typeof ESTAGIOS)[number];
 
 export const rotuloEstagio: Record<Estagio, string> = {
+  /* "Novo" é a caixa de entrada da pesquisa, e "Pronto" é a fila de
+     quem já passou pelo filtro. Os dois juntos numa coluna só
+     obrigavam a abrir card por card para saber qual era qual. */
   novo: 'Novo',
+  pronto: 'Pronto para abordar',
   contato: 'Contato feito',
   diagnostico: 'Diagnóstico',
   proposta: 'Proposta enviada',
@@ -603,7 +608,8 @@ export type Prospecto = {
   nomeContato: string;
   estagio: Estagio;
   proximoPasso: string | null;
-  /** Ainda em 'novo': ninguém mandou a primeira mensagem. */
+  /** Em 'novo' ou em 'pronto': ninguém mandou a primeira mensagem
+      ainda, esteja o lead em pesquisa ou já na fila. */
   aguardandoAbordagem: boolean;
 };
 

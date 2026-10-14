@@ -65,15 +65,21 @@ export async function marcarAbordado(
     if (erroInteracao) return { ok: false, mensagem: erroInteracao.message };
 
     /*
-      `eq('estagio', 'novo')` não é otimização: é o que impede um clique
+      O filtro por estágio não é otimização: é o que impede um clique
       repetido, ou dois navegadores abertos, de puxar de volta para
       "contato" um lead que já avançou para diagnóstico ou proposta.
+
+      São DOIS estágios desde que existe a fila de abordagem: o lead
+      pode ser abordado direto da pesquisa ou depois de aprovado. Deixar
+      só 'novo' aqui faria o botão da prospecção falhar em silêncio
+      justamente nos leads que a pessoa acabou de marcar como prontos,
+      porque o update casaria com zero linhas e não devolveria erro.
     */
     const { error } = await supabase
       .from('lead')
       .update({ estagio: 'contato', proximo_passo: 'Aguardar resposta' })
       .eq('id', lead_id)
-      .eq('estagio', 'novo');
+      .in('estagio', ['novo', 'pronto']);
 
     if (error) return { ok: false, mensagem: error.message };
 
