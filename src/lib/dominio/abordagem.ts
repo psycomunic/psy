@@ -79,11 +79,15 @@ export function montarAbordagem({ marca, gancho }: IngredientesDaAbordagem): str
   /* O elogio só existe se houver um diferencial de verdade para citar.
      Sem gancho, "parabéns pelo trabalho" sozinho é a frase que todo
      robô de prospecção manda, e queima o contato na primeira linha. */
+  /* O "Parabéns!" fecha o bloco, e repete de propósito. A primeira vez
+     é a abertura educada que toda mensagem tem; a segunda vem DEPOIS
+     do elogio específico, e é a que soa como pessoa falando. Numa DM,
+     a repetição lê como ênfase, e não como erro. */
   if (g) {
     blocos.push(
       nome
-        ? `Parabéns pelo trabalho de vocês em ${nome}! ${comVoces(g)}, e isso não se constrói da noite para o dia.`
-        : `${comVoces(g)}, e isso não se constrói da noite para o dia.`,
+        ? `Parabéns pelo trabalho de vocês em ${nome}! ${comVoces(g)}, e isso não se constrói da noite para o dia. Parabéns!`
+        : `${comVoces(g)}, e isso não se constrói da noite para o dia. Parabéns!`,
     );
   } else if (nome) {
     blocos.push(`Parabéns pelo trabalho de vocês em ${nome}!`);

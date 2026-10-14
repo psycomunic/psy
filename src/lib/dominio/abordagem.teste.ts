@@ -96,6 +96,9 @@ describe('montarAbordagem', () => {
   test('o gancho vira fala, com Voces na frente e a inicial baixa', () => {
     const m = montarAbordagem(base);
     assert.match(m, /Vocês fabricam fitness e vendem 100% no atacado, e isso não se constrói/);
+    /* O fecho repete o "Parabéns" de propósito: é o que soa como
+       pessoa falando depois do elogio específico. */
+    assert.match(m, /da noite para o dia\. Parabéns!/);
     assert.doesNotMatch(m, /Vocês Fabricam/);
   });
 
