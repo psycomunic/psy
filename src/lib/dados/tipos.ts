@@ -137,6 +137,38 @@ export const rotuloEstagio: Record<Estagio, string> = {
   perdido: 'Perdido',
 };
 
+export const COBRANCAS = ['mensal', 'projeto'] as const;
+export type Cobranca = (typeof COBRANCAS)[number];
+
+export const rotuloCobranca: Record<Cobranca, string> = {
+  mensal: 'Mensalidade',
+  projeto: 'Pagamento único',
+};
+
+/** Como o valor aparece ao lado do número. "/mês" muda tudo. */
+export const unidadeCobranca: Record<Cobranca, string> = {
+  mensal: '/mês',
+  projeto: ' uma vez',
+};
+
+/**
+ * Sugestões de trabalho avulso, para o campo de serviço.
+ *
+ * Sugestão, e não lista fechada: é `datalist`, então o que não estiver
+ * aqui se digita. Virar enum obrigaria uma migração a cada serviço
+ * novo que a Psy Comunic resolver vender.
+ */
+export const SERVICOS_AVULSOS = [
+  'Criação de site',
+  'Loja virtual',
+  'Repaginação da loja',
+  'Landing page',
+  'Identidade visual',
+  'Otimização de SEO',
+  'Criação de conteúdo',
+  'Automação e integração',
+] as const;
+
 export type Lead = {
   id: string;
   nome: string;
@@ -145,7 +177,18 @@ export type Lead = {
   telefone: string | null;
   estagio: Estagio;
   origem: string | null;
-  /** Fee mensal estimado. NÃO confundir com a verba de mídia. */
+  /**
+   * Como este lead paga.
+   *
+   * `mensal` recomeça todo mês. `projeto` cobra uma vez e termina, que
+   * é o caso de site, landing page, identidade visual e SEO. O funil
+   * fecha os dois em totais separados, e eles nunca se somam.
+   */
+  cobranca: Cobranca;
+  /** O que está sendo vendido, quando é trabalho avulso. */
+  servico: string | null;
+  /** Valor estimado. Mensal ou do projeto inteiro, conforme `cobranca`.
+      NÃO confundir com a verba de mídia. */
   valorFee: number | null;
   valorVerba: number | null;
   probabilidade: number | null;
@@ -168,8 +211,17 @@ export type Lead = {
 export type EstagioFunil = {
   estagio: Estagio;
   quantidade: number;
-  valorTotal: number;
-  valorPonderado: number;
+  /*
+    Dois dinheiros, e nunca um só.
+
+    Era `valorTotal` e `valorPonderado`, somando mensalidade com obra
+    de entrega única. O nome estava certo e o conteúdo errado, que é a
+    pior combinação possível: a tela parecia saudável.
+  */
+  valorMensal: number;
+  valorProjeto: number;
+  ponderadoMensal: number;
+  ponderadoProjeto: number;
   diasMedios: number | null;
   parados: number;
 };

@@ -51,13 +51,42 @@ export async function Crm({ papel }: { papel: Papel }) {
 
   const abertos = leads.filter((l) => l.estagio !== 'ganho' && l.estagio !== 'perdido');
   const ganhos = leads.filter((l) => l.estagio === 'ganho');
-  const emJogo = abertos.reduce((s, l) => s + (l.valorFee ?? 0), 0);
 
-  const ponderado = previsaoPonderada(
-    abertos.map((l) => ({ valorFee: l.valorFee, probabilidade: l.probabilidade })),
-  );
+  /* A soma de TODOS os abertos saiu daqui de propósito: ela juntava
+     mensalidade com pagamento único. As duas somas separadas estão
+     logo abaixo. */
 
   const parados = abertos.filter((l) => leadParado(l.diasNoEstagio, l.estagio));
+
+  /*
+    Quantos dos abertos TÊM valor estimado.
+
+    O cartão de dinheiro precisa dizer sobre quantos leads ele fala.
+    "R$ 16,6 mil em jogo" com 54 leads abertos sugere uma média de R$
+    300 por lead; a verdade é que quatro leads carregam o valor inteiro
+    e cinquenta ainda não foram orçados. Sem esta linha, o número
+    engana para baixo.
+  */
+  const comValor = abertos.filter((l) => (l.valorFee ?? 0) > 0);
+  const emNegociacao = abertos.filter((l) => l.estagio === 'negociacao').length;
+
+  /*
+    OS DOIS DINHEIROS DO FUNIL
+
+    Mensalidade e trabalho avulso vivem no mesmo quadro e nunca na
+    mesma soma. Um site de R$ 3.500 somado a um fee de R$ 5.000
+    produziria "R$ 8.500" sem unidade, que não é por mês nem uma vez: é
+    um número que não existe.
+
+    É a mesma regra que a proposta já segue em `src/dados/servicos.ts`,
+    agora valendo também aqui, que era o último lugar onde o dinheiro
+    da casa ainda se misturava.
+  */
+  const mensais = abertos.filter((l) => l.cobranca === 'mensal');
+  const projetos = abertos.filter((l) => l.cobranca === 'projeto');
+  const somar = (ls: typeof abertos) => ls.reduce((t, l) => t + (l.valorFee ?? 0), 0);
+  const pond = (ls: typeof abertos) =>
+    previsaoPonderada(ls.map((l) => ({ valorFee: l.valorFee, probabilidade: l.probabilidade })));
 
   /* Ciclo de venda: quantos dias, em média, do primeiro contato ao
      ganho. Só faz sentido sobre quem já foi ganho — a média incluindo
@@ -102,22 +131,54 @@ export async function Crm({ papel }: { papel: Papel }) {
       ) : null}
 
       <Secao titulo="O funil hoje">
+        {/*
+          OS QUATRO NÚMEROS, E O QUE CADA UM NÃO PODE DIZER
+
+          "Em negociação: 54" estava aqui, e logo abaixo o quadro tinha
+          uma coluna chamada NEGOCIAÇÃO com 4. A mesma palavra para duas
+          contas diferentes, a um palmo de distância. Agora o rótulo é
+          "No funil", e o apoio diz quantos estão de fato negociando.
+
+          Cartão vazio também foi tratado. Taxa de ganho sem nenhum lead
+          decidido não é "—": é uma conta que ainda não tem como
+          existir, e dizer isso em uma linha vale mais que o traço.
+        */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi
-            rotulo="Previsão ponderada"
-            valor={dinheiroCurto(ponderado)}
-            apoio={`De ${dinheiroCurto(emJogo)} em jogo. Ponderado pela probabilidade: a soma crua trata como certo quem ainda não respondeu.`}
+            rotulo="Em jogo por mês"
+            valor={dinheiroCurto(somar(mensais))}
+            apoio={`Ponderado pela probabilidade: ${dinheiroCurto(pond(mensais))}. ${
+              mensais.length
+            } ${mensais.length === 1 ? 'lead de mensalidade' : 'leads de mensalidade'}, ${
+              comValor.filter((l) => l.cobranca === 'mensal').length
+            } com valor estimado.`}
           />
-          <Kpi rotulo="Em negociação" valor={String(abertos.length)} apoio="Leads ainda não decididos" />
+          <Kpi
+            rotulo="Em jogo em projetos"
+            valor={projetos.length === 0 ? 'nenhum' : dinheiroCurto(somar(projetos))}
+            apoio={
+              projetos.length === 0
+                ? 'Trabalho avulso de pagamento único: site, landing page, identidade visual, SEO. Marque a cobrança ao criar o lead.'
+                : `Pagamento único, e por isso fora da conta mensal. Ponderado: ${dinheiroCurto(
+                    pond(projetos),
+                  )}. ${projetos.length} ${projetos.length === 1 ? 'lead' : 'leads'}.`
+            }
+          />
+          <Kpi
+            rotulo="No funil"
+            valor={String(abertos.length)}
+            apoio={`Leads ainda não decididos, em todos os estágios. ${emNegociacao} ${
+              emNegociacao === 1 ? 'está em negociação' : 'estão em negociação'
+            }.`}
+          />
           <Kpi
             rotulo="Taxa de ganho"
-            valor={taxaGanho === null ? '—' : `${taxaGanho}%`}
-            apoio="Sobre os leads já decididos, e não sobre a base inteira"
-          />
-          <Kpi
-            rotulo="Ciclo de venda"
-            valor={cicloDias === null ? '—' : `${cicloDias} dias`}
-            apoio="Média do primeiro contato ao ganho"
+            valor={taxaGanho === null ? 'sem histórico' : `${taxaGanho}%`}
+            apoio={
+              taxaGanho === null
+                ? 'Aparece quando o primeiro lead for ganho ou perdido'
+                : `Sobre os ${decididos.length} leads já decididos, e não sobre a base inteira`
+            }
           />
         </div>
       </Secao>
@@ -166,15 +227,29 @@ export async function Crm({ papel }: { papel: Papel }) {
         />
       </Secao>
 
-      <Secao titulo="Tempo em cada estágio" apoio="Onde o funil trava.">
+      {/* O ciclo de venda saiu dos cartões e veio para cá, onde a
+          seção já fala de tempo. Como cartão, ele passava a maior parte
+          da vida mostrando um traço, porque só existe depois do
+          primeiro ganho. */}
+      <Secao
+        titulo="Tempo em cada estágio"
+        apoio={
+          cicloDias === null
+            ? 'Onde o funil trava. O ciclo médio de venda aparece aqui depois do primeiro lead ganho.'
+            : `Onde o funil trava. Do primeiro contato ao ganho, a média é de ${cicloDias} dias.`
+        }
+      >
         <Tabela>
           <caption className="sr-only">Quantidade, valor e tempo médio por estágio</caption>
           <thead>
             <tr>
               <th scope="col" className={th}>Estágio</th>
               <th scope="col" className={th}>Leads</th>
-              <th scope="col" className={th}>Valor</th>
-              <th scope="col" className={th}>Ponderado</th>
+              {/* Duas colunas de dinheiro, e não uma. Mensalidade e
+                  obra de entrega única não se somam, e a tabela é o
+                  lugar onde a soma errada passaria despercebida. */}
+              <th scope="col" className={th}>Por mês</th>
+              <th scope="col" className={th}>Projeto</th>
               <th scope="col" className={th}>Dias médios</th>
               <th scope="col" className={th}>Parados</th>
             </tr>
@@ -186,8 +261,12 @@ export async function Crm({ papel }: { papel: Papel }) {
                   {rotuloEstagio[f.estagio]}
                 </th>
                 <td className={`${td} tabular`}>{f.quantidade}</td>
-                <td className={`${td} tabular`}>{dinheiro(f.valorTotal)}</td>
-                <td className={`${td} tabular`}>{dinheiro(f.valorPonderado)}</td>
+                <td className={`${td} tabular`}>
+                  {f.valorMensal > 0 ? dinheiro(f.valorMensal) : '—'}
+                </td>
+                <td className={`${td} tabular`}>
+                  {f.valorProjeto > 0 ? dinheiro(f.valorProjeto) : '—'}
+                </td>
                 <td className={`${td} tabular`}>{f.diasMedios === null ? '—' : f.diasMedios}</td>
                 <td className={`${td} tabular`}>
                   {f.parados > 0 ? (

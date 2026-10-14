@@ -11,7 +11,7 @@ import {
 } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
-import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao } from '@/lib/dados/tipos';
+import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao, unidadeCobranca } from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
 import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
@@ -26,6 +26,26 @@ import { LIMIAR_PARADO_DIAS } from '@/lib/dominio/metricas.ts';
   cresce para sempre empurra o funil de trabalho para fora da tela.
 */
 const COLUNAS = ESTAGIOS.filter((e) => e !== 'ganho' && e !== 'perdido');
+
+/**
+ * A força do magenta cresce com o estágio.
+ *
+ * É encoding sequencial, e não decoração: a mesma cor ficando mais
+ * densa diz "mais perto do fim" sem precisar de legenda, e o olho lê a
+ * ordem do quadro antes de ler os rótulos.
+ *
+ * UMA matiz só, em opacidades. Trocar de cor por coluna exigiria cinco
+ * hexes novos, e as cores deste painel passaram por um validador de
+ * contraste e daltonismo que eu não vou burlar no olho. Ver
+ * `paleta.ts`.
+ */
+const FORCA_DO_ESTAGIO: Record<string, number> = {
+  novo: 0.32,
+  contato: 0.49,
+  diagnostico: 0.66,
+  proposta: 0.83,
+  negociacao: 1,
+};
 
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
@@ -153,7 +173,14 @@ export function Kanban({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {COLUNAS.map((estagio) => {
           const daColuna = filtrados.filter((l) => l.estagio === estagio);
-          const total = daColuna.reduce((s, l) => s + (l.valorFee ?? 0), 0);
+          const mensal = daColuna
+            .filter((l) => l.cobranca === 'mensal')
+            .reduce((s, l) => s + (l.valorFee ?? 0), 0);
+          const projeto = daColuna
+            .filter((l) => l.cobranca === 'projeto')
+            .reduce((s, l) => s + (l.valorFee ?? 0), 0);
+          const total = mensal + projeto;
+          const fatia = filtrados.length > 0 ? (daColuna.length / filtrados.length) * 100 : 0;
 
           return (
             <section
@@ -178,9 +205,43 @@ export function Kanban({
                 <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
                   {rotuloEstagio[estagio]}
                 </h3>
-                <span className="tabular text-sm font-semibold">{daColuna.length}</span>
+                <span className="tabular font-display text-lg font-extrabold leading-none">
+                  {daColuna.length}
+                </span>
               </header>
-              <p className="tabular mt-1 text-xs text-cinza">{dinheiroCurto(total)}</p>
+
+              {/* A barra é a fatia DESTA coluna no funil aberto. Cinco
+                  números soltos obrigam a fazer a conta de cabeça para
+                  saber onde a carteira está parada; a barra responde
+                  isso de relance, e o texto ao lado continua citável
+                  numa reunião. */}
+              <div
+                className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/[0.07]"
+                aria-hidden
+              >
+                <div
+                  className="h-full rounded-full bg-magenta transition-[width] duration-300"
+                  style={{
+                    width: `${fatia}%`,
+                    opacity: FORCA_DO_ESTAGIO[estagio] ?? 1,
+                  }}
+                />
+              </div>
+
+              <p className="mt-2 flex items-baseline justify-between gap-2 text-xs text-cinza">
+                <span className="tabular">{fatia.toFixed(0)}% do funil</span>
+                {/* `R$ 0` seria mentira: o lead de prospecção não vale
+                    zero, ele ainda não foi orçado. Afirmar zero sobre
+                    dinheiro é o pior tipo de arredondamento. */}
+                {/* Os dois valores lado a lado, e nunca somados. A
+                     coluna que tem os dois mostra os dois. */}
+                <span className="tabular">
+                  {total === 0 ? 'sem valor ainda' : null}
+                  {mensal > 0 ? `${dinheiroCurto(mensal)}/mês` : null}
+                  {mensal > 0 && projeto > 0 ? ' · ' : null}
+                  {projeto > 0 ? `${dinheiroCurto(projeto)} em projeto` : null}
+                </span>
+              </p>
 
               <ul className="mt-4 space-y-2.5">
                 {daColuna.length === 0 ? (
@@ -190,6 +251,7 @@ export function Kanban({
                 ) : (
                   daColuna.map((l) => {
                     const parado = l.diasNoEstagio >= LIMIAR_PARADO_DIAS;
+                    const temValor = (l.valorFee ?? 0) > 0;
                     return (
                       <li key={l.id}>
                         <button
@@ -209,33 +271,78 @@ export function Kanban({
                             (podeEditar ? ' cursor-grab active:cursor-grabbing' : '')
                           }
                         >
-                          <p className="text-sm font-semibold leading-snug">
-                            {l.empresa ?? l.nome}
-                          </p>
-                          <p className="mt-1 text-xs text-cinza">{l.nome}</p>
+                          <div className="flex items-start gap-2.5">
+                            {/* A inicial faz a coluna ser varrida pela
+                                forma, e não lida nome por nome. Com
+                                cinquenta cards numa coluna, isso é a
+                                diferença entre achar e procurar. */}
+                            <span
+                              aria-hidden
+                              className="mt-0.5 grid h-7 w-7 flex-none place-items-center rounded-lg bg-magenta/15 font-display text-xs font-extrabold text-magenta-texto"
+                            >
+                              {(l.empresa ?? l.nome).trim().charAt(0).toUpperCase()}
+                            </span>
+                            <span className="min-w-0 grow">
+                              <span className="block truncate text-sm font-semibold leading-snug">
+                                {l.empresa ?? l.nome}
+                              </span>
+                              <span className="mt-0.5 block truncate text-xs text-cinza">
+                                {l.nome}
+                              </span>
+                            </span>
+                          </div>
 
-                          <p className="tabular mt-2.5 text-xs">
-                            <span className="text-neve">{dinheiro(l.valorFee)}</span>
-                            {l.probabilidade !== null ? (
-                              <span className="ml-2 text-cinza">{l.probabilidade}%</span>
-                            ) : null}
-                          </p>
+                          {/*
+                            SELOS, E SÓ OS QUE TÊM O QUE DIZER
 
-                          {l.proximoPasso ? (
-                            <p className="mt-2.5 border-t border-fio pt-2.5 text-xs leading-snug text-cinza">
-                              <span aria-hidden className="mr-1 text-magenta-texto">→</span>
-                              {l.proximoPasso}
-                            </p>
+                            Antes esta linha existia sempre, e num lead
+                            de prospecção ela mostrava um traço sozinho,
+                            que o olho lê como "valor zero". Lead sem
+                            orçamento não vale zero: ele ainda não foi
+                            orçado, e a ausência do selo diz isso melhor
+                            que qualquer símbolo.
+                          */}
+                          {temValor || l.probabilidade !== null || parado ? (
+                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                              {/* O valor NUNCA aparece sem a unidade.
+                                   "R$ 3.500" ao lado de "R$ 5.000" num
+                                   quadro só faz o olho somar, e um dos
+                                   dois é pagamento único. */}
+                              {temValor ? (
+                                <span className="tabular rounded-md bg-white/[0.06] px-2 py-0.5 text-xs font-semibold text-branco">
+                                  {dinheiro(l.valorFee)}
+                                  <span className="font-normal text-cinza">
+                                    {unidadeCobranca[l.cobranca]}
+                                  </span>
+                                </span>
+                              ) : null}
+                              {l.servico ? (
+                                <span className="rounded-md border border-fio px-2 py-0.5 text-xs text-neve">
+                                  {l.servico}
+                                </span>
+                              ) : null}
+                              {l.probabilidade !== null ? (
+                                <span className="tabular rounded-md border border-fio px-2 py-0.5 text-xs text-neve">
+                                  {l.probabilidade}% de chance
+                                </span>
+                              ) : null}
+                              {/* Cor + ÍCONE + texto: nunca cor sozinha. */}
+                              {parado ? (
+                                <span
+                                  className="tabular flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold"
+                                  style={{ color: '#FBBF24', backgroundColor: '#FBBF2420' }}
+                                >
+                                  <span aria-hidden>▲</span>
+                                  {l.diasNoEstagio} dias parado
+                                </span>
+                              ) : null}
+                            </div>
                           ) : null}
 
-                          {/* Cor + ÍCONE + texto: nunca cor sozinha. */}
-                          {parado ? (
-                            <p
-                              className="mt-2.5 flex items-center gap-1.5 text-[0.75rem] font-semibold"
-                              style={{ color: '#FBBF24' }}
-                            >
-                              <span aria-hidden>▲</span>
-                              parado há {l.diasNoEstagio} dias
+                          {l.proximoPasso ? (
+                            <p className="mt-2.5 flex gap-1.5 border-t border-fio pt-2.5 text-xs leading-snug text-cinza">
+                              <span aria-hidden className="flex-none text-magenta-texto">→</span>
+                              <span className="min-w-0">{l.proximoPasso}</span>
                             </p>
                           ) : null}
                         </button>

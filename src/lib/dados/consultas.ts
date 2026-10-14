@@ -18,6 +18,7 @@ import type {
   Resposta,
   Situacao,
   Estagio,
+  Cobranca,
   IntegracaoStatus,
   Sincronizacao,
   Frescor,
@@ -421,7 +422,7 @@ export async function listarLeads(): Promise<Resposta<Lead[]>> {
        desiste e devolve `GenericStringError`, e todo campo do resultado
        vira erro de tipo. Feio de ler, mas é o que faz o TypeScript
        conferir os nomes das colunas por nós. */
-    .select('id, nome, empresa, email, telefone, estagio, origem, valor_fee_estimado, valor_verba_estimada, probabilidade, proximo_passo, proximo_passo_em, estagio_desde, motivo_perda, conta_id, criado_em, responsavel_id, perfil:responsavel_id(nome)')
+    .select('id, nome, empresa, email, telefone, estagio, origem, cobranca, servico, valor_fee_estimado, valor_verba_estimada, probabilidade, proximo_passo, proximo_passo_em, estagio_desde, motivo_perda, conta_id, criado_em, responsavel_id, perfil:responsavel_id(nome)')
     .order('criado_em', { ascending: false })
     .limit(300);
 
@@ -438,6 +439,8 @@ export async function listarLeads(): Promise<Resposta<Lead[]>> {
       telefone: (l.telefone as string) ?? null,
       estagio: l.estagio as Estagio,
       origem: (l.origem as string) ?? null,
+      cobranca: (l.cobranca ?? 'mensal') as Cobranca,
+      servico: l.servico ?? null,
       valorFee: l.valor_fee_estimado === null ? null : Number(l.valor_fee_estimado),
       valorVerba:
         l.valor_verba_estimada === null ? null : Number(l.valor_verba_estimada),
@@ -484,8 +487,10 @@ export async function listarFunil(): Promise<Resposta<EstagioFunil[]>> {
       return {
         estagio,
         quantidade: Number(f?.quantidade ?? 0),
-        valorTotal: Number(f?.valor_total ?? 0),
-        valorPonderado: Number(f?.valor_ponderado ?? 0),
+        valorMensal: Number(f?.valor_mensal ?? 0),
+        valorProjeto: Number(f?.valor_projeto ?? 0),
+        ponderadoMensal: Number(f?.ponderado_mensal ?? 0),
+        ponderadoProjeto: Number(f?.ponderado_projeto ?? 0),
         diasMedios:
           f?.dias_medios_no_estagio === null || f?.dias_medios_no_estagio === undefined
             ? null

@@ -1,4 +1,5 @@
 import type {
+  Cobranca,
   EstagioFunil,
   ContaFicha,
   Interacao,
@@ -242,6 +243,11 @@ export function leadsDemo(): Lead[] {
     telefone: null,
     estagio: b.est,
     origem: b.o,
+    /* A maquete é toda de mensalidade: ela desenha a operação de
+       e-commerce, que é recorrente por natureza. Trabalho avulso
+       aparece com dado de verdade, e não inventado aqui. */
+    cobranca: 'mensal' as const,
+    servico: null,
     valorFee: b.fee,
     valorVerba: b.fee * 6,
     probabilidade: b.prob,
@@ -257,6 +263,16 @@ export function leadsDemo(): Lead[] {
   }));
 }
 
+/** Soma de um dos dois dinheiros, crua ou ponderada. Separar aqui
+    também: a maquete que soma errado ensina a ler errado. */
+function soma(leads: Lead[], cobranca: Cobranca, ponderar = false) {
+  return Math.round(
+    leads
+      .filter((l) => l.cobranca === cobranca)
+      .reduce((s, l) => s + (l.valorFee ?? 0) * (ponderar ? (l.probabilidade ?? 50) / 100 : 1), 0),
+  );
+}
+
 export function funilDemo(): EstagioFunil[] {
   const leads = leadsDemo();
   return ESTAGIOS.map((estagio) => {
@@ -264,10 +280,10 @@ export function funilDemo(): EstagioFunil[] {
     return {
       estagio,
       quantidade: doEstagio.length,
-      valorTotal: doEstagio.reduce((s, l) => s + (l.valorFee ?? 0), 0),
-      valorPonderado: Math.round(
-        doEstagio.reduce((s, l) => s + (l.valorFee ?? 0) * ((l.probabilidade ?? 50) / 100), 0),
-      ),
+      valorMensal: soma(doEstagio, 'mensal'),
+      valorProjeto: soma(doEstagio, 'projeto'),
+      ponderadoMensal: soma(doEstagio, 'mensal', true),
+      ponderadoProjeto: soma(doEstagio, 'projeto', true),
       diasMedios: doEstagio.length
         ? Number((doEstagio.reduce((s, l) => s + l.diasNoEstagio, 0) / doEstagio.length).toFixed(1))
         : null,

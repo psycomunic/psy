@@ -174,6 +174,11 @@ export function validar<T extends z.ZodType>(
 /* Funil comercial                                                     */
 /* ================================================================== */
 
+/* Repetido aqui de propósito, como ESTAGIOS_VALIDOS logo abaixo: a
+   validação não importa da camada de dados, para que o que entra no
+   banco não dependa do que a tela resolveu exportar. */
+const COBRANCAS_VALIDAS = ['mensal', 'projeto'] as const;
+
 const ESTAGIOS_VALIDOS = [
   'novo',
   'contato',
@@ -462,6 +467,11 @@ export const esquemaNovoLead = z.object({
   telefone: textoOpcional,
   origem: textoOpcional,
   estagio: z.enum(ESTAGIOS_VALIDOS).default('novo'),
+  /* `mensal` no padrão, e não obrigatório: o formulário do site e a
+     prospecção não mandam este campo, e um lead que chega sem ele é
+     recorrente até alguém dizer o contrário. */
+  cobranca: z.enum(COBRANCAS_VALIDAS).default('mensal'),
+  servico: textoOpcional,
   valor_fee_estimado: z
     .string()
     .trim()

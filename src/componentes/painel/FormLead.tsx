@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { criarLead } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
-import { ESTAGIOS, rotuloEstagio } from '@/lib/dados/tipos';
+import { ESTAGIOS, rotuloEstagio, SERVICOS_AVULSOS, type Cobranca } from '@/lib/dados/tipos';
 
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
@@ -40,6 +40,9 @@ const ORIGENS = [
 export function FormLead() {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(criarLead, null);
   const [aberto, setAberto] = useState(false);
+  /* Mensalidade no padrão: é o que a Psy Comunic mais vende, e o campo
+     que abre preenchido certo é um campo que ninguém erra com pressa. */
+  const [cobranca, setCobranca] = useState<Cobranca>('mensal');
 
   /*
     Fecha depois do sucesso, e só depois dele: fechar no envio apagaria
@@ -121,6 +124,46 @@ export function FormLead() {
         </div>
       </div>
 
+      {/*
+        MENSALIDADE OU TRABALHO AVULSO, ANTES DO VALOR
+
+        A pergunta vem ANTES do campo de dinheiro porque é ela que diz
+        o que o número significa. R$ 3.500 de site e R$ 3.500 de fee
+        são grandezas diferentes, e o funil fecha as duas em totais
+        separados: somar obra com mensalidade produziria um número que
+        não existe em lugar nenhum.
+      */}
+      <fieldset>
+        <legend className={rotuloCss}>O que está sendo vendido</legend>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {([
+            { v: 'mensal' as const, t: 'Mensalidade', d: 'Tráfego, conteúdo, sustentação. Recomeça todo mês.' },
+            { v: 'projeto' as const, t: 'Trabalho avulso', d: 'Site, landing page, identidade visual, SEO. Pagamento único.' },
+          ]).map((o) => (
+            <label
+              key={o.v}
+              className={
+                'cursor-pointer rounded-xl border p-4 transition-colors ' +
+                (cobranca === o.v ? 'border-magenta bg-magenta/10' : 'border-fio bg-white/[0.02]')
+              }
+            >
+              <span className="flex items-center gap-2.5">
+                <input
+                  type="radio"
+                  name="cobranca"
+                  value={o.v}
+                  checked={cobranca === o.v}
+                  onChange={() => setCobranca(o.v)}
+                  className="h-4 w-4 accent-[var(--magenta)]"
+                />
+                <span className="font-display text-base font-bold">{o.t}</span>
+              </span>
+              <span className="mt-1.5 block text-xs leading-relaxed text-cinza">{o.d}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="grid gap-4 md:grid-cols-4">
         <div>
           <label htmlFor="l-estagio" className={rotuloCss}>Estágio</label>
@@ -133,16 +176,55 @@ export function FormLead() {
           </select>
         </div>
         <div>
-          <label htmlFor="l-fee" className={rotuloCss}>Fee estimado</label>
-          <input id="l-fee" name="valor_fee_estimado" inputMode="decimal" placeholder="5000" className={`mt-2 ${campo}`} />
+          <label htmlFor="l-fee" className={rotuloCss}>
+            {cobranca === 'projeto' ? 'Valor do projeto' : 'Fee mensal'}
+          </label>
+          <input
+            id="l-fee"
+            name="valor_fee_estimado"
+            inputMode="decimal"
+            placeholder={cobranca === 'projeto' ? '3500' : '5000'}
+            className={`mt-2 ${campo}`}
+          />
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+            {cobranca === 'projeto' ? 'Cobrado uma vez.' : 'Todo mês, enquanto durar.'}
+          </p>
         </div>
-        <div>
+
+        {/*
+          `hidden`, e NÃO desmontado.
+
+          Campo que sai da árvore não entra no FormData, e o esquema
+          recebe `undefined` onde espera texto. Já custou uma tarde:
+          cada clique em salvar dizia "expected string, received
+          undefined" sem dizer de qual campo.
+        */}
+        <div className={cobranca === 'projeto' ? 'hidden' : ''}>
           <label htmlFor="l-verba" className={rotuloCss}>Verba estimada</label>
           <input id="l-verba" name="valor_verba_estimada" inputMode="decimal" placeholder="15000" className={`mt-2 ${campo}`} />
           {/* O aviso onde a dúvida nasce: são dois dinheiros de donos
               diferentes, e o sistema inteiro depende de não os somar. */}
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
             Verba é do cliente e nunca entra no fee.
+          </p>
+        </div>
+
+        <div className={cobranca === 'projeto' ? '' : 'hidden'}>
+          <label htmlFor="l-servico" className={rotuloCss}>Serviço</label>
+          <input
+            id="l-servico"
+            name="servico"
+            list="servicos-avulsos"
+            placeholder="Criação de site"
+            className={`mt-2 ${campo}`}
+          />
+          <datalist id="servicos-avulsos">
+            {SERVICOS_AVULSOS.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+          <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+            A lista é sugestão. Pode escrever qualquer coisa.
           </p>
         </div>
         <div>
