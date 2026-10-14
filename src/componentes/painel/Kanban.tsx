@@ -243,7 +243,19 @@ export function Kanban({
                 </span>
               </p>
 
-              <ul className="mt-4 space-y-2.5">
+              {/*
+                A COLUNA ROLA POR DENTRO
+
+                Cinquenta leads de prospecção empilhados davam 5.928px
+                só nesta coluna, e 10,4 telas de rolagem no celular para
+                ver um quadro que existe para ser visto de relance. Com
+                teto, o quadro inteiro cabe em uma tela e cada coluna
+                anda sozinha.
+
+                O teto é generoso de propósito: mostra cinco cards, que
+                é quanto basta para saber se a coluna tem fila.
+              */}
+              <ul className="mt-4 max-h-[30rem] space-y-2.5 overflow-y-auto pr-1">
                 {daColuna.length === 0 ? (
                   <li className="rounded-xl border border-dashed border-fio px-4 py-6 text-center text-xs text-cinza">
                     {podeEditar ? 'Arraste um lead para cá' : 'Vazio'}
