@@ -9,10 +9,17 @@ import {
   converterEmCliente,
   registrarInteracao,
   excluirLead,
+  editarLead,
 } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
-import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
-import { ESTAGIOS, rotuloEstagio, explicaPrioridadeProspeccao, unidadeCobranca } from '@/lib/dados/tipos';
+import type { Lead, Estagio, Interacao, Prospecto, Cobranca } from '@/lib/dados/tipos';
+import {
+  ESTAGIOS,
+  rotuloEstagio,
+  explicaPrioridadeProspeccao,
+  unidadeCobranca,
+  SERVICOS_AVULSOS,
+} from '@/lib/dados/tipos';
 import { contagemCurta } from '@/lib/formato';
 import { BotaoCopiar } from './BotaoCopiar';
 import { donoConhecido, textoDaAbordagem } from '@/lib/dominio/abordagem.ts';
@@ -445,7 +452,9 @@ function FichaLead({
   pesquisa?: Prospecto;
   aoFechar: () => void;
 }) {
-  const [aba, setAba] = useState<'passo' | 'conversa' | 'ganhar' | 'perder'>('passo');
+  const [aba, setAba] = useState<'passo' | 'dados' | 'conversa' | 'ganhar' | 'perder'>(
+    'passo',
+  );
   const [r, setR] = useState<Resultado | null>(null);
   const [pendente, iniciar] = useTransition();
 
@@ -650,6 +659,7 @@ function FichaLead({
             <nav className="mt-7 flex flex-wrap gap-2" aria-label="O que fazer com este lead">
               {[
                 { k: 'passo' as const, r: 'Próximo passo' },
+                { k: 'dados' as const, r: 'Dados' },
                 { k: 'conversa' as const, r: `Conversas${conversas.length ? ` (${conversas.length})` : ''}` },
                 { k: 'ganhar' as const, r: 'Converter' },
                 { k: 'perder' as const, r: 'Perder' },
@@ -670,6 +680,10 @@ function FichaLead({
             </nav>
 
             <div className="mt-5">
+              {aba === 'dados' ? (
+                <FormDados lead={lead} enviar={enviar} pendente={pendente} />
+              ) : null}
+
               {aba === 'conversa' ? (
                 <div className="space-y-5">
                   {/* Registro rápido, aberto. O diário de um lead só
@@ -884,6 +898,248 @@ function FichaLead({
         {podeExcluir ? <ApagarLead lead={lead} /> : null}
       </div>
     </div>
+  );
+}
+
+const rotuloDoCampo =
+  'block font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza';
+
+/**
+ * A ficha inteira, editável.
+ *
+ * ============================================================
+ * TODOS OS CAMPOS, OU NENHUM
+ * ============================================================
+ * `editarLead` grava a ficha inteira de uma vez, e campo ausente no
+ * FormData chega vazio ao esquema. Um formulário com metade dos campos
+ * apagaria a outra metade em silêncio, no primeiro salvamento, e o
+ * telefone perdido só apareceria uma semana depois, quando alguém
+ * fosse ligar.
+ *
+ * Por isso aqui está tudo, inclusive o que quase nunca muda. É também
+ * o motivo de `atualizarLead`, o formulário rápido do próximo passo,
+ * ter esquema PRÓPRIO em vez de reaproveitar este.
+ *
+ * ============================================================
+ * O ESTÁGIO NÃO ESTÁ AQUI
+ * ============================================================
+ * Ele tem caminho próprio, logo acima, em "Mover para". E dois dos
+ * estágios têm fluxo obrigatório: ganho exige fee e loja, perdido
+ * exige motivo. Um select solto neste formulário daria a volta nos
+ * dois, deixando um lead "ganho" sem contrato e sem onboarding.
+ *
+ * O campo escondido manda o estágio atual só para o esquema ficar
+ * satisfeito. Quem garante que ele não muda é a ação no servidor, que
+ * ignora o valor recebido: formulário não é barreira de segurança.
+ */
+function FormDados({
+  lead,
+  enviar,
+  pendente,
+}: {
+  lead: Lead;
+  enviar: (
+    acao: (a: Resultado | null, f: FormData) => Promise<Resultado>,
+  ) => (e: React.FormEvent<HTMLFormElement>) => void;
+  pendente: boolean;
+}) {
+  const [cobranca, setCobranca] = useState<Cobranca>(lead.cobranca);
+
+  return (
+    <form onSubmit={enviar(editarLead)} className="space-y-4">
+      <input type="hidden" name="id" value={lead.id} />
+      <input type="hidden" name="estagio" value={lead.estagio} />
+
+      <div>
+        <label htmlFor="e-nome" className={rotuloDoCampo}>
+          Com quem você fala *
+        </label>
+        <input
+          id="e-nome"
+          name="nome"
+          required
+          defaultValue={lead.nome}
+          className={`mt-2 ${campo}`}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="e-empresa" className={rotuloDoCampo}>
+          Empresa
+        </label>
+        <input
+          id="e-empresa"
+          name="empresa"
+          defaultValue={lead.empresa ?? ''}
+          className={`mt-2 ${campo}`}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="e-email" className={rotuloDoCampo}>
+            E-mail
+          </label>
+          <input
+            id="e-email"
+            name="email"
+            inputMode="email"
+            defaultValue={lead.email ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+        <div>
+          <label htmlFor="e-tel" className={rotuloDoCampo}>
+            WhatsApp
+          </label>
+          <input
+            id="e-tel"
+            name="telefone"
+            inputMode="tel"
+            defaultValue={lead.telefone ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="e-origem" className={rotuloDoCampo}>
+          Como chegou
+        </label>
+        <input
+          id="e-origem"
+          name="origem"
+          defaultValue={lead.origem ?? ''}
+          className={`mt-2 ${campo}`}
+        />
+      </div>
+
+      <fieldset>
+        <legend className={rotuloDoCampo}>Cobrança</legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {(
+            [
+              { v: 'mensal' as const, r: 'Mensalidade' },
+              { v: 'projeto' as const, r: 'Trabalho avulso' },
+            ] as const
+          ).map((o) => (
+            <label
+              key={o.v}
+              className={
+                'flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ' +
+                (cobranca === o.v
+                  ? 'border-magenta bg-magenta/10 text-magenta-texto'
+                  : 'border-fio text-neve hover:bg-white/5')
+              }
+            >
+              <input
+                type="radio"
+                name="cobranca"
+                value={o.v}
+                checked={cobranca === o.v}
+                onChange={() => setCobranca(o.v)}
+                className="h-3.5 w-3.5 accent-[var(--magenta)]"
+              />
+              {o.r}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="e-fee" className={rotuloDoCampo}>
+            {cobranca === 'projeto' ? 'Valor do projeto' : 'Fee mensal'}
+          </label>
+          <input
+            id="e-fee"
+            name="valor_fee_estimado"
+            inputMode="decimal"
+            defaultValue={lead.valorFee ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+        <div>
+          <label htmlFor="e-prob" className={rotuloDoCampo}>
+            Probabilidade
+          </label>
+          <input
+            id="e-prob"
+            name="probabilidade"
+            type="number"
+            min={0}
+            max={100}
+            defaultValue={lead.probabilidade ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+      </div>
+
+      {/* `hidden`, e não desmontado: campo fora da árvore não entra no
+          FormData, e o esquema recebe undefined onde espera texto. */}
+      <div className={cobranca === 'projeto' ? 'hidden' : ''}>
+        <label htmlFor="e-verba" className={rotuloDoCampo}>
+          Verba estimada
+        </label>
+        <input
+          id="e-verba"
+          name="valor_verba_estimada"
+          inputMode="decimal"
+          defaultValue={lead.valorVerba ?? ''}
+          className={`mt-2 ${campo}`}
+        />
+        <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+          Verba é do cliente e nunca entra no fee.
+        </p>
+      </div>
+
+      <div className={cobranca === 'projeto' ? '' : 'hidden'}>
+        <label htmlFor="e-servico" className={rotuloDoCampo}>
+          Serviço
+        </label>
+        <input
+          id="e-servico"
+          name="servico"
+          list="servicos-da-ficha"
+          defaultValue={lead.servico ?? ''}
+          placeholder="Criação de site"
+          className={`mt-2 ${campo}`}
+        />
+        <datalist id="servicos-da-ficha">
+          {SERVICOS_AVULSOS.map((x) => (
+            <option key={x} value={x} />
+          ))}
+        </datalist>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="e-pp" className={rotuloDoCampo}>
+            Próximo passo
+          </label>
+          <input
+            id="e-pp"
+            name="proximo_passo"
+            defaultValue={lead.proximoPasso ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+        <div>
+          <label htmlFor="e-ppe" className={rotuloDoCampo}>
+            Quando
+          </label>
+          <input
+            id="e-ppe"
+            name="proximo_passo_em"
+            type="date"
+            defaultValue={lead.proximoPassoEm ?? ''}
+            className={`mt-2 ${campo}`}
+          />
+        </div>
+      </div>
+
+      <Botao pendente={pendente}>Salvar ficha</Botao>
+    </form>
   );
 }
 

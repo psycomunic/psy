@@ -284,7 +284,22 @@ export async function editarLead(
 
     const v = validar(esquemaEditarLead, fd);
     if (!v.ok) return v;
-    const { id, ...campos } = v.dados;
+
+    /*
+      O ESTÁGIO SAI FORA, mesmo chegando no formulário.
+
+      Mudar de estágio tem caminho próprio: `moverLead` para os
+      intermediários, `converterEmCliente` e `perderLead` para os dois
+      finais, cada um com o que o estágio exige (fee e loja num caso,
+      motivo no outro).
+
+      Se esta ação gravasse o estágio recebido, bastaria um campo
+      forjado para marcar um lead como ganho sem contrato e sem
+      onboarding, que é exatamente o buraco que a conversão em
+      transação única existe para fechar. A tela não manda estágio
+      editável, mas tela não é barreira: a garantia mora aqui.
+    */
+    const { id, estagio: _ignorado, ...campos } = v.dados;
 
     const supabase = await clienteServidor();
     const { error } = await supabase.from('lead').update(campos).eq('id', id);
