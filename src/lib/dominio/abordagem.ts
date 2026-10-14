@@ -108,10 +108,26 @@ export function montarAbordagem({ marca, gancho, segmento }: IngredientesDaAbord
     blocos.push(`Parabéns pelo trabalho de vocês em ${nome}!`);
   }
 
+  /*
+    A CREDENCIAL, EM UMA FRASE SÓ
+
+    Ela existe para responder "por que eu te daria o contato do meu
+    chefe?", e essa pergunta se responde com o que já foi feito, não
+    com adjetivo. Por isso um número e duas plataformas, que quem é do
+    ramo reconhece, em vez de "somos especialistas em soluções".
+
+    Uma frase, e não um parágrafo: a mensagem inteira passou de 80 para
+    105 palavras com este bloco, e foi o limite que eu aceitei. Acima
+    disso o direct vira texto, e texto no direct não é lido.
+  */
+  blocos.push(
+    'Sou especialista em e-commerce: já toquei uma operação que faturou R$ 16 milhões no ano e conheço a rotina por dentro, de Magazord a Loja Integrada.',
+  );
+
   blocos.push(
     s
-      ? `Estamos mapeando algumas marcas de destaque de ${segmentoEmFrase(s)} aqui da região para apresentar uma proposta rápida de expansão nas vendas online.`
-      : 'Estamos mapeando algumas marcas de destaque aqui da região para apresentar uma proposta rápida de expansão nas vendas online.',
+      ? `Estamos mapeando marcas de destaque de ${segmentoEmFrase(s)} aqui da região para apresentar uma proposta de expansão nas vendas online.`
+      : 'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
   );
 
   /* O pedido, sem alternativa que atrapalhe: um nome e um contato.

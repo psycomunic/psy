@@ -125,21 +125,43 @@ describe('montarAbordagem', () => {
     assert.equal(textoDaAbordagem(m, null).split('\n')[0], 'Opa, tudo bem?');
   });
 
-  test('quatro blocos, que e o que cabe na tela antes do olho desistir', () => {
-    assert.equal(montarAbordagem(base).split('\n\n').length, 4);
+  test('cinco blocos, e nenhum deles vira um paredao', () => {
+    const blocos = montarAbordagem(base).split('\n\n');
+    assert.equal(blocos.length, 5);
+    /* A migração 0043 mediu onde o olho desiste num direct, e era um
+       bloco de 44 palavras. Medido nas cinquenta de verdade, o maior
+       bloco hoje tem 34, num gancho comprido. Trinta e seis é o teto,
+       com a folga do caso real e longe do que já cansou. */
+    for (const b of blocos) {
+      assert.ok(b.split(/\s+/).length <= 36, `bloco longo demais: ${b}`);
+    }
+  });
+
+  test('a credencial entra com numero e plataforma, e nao com adjetivo', () => {
+    const m = montarAbordagem(base);
+    assert.match(m, /R\$ 16 milhões no ano/);
+    assert.match(m, /de Magazord a Loja Integrada/);
+    /* "Somos especialistas em soluções" é o que todo mundo escreve, e
+       por isso não prova nada. Número e plataforma, sim. */
+    assert.doesNotMatch(m, /soluções|excelência|parceiro ideal/i);
+  });
+
+  test('a mensagem inteira continua curta o bastante para um direct', () => {
+    const palavras = montarAbordagem(base).split(/\s+/).length;
+    assert.ok(palavras <= 115, `${palavras} palavras ja e texto, e nao direct`);
   });
 
   test('sem gancho, o elogio vazio nao e inventado', () => {
     const m = montarAbordagem({ ...base, gancho: null });
     assert.doesNotMatch(m, /não se constrói da noite/);
     assert.match(m, /Parabéns pelo trabalho de vocês em Vida Fit!/);
-    /* Continua valendo como mensagem: saudação, por que, e o pedido. */
-    assert.equal(m.split('\n\n').length, 4);
+    /* Continua valendo: saudação, credencial, por que, e o pedido. */
+    assert.equal(m.split('\n\n').length, 5);
   });
 
   test('sem ingrediente nenhum, ainda sai uma mensagem enviavel', () => {
     const m = montarAbordagem({ marca: null, gancho: null, segmento: null });
-    assert.equal(m.split('\n\n').length, 3);
+    assert.equal(m.split('\n\n').length, 4);
     assert.match(m, /Com quem eu consigo falar/);
     assert.doesNotMatch(m, /undefined|null/);
   });
