@@ -1257,10 +1257,7 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
           O que a tela mostra para enviar HOJE é o texto de hoje, que
           vive em `montarAbordagem` e muda num deploy, sem migração.
         */
-        mensagemAbertura: montarAbordagem({
-          marca: l?.empresa ?? null,
-          gancho: (p.gancho as string) ?? null,
-        }),
+        mensagemAbertura: montarAbordagem(),
         perguntaSeguinte: (p.pergunta_seguinte as string) ?? null,
         perguntas: (p.perguntas as string) ?? null,
         canal: (p.canal as string) ?? null,

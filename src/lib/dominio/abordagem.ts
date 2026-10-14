@@ -50,48 +50,25 @@ const MARCADOR = '{dono}';
  * desistir: saudação, elogio com o diferencial concreto, por que
  * estamos falando, e o pedido.
  */
-export type IngredientesDaAbordagem = {
-  /** Nome da marca, como ela se chama no perfil. */
-  marca: string | null | undefined;
-  /** O diferencial, em frase começada por verbo: "Fabricam fitness…". */
-  gancho: string | null | undefined;
-};
-
-/**
- * O gancho vira sujeito da frase.
- *
- * Os ganchos foram escritos como frases de terceira pessoa do plural,
- * sem sujeito: "Fabricam fitness e vendem 100% no atacado". Conferidos
- * os cinquenta, todos começam assim. Colar "Vocês" na frente e baixar
- * a primeira letra transforma a ficha em fala, sem reescrever nenhum.
- */
-function comVoces(gancho: string): string {
-  const g = gancho.trim().replace(/[.!]+$/, '');
-  return `Vocês ${g.charAt(0).toLowerCase()}${g.slice(1)}`;
-}
-
-export function montarAbordagem({ marca, gancho }: IngredientesDaAbordagem): string {
-  const nome = (marca ?? '').trim();
-  const g = (gancho ?? '').trim();
-
+export function montarAbordagem(): string {
   const blocos = [`Opa${MARCADOR}, tudo bem?`];
 
-  /* O elogio só existe se houver um diferencial de verdade para citar.
-     Sem gancho, "parabéns pelo trabalho" sozinho é a frase que todo
-     robô de prospecção manda, e queima o contato na primeira linha. */
-  /* O "Parabéns!" fecha o bloco, e repete de propósito. A primeira vez
-     é a abertura educada que toda mensagem tem; a segunda vem DEPOIS
-     do elogio específico, e é a que soa como pessoa falando. Numa DM,
-     a repetição lê como ênfase, e não como erro. */
-  if (g) {
-    blocos.push(
-      nome
-        ? `Parabéns pelo trabalho de vocês em ${nome}! ${comVoces(g)}, e isso não se constrói da noite para o dia. Parabéns!`
-        : `${comVoces(g)}, e isso não se constrói da noite para o dia. Parabéns!`,
-    );
-  } else if (nome) {
-    blocos.push(`Parabéns pelo trabalho de vocês em ${nome}!`);
-  }
+  /*
+    O BLOCO DO ELOGIO SAIU, E COM ELE A PERSONALIZAÇÃO
+
+    Ele era a única parte que mudava de marca para marca, e por isso a
+    única coisa que fazia as cinquenta mensagens serem cinquenta
+    mensagens. Sem ele, todas são idênticas palavra por palavra.
+
+    Isso tem um preço conhecido, e ele não é de estilo: o Instagram usa
+    mensagem repetida em sequência como sinal de spam, e a conta paga
+    com alcance de direct e, no limite, com bloqueio de envio.
+
+    Fica registrado porque foi uma escolha, e não um esquecimento. O
+    gancho continua gravado em `prospeccao.gancho` e aparece na ficha,
+    então reinserir o parágrafo é desfazer este bloco de código, e nada
+    mais.
+  */
 
   /*
     A CREDENCIAL, EM UMA FRASE SÓ
