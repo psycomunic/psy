@@ -91,7 +91,6 @@ describe('montarAbordagem', () => {
   const base = {
     marca: 'Vida Fit',
     gancho: 'Fabricam fitness e vendem 100% no atacado',
-    segmento: 'Moda fitness',
   };
 
   test('o gancho vira fala, com Voces na frente e a inicial baixa', () => {
@@ -100,11 +99,6 @@ describe('montarAbordagem', () => {
     assert.doesNotMatch(m, /Vocês Fabricam/);
   });
 
-  test('o parentese da ficha nao entra na conversa', () => {
-    const m = montarAbordagem({ ...base, segmento: 'Infantil (RN ao 16)' });
-    assert.match(m, /marcas de destaque de infantil aqui da região/);
-    assert.doesNotMatch(m, /RN ao 16/);
-  });
 
   test('pede o responsavel e o contato, que e o objetivo da mensagem', () => {
     const m = montarAbordagem(base);
@@ -140,7 +134,7 @@ describe('montarAbordagem', () => {
   test('a credencial entra com numero e plataforma, e nao com adjetivo', () => {
     const m = montarAbordagem(base);
     assert.match(m, /R\$ 16 milhões no ano/);
-    assert.match(m, /de Magazord a Loja Integrada/);
+    assert.match(m, /Magazord, Loja Integrada, entre outras/);
     /* "Somos especialistas em soluções" é o que todo mundo escreve, e
        por isso não prova nada. Número e plataforma, sim. */
     assert.doesNotMatch(m, /soluções|excelência|parceiro ideal/i);
@@ -160,7 +154,7 @@ describe('montarAbordagem', () => {
   });
 
   test('sem ingrediente nenhum, ainda sai uma mensagem enviavel', () => {
-    const m = montarAbordagem({ marca: null, gancho: null, segmento: null });
+    const m = montarAbordagem({ marca: null, gancho: null });
     assert.equal(m.split('\n\n').length, 4);
     assert.match(m, /Com quem eu consigo falar/);
     assert.doesNotMatch(m, /undefined|null/);

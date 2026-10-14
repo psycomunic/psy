@@ -1260,7 +1260,6 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         mensagemAbertura: montarAbordagem({
           marca: l?.empresa ?? null,
           gancho: (p.gancho as string) ?? null,
-          segmento: (p.segmento as string) ?? null,
         }),
         perguntaSeguinte: (p.pergunta_seguinte as string) ?? null,
         perguntas: (p.perguntas as string) ?? null,

@@ -55,8 +55,6 @@ export type IngredientesDaAbordagem = {
   marca: string | null | undefined;
   /** O diferencial, em frase começada por verbo: "Fabricam fitness…". */
   gancho: string | null | undefined;
-  /** "Moda íntima", "Infantil (RN ao 16)". */
-  segmento: string | null | undefined;
 };
 
 /**
@@ -72,26 +70,9 @@ function comVoces(gancho: string): string {
   return `Vocês ${g.charAt(0).toLowerCase()}${g.slice(1)}`;
 }
 
-/**
- * O segmento sem o detalhe entre parênteses.
- *
- * "Infantil (RN ao 16)" e "Moda feminina (P ao G4)" são ótimos na
- * ficha e péssimos no meio de uma frase. A faixa de tamanho é detalhe
- * de pesquisa, não de conversa.
- *
- * A preposição é "de", e não "em" nem "no": ela é a única que serve a
- * todos sem concordar em gênero. "de moda íntima", "de jeans", "de
- * calçados femininos". Com "no" seria "no moda íntima".
- */
-function segmentoEmFrase(segmento: string): string {
-  const limpo = segmento.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-  return limpo.charAt(0).toLowerCase() + limpo.slice(1);
-}
-
-export function montarAbordagem({ marca, gancho, segmento }: IngredientesDaAbordagem): string {
+export function montarAbordagem({ marca, gancho }: IngredientesDaAbordagem): string {
   const nome = (marca ?? '').trim();
   const g = (gancho ?? '').trim();
-  const s = (segmento ?? '').trim();
 
   const blocos = [`Opa${MARCADOR}, tudo bem?`];
 
@@ -121,13 +102,24 @@ export function montarAbordagem({ marca, gancho, segmento }: IngredientesDaAbord
     disso o direct vira texto, e texto no direct não é lido.
   */
   blocos.push(
-    'Sou especialista em e-commerce: já toquei uma operação que faturou R$ 16 milhões no ano e conheço a rotina por dentro, de Magazord a Loja Integrada.',
+    'Sou especialista em e-commerce: já toquei uma operação que faturou R$ 16 milhões no ano e conheço por dentro plataformas como Magazord, Loja Integrada, entre outras.',
   );
 
+  /*
+    O segmento SAIU desta frase.
+
+    Ele vinha da ficha de pesquisa, e a ficha descreve com a precisão
+    de quem cataloga: "Jeans", "Moda feminina (P ao G4)", "Lingerie,
+    pijamas e plus size". Dito na cara do dono, isso soa como etiqueta,
+    e etiqueta errada é pior que nenhuma: quem se vê como marca de moda
+    feminina não gosta de ser "a marca de jeans".
+
+    "Marcas de destaque aqui da região" diz a mesma coisa sem arriscar
+    a classificação, e serve às cinquenta sem concordância de gênero,
+    que era o outro problema que o segmento trazia.
+  */
   blocos.push(
-    s
-      ? `Estamos mapeando marcas de destaque de ${segmentoEmFrase(s)} aqui da região para apresentar uma proposta de expansão nas vendas online.`
-      : 'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
+    'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
   );
 
   /* O pedido, sem alternativa que atrapalhe: um nome e um contato.
