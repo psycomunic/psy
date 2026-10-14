@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
-import { excluirProspecto, marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
+import { marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
+import { excluirLead } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 import type { Prospecto, PrioridadeProspeccao } from '@/lib/dados/tipos';
 import { PRIORIDADES_PROSPECCAO, explicaPrioridadeProspeccao, rotuloEstagio } from '@/lib/dados/tipos';
@@ -411,7 +412,7 @@ function CartaoProspecto({
  */
 function BotaoExcluir({ prospecto: p }: { prospecto: Prospecto }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
-    excluirProspecto,
+    excluirLead,
     null,
   );
   const [confirmando, setConfirmando] = useState(false);

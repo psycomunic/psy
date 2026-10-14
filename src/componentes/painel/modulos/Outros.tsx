@@ -222,6 +222,11 @@ export async function Crm({ papel }: { papel: Papel }) {
         <Kanban
           leads={leads}
           podeEditar={podeEditar}
+          /* Apagar é só do administrador, e não de quem edita o funil.
+             A ação recusa de novo no servidor, e a política
+             `lead_admin_exclui` recusaria uma terceira vez: isto aqui
+             existe para não mostrar botão que não funciona. */
+          podeExcluir={papel === 'administrador' && procedencia === 'banco'}
           interacoes={conversas}
           pesquisas={pesquisas}
         />

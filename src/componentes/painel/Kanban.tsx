@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useOptimistic, useTransition, useRef } from 'react';
+import { useState, useOptimistic, useTransition, useRef, useActionState } from 'react';
 import Link from 'next/link';
 import {
   moverLead,
@@ -8,6 +8,7 @@ import {
   atualizarLead,
   converterEmCliente,
   registrarInteracao,
+  excluirLead,
 } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
 import type { Lead, Estagio, Interacao, Prospecto } from '@/lib/dados/tipos';
@@ -54,11 +55,16 @@ const campo =
 export function Kanban({
   leads,
   podeEditar,
+  podeExcluir = false,
   interacoes = {},
   pesquisas = {},
 }: {
   leads: Lead[];
   podeEditar: boolean;
+  /** Separado de `podeEditar` porque é outro papel: mexer no funil é
+      do comercial, apagar é só do administrador. Apagar não tem volta,
+      e a diferença entre as duas permissões é essa. */
+  podeExcluir?: boolean;
   /** Conversas já registradas, por lead. Vêm prontas do servidor: uma
       consulta por card seria N+1 com o funil inteiro na tela. */
   interacoes?: Record<string, Interacao[]>;
@@ -70,6 +76,13 @@ export function Kanban({
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
   const [aberto, setAberto] = useState<Lead | null>(null);
+
+  /* Lead apagado em outra aba, ou aqui mesmo: a lista volta do
+     servidor sem ele e a ficha fecha sozinha. Ajustar o próprio estado
+     durante o render é o caminho que o React recomenda para isto, e
+     evita um efeito que roda depois da pintura mostrando por um quadro
+     uma ficha de algo que não existe mais. */
+  if (aberto && !leads.some((l) => l.id === aberto.id)) setAberto(null);
   const [sobre, setSobre] = useState<Estagio | null>(null);
   const [busca, setBusca] = useState('');
   const arrastando = useRef<string | null>(null);
@@ -378,6 +391,7 @@ export function Kanban({
         <FichaLead
           lead={aberto}
           podeEditar={podeEditar}
+          podeExcluir={podeExcluir}
           conversas={interacoes[aberto.id] ?? []}
           pesquisa={pesquisas[aberto.id]}
           aoFechar={() => setAberto(null)}
@@ -394,12 +408,14 @@ export function Kanban({
 function FichaLead({
   lead,
   podeEditar,
+  podeExcluir,
   conversas,
   pesquisa,
   aoFechar,
 }: {
   lead: Lead;
   podeEditar: boolean;
+  podeExcluir: boolean;
   conversas: Interacao[];
   pesquisa?: Prospecto;
   aoFechar: () => void;
@@ -779,8 +795,110 @@ function FichaLead({
             {r.mensagem}
           </p>
         ) : null}
+
+        {/* No PÉ da ficha, e nunca entre as abas. Apagar não é uma das
+            coisas que se faz num lead: é a que se faz uma vez, por
+            engano de cadastro, e precisa estar longe do caminho de
+            quem só queria mudar o próximo passo. */}
+        {podeExcluir ? <ApagarLead lead={lead} /> : null}
       </div>
     </div>
+  );
+}
+
+/**
+ * Apagar o lead, em dois passos.
+ *
+ * ============================================================
+ * POR QUE A CONFIRMAÇÃO NÃO É UM `confirm()`
+ * ============================================================
+ * Porque ela precisa DIZER o que some junto. A pesquisa de prospecção
+ * e o histórico de conversa vão embora com o lead, por cascade no
+ * banco, e isso não cabe numa caixinha do navegador que a pessoa fecha
+ * no reflexo.
+ *
+ * A proposta sobrevive: ela é `on delete set null`, perde o vínculo e
+ * não a existência, porque documento comercial enviado não some junto
+ * com uma limpeza de funil.
+ *
+ * ============================================================
+ * O RASTRO FICA
+ * ============================================================
+ * O gatilho `lead_auditoria_delete` grava a linha inteira em
+ * `log_auditoria` antes de ela sumir (migração 0035). É o que permite
+ * responder depois "o que tinha ali", que é a única pergunta que
+ * importa quando o engano aparece uma semana depois.
+ */
+function ApagarLead({ lead }: { lead: Lead }) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    excluirLead,
+    null,
+  );
+  const [confirmando, setConfirmando] = useState(false);
+
+  /* Quem fecha a ficha é o Kanban, e não este botão.
+     Chamar o `aoFechar` do pai daqui seria mudar o estado de outro
+     componente durante o render deste, que é o aviso "Cannot update a
+     component while rendering a different component". O pai já sabe
+     fechar sozinho: quando a lista volta do servidor sem este lead,
+     ele ajusta o PRÓPRIO estado, que é o padrão sancionado. */
+  if (estado?.ok) {
+    return (
+      <p role="status" className="mt-6 border-t border-fio pt-4 text-xs text-cinza">
+        Apagado.
+      </p>
+    );
+  }
+
+  if (!confirmando) {
+    return (
+      <div className="mt-6 border-t border-fio pt-4">
+        <button
+          type="button"
+          onClick={() => setConfirmando(true)}
+          className="inline-flex min-h-[24px] items-center text-xs text-cinza underline-offset-4 transition-colors hover:text-neve hover:underline"
+        >
+          Apagar este lead
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form action={acao} className="mt-6 border-t border-fio pt-4">
+      <input type="hidden" name="id" value={lead.id} />
+      <input type="hidden" name="confirmo" value="sim" />
+
+      <p className="text-xs leading-relaxed text-neve">
+        Apagar {lead.empresa ?? lead.nome}? Somem junto a pesquisa de prospecção e o
+        histórico de conversa. A proposta, se houver, continua existindo e perde só o
+        vínculo. Não tem volta.
+      </p>
+
+      {estado && !estado.ok ? (
+        <p role="status" className="mt-2 text-xs font-semibold text-magenta-texto">
+          <span aria-hidden className="mr-1.5">■</span>
+          {estado.mensagem}
+        </p>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={pendente}
+          className="rounded-full border border-magenta/50 bg-magenta/10 px-4 py-2 text-xs font-semibold text-magenta-texto transition-colors hover:bg-magenta hover:text-branco disabled:opacity-60"
+        >
+          {pendente ? 'Apagando...' : 'Apagar'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmando(false)}
+          className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
   );
 }
 
