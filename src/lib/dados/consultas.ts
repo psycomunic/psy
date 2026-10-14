@@ -1,6 +1,7 @@
 import 'server-only';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { clienteServidor } from '@/lib/supabase/servidor';
+import { montarAbordagem } from '@/lib/dominio/abordagem';
 import type {
   ContaResumo,
   DiaKpi,
@@ -1247,7 +1248,20 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
         prioridade: (p.prioridade as PrioridadeProspeccao) ?? null,
         oportunidade: (p.oportunidade as string) ?? null,
         gancho: (p.gancho as string) ?? null,
-        mensagemAbertura: (p.mensagem_abertura as string) ?? null,
+        /*
+          MONTADA, e não lida da coluna.
+
+          `mensagem_abertura` continua no banco com a versão antiga, e
+          de propósito: ela é o registro do que já foi enviado para
+          quem já foi abordado, e apagar isso seria perder o histórico.
+          O que a tela mostra para enviar HOJE é o texto de hoje, que
+          vive em `montarAbordagem` e muda num deploy, sem migração.
+        */
+        mensagemAbertura: montarAbordagem({
+          marca: l?.empresa ?? null,
+          gancho: (p.gancho as string) ?? null,
+          segmento: (p.segmento as string) ?? null,
+        }),
         perguntaSeguinte: (p.pergunta_seguinte as string) ?? null,
         perguntas: (p.perguntas as string) ?? null,
         canal: (p.canal as string) ?? null,

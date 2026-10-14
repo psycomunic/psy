@@ -17,6 +17,113 @@
 /** O marcador que as mensagens gravadas carregam. */
 const MARCADOR = '{dono}';
 
+/* ================================================================== */
+/* O texto da abordagem                                                */
+/* ================================================================== */
+
+/**
+ * A mensagem de abertura, montada AQUI e não gravada no banco.
+ *
+ * ============================================================
+ * POR QUE SAIU DO BANCO
+ * ============================================================
+ * O texto já foi reescrito oito vezes, da 0028 à 0043, e cada versão
+ * custou uma migração que reescrevia cinquenta linhas com `replace`
+ * em cima de frases inteiras. Quando o acesso ao banco some, como
+ * aconteceu, a próxima ideia de copy fica presa.
+ *
+ * O banco continua guardando os INGREDIENTES, que são de cada marca e
+ * só mudam quando alguém pesquisa de novo: o gancho, o segmento, o
+ * nome. O texto que junta os três é decisão de copy, muda toda semana,
+ * e por isso vive no código, onde se testa e se publica num deploy.
+ *
+ * ============================================================
+ * O QUE ESTA MENSAGEM PERSEGUE
+ * ============================================================
+ * Um nome e um telefone, e mais nada. Quem lê um direct de marca quase
+ * nunca decide: é social media ou atendimento. Então a mensagem não
+ * tenta vender, não pede reunião e não pede quinze minutos. Ela faz UM
+ * pedido, que quem lê consegue atender sem pedir autorização: o
+ * contato de quem responde pelo marketing.
+ *
+ * Quatro blocos, porque é o que cabe na tela do celular antes do olho
+ * desistir: saudação, elogio com o diferencial concreto, por que
+ * estamos falando, e o pedido.
+ */
+export type IngredientesDaAbordagem = {
+  /** Nome da marca, como ela se chama no perfil. */
+  marca: string | null | undefined;
+  /** O diferencial, em frase começada por verbo: "Fabricam fitness…". */
+  gancho: string | null | undefined;
+  /** "Moda íntima", "Infantil (RN ao 16)". */
+  segmento: string | null | undefined;
+};
+
+/**
+ * O gancho vira sujeito da frase.
+ *
+ * Os ganchos foram escritos como frases de terceira pessoa do plural,
+ * sem sujeito: "Fabricam fitness e vendem 100% no atacado". Conferidos
+ * os cinquenta, todos começam assim. Colar "Vocês" na frente e baixar
+ * a primeira letra transforma a ficha em fala, sem reescrever nenhum.
+ */
+function comVoces(gancho: string): string {
+  const g = gancho.trim().replace(/[.!]+$/, '');
+  return `Vocês ${g.charAt(0).toLowerCase()}${g.slice(1)}`;
+}
+
+/**
+ * O segmento sem o detalhe entre parênteses.
+ *
+ * "Infantil (RN ao 16)" e "Moda feminina (P ao G4)" são ótimos na
+ * ficha e péssimos no meio de uma frase. A faixa de tamanho é detalhe
+ * de pesquisa, não de conversa.
+ *
+ * A preposição é "de", e não "em" nem "no": ela é a única que serve a
+ * todos sem concordar em gênero. "de moda íntima", "de jeans", "de
+ * calçados femininos". Com "no" seria "no moda íntima".
+ */
+function segmentoEmFrase(segmento: string): string {
+  const limpo = segmento.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  return limpo.charAt(0).toLowerCase() + limpo.slice(1);
+}
+
+export function montarAbordagem({ marca, gancho, segmento }: IngredientesDaAbordagem): string {
+  const nome = (marca ?? '').trim();
+  const g = (gancho ?? '').trim();
+  const s = (segmento ?? '').trim();
+
+  const blocos = [`Opa${MARCADOR}, tudo bem?`];
+
+  /* O elogio só existe se houver um diferencial de verdade para citar.
+     Sem gancho, "parabéns pelo trabalho" sozinho é a frase que todo
+     robô de prospecção manda, e queima o contato na primeira linha. */
+  if (g) {
+    blocos.push(
+      nome
+        ? `Parabéns pelo trabalho de vocês em ${nome}! ${comVoces(g)}, e isso não se constrói da noite para o dia.`
+        : `${comVoces(g)}, e isso não se constrói da noite para o dia.`,
+    );
+  } else if (nome) {
+    blocos.push(`Parabéns pelo trabalho de vocês em ${nome}!`);
+  }
+
+  blocos.push(
+    s
+      ? `Estamos mapeando algumas marcas de destaque de ${segmentoEmFrase(s)} aqui da região para apresentar uma proposta rápida de expansão nas vendas online.`
+      : 'Estamos mapeando algumas marcas de destaque aqui da região para apresentar uma proposta rápida de expansão nas vendas online.',
+  );
+
+  /* O pedido, sem alternativa que atrapalhe: um nome e um contato.
+     "Pode me chamar quando puder" devolve a bola para quem não decide,
+     e a conversa morre lida. */
+  blocos.push(
+    'Com quem eu consigo falar sobre novos projetos e canais de venda de vocês? Consegue me passar o WhatsApp ou o e-mail do responsável?',
+  );
+
+  return blocos.join('\n\n');
+}
+
 /**
  * O nome do dono, quando alguém já descobriu quem é.
  *
