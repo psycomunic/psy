@@ -184,11 +184,25 @@ export function Kanban({
         ) : null}
       </div>
 
-      {/* Seis colunas a partir de `xl`, e não cinco: a fila de
-          abordagem entrou entre "novo" e "contato". Abaixo disso elas
-          continuam em duas, porque seis colunas num notebook dariam
-          cards de 150px, onde o nome da empresa não cabe. */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      {/*
+        UMA FAIXA QUE ROLA DE LADO, E NÃO UMA GRADE
+
+        Com seis estágios, grade vira escolha entre duas coisas ruins.
+        Medido numa tela de 1600px: as seis colunas lado a lado ficavam
+        com 197px, onde "Atacadão das Malhas" já aparecia cortado. E
+        empilhadas no celular davam uma página de 5.150px, dez vezes a
+        altura da tela, para ver um quadro que existe para ser olhado de
+        relance.
+
+        Faixa resolve os dois: `min-w` garante card legível em qualquer
+        largura, `flex-1` faz as colunas crescerem quando sobra espaço,
+        e o que não couber se alcança arrastando de lado, que é como
+        todo quadro de funil funciona.
+
+        A rolagem é DESTA faixa, e não da página: medido, o documento
+        continua com zero rolagem horizontal, que é a regra do projeto.
+      */}
+      <div className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-3">
         {COLUNAS.map((estagio) => {
           const daColuna = filtrados.filter((l) => l.estagio === estagio);
           const mensal = daColuna
@@ -213,7 +227,13 @@ export function Kanban({
               onDragLeave={() => setSobre((s) => (s === estagio ? null : s))}
               onDrop={() => soltar(estagio)}
               className={
-                'rounded-2xl border p-4 transition-colors ' +
+                /* `basis` + `grow` + `shrink-0`, e NÃO `flex-1`: o atalho
+                   zera a base e faz as colunas se repartirem pelo
+                   conteúdo. Medido, as vazias encolheram para 116px
+                   enquanto as cheias ficavam com 272px, e um quadro com
+                   colunas de larguras diferentes deixa de ser um
+                   quadro. */
+                'shrink-0 grow basis-[17rem] rounded-2xl border p-4 transition-colors ' +
                 (sobre === estagio
                   ? 'border-magenta bg-magenta/10'
                   : 'border-fio bg-white/[0.02]')
@@ -489,15 +509,27 @@ function FichaLead({
         <dl className="mt-6 grid grid-cols-2 gap-4 border-y border-fio py-5 text-sm">
           <div>
             <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
-              Fee estimado
+              {lead.cobranca === 'projeto' ? 'Valor do projeto' : 'Fee mensal'}
             </dt>
-            <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorFee)}</dd>
+            <dd className="tabular mt-1 font-semibold">
+              {dinheiro(lead.valorFee)}
+              {lead.valorFee !== null ? (
+                <span className="font-normal text-cinza">{unidadeCobranca[lead.cobranca]}</span>
+              ) : null}
+            </dd>
           </div>
+          {/* Verba de mídia é conversa de tráfego. Num site ou numa
+              identidade visual ela não existe, e o lugar dela na ficha
+              passa a dizer o que de fato está sendo vendido. */}
           <div>
             <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
-              Verba estimada
+              {lead.cobranca === 'projeto' ? 'Serviço' : 'Verba estimada'}
             </dt>
-            <dd className="tabular mt-1 font-semibold">{dinheiro(lead.valorVerba)}</dd>
+            <dd className="tabular mt-1 font-semibold">
+              {lead.cobranca === 'projeto'
+                ? (lead.servico ?? 'não informado')
+                : dinheiro(lead.valorVerba)}
+            </dd>
           </div>
           <div>
             <dt className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
@@ -512,6 +544,50 @@ function FichaLead({
             <dd className="mt-1">{lead.diasNoEstagio} dias</dd>
           </div>
         </dl>
+
+        {/*
+          MOVER SEM ARRASTAR
+
+          O arrasto continua, mas ele deixou de bastar. Com seis
+          colunas, "Novo" e "Negociação" não cabem juntas na tela de um
+          notebook, e arrastar entre elas vira um exercício de rolagem.
+          No celular é pior: arrastar simplesmente não existe, e até
+          aqui não havia NENHUM jeito de mudar um lead de estágio pelo
+          telefone.
+
+          Botões, e não um select com salvar: mover é um clique, e um
+          passo a mais entre a decisão e o efeito é um passo que vai
+          virar desculpa para não atualizar o funil.
+
+          Ganho e perdido ficam de fora de propósito. Cada um tem fluxo
+          próprio, com fee e com motivo, nas abas abaixo: um lead ganho
+          sem contrato e sem loja é o buraco que a conversão existe para
+          fechar.
+        */}
+        {podeEditar && lead.estagio !== 'ganho' && lead.estagio !== 'perdido' ? (
+          <div className="mt-5">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+              Mover para
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {ESTAGIOS.filter(
+                (e) => e !== 'ganho' && e !== 'perdido' && e !== lead.estagio,
+              ).map((e) => (
+                <form key={e} onSubmit={enviar(moverLead)}>
+                  <input type="hidden" name="id" value={lead.id} />
+                  <input type="hidden" name="estagio" value={e} />
+                  <button
+                    type="submit"
+                    disabled={pendente}
+                    className="inline-flex min-h-[24px] items-center rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:border-magenta hover:bg-magenta/10 hover:text-magenta-texto disabled:opacity-60"
+                  >
+                    {rotuloEstagio[e]}
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {lead.motivoPerda ? (
           <p className="mt-5 rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-sm text-cinza">
