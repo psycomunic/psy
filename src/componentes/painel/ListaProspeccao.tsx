@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { marcarAbordado, salvarDono } from '@/app/painel/acoes-prospeccao';
 import { excluirLead } from '@/app/painel/acoes-crm';
 import type { Resultado } from '@/app/painel/acoes';
@@ -385,6 +386,22 @@ function CartaoProspecto({
             {estado.mensagem}
           </p>
         ) : null}
+
+        {/* A ficha completa mora no CRM, e não aqui.
+            Esta tela serve para ABORDAR, e por isso mostra só o que a
+            abordagem precisa. Mas quem percebe um telefone errado
+            percebe AQUI, olhando o card, e mandar a pessoa procurar o
+            mesmo lead noutro módulo é o tipo de caminho que ninguém
+            faz: o dado errado fica. O link abre a ficha já aberta. */}
+        <div className="mt-4 border-t border-fio pt-3">
+          <Link
+            href={`/painel/crm?lead=${p.leadId}`}
+            className="inline-flex min-h-[24px] items-center gap-1.5 text-xs text-cinza underline-offset-4 transition-colors hover:text-neve hover:underline"
+          >
+            Abrir a ficha para editar
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
 
         {podeExcluir ? <BotaoExcluir prospecto={p} /> : null}
       </div>

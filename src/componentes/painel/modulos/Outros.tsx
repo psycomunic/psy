@@ -28,7 +28,7 @@ import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 /* CRM: o funil                                                        */
 /* ================================================================== */
 
-export async function Crm({ papel }: { papel: Papel }) {
+export async function Crm({ papel, abrir }: { papel: Papel; abrir?: string }) {
   const [
     { dados: leads, procedencia },
     { dados: funil },
@@ -227,6 +227,7 @@ export async function Crm({ papel }: { papel: Papel }) {
              `lead_admin_exclui` recusaria uma terceira vez: isto aqui
              existe para não mostrar botão que não funciona. */
           podeExcluir={papel === 'administrador' && procedencia === 'banco'}
+          abrir={abrir}
           interacoes={conversas}
           pesquisas={pesquisas}
         />

@@ -134,7 +134,7 @@ export default async function PainelModulo({
         {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
         {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
         {moduloAtual === 'prospeccao' ? <Prospeccao papel={papel} /> : null}
-        {moduloAtual === 'crm' ? <Crm papel={papel} /> : null}
+        {moduloAtual === 'crm' ? <Crm papel={papel} abrir={lead} /> : null}
         {naFicha ? (
           <Ficha contaId={ficha!} aba={abaDaUrl(aba)} papel={papel} />
         ) : moduloAtual === 'contas' ? (

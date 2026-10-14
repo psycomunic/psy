@@ -64,6 +64,7 @@ export function Kanban({
   leads,
   podeEditar,
   podeExcluir = false,
+  abrir,
   interacoes = {},
   pesquisas = {},
 }: {
@@ -73,6 +74,8 @@ export function Kanban({
       do comercial, apagar é só do administrador. Apagar não tem volta,
       e a diferença entre as duas permissões é essa. */
   podeExcluir?: boolean;
+  /** Id do lead cuja ficha já deve nascer aberta, vindo da URL. */
+  abrir?: string;
   /** Conversas já registradas, por lead. Vêm prontas do servidor: uma
       consulta por card seria N+1 com o funil inteiro na tela. */
   interacoes?: Record<string, Interacao[]>;
@@ -83,7 +86,13 @@ export function Kanban({
 }) {
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
-  const [aberto, setAberto] = useState<Lead | null>(null);
+  /* Lead pedido pela URL: `/painel/crm?lead=<id>`, que é como a tela de
+     prospecção manda editar a ficha. Só no estado INICIAL, de
+     propósito: depois disso quem manda é o clique, e reabrir a ficha a
+     cada render deixaria impossível fechá-la. */
+  const [aberto, setAberto] = useState<Lead | null>(
+    () => (abrir ? (leads.find((l) => l.id === abrir) ?? null) : null),
+  );
 
   /* Lead apagado em outra aba, ou aqui mesmo: a lista volta do
      servidor sem ele e a ficha fecha sozinha. Ajustar o próprio estado
@@ -659,7 +668,11 @@ function FichaLead({
             <nav className="mt-7 flex flex-wrap gap-2" aria-label="O que fazer com este lead">
               {[
                 { k: 'passo' as const, r: 'Próximo passo' },
-                { k: 'dados' as const, r: 'Dados' },
+                /* "Editar", e não "Dados". O rótulo anterior descrevia o
+                   CONTEÚDO da aba, e quem procura corrigir um telefone
+                   procura um verbo. Custou duas idas e vindas até ficar
+                   claro que o botão estava lá e ninguém achava. */
+                { k: 'dados' as const, r: 'Editar' },
                 { k: 'conversa' as const, r: `Conversas${conversas.length ? ` (${conversas.length})` : ''}` },
                 { k: 'ganhar' as const, r: 'Converter' },
                 { k: 'perder' as const, r: 'Perder' },
