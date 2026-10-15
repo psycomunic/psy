@@ -36,7 +36,8 @@
     "conferir-ctas": "node scripts/conferir-ctas.mjs",
     "conferir-deck": "node scripts/conferir-deck.mjs",
     "medir-abas": "node scripts/medir-abas.mjs",
-    "testar-ficha-lead": "node scripts/testar-ficha-lead.mjs"
+    "testar-ficha-lead": "node scripts/testar-ficha-lead.mjs",
+    "carregar-prospeccao": "node scripts/carregar-prospeccao.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
