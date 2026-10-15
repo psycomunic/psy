@@ -606,6 +606,10 @@ export type Prospecto = {
   /** `lead.nome`. Nasce com o @ da marca e vira o nome do dono quando
       alguém descobre quem é. */
   nomeContato: string;
+  /** WhatsApp do lead, quando já se sabe. É o que liga o botão no
+      card: sem ele, o botão não existe, em vez de abrir uma conversa
+      com número vazio. */
+  telefone: string | null;
   estagio: Estagio;
   proximoPasso: string | null;
   /** Em 'novo' ou em 'pronto': ninguém mandou a primeira mensagem

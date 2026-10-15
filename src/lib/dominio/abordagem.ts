@@ -54,7 +54,15 @@ const MARCADOR = '{dono}';
  * desistir: saudação, elogio com o diferencial concreto, por que
  * estamos falando, e o pedido.
  */
-export function montarAbordagem(): string {
+/**
+ * @param marca Nome da loja, como ela se chama no perfil. Entra na
+ *   frase do mapeamento, que é onde ele faz trabalho: diz que a
+ *   mensagem foi escrita para aquele perfil, e não disparada para uma
+ *   lista. Sem ele, as cinquenta saem idênticas, e mensagem repetida
+ *   em sequência é o que o Instagram lê como automação.
+ */
+export function montarAbordagem(marca?: string | null): string {
+  const nome = (marca ?? '').trim();
   const blocos = [`Opa${MARCADOR}, tudo bem?`];
 
   /*
@@ -103,8 +111,13 @@ export function montarAbordagem(): string {
     a classificação, e serve às cinquenta sem concordância de gênero,
     que era o outro problema que o segmento trazia.
   */
+  /* "O perfil de X chamou a atenção", e não "X entrou na lista".
+     Dizer que existe uma lista é confessar o disparo em massa, que é
+     justamente o que a frase precisa não parecer. */
   blocos.push(
-    'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
+    nome
+      ? `Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online, e o perfil de ${nome} chamou a atenção.`
+      : 'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
   );
 
   /* O pedido, sem alternativa que atrapalhe: um nome e um contato.

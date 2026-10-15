@@ -93,26 +93,26 @@ describe('montarAbordagem', () => {
   const QUEBRA = String.fromCharCode(10);
 
   test('pede o responsavel e o contato, que e o objetivo da mensagem', () => {
-    const m = montarAbordagem();
+    const m = montarAbordagem('Vida Fit');
     assert.match(m, /Com quem eu consigo falar sobre novos projetos/);
     assert.match(m, /WhatsApp ou o e-mail do responsável/);
   });
 
   test('nao pede reuniao, nem call, nem quinze minutos', () => {
-    const m = montarAbordagem().toLowerCase();
+    const m = montarAbordagem('Vida Fit').toLowerCase();
     for (const atrito of ['reunião', 'call', 'minutos', 'agenda']) {
       assert.ok(!m.includes(atrito), `a mensagem nao deveria falar em "${atrito}"`);
     }
   });
 
   test('guarda o marcador do nome, para a saudacao sair pontuada certo', () => {
-    const m = montarAbordagem();
+    const m = montarAbordagem('Vida Fit');
     assert.equal(textoDaAbordagem(m, 'Mirian Alves').split(QUEBRA)[0], 'Opa, Mirian, tudo bem?');
     assert.equal(textoDaAbordagem(m, null).split(QUEBRA)[0], 'Opa, tudo bem?');
   });
 
   test('cinco blocos, e nenhum deles vira um paredao', () => {
-    const blocos = montarAbordagem().split(QUEBRA + QUEBRA);
+    const blocos = montarAbordagem('Vida Fit').split(QUEBRA + QUEBRA);
     assert.equal(blocos.length, 5);
     /* A migração 0043 mediu onde o olho desiste num direct, e era um
        bloco de 44 palavras. Trinta e seis é o teto. */
@@ -122,7 +122,7 @@ describe('montarAbordagem', () => {
   });
 
   test('a credencial entra com numero e plataforma, e nao com adjetivo', () => {
-    const m = montarAbordagem();
+    const m = montarAbordagem('Vida Fit');
     assert.match(m, /R\$ 16 milhões no ano/);
     assert.match(m, /Magazord, Loja Integrada, entre outras/);
     /* "Somos especialistas em soluções" é o que todo mundo escreve, e
@@ -131,7 +131,7 @@ describe('montarAbordagem', () => {
   });
 
   test('o meu contato vai junto, para quem nao quer repassar o de ninguem', () => {
-    const m = montarAbordagem();
+    const m = montarAbordagem('Vida Fit');
     assert.match(m, /47 99240-6661/);
     /* Depois do pedido, e nao no lugar dele: a pergunta pelo
        responsável tem que vir primeiro. */
@@ -139,7 +139,7 @@ describe('montarAbordagem', () => {
   });
 
   test('a mensagem inteira continua curta o bastante para um direct', () => {
-    const palavras = montarAbordagem().split(/\s+/).length;
+    const palavras = montarAbordagem('Vida Fit').split(/\s+/).length;
     assert.ok(palavras <= 115, `${palavras} palavras ja e texto, e nao direct`);
   });
 
@@ -154,8 +154,22 @@ describe('montarAbordagem', () => {
     reinserir a personalizacao, ele quebra e obriga a pessoa a decidir
     de novo, em vez de descobrir meses depois.
   */
+  test('o nome da loja entra, e sem confessar que existe uma lista', () => {
+    const m = montarAbordagem('Vida Fit');
+    assert.match(m, /o perfil de Vida Fit chamou a atenção/);
+    /* "Vida Fit entrou na lista" diria em voz alta o que a mensagem
+       precisa nao parecer: disparo em massa. */
+    assert.doesNotMatch(m, /entrou na lista|selecionamos|lista de marcas/i);
+  });
+
+  test('sem o nome, a frase continua inteira e sem buraco', () => {
+    const m = montarAbordagem(null);
+    assert.match(m, /nas vendas online\.$/m);
+    assert.doesNotMatch(m, /undefined|null|perfil de \./);
+  });
+
   test('nao sobrou nenhum pedaco do elogio por marca', () => {
-    const m = montarAbordagem();
+    const m = montarAbordagem('Vida Fit');
     assert.doesNotMatch(m, /Parabéns/);
     assert.doesNotMatch(m, /não se constrói da noite/);
     assert.doesNotMatch(m, /undefined|null/);

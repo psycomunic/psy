@@ -366,6 +366,29 @@ function CartaoProspecto({
                 Abrir o perfil
               </a>
             ) : null}
+
+            {/*
+              O WhatsApp só aparece quando existe número.
+
+              Botão que abre uma conversa com número vazio é pior que
+              botão nenhum: a pessoa clica, o WhatsApp abre no nada, e
+              ela volta achando que o painel está quebrado.
+
+              Sem texto pronto na URL, de propósito. Esta é a abordagem
+              fria, e mensagem pré-escrita que a pessoa manda sem ler é
+              o jeito mais rápido de queimar um contato que custou
+              pesquisa.
+            */}
+            {p.telefone ? (
+              <a
+                href={`https://wa.me/55${p.telefone.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener"
+                className="rounded-full border border-fio px-5 py-2.5 text-sm text-neve transition-colors hover:bg-white/5"
+              >
+                WhatsApp
+              </a>
+            ) : null}
           </form>
         ) : p.proximoPasso ? (
           <p className="text-xs leading-relaxed text-cinza">
