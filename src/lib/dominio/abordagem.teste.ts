@@ -121,6 +121,35 @@ describe('montarAbordagem', () => {
     }
   });
 
+  /*
+    A CREDENCIAL MUDA COM O NICHO, E ESSA E A PARTE QUE PODE MENTIR
+
+    No mercado onde a operacao de R$ 16 milhoes aconteceu, a frase cita
+    o nicho e vira prova. Fora dele, cita as plataformas. Trocar os
+    dois significa dizer "ja faturei 16 milhoes no nicho de voces" para
+    quem vende lingerie, e mentira assim nao cai na hora: cai na
+    reuniao, depois de a pessoa ter apostado uma agenda.
+  */
+  test('no nicho provado, a credencial cita o nicho', () => {
+    const m = montarAbordagem('Clic Store', 'Quadros e molduras');
+    assert.match(m, /R\$ 16 milhões no ano no nicho de quadros decorativos/);
+    assert.doesNotMatch(m, /Magazord/);
+  });
+
+  test('fora dele, NAO cita o nicho, e volta para as plataformas', () => {
+    for (const seg of ['Moda íntima', 'Jeans', 'Infantil', '', null]) {
+      const m = montarAbordagem('Vida Fit', seg);
+      assert.doesNotMatch(m, /no nicho de/, `citou o nicho em "${seg}"`);
+      assert.match(m, /Magazord, Loja Integrada, entre outras/);
+    }
+  });
+
+  test('diz quem esta falando antes de dar o numero', () => {
+    const m = montarAbordagem('Vida Fit');
+    assert.match(m, /Angelo da Psy Comunic aqui\./);
+    assert.ok(m.indexOf('Angelo da Psy Comunic') < m.indexOf('R$ 16 milhões'));
+  });
+
   test('a credencial entra com numero e plataforma, e nao com adjetivo', () => {
     const m = montarAbordagem('Vida Fit');
     assert.match(m, /R\$ 16 milhões no ano/);

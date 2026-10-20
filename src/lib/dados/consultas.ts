@@ -1258,7 +1258,10 @@ export async function listarProspeccao(): Promise<Resposta<Prospecto[]>> {
           O que a tela mostra para enviar HOJE é o texto de hoje, que
           vive em `montarAbordagem` e muda num deploy, sem migração.
         */
-        mensagemAbertura: montarAbordagem(l?.empresa ?? null),
+        /* O segmento entra para a credencial saber se pode citar o
+           nicho: ela só cita quando é o mesmo da operação de R$ 16
+           milhões. Ver `NICHO_PROVADO` em `abordagem.ts`. */
+        mensagemAbertura: montarAbordagem(l?.empresa ?? null, (p.segmento as string) ?? null),
         perguntaSeguinte: (p.pergunta_seguinte as string) ?? null,
         perguntas: (p.perguntas as string) ?? null,
         canal: (p.canal as string) ?? null,

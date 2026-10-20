@@ -61,8 +61,28 @@ const MARCADOR = '{dono}';
  *   lista. Sem ele, as cinquenta saem idênticas, e mensagem repetida
  *   em sequência é o que o Instagram lê como automação.
  */
-export function montarAbordagem(marca?: string | null): string {
+/**
+ * O nicho em que a operação de R$ 16 milhões aconteceu.
+ *
+ * A credencial só cita o nicho quando ele é o MESMO do lead, e aí ela
+ * para de ser currículo e vira prova: "já fiz isso no seu mercado" é
+ * outra conversa, e quem recebe sabe disso.
+ *
+ * Para todo o resto, a frase volta a ser a das plataformas. Dizer "já
+ * faturei 16 milhões no nicho de vocês" para quem vende lingerie seria
+ * mentira, e é a pior espécie: não cai na hora, cai na reunião, depois
+ * de a pessoa ter apostado uma agenda em você.
+ */
+const NICHO_PROVADO = {
+  /* Casa com "Quadros e molduras", que é o segmento das fichas de
+     L071 a L090, e com qualquer variação que apareça depois. */
+  reconhece: /quadro|moldura/i,
+  nome: 'quadros decorativos',
+};
+
+export function montarAbordagem(marca?: string | null, segmento?: string | null): string {
   const nome = (marca ?? '').trim();
+  const mesmoNicho = NICHO_PROVADO.reconhece.test((segmento ?? '').trim());
   const blocos = [`Opa${MARCADOR}, tudo bem?`];
 
   /*
@@ -94,8 +114,22 @@ export function montarAbordagem(marca?: string | null): string {
     105 palavras com este bloco, e foi o limite que eu aceitei. Acima
     disso o direct vira texto, e texto no direct não é lido.
   */
+  /*
+    QUEM ESTÁ FALANDO, ANTES DA CREDENCIAL
+
+    Direct de marca recebe mensagem de desconhecido o dia inteiro, e a
+    primeira pergunta de quem lê é "quem é você". Um nome e uma
+    empresa respondem isso em cinco palavras, e sem elas a credencial
+    seguinte é um número sem dono.
+
+    E a credencial muda com o nicho: no mercado onde a operação de
+    R$ 16 milhões aconteceu, ela cita o nicho e vira prova. Fora dele,
+    cita as plataformas, que é o que de fato se repete entre clientes.
+  */
   blocos.push(
-    'Sou especialista em e-commerce: já toquei uma operação que faturou R$ 16 milhões no ano e conheço por dentro plataformas como Magazord, Loja Integrada, entre outras.',
+    mesmoNicho
+      ? `Angelo da Psy Comunic aqui. Sou especialista em e-commerce e já toquei uma operação que faturou R$ 16 milhões no ano no nicho de ${NICHO_PROVADO.nome}.`
+      : 'Angelo da Psy Comunic aqui. Sou especialista em e-commerce: já toquei uma operação que faturou R$ 16 milhões no ano e conheço por dentro plataformas como Magazord, Loja Integrada, entre outras.',
   );
 
   /*
