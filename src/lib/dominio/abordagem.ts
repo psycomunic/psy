@@ -114,10 +114,23 @@ export function montarAbordagem(marca?: string | null): string {
   /* "O perfil de X chamou a atenção", e não "X entrou na lista".
      Dizer que existe uma lista é confessar o disparo em massa, que é
      justamente o que a frase precisa não parecer. */
+  /*
+    "AQUI DA REGIÃO" SAIU, E NÃO POR ESTILO
+
+    A frase nasceu quando a lista inteira era do Vale do Itajaí, e era
+    verdade. Com leads em São Paulo, Minas, Rio e Rio Grande do Sul,
+    uma agência de Santa Catarina dizendo "aqui da região" para quem
+    está em Franca escreve uma frase que não se sustenta se a pessoa
+    perguntar de onde a gente é.
+
+    Sem o complemento, a frase continua inteira e verdadeira para os
+    noventa. Mentira pequena em mensagem de abertura é a que custa
+    caro: ela não é descoberta na hora, é descoberta na reunião.
+  */
   blocos.push(
     nome
-      ? `Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online, e o perfil de ${nome} chamou a atenção.`
-      : 'Estamos mapeando marcas de destaque aqui da região para apresentar uma proposta de expansão nas vendas online.',
+      ? `Estamos mapeando marcas de destaque para apresentar uma proposta de expansão nas vendas online, e o perfil de ${nome} chamou a atenção.`
+      : 'Estamos mapeando marcas de destaque para apresentar uma proposta de expansão nas vendas online.',
   );
 
   /* O pedido, sem alternativa que atrapalhe: um nome e um contato.

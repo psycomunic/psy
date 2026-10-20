@@ -154,6 +154,15 @@ describe('montarAbordagem', () => {
     reinserir a personalizacao, ele quebra e obriga a pessoa a decidir
     de novo, em vez de descobrir meses depois.
   */
+  /* A lista deixou de ser so do Vale do Itajai: hoje tem lead em SP,
+     MG, RJ, ES, SC, RS e PR. "Aqui da regiao", vindo de uma agencia
+     catarinense para quem esta em Franca, e uma frase que nao se
+     sustenta se a pessoa perguntar de onde a gente e. */
+  test('nao promete proximidade geografica que nao existe', () => {
+    const m = montarAbordagem('Urban Arts');
+    assert.doesNotMatch(m, /aqui da região|aqui na região|perto de você/i);
+  });
+
   test('o nome da loja entra, e sem confessar que existe uma lista', () => {
     const m = montarAbordagem('Vida Fit');
     assert.match(m, /o perfil de Vida Fit chamou a atenção/);

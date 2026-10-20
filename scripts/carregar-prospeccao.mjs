@@ -65,10 +65,51 @@ if (!CAMINHO) {
 }
 
 const linhas = readFileSync(CAMINHO, 'utf8').trim().split('\n');
-const cabecalho = linhas[0].split(';').map((c) => c.trim());
-const registros = linhas.slice(1).map((linha) => {
-  const campos = linha.split(';');
+/* O separador vem do arquivo, e não de uma regra minha: cada lista que
+   chega sai de uma ferramenta diferente, e discutir ponto e vírgula
+   com quem só quer carregar lead é perder o dia. */
+const SEP = linhas[0].includes(';') ? ';' : ',';
+const cabecalho = linhas[0].split(SEP).map((c) => c.trim());
+const cru = linhas.slice(1).map((linha) => {
+  const campos = linha.split(SEP);
   return Object.fromEntries(cabecalho.map((c, i) => [c, (campos[i] ?? '').trim()]));
+});
+
+/*
+  APELIDOS DE COLUNA
+
+  `whatsapp` e `telefone` são a mesma coisa, e `instagram` às vezes
+  chega como @ e às vezes como link. Normalizar aqui custa uma linha;
+  pedir para a pessoa reformatar a planilha custa uma ida e volta.
+*/
+const COLUNAS = [
+  'empresa', 'instagram', 'instagram_url', 'cidade', 'uf', 'regiao',
+  'segmento', 'modelo_venda', 'fabricacao_propria', 'situacao_site',
+  'seguidores', 'prioridade', 'oportunidade', 'gancho', 'telefone',
+  'cnpj', 'notas', 'site', 'plataforma',
+];
+
+const registros = cru.map((r) => {
+  const b = { ...r };
+  if (!b.telefone && b.whatsapp) b.telefone = b.whatsapp;
+
+  /* Link vira @, e o link original fica em `instagram_url`. Com o @ já
+     pronto, nada muda. */
+  if ((b.instagram ?? '').includes('instagram.com')) {
+    if (!b.instagram_url) b.instagram_url = b.instagram;
+    const arroba = b.instagram.replace(/\?.*$/, '').replace(/\/$/, '').split('/').pop();
+    b.instagram = arroba ? `@${arroba}` : '';
+  }
+  if (b.instagram && !b.instagram_url) {
+    b.instagram_url = `https://instagram.com/${b.instagram.slice(1)}`;
+  }
+
+  /* O DDI sai. O painel monta o link do WhatsApp com 55 na frente, e
+     um "+55" guardado aqui viraria 5555 no link, que não abre. */
+  b.telefone = (b.telefone ?? '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+
+  for (const c of COLUNAS) b[c] = b[c] ?? '';
+  return b;
 });
 
 const { data: existentes } = await admin
@@ -96,7 +137,14 @@ registros.forEach((r, i) => {
   if (r.instagram_url && !r.instagram_url.includes(r.instagram.slice(1))) {
     problemas.push(`${onde}: a URL não bate com o @`);
   }
-  if (!['A', 'B', 'C'].includes(r.prioridade)) problemas.push(`${onde}: prioridade ${r.prioridade}`);
+  /* Prioridade e gancho eram obrigatórios, e deixaram de ser. A
+     mensagem de abertura não lê mais o gancho, e inventar A, B ou C
+     por quem não pesquisou a conta é pior que deixar em branco: o
+     palpite vira ordem de trabalho para alguém. */
+  if (r.prioridade && !['A', 'B', 'C'].includes(r.prioridade)) {
+    problemas.push(`${onde}: prioridade ${r.prioridade}`);
+  }
+  if (!r.prioridade) avisos.push(`${onde}: sem prioridade`);
 
   const tel = r.telefone.replace(/\D/g, '');
   if (tel && (tel.length < 10 || tel.length > 11)) {
@@ -113,7 +161,7 @@ registros.forEach((r, i) => {
   /* O gancho é lido como "Vocês + a frase". Verbo com inicial
      maiúscula e sem ponto final é o que faz a emenda funcionar. */
   const g = r.gancho;
-  if (!g) problemas.push(`${onde}: sem gancho`);
+  if (!g) avisos.push(`${onde}: sem gancho`);
   else {
     if (g.endsWith('.')) avisos.push(`${onde}: gancho termina com ponto`);
     if (g.split(/\s+/).length > 16) {
@@ -194,9 +242,9 @@ for (const [i, r] of registros.entries()) {
     fabricacao_propria: r.fabricacao_propria || null,
     situacao_site: r.situacao_site || null,
     seguidores: r.seguidores.replace(/\D/g, '') || null,
-    prioridade: r.prioridade,
+    prioridade: r.prioridade || null,
     oportunidade: r.oportunidade || null,
-    gancho: r.gancho,
+    gancho: r.gancho || null,
     cnpj: r.cnpj.replace(/\D/g, '') || null,
     canal: 'Instagram DM',
     notas: notas || null,
