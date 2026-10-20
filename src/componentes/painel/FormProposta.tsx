@@ -299,9 +299,33 @@ export function FormProposta({
                       <label htmlFor={`fee-${s.id}`} className={rotuloCss}>
                         {s.cobranca === 'projeto' ? 'Valor do projeto' : 'Valor mensal'}
                       </label>
+                      {/*
+                        `required` aqui, e a checagem no servidor fica.
+
+                        O campo de valor mora dentro do cartão do
+                        serviço, lá em cima, e o aviso de erro nasce
+                        junto do botão de enviar, uns oitocentos pixels
+                        abaixo. Quem marca o serviço, desce para
+                        preencher o resto e esquece o valor lê um aviso
+                        sobre um campo que não está na tela.
+
+                        Com `required`, o próprio navegador barra o
+                        envio, rola até o campo e põe o foco nele. A
+                        validação do servidor continua valendo: ela é a
+                        que não dá para burlar.
+                      */}
                       <input
                         id={`fee-${s.id}`}
                         name={`fee_${s.id}`}
+                        required
+                        /* Foco não é o mesmo que visível. Medido: o
+                           navegador barrou o envio e colocou o foco
+                           aqui, mas deixou o campo 432px ACIMA da área
+                           visível, e a pessoa viu a página travar sem
+                           motivo aparente. Rolar é por nossa conta. */
+                        onInvalid={(e) =>
+                          e.currentTarget.scrollIntoView({ block: 'center' })
+                        }
                         inputMode="decimal"
                         defaultValue={(() => {
                           const jaTem = editando?.servicos.find((x) => x.id === s.id);
