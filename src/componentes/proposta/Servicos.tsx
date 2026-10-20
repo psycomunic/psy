@@ -1,4 +1,6 @@
 import { Slide, Bloco } from './Slide';
+import { fichaMarketplace } from '@/conteudo/marketplaces';
+import { dinheiro } from '@/lib/formato';
 
 /**
  * Os slides da proposta de serviço avulso.
@@ -43,6 +45,8 @@ export type ServicoNoSlide = {
   naoInclui: string[];
   fee: number;
   feeTexto: string;
+  /** Só marketplaces tem. Quando existe, o `fee` é a soma destes. */
+  canais?: { id: string; fee: number }[];
 };
 
 /** Título com a última palavra em magenta, como no resto do deck. */
@@ -100,6 +104,49 @@ export function SlideDeUmServico({
         </div>
 
         <div className="space-y-4 sm:space-y-5">
+          {/*
+            OS CANAIS VÊM ANTES DO "O QUE ENTRA"
+
+            Num serviço de marketplace, a primeira pergunta de quem
+            recebe a proposta não é o que a agência faz: é em quais
+            canais, e quanto custa cada um. Mostrar a soma e esconder a
+            composição deixa um número que o cliente não tem como
+            discutir, e número que não se discute trava proposta.
+          */}
+          {s.canais && s.canais.length > 0 ? (
+            <Bloco>
+              <p className="font-mono text-xs uppercase tracking-[0.16em] text-magenta-texto">
+                Os canais
+              </p>
+              <ul className="mt-3 space-y-2.5 sm:mt-4">
+                {s.canais.map((c) => {
+                  const m = fichaMarketplace(c.id);
+                  return (
+                    <li key={c.id} className="flex items-center gap-3 text-sm">
+                      <span
+                        aria-hidden
+                        className="grid h-7 w-7 flex-none place-items-center rounded-lg font-display text-[0.7rem] font-extrabold"
+                        style={{
+                          backgroundColor: m?.cor ?? '#2A3A5E',
+                          color: m?.escuro ? '#101F3F' : '#FFFFFF',
+                        }}
+                      >
+                        {m?.sigla ?? '?'}
+                      </span>
+                      <span className="min-w-0 grow truncate text-neve">
+                        {m?.nome ?? c.id}
+                      </span>
+                      <span className="tabular shrink-0 font-semibold text-branco">
+                        {dinheiro(c.fee)}
+                        <span className="ml-1 text-xs font-normal text-cinza">/mês</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Bloco>
+          ) : null}
+
           <Bloco>
             <p className="font-mono text-xs uppercase tracking-[0.16em] text-magenta-texto">
               O que entra

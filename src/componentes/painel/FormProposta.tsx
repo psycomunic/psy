@@ -8,6 +8,7 @@ import {
   mudarStatusProposta,
 } from '@/app/painel/acoes-proposta';
 import type { Resultado } from '@/app/painel/acoes';
+import { MARKETPLACES } from '@/conteudo/marketplaces';
 
 const campo =
   'w-full rounded-xl border border-fio bg-white/[0.03] px-4 py-3 text-sm text-branco ' +
@@ -59,7 +60,7 @@ export type PropostaEmEdicao = {
   resumo: string;
   validadeDias: number;
   plano: string | null;
-  servicos: { id: string; fee: number }[];
+  servicos: { id: string; fee: number; canais?: { id: string; fee: number }[] }[];
   diagnostico: string[];
   proximosPassos: string[];
   status: string;
@@ -294,7 +295,28 @@ export function FormProposta({
                     </span>
                   </label>
 
-                  {marcado ? (
+                  {/*
+                    MARKETPLACE TEM PREÇO POR CANAL, E NÃO UM VALOR SÓ
+
+                    O trabalho é por canal, e bem diferente entre eles:
+                    catálogo, regra de frete, reputação e disputa de
+                    buy box não se parecem entre Mercado Livre, Shopee
+                    e TikTok Shop. Um valor único escondia isso, e o
+                    cliente que quisesse tirar um canal não teria como
+                    saber quanto desconta.
+
+                    O campo de valor do serviço some aqui: quem manda é
+                    a soma dos canais, feita no servidor. Dois lugares
+                    para o mesmo número é o caminho curto para os dois
+                    discordarem.
+                  */}
+                  {marcado && s.id === 'marketplaces' ? (
+                    <CanaisDeMarketplace
+                      escolhidos={editando?.servicos.find((x) => x.id === 'marketplaces')?.canais}
+                    />
+                  ) : null}
+
+                  {marcado && s.id !== 'marketplaces' ? (
                     <div className="mt-3.5 border-t border-fio pt-3.5">
                       <label htmlFor={`fee-${s.id}`} className={rotuloCss}>
                         {s.cobranca === 'projeto' ? 'Valor do projeto' : 'Valor mensal'}
@@ -578,5 +600,137 @@ export function BotaoApagarProposta({ id, cliente }: { id: string; cliente: stri
         Não
       </button>
     </form>
+  );
+}
+
+/**
+ * Os canais de marketplace, com um preço para cada.
+ *
+ * ============================================================
+ * O QUADRADO COLORIDO NO LUGAR DA LOGO
+ * ============================================================
+ * Redesenhar de memória o aperto de mão do Mercado Livre ou a sacola
+ * da Shopee sai torto, e logo torta num documento de preço faz o
+ * cliente duvidar do resto. A cor da marca, que num marketplace é
+ * quase um reflexo, faz o reconhecimento; o nome por exteneso ao lado
+ * tira a dúvida que a cor deixar.
+ *
+ * Quando houver o SVG oficial, `logo` no catálogo aponta para o
+ * arquivo e esta tela passa a usá-lo sem mais nenhuma mudança.
+ *
+ * ============================================================
+ * O TOTAL APARECE AQUI, MAS QUEM SOMA É O SERVIDOR
+ * ============================================================
+ * Este número existe para a pessoa conferir enquanto digita, e não
+ * para ser enviado. O valor que vale é somado de novo na ação, a
+ * partir dos mesmos campos: total calculado no navegador e aceito sem
+ * conferência é um preço que o cliente escolhe.
+ */
+function CanaisDeMarketplace({
+  escolhidos,
+}: {
+  escolhidos?: { id: string; fee: number }[];
+}) {
+  const [valores, setValores] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      MARKETPLACES.map((m) => {
+        const ja = escolhidos?.find((c) => c.id === m.id);
+        return [m.id, ja ? String(ja.fee) : ''];
+      }),
+    ),
+  );
+  const [marcados, setMarcados] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(MARKETPLACES.map((m) => [m.id, !!escolhidos?.some((c) => c.id === m.id)])),
+  );
+
+  const total = MARKETPLACES.reduce((soma, m) => {
+    if (!marcados[m.id]) return soma;
+    const n = Number(String(valores[m.id] ?? '').replace(/\./g, '').replace(',', '.'));
+    return soma + (Number.isFinite(n) ? n : 0);
+  }, 0);
+
+  const quantos = MARKETPLACES.filter((m) => marcados[m.id]).length;
+
+  return (
+    <div className="mt-3.5 border-t border-fio pt-3.5">
+      <p className={rotuloCss}>Canais e valor mensal de cada um</p>
+      <p className="mt-2 text-xs leading-relaxed text-cinza">
+        O preço é por canal porque o trabalho é por canal. Assim o cliente vê de onde vem
+        o total, e sabe quanto desconta se quiser tirar um.
+      </p>
+
+      <ul className="mt-3 space-y-2">
+        {MARKETPLACES.map((m) => (
+          <li
+            key={m.id}
+            className={
+              'flex flex-wrap items-center gap-3 rounded-xl border p-3 transition-colors ' +
+              (marcados[m.id] ? 'border-magenta/50 bg-magenta/5' : 'border-fio bg-white/[0.02]')
+            }
+          >
+            <label className="flex min-w-0 grow cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                name={`canal_${m.id}`}
+                checked={marcados[m.id] ?? false}
+                onChange={(e) => setMarcados((a) => ({ ...a, [m.id]: e.target.checked }))}
+                className="h-4 w-4 flex-none accent-[var(--magenta)]"
+              />
+              <span
+                aria-hidden
+                className="grid h-8 w-8 flex-none place-items-center rounded-lg font-display text-xs font-extrabold"
+                style={{ backgroundColor: m.cor, color: m.escuro ? '#101F3F' : '#FFFFFF' }}
+              >
+                {m.sigla}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold">{m.nome}</span>
+                <span className="mt-0.5 block text-xs leading-snug text-cinza">{m.nota}</span>
+              </span>
+            </label>
+
+            {marcados[m.id] ? (
+              <span className="flex items-center gap-2">
+                <span className="text-xs text-cinza">R$</span>
+                <input
+                  name={`fee_canal_${m.id}`}
+                  required
+                  onInvalid={(e) => e.currentTarget.scrollIntoView({ block: 'center' })}
+                  inputMode="decimal"
+                  value={valores[m.id] ?? ''}
+                  onChange={(e) => setValores((a) => ({ ...a, [m.id]: e.target.value }))}
+                  placeholder="800"
+                  aria-label={`Valor mensal de ${m.nome}`}
+                  className={`w-28 ${campo}`}
+                />
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      <p className="tabular mt-3 text-sm">
+        {quantos === 0 ? (
+          <span className="text-magenta-texto">
+            <span aria-hidden className="mr-1.5">■</span>
+            Marque pelo menos um canal.
+          </span>
+        ) : (
+          <>
+            <span className="text-cinza">
+              {quantos} {quantos === 1 ? 'canal' : 'canais'}, somando{' '}
+            </span>
+            <span className="font-semibold text-branco">
+              {total.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                maximumFractionDigits: 0,
+              })}
+            </span>
+            <span className="text-cinza"> por mês</span>
+          </>
+        )}
+      </p>
+    </div>
   );
 }

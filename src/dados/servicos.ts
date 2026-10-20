@@ -71,6 +71,7 @@ export type Servico =
   | 'institucional'
   | 'landing'
   | 'trafego'
+  | 'marketplaces'
   | 'social'
   | 'manutencao';
 
@@ -86,6 +87,7 @@ export const SERVICOS: Servico[] = [
   'institucional',
   'landing',
   'trafego',
+  'marketplaces',
   'social',
   'manutencao',
 ];
@@ -323,6 +325,32 @@ export const fichasDeServico: Record<Servico, FichaServico> = {
     ],
   },
 
+  marketplaces: {
+    id: 'marketplaces',
+    nome: 'Canais de marketplace',
+    papel: 'principal',
+    cobranca: 'mensal',
+    paraQuem: 'Quem quer vender onde o cliente já está procurando, sem esperar o site ganhar audiência',
+    promessa:
+      'Cada marketplace operado como canal próprio, e não como um depósito de anúncios copiados do site. O preço é por canal, porque o trabalho é por canal: catálogo, regra de frete, reputação e disputa de buy box não se parecem entre Mercado Livre, Shopee e TikTok Shop.',
+    entregas: [
+      'Abertura e verificação da conta de vendedor em cada canal escolhido',
+      'Catálogo publicado com título, foto, ficha e variação no padrão que aquele canal cobra, e não copiado do site',
+      'Preço e frete calculados por canal, já com a comissão dentro da conta',
+      'Integração do estoque, para o pedido de um canal não vender o que já saiu em outro',
+      'Acompanhamento de reputação, prazo de envio e cancelamento, que é o que derruba vendedor bom',
+      'Anúncio patrocinado dentro do canal, quando ele existe e a conta comporta',
+      'Leitura mensal do que cada canal deu, separado, com a margem depois da comissão',
+    ],
+    naoInclui: [
+      'A comissão do marketplace e o custo de frete, que são do canal e da sua operação',
+      'Fotografia e vídeo de produto',
+      'Emissão de nota fiscal e logística de envio',
+      'Atendimento das perguntas e das mensagens do comprador',
+      'A verba de anúncio dentro do canal, que é sua e vai direto para a plataforma',
+    ],
+  },
+
   social: {
     id: 'social',
     nome: 'Criação de conteúdo',
@@ -416,5 +444,17 @@ export const fichaDoServico = (s: Servico) => fichasDeServico[s];
 export const emReais = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
-/** Um serviço escolhido nesta proposta, com o valor negociado. */
-export type ServicoEscolhido = { id: Servico; fee: number };
+/** Um canal de marketplace escolhido, com o valor daquele canal. */
+export type CanalEscolhido = { id: string; fee: number };
+
+/**
+ * Um serviço escolhido nesta proposta, com o valor negociado.
+ *
+ * `canais` só existe em marketplaces, e quando existe o `fee` é a SOMA
+ * dele. Guardar os dois não é redundância: a soma é o que a conta da
+ * proposta usa, e a lista é o que o cliente precisa ver para entender
+ * de onde o número veio. Sem a lista, "R$ 2.400 em marketplaces" é um
+ * número que ele não tem como discutir, e número que não se discute é
+ * número que trava proposta.
+ */
+export type ServicoEscolhido = { id: Servico; fee: number; canais?: CanalEscolhido[] };

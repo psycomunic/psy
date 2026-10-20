@@ -345,6 +345,7 @@ export default async function PaginaProposta({
                     naoInclui: f.naoInclui,
                     fee: s.fee,
                     feeTexto: emReais(s.fee),
+                    canais: s.canais,
                   }}
                 />,
                 f.implantacao && f.implantacao.length > 0 ? (

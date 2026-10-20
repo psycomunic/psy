@@ -5,7 +5,13 @@ import { revalidatePath } from 'next/cache';
 import { sessaoAtual, clienteServidor } from '@/lib/supabase/servidor';
 import { pode } from '@/lib/papeis';
 import { PLANOS, type Plano } from '@/dados/planos';
-import { SERVICOS, fichaDoServico, type ServicoEscolhido } from '@/dados/servicos';
+import {
+  SERVICOS,
+  fichaDoServico,
+  type ServicoEscolhido,
+  type CanalEscolhido,
+} from '@/dados/servicos';
+import { MARKETPLACES } from '@/conteudo/marketplaces';
 import { paraNumero } from '@/lib/numero';
 import type { Resultado } from './acoes';
 
@@ -116,6 +122,42 @@ function lerCampos(
   if (modo === 'servicos') {
     for (const s of SERVICOS) {
       if (fd.get(`servico_${s}`) !== 'on') continue;
+
+      /*
+        MARKETPLACES SOMA OS CANAIS, E A SOMA É FEITA AQUI
+
+        O formulário mostra um total enquanto a pessoa digita, mas ele
+        é só conferência: total calculado no navegador e aceito sem
+        refazer a conta é um preço que o cliente escolhe.
+
+        Sem canal marcado, o serviço não entra. "Marketplaces por
+        R$ 0" num documento de preço é pior que um erro: é uma
+        promessa de trabalho de graça.
+      */
+      if (s === 'marketplaces') {
+        const canais: CanalEscolhido[] = [];
+        for (const m of MARKETPLACES) {
+          if (fd.get(`canal_${m.id}`) !== 'on') continue;
+          const valor = paraNumero(String(fd.get(`fee_canal_${m.id}`) ?? ''));
+          if (!Number.isFinite(valor) || valor <= 0) {
+            return { ok: false, mensagem: `Informe o valor mensal de ${m.nome}.` };
+          }
+          canais.push({ id: m.id, fee: valor });
+        }
+        if (canais.length === 0) {
+          return {
+            ok: false,
+            mensagem: 'Escolha pelo menos um canal de marketplace, ou desmarque o serviço.',
+          };
+        }
+        servicos.push({
+          id: s,
+          fee: canais.reduce((t, c) => t + c.fee, 0),
+          canais,
+        });
+        continue;
+      }
+
       const fee = paraNumero(String(fd.get(`fee_${s}`) ?? ''));
       if (!Number.isFinite(fee) || fee <= 0) {
         /* "mensal" era fixo na frase, e metade do catálogo é projeto:
