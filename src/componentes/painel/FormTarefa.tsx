@@ -57,11 +57,16 @@ function Campos({
   clientes,
   equipe,
   hoje,
+  prazoInicial,
 }: {
   tarefa?: Tarefa;
   clientes: OpcaoSimples[];
   equipe: OpcaoSimples[];
   hoje: string;
+  /** O dia que a tela já sabe, quando a tarefa nasce de um clique no
+      calendário. Quem abre o dia 23 e cria uma tarefa quer o prazo no
+      dia 23, e não em hoje. */
+  prazoInicial?: string;
 }) {
   const [recorrencia, setRecorrencia] = useState(tarefa?.recorrencia ?? 'nenhuma');
 
@@ -127,7 +132,7 @@ function Campos({
           <input
             name="prazo"
             type="date"
-            defaultValue={tarefa?.prazo ?? hoje}
+            defaultValue={tarefa?.prazo ?? prazoInicial ?? hoje}
             className={`mt-2 ${campo}`}
           />
         </div>
@@ -207,10 +212,16 @@ export function FormNovaTarefa({
   clientes,
   equipe,
   hoje,
+  prazoInicial,
+  rotulo = 'Nova tarefa',
 }: {
   clientes: OpcaoSimples[];
   equipe: OpcaoSimples[];
   hoje: string;
+  /** Dia já escolhido, quando a tarefa nasce dentro de um dia. */
+  prazoInicial?: string;
+  /** O texto do botão fechado. No calendário ele diz o dia. */
+  rotulo?: string;
 }) {
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
     criarTarefa,
@@ -233,7 +244,7 @@ export function FormNovaTarefa({
           className="inline-flex items-center gap-2.5 rounded-full bg-magenta px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
         >
           <span aria-hidden className="text-base leading-none">+</span>
-          Nova tarefa
+          {rotulo}
         </button>
         {estado?.ok ? (
           <p role="status" className="text-sm font-semibold text-[#4ADE80]">
@@ -255,7 +266,7 @@ export function FormNovaTarefa({
         </p>
       </div>
 
-      <Campos clientes={clientes} equipe={equipe} hoje={hoje} />
+      <Campos clientes={clientes} equipe={equipe} hoje={hoje} prazoInicial={prazoInicial} />
 
       <Aviso r={estado} />
 
