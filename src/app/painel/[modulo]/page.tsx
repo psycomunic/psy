@@ -21,7 +21,12 @@ import {
 } from '@/componentes/painel/modulos/Outros';
 import { Ficha, abaDaUrl } from '@/componentes/painel/modulos/Ficha';
 import { Financeiro, abaFinanceiro } from '@/componentes/painel/modulos/Financeiro';
-import { Tarefas, filtroDaUrl } from '@/componentes/painel/modulos/Tarefas';
+import {
+  Tarefas,
+  filtroDaUrl,
+  vistaDaUrl,
+  mesDaUrlTarefas,
+} from '@/componentes/painel/modulos/Tarefas';
 import { Configuracoes } from '@/componentes/painel/modulos/Configuracoes';
 import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { Prospeccao } from '@/componentes/painel/modulos/Prospeccao';
@@ -54,10 +59,11 @@ export default async function PainelModulo({
   searchParams: Promise<{
     papel?: string; conta?: string; ficha?: string; aba?: string;
     pagina?: string; lead?: string; filtro?: string; editar?: string; mes?: string;
+    vista?: string;
   }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes } =
+  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes, vista } =
     await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
@@ -144,7 +150,12 @@ export default async function PainelModulo({
         {moduloAtual === 'projetos' ? <Projetos papel={papel} /> : null}
         {moduloAtual === 'postagens' ? <Postagens papel={papel} mes={mesDaUrl(mes)} /> : null}
         {moduloAtual === 'tarefas' ? (
-          <Tarefas papel={papel} filtro={filtroDaUrl(filtro)} />
+          <Tarefas
+            papel={papel}
+            filtro={filtroDaUrl(filtro)}
+            vista={vistaDaUrl(vista)}
+            mes={mesDaUrlTarefas(mes)}
+          />
         ) : null}
         {moduloAtual === 'equipe' ? <Equipe papel={papel} meuId={meuId} /> : null}
         {moduloAtual === 'auditoria' ? (

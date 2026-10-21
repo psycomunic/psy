@@ -5,6 +5,7 @@ import { rotuloPrioridade, rotuloRecorrencia, type Tarefa } from '@/lib/dados/ti
 import { hojeBR } from '@/lib/datas';
 import { CORES_SITUACAO } from '../paleta';
 import { FormNovaTarefa, AcoesTarefa } from '../FormTarefa';
+import { CalendarioTarefas } from '../CalendarioTarefas';
 import type { Papel } from '@/lib/papeis';
 
 /**
@@ -31,6 +32,29 @@ const FILTROS = [
 ] as const;
 
 export type FiltroTarefa = (typeof FILTROS)[number]['k'];
+
+/**
+ * Duas vistas da mesma operação, e nenhuma substitui a outra.
+ *
+ * O calendário responde "como está a minha semana", que é pergunta de
+ * forma: quantas caem na terça, se a sexta está livre, se dá para
+ * aceitar mais uma coisa na quinta. A lista responde "o que eu faço
+ * agora", ordenada por atraso e prioridade.
+ *
+ * O calendário abre por padrão porque é a pergunta que se faz ao
+ * sentar. A lista é um clique ao lado, e o endereço guarda a escolha.
+ */
+export type VistaTarefa = 'calendario' | 'lista';
+
+export function vistaDaUrl(v: string | undefined): VistaTarefa {
+  return v === 'lista' ? 'lista' : 'calendario';
+}
+
+/** "2026-10". Mês inválido na URL cai no atual, em vez de quebrar. */
+export function mesDaUrlTarefas(v: string | undefined): string {
+  if (v && /^\d{4}-(0[1-9]|1[0-2])$/.test(v)) return v;
+  return hojeBR().slice(0, 7);
+}
 
 export function filtroDaUrl(v: string | undefined): FiltroTarefa {
   return FILTROS.some((f) => f.k === v) ? (v as FiltroTarefa) : 'abertas';
@@ -103,7 +127,17 @@ const PESO: Record<Tarefa['prioridade'], number> = {
   baixa: 3,
 };
 
-export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; filtro?: FiltroTarefa }) {
+export async function Tarefas({
+  papel,
+  filtro = 'abertas',
+  vista = 'calendario',
+  mes,
+}: {
+  papel: Papel;
+  filtro?: FiltroTarefa;
+  vista?: VistaTarefa;
+  mes: string;
+}) {
   const [{ dados: tarefas, procedencia }, { dados: contas }, { dados: equipe }] =
     await Promise.all([listarTarefas(), listarContas(), listarEquipe()]);
 
@@ -176,14 +210,58 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
         </div>
       </Secao>
 
+      {/* A troca de vista fica ACIMA dos filtros, e separada deles:
+          são perguntas de níveis diferentes. Vista é "como eu quero
+          olhar"; filtro é "o que eu quero ver". Juntas numa fileira só,
+          viram sete botões que ninguém lê. */}
+      <nav aria-label="Como ver as tarefas" className="mt-8 flex flex-wrap gap-2">
+        {([
+          { k: 'calendario' as const, r: 'Calendário' },
+          { k: 'lista' as const, r: 'Lista' },
+        ]).map((v) => (
+          <Link
+            key={v.k}
+            href={`/painel/tarefas?vista=${v.k}${v.k === 'lista' ? `&filtro=${filtro}` : `&mes=${mes}`}`}
+            aria-current={vista === v.k ? 'page' : undefined}
+            className={
+              'rounded-full px-4 py-2 text-sm transition-colors ' +
+              (vista === v.k
+                ? 'bg-magenta font-semibold text-branco'
+                : 'border border-fio text-neve hover:bg-white/5')
+            }
+          >
+            {v.r}
+          </Link>
+        ))}
+      </nav>
+
+      {vista === 'calendario' ? (
+        <div className="mt-6">
+          <CalendarioTarefas
+            /* TODAS as tarefas, e não só as do mês: a coluna sem prazo
+               e o aviso de atraso fora da tela dependem das outras. */
+            tarefas={tarefas}
+            mes={mes}
+            hoje={hoje}
+            clientes={clientes}
+            equipe={pessoas}
+            podeEscrever={podeEscrever}
+            podeExcluir={papel === 'administrador'}
+          />
+        </div>
+      ) : null}
+
       <nav
         aria-label="Filtros de tarefa"
-        className="mt-8 flex flex-wrap gap-2 border-b border-fio pb-4"
+        className={
+          'mt-8 flex flex-wrap gap-2 border-b border-fio pb-4 ' +
+          (vista === 'calendario' ? 'hidden' : '')
+        }
       >
         {FILTROS.map((f) => (
           <Link
             key={f.k}
-            href={`/painel/tarefas?filtro=${f.k}`}
+            href={`/painel/tarefas?vista=lista&filtro=${f.k}`}
             aria-current={filtro === f.k ? 'page' : undefined}
             className={
               'rounded-full px-4 py-2 text-sm transition-colors ' +
@@ -197,7 +275,7 @@ export async function Tarefas({ papel, filtro = 'abertas' }: { papel: Papel; fil
         ))}
       </nav>
 
-      <div className="mt-8">
+      <div className={'mt-8 ' + (vista === 'calendario' ? 'hidden' : '')}>
         {ordenadas.length === 0 ? (
           <p className="max-w-[70ch] text-sm leading-relaxed text-cinza">
             Nada nesta lista.{' '}
