@@ -60,10 +60,11 @@ export default async function PainelModulo({
     papel?: string; conta?: string; ficha?: string; aba?: string;
     pagina?: string; lead?: string; filtro?: string; editar?: string; mes?: string;
     vista?: string;
+    google?: string;
   }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes, vista } =
+  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes, vista, google } =
     await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
@@ -161,7 +162,7 @@ export default async function PainelModulo({
         {moduloAtual === 'auditoria' ? (
           <Auditoria pagina={Math.max(0, Number(pagina) || 0)} />
         ) : null}
-        {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} /> : null}
+        {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} aviso={google} /> : null}
         {moduloAtual === 'propostas' ? (
           <Propostas papel={papel} leadId={lead} editarId={editar} />
         ) : null}

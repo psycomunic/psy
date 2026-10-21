@@ -7,6 +7,8 @@ import {
 } from '@/lib/ingestao/credenciais';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { Secao } from '../base';
+import { estadoDaAgenda } from '@/lib/google/agenda';
+import { AcoesDaAgenda } from '../GoogleAgenda';
 import { FormCredencial, BotaoDesligarCredencial } from '../FormCredencial';
 import { BotaoSincronizar } from '../FormFonte';
 import { CORES_SITUACAO } from '../paleta';
@@ -21,7 +23,22 @@ import type { Papel } from '@/lib/papeis';
  * que o dia em que esse token vazar, vaza o acesso a todas as contas de
  * anúncio de uma vez — daí a cifra, e daí a chave morar fora do banco.
  */
-export async function Configuracoes({ papel }: { papel: Papel }) {
+const AVISOS_DO_GOOGLE: Record<string, { ok: boolean; texto: string }> = {
+  conectado: { ok: true, texto: 'Agenda conectada. As tarefas com prazo já vão para lá.' },
+  recusado: { ok: false, texto: 'Você recusou a permissão na tela do Google.' },
+  sem_permissao: { ok: false, texto: 'Só o administrador conecta a agenda.' },
+  sem_credencial: {
+    ok: false,
+    texto: 'Faltam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no servidor.',
+  },
+  estado_invalido: {
+    ok: false,
+    texto: 'A volta do Google não bateu com a ida. Tente conectar de novo.',
+  },
+  erro: { ok: false, texto: 'O Google recusou a autorização. Tente de novo.' },
+};
+
+export async function Configuracoes({ papel, aviso }: { papel: Papel; aviso?: string }) {
   if (papel !== 'administrador') {
     return (
       <p className="cartao p-6 text-sm leading-relaxed text-cinza">
@@ -43,6 +60,8 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
 
   const pronta = criptoConfigurada();
   const credenciais = pronta ? await listarCredenciais() : [];
+  const agenda = await estadoDaAgenda();
+  const recado = aviso ? AVISOS_DO_GOOGLE[aviso] : null;
 
   const porProvedor = new Map(credenciais.filter((c) => c.ativa).map((c) => [c.provedor, c]));
 
@@ -68,6 +87,85 @@ export async function Configuracoes({ papel }: { papel: Papel }) {
           </p>
         </div>
       ) : null}
+
+      <Secao
+        titulo="Google Agenda"
+        apoio="As tarefas com prazo viram evento de dia inteiro na sua agenda. O painel continua sendo onde elas se criam e se concluem."
+      >
+        <div className="cartao p-6">
+          {recado ? (
+            <p
+              role="status"
+              className={
+                'mb-5 rounded-xl border px-4 py-3 text-sm ' +
+                (recado.ok
+                  ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
+                  : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+              }
+            >
+              {recado.texto}
+            </p>
+          ) : null}
+
+          {!agenda.configurada ? (
+            <>
+              <p className="font-display text-base font-bold">Falta a credencial do app</p>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-cinza">
+                A conexão usa um aplicativo do Google criado uma vez, no Google Cloud, e as
+                duas chaves dele ficam no servidor. Elas não são a sua senha e não dão
+                acesso a nada sozinhas: é o seu consentimento, na tela do Google, que
+                autoriza escrever na agenda.
+              </p>
+              <pre className="mt-4 overflow-x-auto rounded-xl border border-fio bg-marinho-fundo p-4 font-mono text-xs text-neve">
+{`GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=...`}
+              </pre>
+              <p className="mt-3 text-sm leading-relaxed text-cinza">
+                No Google Cloud, o endereço de retorno precisa ser exatamente este:
+              </p>
+              <pre className="mt-2 overflow-x-auto rounded-xl border border-fio bg-marinho-fundo p-4 font-mono text-xs text-neve">
+{`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.psycomunic.com.br'}/api/google/retorno`}
+              </pre>
+            </>
+          ) : agenda.conectada ? (
+            <>
+              <p className="flex flex-wrap items-center gap-2 font-display text-base font-bold">
+                <span aria-hidden style={{ color: '#4ADE80' }}>●</span>
+                Conectada
+                {agenda.email ? (
+                  <span className="font-mono text-sm font-normal text-cinza">
+                    {agenda.email}
+                  </span>
+                ) : null}
+              </p>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-cinza">
+                Toda tarefa com prazo vira um evento de dia inteiro, e some da agenda quando
+                a tarefa é apagada ou perde o prazo. A agenda não manda de volta: o que
+                você mudar no Google não volta para cá, de propósito, porque sem regra de
+                conflito escrita a sincronização de ida e volta duplica evento até alguém
+                desligar.
+              </p>
+              <AcoesDaAgenda />
+            </>
+          ) : (
+            <>
+              <p className="font-display text-base font-bold">Não conectada</p>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-cinza">
+                Ao conectar, o Google vai perguntar se a Psy Comunic pode criar e alterar
+                eventos na sua agenda. É só o que ela pede: não lê os seus compromissos nem
+                mexe na lista de calendários.
+              </p>
+              <a
+                href="/api/google/conectar"
+                className="mt-4 inline-flex items-center gap-2.5 rounded-full bg-magenta px-6 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
+              >
+                Conectar o Google Agenda
+                <span aria-hidden>→</span>
+              </a>
+            </>
+          )}
+        </div>
+      </Secao>
 
       <Secao
         titulo="Contas de origem"

@@ -10,6 +10,7 @@ import {
   validar,
 } from '@/lib/validacao/painel';
 import type { Resultado } from './acoes';
+import { levarParaAgenda, apagarEvento, eventoDaTarefaId } from '@/lib/google/agenda';
 
 /**
  * Tarefas.
@@ -56,7 +57,7 @@ export async function criarTarefa(
     }
 
     const supabase = await clienteServidor();
-    const { error } = await supabase.from('tarefa').insert({
+    const { data: criada, error } = await supabase.from('tarefa').insert({
       titulo: v.dados.titulo,
       detalhe: v.dados.detalhe,
       conta_id: v.dados.conta_id,
@@ -67,9 +68,13 @@ export async function criarTarefa(
       recorrencia_ate: v.dados.recorrencia_ate,
       lembrar_dias: v.dados.lembrar_dias,
       criada_por: sessao.id,
-    });
+    }).select('id').single();
 
     if (error) return { ok: false, mensagem: error.message };
+
+    /* A agenda recebe o que ficou gravado, e nunca derruba a criação:
+       a tarefa já está no banco quando esta linha roda. */
+    await levarParaAgenda(criada.id as string);
 
     atualizar();
     return { ok: true, mensagem: 'Tarefa criada.' };
@@ -104,6 +109,8 @@ export async function editarTarefa(
 
     if (error) return { ok: false, mensagem: error.message };
 
+    await levarParaAgenda(id);
+
     atualizar();
     return { ok: true, mensagem: 'Tarefa atualizada.' };
   } catch (e) {
@@ -133,6 +140,12 @@ export async function concluirTarefa(
     const { data, error } = await supabase.rpc('concluir_tarefa', { p_id: v.dados.id });
 
     if (error) return { ok: false, mensagem: error.message };
+
+    /* A concluída ganha o visto no título do evento. A PRÓXIMA, quando
+       a tarefa se repete, nasce no banco pela função do Postgres e
+       ainda não tem evento: o gatilho dela é a primeira vez que for
+       salva, ou o botão de sincronizar tudo. */
+    await levarParaAgenda(v.dados.id);
 
     atualizar();
     return {
@@ -170,6 +183,8 @@ export async function mudarStatusTarefa(
 
     if (error) return { ok: false, mensagem: error.message };
 
+    await levarParaAgenda(v.dados.id);
+
     atualizar();
     return { ok: true, mensagem: 'Tarefa atualizada.' };
   } catch (e) {
@@ -197,9 +212,16 @@ export async function apagarTarefa(
     const v = validar(esquemaIdTarefa, fd);
     if (!v.ok) return v;
 
+    /* O evento sai ANTES da linha. Depois do delete, o id do evento já
+       foi junto, e o compromisso ficaria órfão na agenda para sempre,
+       sem nada no banco apontando para ele. */
+    const evento = await eventoDaTarefaId(v.dados.id);
+
     const supabase = await clienteServidor();
     const { error } = await supabase.from('tarefa').delete().eq('id', v.dados.id);
     if (error) return { ok: false, mensagem: error.message };
+
+    await apagarEvento(evento);
 
     atualizar();
     return { ok: true, mensagem: 'Tarefa removida.' };
