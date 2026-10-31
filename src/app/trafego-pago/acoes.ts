@@ -3,6 +3,8 @@
 import { clienteServico } from '@/lib/supabase/servico';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { FAIXAS_DE_VERBA, CANAIS_HOJE } from '@/conteudo/trafego';
+import { enviarTodos, caixaDaAgencia, type Envio } from '@/lib/email/remetente';
+import { analiseRecebida, avisoDeLead } from '@/lib/email/modelos';
 
 /**
  * O formulário da página de tráfego vira lead no CRM.
@@ -134,6 +136,47 @@ export async function pedirAnalise(
           'Não consegui registrar agora. Chame no WhatsApp que a gente resolve na hora.',
       };
     }
+
+    /*
+      Gravado. Agora os e-mails, pelo mesmo critério da inscrição de
+      Bragança: eles não podem mudar a resposta que a pessoa vê, e
+      `enviarTodos` nunca levanta exceção.
+
+      A confirmação só sai se houver e-mail, porque aqui o campo é
+      opcional de propósito: esta página pede o mínimo, e exigir e-mail
+      para pedir uma análise custaria formulário preenchido. Quem deixou
+      o campo vazio recebe a resposta pelo WhatsApp, que é o canal que
+      ela escolheu.
+
+      O aviso interno sai sempre, com ou sem e-mail da pessoa.
+    */
+    const chave = typeof data === 'string' ? data : undefined;
+    const correio: Envio[] = [
+      {
+        tipo: 'aviso_lead',
+        chave,
+        para: caixaDaAgencia,
+        ...avisoDeLead({
+          nome,
+          empresa,
+          telefone,
+          email: email || null,
+          observacao,
+          origem: 'Página de tráfego pago',
+        }),
+      },
+    ];
+
+    if (email) {
+      correio.push({
+        tipo: 'analise_recebida',
+        chave,
+        para: email,
+        ...analiseRecebida({ nome, empresa }),
+      });
+    }
+
+    await enviarTodos(correio);
 
     return {
       ok: true,

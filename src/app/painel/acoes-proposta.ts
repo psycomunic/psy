@@ -13,6 +13,9 @@ import {
 } from '@/dados/servicos';
 import { MARKETPLACES } from '@/conteudo/marketplaces';
 import { paraNumero } from '@/lib/numero';
+import { hojeBR, somarDias } from '@/lib/datas';
+import { enviarEmail, pareceEmail } from '@/lib/email/remetente';
+import { propostaPronta } from '@/lib/email/modelos';
 import type { Resultado } from './acoes';
 
 /**
@@ -455,6 +458,110 @@ export async function apagarProposta(
       ok: true,
       mensagem: `Proposta de ${atual.cliente} removida. O link parou de existir.`,
     };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/**
+ * Manda a proposta por e-mail, com o link dentro.
+ *
+ * ============================================================
+ * PRECISA ESTAR PUBLICADA
+ * ============================================================
+ * Rascunho tem link que responde 404, por decisão de projeto. Mandar um
+ * rascunho seria mandar um e-mail bonito com um link quebrado, e quem
+ * recebe não tem como saber que o problema está do outro lado: fica
+ * achando que a proposta expirou ou que clicou errado.
+ *
+ * Então a ação recusa, e diz o que fazer: publicar primeiro.
+ *
+ * ============================================================
+ * O DESTINO VEM DO FORMULÁRIO, E NÃO DO BANCO
+ * ============================================================
+ * O campo nasce preenchido com o e-mail do lead, quando existe, e
+ * continua editável. Quem fecha negócio sabe para quem manda: às vezes
+ * é o dono, às vezes é o financeiro, e às vezes é o contador do cliente.
+ * Amarrar o envio ao e-mail cadastrado obrigaria a editar o lead para
+ * mandar um e-mail, e aí o cadastro vira rascunho de envio.
+ *
+ * Não grava o endereço na proposta de propósito: ela não tem campo de
+ * e-mail, e criar um faria a segunda cópia de um dado que já vive no
+ * lead. Quem precisa saber para onde foi, olha `email_enviado`.
+ */
+export async function enviarPropostaPorEmail(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirComercial();
+
+    const id = String(fd.get('id') ?? '');
+    const destino = String(fd.get('email') ?? '').trim().toLowerCase();
+
+    if (!id) return { ok: false, mensagem: 'Proposta não informada.' };
+    if (!pareceEmail(destino)) return { ok: false, mensagem: 'Confira o e-mail do destinatário.' };
+
+    const supabase = await clienteServidor();
+    const { data: p } = await supabase
+      .from('proposta')
+      .select('slug, cliente, contato, resumo, status, versao, emitida_em, validade_dias')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!p) return { ok: false, mensagem: 'Proposta não encontrada.' };
+
+    if (p.status === 'rascunho') {
+      return {
+        ok: false,
+        mensagem: 'Publique a proposta primeiro. Em rascunho, o link não abre para quem receber.',
+      };
+    }
+
+    const vence = somarDias(p.emitida_em as string, Number(p.validade_dias ?? 15));
+    const diasParaVencer = Math.round(
+      (Date.parse(`${vence}T00:00:00Z`) - Date.parse(`${hojeBR()}T00:00:00Z`)) / 86400000,
+    );
+
+    if (diasParaVencer < 0) {
+      return {
+        ok: false,
+        mensagem: 'Esta proposta já venceu. Edite a validade antes de mandar.',
+      };
+    }
+
+    const envio = await enviarEmail({
+      tipo: 'proposta_enviada',
+      /* A chave carrega a VERSÃO. Reenviar a mesma proposta sem mudar
+         nada não manda duas vezes; editar sobe a versão e o reenvio
+         passa, que é exatamente o caso de "corrigi o valor, manda de
+         novo". */
+      chave: `${id}:v${p.versao}:${destino}`,
+      para: destino,
+      ...propostaPronta({
+        cliente: p.cliente as string,
+        contato: p.contato as string,
+        resumo: p.resumo as string,
+        slug: p.slug as string,
+        versao: Number(p.versao ?? 1),
+        diasParaVencer,
+      }),
+    });
+
+    if (!envio.ok) {
+      return { ok: false, mensagem: `O e-mail não saiu: ${envio.erro}` };
+    }
+
+    if (envio.repetido) {
+      return {
+        ok: true,
+        mensagem: `Esta versão já foi mandada para ${destino}. Edite a proposta para mandar de novo.`,
+      };
+    }
+
+    revalidatePath('/painel/propostas');
+
+    return { ok: true, mensagem: `Proposta enviada para ${destino}.` };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }

@@ -3,6 +3,8 @@
 import { clienteServico } from '@/lib/supabase/servico';
 import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { perguntas, NOTA_MAXIMA } from '@/conteudo/selecao-braganca';
+import { enviarTodos, caixaDaAgencia, pareceEmail } from '@/lib/email/remetente';
+import { inscricaoRecebida, avisoDeInscricao } from '@/lib/email/modelos';
 
 /**
  * A inscrição da seleção "10 empresas" de Bragança vira lead no CRM.
@@ -51,9 +53,11 @@ export async function enviarInscricao(
     const nome = texto('nome');
     const empresa = texto('empresa');
     const telefone = texto('telefone');
+    const email = texto('email').toLowerCase();
     if (nome.length < 2) return { ok: false, mensagem: 'Faltou o seu nome.' };
     if (empresa.length < 2) return { ok: false, mensagem: 'Faltou o nome da empresa.' };
     if (!telefoneValido(telefone)) return { ok: false, mensagem: 'Informe um WhatsApp com DDD.' };
+    if (!pareceEmail(email)) return { ok: false, mensagem: 'Confira o e-mail.' };
 
     /* Só entra o que existe na lista fechada. Valor inventado num POST
        manual não vira resposta nem ponto. */
@@ -94,11 +98,11 @@ export async function enviarInscricao(
       .join(' ');
 
     const supabase = clienteServico();
-    const { error } = await supabase.rpc('registrar_lead_do_site', {
+    const { data: leadId, error } = await supabase.rpc('registrar_lead_do_site', {
       p_nome: nome,
       p_empresa: empresa,
       p_telefone: telefone,
-      p_email: null,
+      p_email: email,
       /* Piso mensal da verba declarada: 35 por dia, 30 dias. */
       p_verba: verba === 'sim' || verba === 'proximo-mes' ? 1050 : null,
       p_origem: 'selecao-braganca',
@@ -109,6 +113,48 @@ export async function enviarInscricao(
       console.error('[inscrição bragança]', error.message);
       return { ok: false, mensagem: 'Não consegui registrar agora. Chame a equipe no WhatsApp que a gente resolve na hora.' };
     }
+
+    /*
+      A inscrição está gravada. Daqui para baixo, nada pode mudar a
+      resposta que a pessoa vai ver.
+
+      Os dois e-mails saem juntos: a confirmação para quem preencheu e o
+      aviso para a agência. `enviarTodos` não levanta exceção e não
+      devolve erro para cá de propósito, porque não existe decisão a
+      tomar com essa informação: a inscrição não desaparece se o Resend
+      estiver fora, e dizer "inscrição recebida, mas o e-mail falhou"
+      seria assustar a pessoa com um problema que é da agência.
+
+      A chave é o id do lead. `registrar_lead_do_site` devolve o MESMO
+      lead quando o telefone repete em dez minutos, então clique duplo
+      vira um envio só, e não dois e-mails iguais na caixa de quem
+      acabou de se inscrever.
+    */
+    const chave = typeof leadId === 'string' ? leadId : undefined;
+
+    await enviarTodos([
+      {
+        tipo: 'inscricao_recebida',
+        chave,
+        para: email,
+        ...inscricaoRecebida({ nome, empresa }),
+      },
+      {
+        tipo: 'aviso_inscricao',
+        chave,
+        para: caixaDaAgencia,
+        ...avisoDeInscricao({
+          nome,
+          empresa,
+          telefone,
+          email,
+          instagram: instagram || null,
+          nota,
+          respostas: linhas,
+          motivo: motivo || null,
+        }),
+      },
+    ]);
 
     return { ok: true, mensagem: 'Inscrição recebida.' };
   } catch (e) {

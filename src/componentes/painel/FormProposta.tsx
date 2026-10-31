@@ -6,6 +6,7 @@ import {
   editarProposta,
   apagarProposta,
   mudarStatusProposta,
+  enviarPropostaPorEmail,
 } from '@/app/painel/acoes-proposta';
 import type { Resultado } from '@/app/painel/acoes';
 import { MARKETPLACES } from '@/conteudo/marketplaces';
@@ -732,5 +733,95 @@ function CanaisDeMarketplace({
         )}
       </p>
     </div>
+  );
+}
+
+/**
+ * Mandar a proposta por e-mail, de dentro da lista.
+ *
+ * Fechado, é um link de uma linha. Aberto, o campo nasce com o e-mail
+ * do lead de origem e continua editável, porque quem recebe a proposta
+ * não é sempre quem preencheu o formulário.
+ *
+ * O campo fica escondido enquanto a pessoa não abre, e por isso ele é
+ * MONTADO só nessa hora, e não apenas oculto por CSS: a tabela tem
+ * vinte linhas, e vinte campos de e-mail invisíveis seriam vinte
+ * entradas na navegação por teclado e na leitura de tela.
+ */
+export function EnviarPorEmail({
+  id,
+  cliente,
+  emailSugerido,
+}: {
+  id: string;
+  cliente: string;
+  emailSugerido: string | null;
+}) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    enviarPropostaPorEmail,
+    null,
+  );
+  const [aberto, setAberto] = useState(false);
+
+  if (estado?.ok) {
+    return (
+      <span role="status" className="text-xs font-semibold leading-relaxed text-[#4ADE80]">
+        <span aria-hidden className="mr-1.5">●</span>
+        {estado.mensagem}
+      </span>
+    );
+  }
+
+  if (!aberto) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="rounded-full border border-fio px-3 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+      >
+        E-mail
+      </button>
+    );
+  }
+
+  return (
+    <form action={acao} className="inline-flex max-w-full flex-wrap items-center gap-2">
+      <input type="hidden" name="id" value={id} />
+      <label className="sr-only" htmlFor={`env-${id}`}>
+        E-mail para mandar a proposta de {cliente}
+      </label>
+      <input
+        id={`env-${id}`}
+        name="email"
+        type="email"
+        autoComplete="email"
+        autoCapitalize="none"
+        spellCheck={false}
+        defaultValue={emailSugerido ?? ''}
+        placeholder="email@cliente.com.br"
+        autoFocus
+        className="w-52 rounded-full border border-fio bg-white/[0.03] px-3.5 py-1.5 text-xs text-branco outline-none transition-colors placeholder:text-cinza/60 focus:border-magenta"
+      />
+      <button
+        type="submit"
+        disabled={pendente}
+        className="rounded-full bg-magenta px-3.5 py-1.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+      >
+        {pendente ? 'Enviando...' : 'Enviar'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setAberto(false)}
+        className="text-xs text-cinza underline-offset-4 hover:text-neve hover:underline"
+      >
+        cancelar
+      </button>
+      {estado && !estado.ok ? (
+        <span role="status" className="w-full text-xs leading-relaxed text-magenta-texto">
+          <span aria-hidden className="mr-1.5">■</span>
+          {estado.mensagem}
+        </span>
+      ) : null}
+    </form>
   );
 }

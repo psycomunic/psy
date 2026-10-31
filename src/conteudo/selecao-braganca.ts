@@ -195,6 +195,7 @@ export type Pergunta =
   | { id: string; tipo: 'texto'; titulo: string; apoio?: string; placeholder: string; obrigatoria: boolean; min?: number }
   | { id: string; tipo: 'longo'; titulo: string; apoio?: string; placeholder: string; obrigatoria: boolean }
   | { id: string; tipo: 'telefone'; titulo: string; apoio?: string; placeholder: string; obrigatoria: true }
+  | { id: string; tipo: 'email'; titulo: string; apoio?: string; placeholder: string; obrigatoria: true }
   | { id: string; tipo: 'escolha'; titulo: string; apoio?: string; opcoes: Opcao[]; obrigatoria: true }
   | { id: string; tipo: 'multipla'; titulo: string; apoio?: string; opcoes: Opcao[]; obrigatoria: true };
 
@@ -305,7 +306,13 @@ export const perguntas: Pergunta[] = [
     ],
   },
   { id: 'motivo', tipo: 'longo', titulo: 'Por que a sua empresa merece uma das 10 vagas?', apoio: 'Conte em poucas linhas. É o que a equipe lê primeiro.', placeholder: 'Escreva aqui', obrigatoria: true },
-  { id: 'telefone', tipo: 'telefone', titulo: 'Por último: qual é o seu WhatsApp?', apoio: 'É por ele que a equipe dá a resposta.', placeholder: '(91) 99999-9999', obrigatoria: true },
+  { id: 'telefone', tipo: 'telefone', titulo: 'Qual é o seu WhatsApp?', apoio: 'É por ele que a equipe dá a resposta.', placeholder: '(91) 99999-9999', obrigatoria: true },
+  /* O e-mail entra por último e é obrigatório, porque é por ele que sai
+     a confirmação de que a inscrição chegou. Opcional, metade não
+     preencheria, e metade das inscrições ficaria sem confirmação
+     nenhuma: a pessoa clica em enviar, vê a tela de obrigado e passa a
+     semana sem nada escrito em lugar nenhum. */
+  { id: 'email', tipo: 'email', titulo: 'Por último: qual é o seu e-mail?', apoio: 'A confirmação da inscrição chega nele na hora.', placeholder: 'voce@suaempresa.com.br', obrigatoria: true },
 ];
 
 /** Nota máxima possível, para a nota sair em porcentagem. */

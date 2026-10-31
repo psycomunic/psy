@@ -102,6 +102,13 @@ export function FormularioSelecao() {
         const n = String(valor ?? '').replace(/\D/g, '');
         return n.length < 10 ? 'Informe o WhatsApp com DDD.' : '';
       }
+      if (p.tipo === 'email') {
+        const s = String(valor ?? '').trim();
+        /* A mesma conferência roda no servidor. Esta aqui existe para a
+           pessoa corrigir o dedo errado antes de enviar, e não para
+           proteger nada. */
+        return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(s) ? '' : 'Confira o e-mail.';
+      }
       if (p.tipo === 'multipla') return Array.isArray(valor) && valor.length ? '' : 'Marque pelo menos uma opção.';
       return valor ? '' : 'Escolha uma opção.';
     },
@@ -262,15 +269,30 @@ export function FormularioSelecao() {
             <h2>{atual.titulo}</h2>
             {atual.apoio && <p>{atual.apoio}</p>}
 
-            {(atual.tipo === 'texto' || atual.tipo === 'telefone') && (
+            {(atual.tipo === 'texto' || atual.tipo === 'telefone' || atual.tipo === 'email') && (
               <input
                 ref={(el) => {
                   campo.current = el;
                 }}
                 className="sel-campo"
-                type={atual.tipo === 'telefone' ? 'tel' : 'text'}
-                inputMode={atual.tipo === 'telefone' ? 'tel' : undefined}
-                autoComplete={atual.id === 'nome' ? 'name' : atual.id === 'telefone' ? 'tel' : atual.id === 'empresa' ? 'organization' : 'off'}
+                type={atual.tipo === 'telefone' ? 'tel' : atual.tipo === 'email' ? 'email' : 'text'}
+                inputMode={atual.tipo === 'telefone' ? 'tel' : atual.tipo === 'email' ? 'email' : undefined}
+                /* `none` no e-mail: o teclado do celular sobe a primeira
+                   letra em maiúscula por padrão, e "Maico@" não é o que
+                   a pessoa quis digitar. */
+                autoCapitalize={atual.tipo === 'email' ? 'none' : undefined}
+                spellCheck={atual.tipo === 'email' ? false : undefined}
+                autoComplete={
+                  atual.id === 'nome'
+                    ? 'name'
+                    : atual.id === 'telefone'
+                      ? 'tel'
+                      : atual.id === 'email'
+                        ? 'email'
+                        : atual.id === 'empresa'
+                          ? 'organization'
+                          : 'off'
+                }
                 placeholder={atual.placeholder}
                 value={String(r[atual.id] ?? '')}
                 onChange={(e) => {

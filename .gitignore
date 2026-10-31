@@ -91,3 +91,6 @@ Claude outputs/
 .github/skills/
 .claude/skills/*/scripts/bin/
 skills-lock.json
+
+# Previa dos e-mails gerada por npm run testar-email. Nao e fonte.
+.previa-email/

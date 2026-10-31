@@ -470,6 +470,11 @@ export type PropostaResumo = {
   /* Sobe a cada edição. Vai no link copiado, para o WhatsApp remontar
      a prévia em vez de servir a antiga do cache dele. */
   versao: number;
+  /* E-mail do lead de origem, quando existe. Serve só para o campo de
+     envio nascer preenchido: a proposta não guarda e-mail próprio, e
+     copiar o do lead para dentro dela criaria o segundo endereço que um
+     dia divergiria do primeiro. */
+  emailDoLead: string | null;
 };
 
 export const rotuloStatusProposta: Record<PropostaResumo['status'], string> = {

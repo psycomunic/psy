@@ -12,6 +12,9 @@ import {
   esquemaTransferencia,
   validar,
 } from '@/lib/validacao/painel';
+import { rotuloPapel } from '@/lib/papeis';
+import { enviarEmail } from '@/lib/email/remetente';
+import { acessoCriado } from '@/lib/email/modelos';
 
 /**
  * Ações de escrita do painel.
@@ -184,6 +187,17 @@ export async function convidarUsuario(
     }
 
     await registrar(sessao.id, 'criou', 'perfil', data.user.id);
+
+    /* O aviso de que o acesso existe. Sem senha dentro: ver o comentário
+       de `acessoCriado`. Chave no id do usuário, então recriar o vínculo
+       de lojas depois não manda o e-mail de novo. */
+    await enviarEmail({
+      tipo: 'acesso_criado',
+      chave: data.user.id,
+      para: email,
+      ...acessoCriado({ nome, login: email, papel: rotuloPapel[papel] }),
+    });
+
     revalidatePath('/painel/equipe');
 
     const quantas = contas.length;

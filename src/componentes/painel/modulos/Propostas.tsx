@@ -9,7 +9,9 @@ import {
   CopiarLink,
   BotaoStatus,
   BotaoApagarProposta,
+  EnviarPorEmail,
 } from '../FormProposta';
+import { emailConfigurado } from '@/lib/email/remetente';
 import { CORES_SITUACAO } from '../paleta';
 import { diaLongo } from '@/lib/formato';
 import { pode, type Papel } from '@/lib/papeis';
@@ -211,6 +213,19 @@ export async function Propostas({
                           )}
                           {p.status !== 'aceita' && p.status !== 'rascunho' ? (
                             <BotaoStatus id={p.id} status="aceita" rotulo="Marcar aceita" />
+                          ) : null}
+
+                          {/* Mandar por e-mail só aparece onde funciona:
+                              publicada (rascunho tem link que não abre) e
+                              com o Resend configurado. Botão que avisa
+                              "falta configurar" depois do clique é botão
+                              que ensina a não clicar nele. */}
+                          {emailConfigurado && p.status !== 'rascunho' ? (
+                            <EnviarPorEmail
+                              id={p.id}
+                              cliente={p.cliente}
+                              emailSugerido={p.emailDoLead}
+                            />
                           ) : null}
 
                           {/* Aceita não edita nem apaga: é o documento do

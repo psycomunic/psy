@@ -9,6 +9,13 @@ import { bancoConfigurado } from '@/lib/supabase/ambiente';
 import { Secao } from '../base';
 import { estadoDaAgenda } from '@/lib/google/agenda';
 import { AcoesDaAgenda } from '../GoogleAgenda';
+import {
+  emailConfigurado,
+  remetente,
+  caixaDaAgencia,
+  responderPara,
+} from '@/lib/email/remetente';
+import { ultimosEnvios, falhasRecentes, ROTULO_DO_TIPO } from '@/lib/email/registro';
 import { FormCredencial, BotaoDesligarCredencial } from '../FormCredencial';
 import { BotaoSincronizar } from '../FormFonte';
 import { CORES_SITUACAO } from '../paleta';
@@ -62,6 +69,8 @@ export async function Configuracoes({ papel, aviso }: { papel: Papel; aviso?: st
   const credenciais = pronta ? await listarCredenciais() : [];
   const agenda = await estadoDaAgenda();
   const recado = aviso ? AVISOS_DO_GOOGLE[aviso] : null;
+  const envios = emailConfigurado ? await ultimosEnvios() : [];
+  const falhas = emailConfigurado ? await falhasRecentes() : 0;
 
   const porProvedor = new Map(credenciais.filter((c) => c.ativa).map((c) => [c.provedor, c]));
 
@@ -87,6 +96,120 @@ export async function Configuracoes({ papel, aviso }: { papel: Papel; aviso?: st
           </p>
         </div>
       ) : null}
+
+      <Secao
+        titulo="E-mail"
+        apoio="Confirmação de formulário, aviso de lead novo, proposta e acesso ao painel. Sai pelo Resend, com o domínio da Psy Comunic."
+      >
+        <div className="cartao p-6">
+          {!emailConfigurado ? (
+            <>
+              <p className="font-display text-base font-bold">Falta a chave do Resend</p>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-cinza">
+                Sem ela, nada é enviado e nada quebra: o formulário continua gravando a
+                inscrição e o painel continua funcionando. O que não acontece é a
+                confirmação chegar na caixa de quem preencheu.
+              </p>
+              <pre className="mt-4 overflow-x-auto rounded-xl border border-fio bg-marinho-fundo p-4 font-mono text-xs text-neve">
+{`RESEND_API_KEY=re_...
+EMAIL_REMETENTE=Psy Comunic <contato@psycomunic.com.br>`}
+              </pre>
+              <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-cinza">
+                O endereço do remetente precisa ser do domínio verificado no Resend.
+                Remetente de fora dele volta recusado, com a mensagem certa no log.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="flex flex-wrap items-center gap-2 font-display text-base font-bold">
+                <span aria-hidden style={{ color: CORES_SITUACAO.saudavel }}>●</span>
+                Configurado
+              </p>
+              <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-3 border-t border-fio pt-4 text-sm">
+                <div>
+                  <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                    sai como
+                  </dt>
+                  <dd className="mt-0.5 break-all text-neve">{remetente}</dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                    resposta vai para
+                  </dt>
+                  <dd className="mt-0.5 break-all text-neve">{responderPara}</dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                    avisos internos
+                  </dt>
+                  <dd className="mt-0.5 break-all text-neve">{caixaDaAgencia}</dd>
+                </div>
+              </dl>
+
+              {falhas > 0 ? (
+                <p
+                  role="status"
+                  className="mt-5 rounded-xl border border-magenta/40 bg-magenta/10 px-4 py-3 text-sm text-magenta-texto"
+                >
+                  <span aria-hidden className="mr-1.5">■</span>
+                  {falhas === 1
+                    ? '1 e-mail falhou nos últimos sete dias.'
+                    : `${falhas} e-mails falharam nos últimos sete dias.`}{' '}
+                  O motivo de cada um está na lista abaixo.
+                </p>
+              ) : null}
+
+              {envios.length > 0 ? (
+                <ul className="mt-5 grid gap-3 border-t border-fio pt-5">
+                  {envios.map((e) => (
+                    <li key={e.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span
+                        aria-hidden
+                        style={{
+                          color:
+                            e.status === 'enviado'
+                              ? CORES_SITUACAO.saudavel
+                              : e.status === 'falhou'
+                                ? CORES_SITUACAO.critico
+                                : CORES_SITUACAO.sem_dado,
+                        }}
+                      >
+                        {e.status === 'enviado' ? '●' : e.status === 'falhou' ? '■' : '○'}
+                      </span>
+                      <span className="text-sm text-neve">
+                        {ROTULO_DO_TIPO[e.tipo] ?? e.tipo}
+                      </span>
+                      <span className="break-all font-mono text-xs text-cinza">
+                        {e.destino}
+                      </span>
+                      <span className="tabular ml-auto whitespace-nowrap font-mono text-xs text-cinza">
+                        {new Date(e.em).toLocaleString('pt-BR', {
+                          timeZone: 'America/Sao_Paulo',
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      {e.erro ? (
+                        <span className="w-full text-xs leading-relaxed text-magenta-texto">
+                          {e.erro}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-5 border-t border-fio pt-5 text-sm leading-relaxed text-cinza">
+                  Nenhum e-mail registrado ainda. A trilha começa no primeiro envio, e
+                  guarda tipo, destino e assunto. O corpo da mensagem nunca entra: o que a
+                  pessoa escreveu já está no lead dela.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </Secao>
 
       <Secao
         titulo="Google Agenda"

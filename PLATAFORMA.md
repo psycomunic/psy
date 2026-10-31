@@ -27,6 +27,7 @@ mesmo lugar.
 | CRM com kanban, funil e conversão de lead em cliente | **Funcionando** |
 | Ingestão de métrica: planilha, `/api/ingestao`, frescor | **Funcionando** |
 | Portal do cliente | **Construído** (é a mesma tela de métricas, com escopo do RLS) |
+| E-mail pelo Resend: confirmação de formulário, aviso de lead, proposta e acesso | **Funcionando** — ver seção 12 |
 | Conectores de Google Ads, Meta, GA4, Magazord e Shopify | **Não construídos** (FASE 4) |
 | Propostas, relatórios e configurações no painel | **Não construídos** |
 
@@ -566,15 +567,97 @@ onde toda navegação passa. Lembrete que exige abrir a tela certa não é lembr
 
 ### O que ainda não sai do painel
 
-Não há provedor de e-mail nem de WhatsApp configurado neste projeto. O aviso
-existe, é gerado na hora certa e aparece no sino — mas **não persegue ninguém
-fora da tela**.
+O lembrete **não persegue ninguém fora da tela**: ele é gerado na hora certa e
+aparece no sino, e pronto. Existe e-mail no projeto desde 31 de outubro de 2026
+(seção 12), mas lembrete por e-mail é outra decisão, e ela não foi tomada: um
+resumo diário na caixa de entrada é coisa que se liga quando alguém quer
+receber, não por padrão.
 
-A rotina já está no lugar onde um canal externo se encaixa: `gerar_lembretes()`
-devolve quantos avisos criou, e `/api/lembretes` é quem os dispara. Ligar
-e-mail ou WhatsApp é acrescentar o envio ali, e não repensar a decisão de "isto
-merece um aviso" — que fica num lugar só.
+A rotina já está no lugar onde esse envio se encaixa: `gerar_lembretes()`
+devolve quantos avisos criou, e `/api/lembretes` é quem os dispara. Acrescentar
+o e-mail ali não mexe na decisão de "isto merece um aviso", que continua num
+lugar só.
+
+WhatsApp continua fora: não há provedor configurado.
 
 Variáveis: `LEMBRETES_TOKEN` (disparo manual, cabeçalho `x-psy-token`) ou
 `CRON_SECRET` (o que a Vercel manda como `Authorization: Bearer`). Sem nenhum
 dos dois a rota responde 503 e não grava nada.
+
+---
+
+## 12. E-mail
+
+Entrou em 31 de outubro de 2026. Provedor: **Resend**, com o domínio da Psy
+Comunic verificado e os registros de DNS no lugar.
+
+### O que o sistema manda, e para quem
+
+| Quando | Vai para | Modelo |
+|---|---|---|
+| Inscrição na seleção de Bragança | quem preencheu | `inscricaoRecebida` |
+| Inscrição na seleção de Bragança | a agência | `avisoDeInscricao` |
+| Pedido de análise em `/trafego-pago` | quem preencheu, se deixou e-mail | `analiseRecebida` |
+| Pedido de análise em `/trafego-pago` | a agência | `avisoDeLead` |
+| Proposta publicada, por botão na lista | o cliente | `propostaPronta` |
+| Acesso criado em Equipe | o novo usuário | `acessoCriado` |
+
+Os seis vivem em `src/lib/email/modelos.ts`, e cada um devolve assunto, HTML e
+texto. Para ver todos sem mandar nada: `npm run testar-email`. Para mandar de
+verdade e conferir entrega: `npm run testar-email -- --enviar seu@email.com`.
+
+### Três regras
+
+**O e-mail nunca derruba a ação.** `enviarEmail` não levanta exceção em nenhum
+caminho. A inscrição é gravada primeiro e o e-mail sai depois, então provedor
+fora do ar vira "a confirmação não chegou", e não "o formulário não funciona".
+Oito segundos de prazo, pelo mesmo motivo que o Supabase tem seis.
+
+**A nota não sai.** A seleção de Bragança calcula uma nota de 0 a 100 por
+inscrição, e ela existe para a equipe ordenar a leitura. Vai no aviso interno e
+**nunca** no e-mail de quem se inscreveu. Há teste para isso, junto com os de
+voz da marca e de escape de HTML, em `modelos.teste.ts`.
+
+**Senha não vai por e-mail.** `convidarUsuario` recebe a senha digitada por
+quem cria o acesso, então ela existe e poderia ir. Não vai: caixa de e-mail
+guarda para sempre e vaza junto com a conta anos depois. O e-mail diz onde
+entrar e com qual login; a senha é combinada por WhatsApp.
+
+### O registro, e o segundo envio que não acontece
+
+`email_enviado` (migração 0049) guarda tipo, destino, assunto, status e o id do
+provedor. **Não guarda o corpo**: o que a pessoa escreveu já está no lead dela,
+e a segunda cópia é a que ninguém lembra de apagar quando chega pedido pela
+LGPD. Leitura só do administrador, por RLS; a escrita é da service role.
+
+A chave única em `(tipo, chave)` é o que impede o envio repetido, e a reserva
+acontece **antes** do envio: gravar depois deixaria a janela em que duas
+execuções simultâneas mandam as duas. As chaves em uso:
+
+- confirmação e aviso de inscrição: o **id do lead**. Como
+  `registrar_lead_do_site` devolve o mesmo lead quando o telefone repete em dez
+  minutos, clique duplo vira um e-mail só.
+- proposta: `id:versão:destino`. Reenviar a mesma versão não manda de novo;
+  editar sobe a versão e o reenvio passa, que é o caso de "corrigi o valor,
+  manda outra vez".
+- acesso: o id do usuário.
+
+Sem a migração aplicada o envio continua funcionando: a reserva falha, o código
+deixa passar e o e-mail sai. O que falta nesse estado é a trilha e a proteção
+contra duplicata.
+
+### Variáveis
+
+```
+RESEND_API_KEY=re_...
+EMAIL_REMETENTE=Psy Comunic <contato@psycomunic.com.br>
+EMAIL_AGENCIA=psycomunic@gmail.com
+EMAIL_RESPOSTA=psycomunic@gmail.com
+```
+
+Só `RESEND_API_KEY` é obrigatória, e sem ela nada é enviado e nada quebra. O
+remetente precisa ser do domínio verificado no Resend: de fora dele, a API
+recusa com a mensagem certa, que vai para o log e para o registro.
+
+O estado aparece em **Configurações**, com os últimos oito envios e a contagem
+de falhas dos últimos sete dias.

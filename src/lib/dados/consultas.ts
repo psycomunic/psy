@@ -924,7 +924,9 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
   const supabase = await clienteServidor();
   const { data, error } = await supabase
     .from('proposta')
-    .select('id, slug, cliente, contato, status, resumo, versao, corpo, emitida_em, validade_dias, perfil:criada_por(nome)')
+    .select(
+      'id, slug, cliente, contato, status, resumo, versao, corpo, emitida_em, validade_dias, perfil:criada_por(nome), lead:lead_id(email)',
+    )
     .order('criada_em', { ascending: false })
     .limit(60);
 
@@ -960,6 +962,8 @@ export async function listarPropostas(): Promise<Resposta<PropostaResumo[]>> {
           (Date.parse(`${vence}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86400000,
         ),
         autor: (p.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        emailDoLead:
+          (p.lead as unknown as { email: string | null } | null)?.email ?? null,
       };
     }),
   );
