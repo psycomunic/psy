@@ -71,11 +71,11 @@ type Celular = Partial<Pick<Camada, 'cx' | 'cy' | 'w' | 'desce'>>;
 
 const CAMADAS: (Camada & { cel?: Celular; m?: string })[] = [
   { id: 'palavra', prop: 0.2, z: -260, cx: 0.5, cy: 0.81, w: 0.98, cel: { cy: 0.64, w: 0.96 } },
-  { id: 'guaras', src: '/selecao/guaras.webp', m: '/selecao/guaras-m.webp', prop: 0.3421, z: -1350, cx: 0.64, cy: 0.19, w: 0.36, classe: 'sel-voo', cel: { cx: 0.55, cy: 0.47, w: 0.95 } },
+  { id: 'guaras', src: '/selecao/guaras.webp', m: '/selecao/guaras-m.webp', prop: 0.3421, z: -1350, cx: 0.46, cy: 0.14, w: 0.32, classe: 'sel-voo', cel: { cx: 0.5, cy: 0.33, w: 0.85 } },
   { id: 'mangue', src: '/selecao/mangue.webp', m: '/selecao/mangue-m.webp', prop: 0.6793, z: -1050, cx: 0.13, cy: 0.7, w: 0.46, classe: 'sel-balanca', giro: 0.4, balanco: 9, cel: { cx: 0.12, cy: 0.74, w: 1.05 } },
   { id: 'mangue-2', src: '/selecao/mangue.webp', m: '/selecao/mangue-m.webp', prop: 0.6793, z: -820, cx: 0.93, cy: 0.76, w: 0.4, espelho: true, classe: 'sel-balanca', giro: 0.5, balanco: 11, cel: { cx: 0.98, cy: 0.79, w: 0.95 } },
-  { id: 'acai', src: '/selecao/acaizeiro.webp', m: '/selecao/acaizeiro-m.webp', prop: 1.8422, z: -620, cx: 0.85, cy: 0.66, w: 0.25, classe: 'sel-balanca', giro: 0.8, balanco: 7, cel: { cx: 0.92, cy: 0.66, w: 0.6 } },
-  { id: 'acai-2', src: '/selecao/acaizeiro.webp', m: '/selecao/acaizeiro-m.webp', prop: 1.8422, z: -430, cx: 0.04, cy: 0.64, w: 0.22, espelho: true, classe: 'sel-balanca', giro: 1, balanco: 8, cel: { cx: 0.0, cy: 0.66, w: 0.55 } },
+  { id: 'acai', src: '/selecao/acaizeiro.webp', m: '/selecao/acaizeiro-m.webp', prop: 1.8422, z: -620, cx: 0.94, cy: 0.68, w: 0.22, classe: 'sel-balanca', giro: 0.8, balanco: 7, cel: { cx: 0.92, cy: 0.66, w: 0.6 } },
+  { id: 'acai-2', src: '/selecao/acaizeiro.webp', m: '/selecao/acaizeiro-m.webp', prop: 1.8422, z: -430, cx: 0.02, cy: 0.66, w: 0.2, espelho: true, classe: 'sel-balanca', giro: 1, balanco: 8, cel: { cx: 0.0, cy: 0.66, w: 0.55 } },
   { id: 'capim', src: '/selecao/capim-aninga.webp', m: '/selecao/capim-aninga-m.webp', prop: 0.3468, z: -320, cx: 0.5, cy: 1.0, w: 1.25, classe: 'sel-balanca', giro: 0.35, balanco: 6, cel: { cy: 0.98, w: 2.6 } },
   { id: 'galho', src: '/selecao/galho-mangueira.webp', m: '/selecao/galho-mangueira-m.webp', prop: 0.7112, z: -190, cx: 0.17, cy: -0.04, w: 0.6, desce: 0.2, classe: 'sel-balanca sel-balanca--cima', giro: 1.2, balanco: 6.5, cel: { cx: 0.22, cy: -0.06, w: 1.35, desce: 0.3 } },
   /* Algumas folhas NA FRENTE da palavra: ela fica entre as plantas, mas legível. */
@@ -204,8 +204,8 @@ export function CenaCaete() {
       if (fundo.current) {
         const s = 1 + (menos ? 0.04 : p * 0.1 + alvoP2 * 0.05);
         const W = Number(fundo.current.dataset.w || 0);
-        /* no celular: da lua (31% da foto) até a igreja (60%) */
-        const tx = W ? -(W * (0.3 + 0.3 * (menos ? 0.5 : p)) - vw / 2) : 0;
+        /* no celular: da igreja (56% da foto) até a lua (76%) */
+        const tx = W ? -(W * (0.54 + 0.22 * (menos ? 0.5 : p)) - vw / 2) : 0;
         fundo.current.style.transform = `translate3d(${tx - smx * 10}px, ${-p * vh * 0.03 - smy * 6}px, 0) scale(${s})`;
       }
       for (const c of CAMADAS) {

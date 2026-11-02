@@ -401,16 +401,19 @@ o celular**:
   verdade na mão. O fallback de 6 s revelando o elemento sem checar isso era
   metade do defeito.
 
-**Corte o vídeo na ação.** A curva de brilho médio do original subia até
-2,5 s e ficava plana depois: 3 segundos de imagem parada que, amarrados à
-rolagem, viravam mais da metade do capítulo sem nada acontecendo. Medir
-antes de encodar:
+**Meça a curva de brilho antes de encodar, e corte o vídeo na ação.** A
+rolagem inteira é mapeada na duração inteira do arquivo, então todo segundo
+em que a cena não muda vira rolagem morta. A primeira versão das fachadas
+terminava de acender em 2,5 s dos 5,5 s: mais da metade do capítulo sem nada
+acontecendo, e ninguém percebeu olhando.
 
 ```
 ffmpeg -i entrada.mp4 -vf "scale=160:90,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" -f null -
 ```
 
-Cortar na ação levou o vídeo do computador de 19 MB para 10 MB de quebra.
+Curva que sobe e fica plana é vídeo para cortar. Curva que sobe até o fim
+é vídeo inteiro, que é o caso do arquivo de hoje (5,6 s, 168 quadros,
+11,5 MB).
 
 **Confira medindo, nunca olhando:** `npm run medir-fachadas` (com o
 `npm run dev` de pé noutro terminal) abre iPhone, Android e notebook e

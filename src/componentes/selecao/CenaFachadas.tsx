@@ -37,13 +37,18 @@ import { Seta } from './CenaCaete';
  * degraus, e degrau é exatamente o que uma luz que acende faz.
  *
  * ============================================================
- * POR QUE SÃO 2,5 SEGUNDOS, E NÃO 5,5
+ * TROCOU O VÍDEO? MEÇA A CURVA DE BRILHO ANTES
  * ============================================================
- * A curva de brilho médio do vídeo original sobe até 2,5 s e depois
- * fica plana: os últimos 3 segundos eram imagem parada. Amarrados à
- * rolagem, viravam mais da metade do capítulo sem nada acontecendo. O
- * arquivo foi cortado na ação, o que de quebra levou o vídeo do
- * computador de 19 MB para 10 MB.
+ * A rolagem inteira é mapeada na duração inteira do arquivo, então
+ * todo segundo em que a cena não muda vira rolagem morta. A primeira
+ * versão das fachadas terminava de acender em 2,5 s dos 5,5 s: mais da
+ * metade do capítulo sem nada acontecendo, e ninguém percebeu olhando.
+ * A curva de brilho médio percebe. A receita está em ARQUITETURA.md,
+ * na seção Scroll Cinema.
+ *
+ * O arquivo de hoje (5,6 s, 168 quadros, 11,5 MB) usa a duração toda:
+ * as dez lojas acendem até o fim, e a última, "SUA EMPRESA", fica
+ * fechada. Nada a cortar. Se entrar outro vídeo, meça de novo.
  *
  * Defesas do Scroll Cinema (não regridam):
  * - `public/video/selecao-fachadas.mp4` tem TODO quadro como keyframe.

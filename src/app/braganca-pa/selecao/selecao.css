@@ -102,11 +102,11 @@
 .sel-fundo {
   position: absolute; inset: -6% -6% -6% -6%;
   background-position: 50% 45%; background-size: cover;
-  transform-origin: 34% 38%;
+  transform-origin: 62% 36%;
   will-change: transform;
 }
 .sel-fundo::after { /* a lua respira */
-  content: ''; position: absolute; left: 31%; top: 30%; width: 22vmax; height: 22vmax; border-radius: 50%;
+  content: ''; position: absolute; left: 76%; top: 21%; width: 22vmax; height: 22vmax; border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(228, 21, 95, .22), rgba(228, 21, 95, 0) 62%);
   animation: sel-respira 6s ease-in-out infinite;
