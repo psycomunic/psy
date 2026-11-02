@@ -16,6 +16,8 @@ import {
   responderPara,
 } from '@/lib/email/remetente';
 import { ultimosEnvios, falhasRecentes, ROTULO_DO_TIPO } from '@/lib/email/registro';
+import { TesteDeEmail } from '../TesteDeEmail';
+import { sessaoAtual } from '@/lib/supabase/servidor';
 import { FormCredencial, BotaoDesligarCredencial } from '../FormCredencial';
 import { BotaoSincronizar } from '../FormFonte';
 import { CORES_SITUACAO } from '../paleta';
@@ -71,6 +73,9 @@ export async function Configuracoes({ papel, aviso }: { papel: Papel; aviso?: st
   const recado = aviso ? AVISOS_DO_GOOGLE[aviso] : null;
   const envios = emailConfigurado ? await ultimosEnvios() : [];
   const falhas = emailConfigurado ? await falhasRecentes() : 0;
+  /* O teste vai para a caixa de quem está logado, e para mais
+     ninguém. `sessaoAtual` é cacheada por requisição. */
+  const sessao = emailConfigurado ? await sessaoAtual() : null;
 
   const porProvedor = new Map(credenciais.filter((c) => c.ativa).map((c) => [c.provedor, c]));
 
@@ -206,6 +211,8 @@ EMAIL_REMETENTE=Psy Comunic <contato@psycomunic.com.br>`}
                   pessoa escreveu já está no lead dela.
                 </p>
               )}
+
+              {sessao ? <TesteDeEmail destino={sessao.email} /> : null}
             </>
           )}
         </div>

@@ -475,3 +475,63 @@ Psy Comunic · WhatsApp ${whatsappEscrito} · ${SITE}`;
 
   return { assunto, html, texto };
 }
+
+/* ================================================================== */
+/* 7. Teste de configuração                                           */
+/* ================================================================== */
+
+/**
+ * O e-mail que não comunica nada: só prova que o caminho existe.
+ *
+ * Ele existe porque "a confirmação não chegou" tem quatro causas com o
+ * mesmo sintoma: a chave não está no servidor, o domínio não passou no
+ * Resend, o remetente é de fora do domínio, ou chegou e caiu em spam.
+ * As três primeiras o Resend responde por escrito; a quarta só aparece
+ * olhando a caixa. Um envio sob demanda, disparado por quem está no
+ * painel, separa as quatro em um clique.
+ *
+ * Por isso o texto diz, em letras grandes, que é um teste: se ele
+ * escapar para a caixa de um cliente algum dia, não vai parecer uma
+ * mensagem de verdade mal escrita.
+ */
+export function testeDeEnvio({ quem }: { quem: string }): Modelo {
+  const primeiro = quem.trim().split(/\s+/)[0];
+  const assunto = 'Teste de envio do painel da Psy Comunic';
+
+  const corpo = [
+    rotulo('Teste'),
+    titulo('O envio de e-mail está funcionando.'),
+    paragrafo(
+      `Olá, ${esc(primeiro)}. Esta mensagem foi disparada do painel para conferir a configuração do Resend, e não é aviso de nada.`,
+    ),
+    paragrafo(
+      'Se ela chegou na caixa de entrada, o caminho inteiro está de pé: a chave no servidor, o domínio verificado e o remetente aceito. Se tiver caído em promoções ou em spam, vale marcar como "não é spam" uma vez, que é o que ensina o filtro.',
+      CORES.cinza,
+    ),
+    separador(),
+    paragrafo(
+      'Os e-mails de verdade são quatro: a confirmação de quem preenche um formulário, o aviso interno de lead novo, a proposta comercial e o acesso ao painel.',
+      CORES.cinza,
+    ),
+  ].join('\n');
+
+  const html = casca({
+    assunto,
+    preheader: 'Disparado do painel para conferir a configuração. Não é aviso de nada.',
+    corpo,
+    rodape: rodapeInterno('/painel/configuracoes'),
+  });
+
+  const texto = `TESTE
+O envio de e-mail está funcionando.
+
+Olá, ${primeiro}. Esta mensagem foi disparada do painel para conferir a configuração do Resend, e não é aviso de nada.
+
+Se ela chegou na caixa de entrada, o caminho inteiro está de pé: a chave no servidor, o domínio verificado e o remetente aceito. Se tiver caído em promoções ou em spam, vale marcar como "não é spam" uma vez, que é o que ensina o filtro.
+
+Os e-mails de verdade são quatro: a confirmação de quem preenche um formulário, o aviso interno de lead novo, a proposta comercial e o acesso ao painel.
+
+Aviso automático do painel · ${SITE}/painel/configuracoes`;
+
+  return { assunto, html, texto };
+}

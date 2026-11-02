@@ -7,6 +7,7 @@ import {
   avisoDeLead,
   propostaPronta,
   acessoCriado,
+  testeDeEnvio,
   type Modelo,
 } from './modelos.ts';
 
@@ -79,6 +80,14 @@ const TODOS: { nome: string; modelo: Modelo; paraFora: boolean }[] = [
       login: 'carla@aurora.com.br',
       papel: 'Cliente',
     }),
+    paraFora: true,
+  },
+  {
+    nome: 'testeDeEnvio',
+    modelo: testeDeEnvio({ quem: 'Angelo Garcia' }),
+    /* Vai para a caixa da agência, mas entra como "para fora" de
+       propósito: as regras mais rígidas também valem para ele, e um dia
+       alguém vai mandar esse teste para a caixa de um cliente. */
     paraFora: true,
   },
 ];
@@ -207,4 +216,13 @@ test('o nome que aparece é o primeiro, e não o nome inteiro', () => {
   const m = inscricaoRecebida({ nome: 'Maria Aparecida de Souza', empresa: 'Padaria' });
   assert.match(m.texto, /Olá, Maria\./);
   assert.ok(!m.texto.includes('Olá, Maria Aparecida de Souza'));
+});
+
+test('o teste de envio se identifica como teste', () => {
+  /* Um e-mail automático que não diz o que é parece aviso de verdade
+     mal escrito. Este diz, no assunto e na primeira linha. */
+  const m = testeDeEnvio({ quem: 'Angelo Garcia' });
+  assert.match(m.assunto, /[Tt]este/);
+  assert.match(m.texto, /não é aviso de nada/);
+  assert.match(m.texto, /Olá, Angelo\./);
 });

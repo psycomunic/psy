@@ -34,6 +34,7 @@ export const ROTULO_DO_TIPO: Record<string, string> = {
   aviso_lead: 'Aviso de lead do site',
   proposta_enviada: 'Proposta',
   acesso_criado: 'Acesso ao painel',
+  teste: 'Teste de configuração',
 };
 
 export async function ultimosEnvios(quantos = 8): Promise<EnvioRegistrado[]> {

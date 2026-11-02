@@ -601,8 +601,9 @@ Comunic verificado e os registros de DNS no lugar.
 | Pedido de análise em `/trafego-pago` | a agência | `avisoDeLead` |
 | Proposta publicada, por botão na lista | o cliente | `propostaPronta` |
 | Acesso criado em Equipe | o novo usuário | `acessoCriado` |
+| Botão em Configurações | a caixa de quem clicou | `testeDeEnvio` |
 
-Os seis vivem em `src/lib/email/modelos.ts`, e cada um devolve assunto, HTML e
+Os sete vivem em `src/lib/email/modelos.ts`, e cada um devolve assunto, HTML e
 texto. Para ver todos sem mandar nada: `npm run testar-email`. Para mandar de
 verdade e conferir entrega: `npm run testar-email -- --enviar seu@email.com`.
 
@@ -661,3 +662,20 @@ recusa com a mensagem certa, que vai para o log e para o registro.
 
 O estado aparece em **Configurações**, com os últimos oito envios e a contagem
 de falhas dos últimos sete dias.
+
+### Por que existe um botão de teste no painel
+
+Em 31 de outubro de 2026 a primeira inscrição de Bragança foi gravada e a
+confirmação não saiu. Descobrir o motivo exigiu consultar o banco pela service
+role e procurar o log da Vercel, que no plano Hobby retém uma hora e já havia
+expirado. A causa estava numa variável de ambiente da produção, e não havia
+nenhuma forma de perguntar à produção se ela estava lá.
+
+O botão **Enviar um teste para mim** é essa pergunta. Ele roda onde o e-mail de
+verdade roda, com a mesma chave e o mesmo remetente, e devolve a resposta do
+Resend palavra por palavra: "domain is not verified" e "API key is invalid" são
+diagnósticos diferentes que não se adivinha a partir de "não chegou".
+
+Vai só para o endereço da sessão, nunca para um campo digitado. Um campo livre
+ali transformaria o painel em disparador de e-mail com o domínio da agência no
+remetente. Administrador, e só para si mesmo. Em `acoes-email.ts`.

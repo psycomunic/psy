@@ -35,6 +35,7 @@ import {
   avisoDeLead,
   propostaPronta,
   acessoCriado,
+  testeDeEnvio,
 } from '../src/lib/email/modelos.ts';
 
 const env = {};
@@ -116,6 +117,10 @@ const MODELOS = {
       login: 'carla@exemplo.com.br',
       papel: 'Cliente',
     }),
+  },
+  teste: {
+    titulo: 'Teste de configuração',
+    modelo: testeDeEnvio({ quem: 'Angelo Exemplo' }),
   },
 };
 
