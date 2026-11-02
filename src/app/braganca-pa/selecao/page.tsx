@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { Onest } from 'next/font/google';
+import { Onest, Montserrat } from 'next/font/google';
 import { selecao as s } from '@/conteudo/selecao-braganca';
 import { CenaCaete, Seta } from '@/componentes/selecao/CenaCaete';
-import { CenaCadeiras } from '@/componentes/selecao/CenaCadeiras';
+import { CenaFachadas } from '@/componentes/selecao/CenaFachadas';
 import { FormularioSelecao } from '@/componentes/selecao/FormularioSelecao';
 import { Interacoes } from '@/componentes/selecao/Interacoes';
 import './selecao.css';
@@ -27,6 +27,15 @@ const onest = Onest({
   variable: '--font-onest',
   subsets: ['latin'],
   weight: ['200', '300', '400', '500', '600'],
+  display: 'swap',
+});
+
+/* Títulos: Montserrat mesclando pesos (Light com Black), o mesmo
+   desenho das peças da Psy Comunic no Instagram. Corpo segue Onest. */
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
+  subsets: ['latin'],
+  weight: ['300', '400', '800', '900'],
   display: 'swap',
 });
 
@@ -76,7 +85,7 @@ function Cabeca({ numero, rotulo }: { numero: string; rotulo: string }) {
 
 export default function PaginaSelecao() {
   return (
-    <div className={`sel sel-sem-js ${onest.variable}`}>
+    <div className={`sel sel-sem-js ${onest.variable} ${montserrat.variable}`}>
       <header className="sel-topo">
         <a href="#topo" className="sel-marca" aria-label="Psy Comunic, voltar ao topo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -187,8 +196,8 @@ export default function PaginaSelecao() {
           </ol>
         </section>
 
-        {/* 04 · As 10 vagas (scroll cinema) */}
-        <CenaCadeiras />
+        {/* 04 · As 10 vagas: fachadas acendendo (scroll cinema) */}
+        <CenaFachadas />
 
         {/* 05 · Para quem é */}
         <section className="sel-cap" aria-labelledby="sel-quem">

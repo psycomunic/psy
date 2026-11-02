@@ -32,7 +32,8 @@ export const selecao = {
 
   heroi: {
     rotulo: 'Bragança, PA · Seleção aberta',
-    linhas: ['10 empresas.', 'Marketing feito', 'pela Psy.'],
+    /* Montserrat mesclada: a primeira linha leve, a segunda pesada. */
+    linhas: ['10 empresas de Bragança', 'vão vender mais.'],
     destaque: 'Sem pagar agência.',
     texto:
       'A Psy Comunic vai escolher 10 empresas de Bragança e região para cuidar dos anúncios e fazer vender mais. O único investimento da empresa é o anúncio, pago direto para a Meta ou o Google.',
@@ -104,9 +105,9 @@ export const selecao = {
   vagas: {
     numero: '04',
     rotulo: 'As 10 vagas',
-    titulo: ['São 10 cadeiras.', 'Uma delas pode', 'ser sua.'],
+    titulo: ['São 10 portas.', 'Uma delas pode', 'ser a sua.'],
     texto:
-      'A equipe consegue acompanhar de perto um número limitado de empresas. Por isso a seleção: entra quem tem estrutura para atender os clientes que os anúncios vão trazer.',
+      'Cada loja que acende é uma empresa da região escolhida para o projeto. A equipe acompanha de perto um número limitado de empresas, por isso a seleção: entra quem tem estrutura para atender os clientes que os anúncios vão trazer.',
     contador: 'vagas abertas',
   },
 

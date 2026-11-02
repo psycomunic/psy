@@ -5,24 +5,26 @@ import { selecao } from '@/conteudo/selecao-braganca';
 import { Seta } from './CenaCaete';
 
 /**
- * Capítulo "As 10 vagas": a cena das cadeiras, amarrada à rolagem.
+ * Capítulo "As 10 vagas": as fachadas acendendo, amarradas à rolagem.
  *
- * Jornada: começa na sala de reunião vazia, de frente para o Caeté e a
- * lua magenta, com 10 cadeiras empurradas. A câmera recua enquanto
- * donos de negócio entram e sentam, até sobrar uma cadeira vazia em
- * primeiro plano. Quadros A/B e vídeo gerados no Google Flow (Veo 3.1).
+ * Jornada: uma fileira de 10 casarões coloniais de comércio, à noite,
+ * com as portas de aço fechadas e a lua magenta sobre os telhados. Uma
+ * a uma, da esquerda para a direita, as portas sobem e as lojas
+ * acendem, até sobrar só a última, fechada. Sem pessoas, de propósito:
+ * a primeira versão (empresários sentando numa sala de reunião) não
+ * tinha a cara do povo da cidade. Quadros A/B e vídeo no Google Flow.
  *
  * DETALHE TEMÁTICO: o contador de vagas abertas cai de 10 para 1 com o
  * mesmo progresso do vídeo. Fala do negócio da página: escassez real.
  *
  * Defesas do Scroll Cinema (não regridam):
- * - `public/video/selecao-cadeiras.mp4` tem TODO quadro como keyframe.
+ * - `public/video/selecao-fachadas.mp4` tem TODO quadro como keyframe.
  * - Lê readyState no bind, não confia só em loadedmetadata.
  * - document.hidden aplica direto, sem requestAnimationFrame.
  * - Carregamento com fallback de 6 s.
  * - Vídeo em caixa: tipografia em unidades cq (container-type: size).
  */
-export function CenaCadeiras() {
+export function CenaFachadas() {
   const v = selecao.vagas;
   const secao = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -46,6 +48,8 @@ export function CenaCadeiras() {
       if (duracao && vid) {
         const t = alvo * (duracao - 0.04);
         if (Math.abs(vid.currentTime - t) > 0.001) vid.currentTime = t;
+        /* celular em pé: a câmera acompanha as luzes da esquerda à direita */
+        vid.style.objectPosition = window.innerWidth < 900 ? `${(alvo * 100).toFixed(2)}% 50%` : '';
       }
       const vagas = Math.max(1, 10 - Math.floor(alvo * 9.999));
       if (numero.current) numero.current.textContent = String(vagas).padStart(2, '0');
@@ -112,15 +116,15 @@ export function CenaCadeiras() {
         <div className="sel-cadeiras-caixa">
           <video
             ref={video}
-            src="/video/selecao-cadeiras.mp4"
-            poster="/selecao/cadeiras-a.webp"
+            src="/video/selecao-fachadas.mp4"
+            poster="/selecao/fachadas-a.webp"
             muted
             playsInline
             preload="auto"
-            aria-label="Sala de reunião com dez cadeiras sendo ocupadas até sobrar uma"
+            aria-label="Dez lojas coloniais à noite acendendo uma a uma até sobrar uma fechada"
           />
           <div className="sel-cadeiras-carga" ref={carga}>
-            Preparando a sala
+            Acendendo a rua
           </div>
           <div className="sel-contador" aria-live="off">
             <b ref={numero}>10</b>

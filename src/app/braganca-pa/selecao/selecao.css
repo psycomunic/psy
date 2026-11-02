@@ -136,13 +136,13 @@
 /* a palavra gigante: BRAGANÇA atrás do mangue */
 .sel-palavra {
   display: inline-flex; gap: .04em;
-  font-weight: 600; letter-spacing: .02em; line-height: .8;
-  color: var(--osso);
+  font-family: var(--font-montserrat), sans-serif; font-weight: 800; letter-spacing: .02em; line-height: .8;
+  color: #f4f8f5;
   white-space: nowrap;
-  text-shadow: 0 0 60px rgba(5, 7, 10, .55);
+  text-shadow: 0 0 80px rgba(228, 21, 95, .35), 0 0 30px rgba(5, 7, 10, .5);
 }
 .sel-palavra span { display: inline-block; transform: translateY(70%); opacity: 0; transition: transform 1.4s var(--curva-sai), opacity 1.2s var(--curva); }
-.sel-palavra.is-subiu span { transform: none; opacity: .94; }
+.sel-palavra.is-subiu span { transform: none; opacity: 1; }
 
 .sel-grao {
   position: fixed; inset: -1px; z-index: 60; pointer-events: none; opacity: .06; mix-blend-mode: overlay;
@@ -168,20 +168,26 @@
 /* ================================================================ HERÓI */
 .sel-heroi { position: relative; z-index: 2; height: 320vh; }
 .sel-heroi-fixo { position: sticky; top: 0; height: 100vh; height: 100svh; }
+/* O degradê que segura o título: escuro só do lado do texto, para a
+   escrita não se misturar com as folhas. Some junto com o texto. */
+.sel-heroi-sombra {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 58% 62% at 16% 36%, rgba(4, 6, 10, .9) 0%, rgba(4, 6, 10, .74) 45%, rgba(4, 6, 10, 0) 100%),
+    linear-gradient(180deg, rgba(4, 6, 10, .45) 0%, transparent 22%);
+}
 .sel-heroi-texto {
   position: absolute; left: var(--pad); top: clamp(96px, 16vh, 150px);
   max-width: min(640px, 86vw);
 }
-.sel-heroi-texto::before { /* sombra que segura o texto sobre a cena */
-  content: ''; position: absolute; inset: -40% -30% -30% -40%; z-index: -1; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(4, 6, 10, .62), transparent);
-}
 .sel-heroi-texto h1 {
-  margin: var(--e3) 0 var(--e3); font-size: clamp(34px, 3.7vw, 62px); font-weight: 400;
-  line-height: .98; letter-spacing: -.02em; text-transform: uppercase;
+  margin: var(--e3) 0 var(--e4); font-family: var(--font-montserrat), sans-serif;
+  font-size: clamp(34px, 4vw, 66px); font-weight: 300; line-height: 1.02; letter-spacing: -.02em;
+  text-shadow: 0 2px 30px rgba(3, 6, 8, .6);
 }
 .sel-heroi-texto h1 span { display: block; }
-.sel-heroi-texto h1 em { display: block; font-style: normal; color: var(--magenta); font-weight: 500; }
+.sel-heroi-texto h1 span + span { font-weight: 900; }
+.sel-heroi-texto h1 em { display: block; font-style: normal; color: var(--magenta); font-weight: 900; }
 .sel-heroi-texto p { margin: 0 0 var(--e4); max-width: 44ch; color: var(--osso-2); font-size: 15px; text-shadow: 0 1px 16px rgba(3, 6, 8, .9); }
 .sel-vertical {
   position: absolute; right: var(--pad); top: 50%; transform: translateY(-50%);
@@ -202,10 +208,15 @@
 .sel-dica i { width: 40px; height: 1px; background: var(--linha); position: relative; overflow: hidden; }
 .sel-dica i::after { content: ''; position: absolute; inset: 0; background: var(--osso); transform: scaleX(var(--p, 0)); transform-origin: 0 50%; }
 .sel-heroi-dois {
-  position: absolute; right: var(--pad); bottom: clamp(120px, 20vh, 200px); max-width: 520px; text-align: right;
+  position: absolute; left: var(--pad); bottom: clamp(120px, 20vh, 200px); max-width: 560px;
   opacity: 0;
 }
-.sel-heroi-dois h2 { margin: 0 0 var(--e2); font-size: var(--t-xl); font-weight: 300; line-height: 1; letter-spacing: -.02em; text-transform: uppercase; }
+.sel-heroi-dois::before {
+  content: ''; position: absolute; inset: -60% -40% -50% -30%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(4, 6, 10, .78), rgba(4, 6, 10, 0));
+}
+.sel-heroi-dois h2 { margin: 0 0 var(--e2); font-family: var(--font-montserrat), sans-serif; font-size: var(--t-xl); font-weight: 300; line-height: 1.02; letter-spacing: -.025em; text-shadow: 0 2px 30px rgba(3, 6, 8, .7); }
+.sel-heroi-dois h2 b { font-weight: 900; color: var(--magenta); }
 .sel-heroi-dois p { margin: 0; color: var(--osso-2); }
 
 /* ================================================================ CAPÍTULOS */
@@ -219,9 +230,9 @@
 .sel-cap-cabeca .sel-rotulo::before { display: none; }
 .sel-cap-cabeca span:last-child { font-size: var(--t-xs); letter-spacing: .3em; color: var(--mudo); text-transform: uppercase; }
 .sel-grade { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 120px); align-items: start; }
-.sel-titulo { margin: 0; font-size: var(--t-xl); font-weight: 300; line-height: 1.02; letter-spacing: -.02em; text-transform: uppercase; }
+.sel-titulo { margin: 0; font-family: var(--font-montserrat), sans-serif; font-size: var(--t-xl); font-weight: 300; line-height: 1.04; letter-spacing: -.025em; }
 .sel-titulo span { display: block; }
-.sel-titulo span:last-child { color: var(--osso-2); }
+.sel-titulo span:last-child { font-weight: 900; }
 .sel-corpo p { margin: 0 0 var(--e3); color: var(--osso-2); font-size: var(--t-l); line-height: 1.6; max-width: 56ch; }
 .sel-corpo p:first-child { color: var(--osso); }
 
@@ -315,9 +326,9 @@
 
 /* final */
 .sel-final { position: relative; z-index: 2; min-height: 100vh; display: grid; align-content: center; justify-items: center; text-align: center; gap: var(--e4); padding: var(--e16) var(--pad); }
-.sel-final h2 { margin: 0; font-size: var(--t-xxl); font-weight: 300; line-height: .92; letter-spacing: -.03em; text-transform: uppercase; }
+.sel-final h2 { margin: 0; font-family: var(--font-montserrat), sans-serif; font-size: var(--t-xxl); font-weight: 300; line-height: .98; letter-spacing: -.035em; }
 .sel-final h2 span { display: block; }
-.sel-final h2 span:last-child { color: var(--magenta); }
+.sel-final h2 span:last-child { color: var(--magenta); font-weight: 900; }
 .sel-final p { margin: 0; color: var(--osso-2); }
 
 .sel-rodape { position: relative; z-index: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e3); padding: var(--e4) var(--pad); border-top: 1px solid var(--linha); background: var(--tinta); font-size: var(--t-s); color: var(--mudo); }
@@ -396,20 +407,37 @@ textarea.sel-campo { resize: none; min-height: 120px; font-size: 20px; line-heig
 
 /* ================================================================ celular */
 @media (max-width: 900px) {
+  .sel-heroi { height: 270vh; }
+  .sel-heroi-sombra {
+    background: radial-gradient(ellipse 120% 52% at 40% 26%, rgba(4, 6, 10, .92) 0%, rgba(4, 6, 10, .76) 50%, rgba(4, 6, 10, 0) 100%);
+  }
+  .sel-heroi-texto { top: 88px; }
+  .sel-heroi-texto p { font-size: 14px; margin-bottom: var(--e3); }
+  .sel-heroi-texto .sel-botao { padding: 15px 22px; font-size: 11px; }
+  .sel-capitulos { bottom: 92px; }
   .sel-grade, .sel-plataformas, .sel-quem { grid-template-columns: 1fr; }
   .sel-numeros { grid-template-columns: repeat(2, 1fr); }
   .sel-numeros div { padding-bottom: var(--e3); }
   .sel-lista li { grid-template-columns: 40px minmax(0, 1fr); }
   .sel-lista li p { grid-column: 2; }
   .sel-lista li em { grid-column: 2; text-align: left; }
-  .sel-cadeiras { height: 300vh; }
-  .sel-cadeiras-fixo { grid-template-columns: 1fr; align-content: center; gap: var(--e3); }
-  .sel-cadeiras-texto { order: 2; }
+  /* No celular a rua ocupa a tela inteira e a câmera anda junto com
+     as luzes, da primeira loja até a última. */
+  .sel-cadeiras { height: 320vh; }
+  .sel-cadeiras-fixo { display: block; padding: 0; }
+  .sel-cadeiras-caixa { position: absolute; inset: 0; aspect-ratio: auto; border-radius: 0; border: 0; box-shadow: none; }
+  .sel-cadeiras-caixa::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, rgba(4, 6, 10, .7) 0%, transparent 26%, transparent 46%, rgba(4, 6, 10, .92) 78%); }
+  .sel-cadeiras-texto { position: absolute; z-index: 4; left: var(--pad); right: var(--pad); bottom: 104px; }
   .sel-cadeiras-texto p { display: none; }
-  .sel-cadeiras-texto .sel-titulo { font-size: 26px; margin: var(--e1) 0 0; }
+  .sel-cadeiras-texto .sel-titulo { font-size: 30px; margin: var(--e1) 0 var(--e2); }
+  .sel-cadeiras-texto .sel-botao { padding: 14px 20px; font-size: 11px; }
+  .sel-contador { top: 84px; bottom: auto; right: var(--pad); gap: 8px; }
+  .sel-contador b { font-size: 72px; }
+  .sel-contador small { font-size: 9px; }
   .sel-vertical { display: none; }
   .sel-capitulos ol { display: none; }
-  .sel-heroi-dois { left: var(--pad); text-align: left; bottom: 110px; }
+  .sel-heroi-dois { left: var(--pad); bottom: 160px; }
   .sel-marca span { display: none; }
   .sel-topo .sel-botao { display: none; }
   .sel-opcoes--colunas { grid-template-columns: 1fr; }
