@@ -22,6 +22,7 @@
     "limpar-teste": "node scripts/limpar-teste.mjs",
     "conferir-consultas": "node scripts/conferir-consultas.mjs",
     "medir-painel": "node scripts/medir-painel.mjs",
+    "medir-fachadas": "node scripts/medir-fachadas.mjs",
     "testar-cobranca": "node scripts/testar-cobranca.mjs",
     "testar-contratos": "node scripts/testar-contratos.mjs",
     "testar-financeiro": "node scripts/testar-financeiro.mjs",

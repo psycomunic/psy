@@ -366,4 +366,56 @@ não colapsa a altura da seção (reduz para 100vh e mostra o frame final).
 Sintomas e causas: engasga → não reencodou com keyint=1; nada acontece ao
 rolar → duração ficou 0 (leia `readyState`, não só `loadedmetadata`);
 pixelado → resolução abaixo de 1920; funciona no navegador e não no preview
-→ painel oculto sem `requestAnimationFrame`, ou reduced-motion colapsou o hero.
+→ painel oculto sem `requestAnimationFrame`, ou reduced-motion colapsou o
+hero; **preto no celular** → ver a seção abaixo.
+
+### Celular não recebe vídeo amarrado à rolagem
+
+Aprendido em 1 de novembro de 2026, na cena das fachadas da página de
+seleção. A cena abria preta no iPhone, sem nada.
+
+Duas causas somadas, e as duas valem para qualquer cena nova:
+
+1. **O Safari do iOS não pinta quadro nenhum de um vídeo que nunca tocou.**
+   Mexer em `currentTime` antes do primeiro `play()` não mostra nada. O
+   herói da home se defende com um `play()` seguido de `pause()` no primeiro
+   toque (ver o comentário em `HeroCinema.tsx`). Cena copiada de outra cena
+   costuma deixar essa defesa para trás, que foi exatamente o que houve.
+2. **Peso.** O arquivo tinha 19 MB. No 4G o `canplaythrough` não chega nos 6
+   segundos do fallback, a tela de carga sai e sobra o elemento de vídeo
+   vazio, que é preto.
+
+A correção não foi destravar o vídeo no celular. Foi **não mandar vídeo para
+o celular**:
+
+- `window.matchMedia('(hover: none), (max-width: 900px)')` decide, e o `src`
+  do vídeo entra por JavaScript, nunca como atributo no JSX. Atributo no
+  servidor baixa antes de qualquer decisão.
+- No lugar dele vai uma sequência de quadros WebP de 1280 px trocados pelo
+  progresso da rolagem. Doze quadros somam 1,8 MB contra 19 MB, e a rua
+  acende em degraus, que é o que uma luz que acende faz.
+- Embaixo do vídeo mora **sempre** uma imagem. Se o vídeo falhar em qualquer
+  lugar, a cena vira a sequência de quadros em vez de virar um retângulo
+  preto.
+- O vídeo só recebe `is-pronto` com `readyState >= 2`, ou seja, com quadro de
+  verdade na mão. O fallback de 6 s revelando o elemento sem checar isso era
+  metade do defeito.
+
+**Corte o vídeo na ação.** A curva de brilho médio do original subia até
+2,5 s e ficava plana depois: 3 segundos de imagem parada que, amarrados à
+rolagem, viravam mais da metade do capítulo sem nada acontecendo. Medir
+antes de encodar:
+
+```
+ffmpeg -i entrada.mp4 -vf "scale=160:90,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" -f null -
+```
+
+Cortar na ação levou o vídeo do computador de 19 MB para 10 MB de quebra.
+
+**Confira medindo, nunca olhando:** `npm run medir-fachadas` (com o
+`npm run dev` de pé noutro terminal) abre iPhone, Android e notebook e
+verifica que o celular não baixa o vídeo, que o quadro troca com a rolagem,
+que a tela de carga saiu e que no computador o `currentTime` anda. Captura de
+tela aqui seria inútil: o defeito que se procura **é** a tela preta, e
+headless com rolagem programática volta preto por conta própria neste
+projeto.

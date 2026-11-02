@@ -287,7 +287,11 @@
   border: 1px solid var(--linha); container-type: size;
   box-shadow: 0 40px 120px -40px rgba(228, 21, 95, .35);
 }
-.sel-cadeiras-caixa video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; }
+/* A imagem é o chão da cena: no celular ela É a cena, e no
+   computador segura o lugar até o vídeo ter quadro. Se o vídeo
+   nunca vier, o que fica é a rua, e não um retângulo preto. */
+.sel-cadeiras-quadro { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.sel-cadeiras-caixa video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; z-index: 1; }
 .sel-cadeiras-caixa video.is-pronto { opacity: 1; }
 .sel-cadeiras-carga { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--t-xs); letter-spacing: .3em; text-transform: uppercase; color: var(--mudo); background: #08080a; transition: opacity .6s; z-index: 2; }
 .sel-cadeiras-carga.is-fim { opacity: 0; pointer-events: none; }
