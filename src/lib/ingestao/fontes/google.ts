@@ -1,13 +1,10 @@
-import type { LinhaMetrica } from '../csv.ts';
+import type { LinhaMetrica, LinhaCampanha, ObjetivoCampanha } from '../csv.ts';
 
 /**
  * Google Ads e GA4.
  *
- * Ficam no mesmo arquivo porque compartilham a única parte chata: o
- * token de acesso do Google dura uma hora, e quem dura é o
- * `refresh_token`. Toda chamada começa trocando um pelo outro.
- *
- * Como na Meta, o mapeamento é puro e testado, e a chamada HTTP não é.
+ * Ficam no mesmo arquivo porque compartilham a troca de `refresh_token`
+ * por `access_token` de uma hora. O mapeamento é puro e testado.
  */
 
 const VERSAO_ADS = 'v18';
@@ -42,10 +39,6 @@ export async function tokenDeAcesso(s: SegredoGoogle): Promise<string> {
     | null;
 
   if (!r.ok || !corpo?.access_token) {
-    /* `invalid_grant` aqui quer dizer que o refresh token foi revogado
-       ou expirou — é o erro que aparece quando alguém tira o acesso do
-       app na conta Google. Repassar a mensagem crua poupa meia hora de
-       adivinhação no dia em que acontecer. */
     throw new Error(
       `Google OAuth: ${corpo?.error_description ?? corpo?.error ?? `HTTP ${r.status}`}`,
     );
@@ -60,12 +53,26 @@ export async function tokenDeAcesso(s: SegredoGoogle): Promise<string> {
 
 type LinhaAds = {
   segments?: { date?: string };
+  campaign?: {
+    id?: string | number;
+    name?: string;
+    status?: string;
+    advertisingChannelType?: string;
+  };
   metrics?: {
     costMicros?: string | number;
     clicks?: string | number;
     impressions?: string | number;
+    conversions?: string | number;
     conversionsValue?: string | number;
+    videoViews?: string | number;
+    interactions?: string | number;
   };
+};
+
+export type RespostaAdsCompleta = {
+  conta?: unknown;
+  campanhas?: unknown;
 };
 
 const num = (v: unknown): number => {
@@ -73,11 +80,36 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
+function extrairBlocos(resposta: unknown, chave?: 'conta' | 'campanhas'): unknown[] {
+  if (!resposta || typeof resposta !== 'object') return [];
+  if (chave && chave in (resposta as Record<string, unknown>)) {
+    const sub = (resposta as RespostaAdsCompleta)[chave];
+    if (!sub) return [];
+    return Array.isArray(sub) ? sub : [sub];
+  }
+  return Array.isArray(resposta) ? resposta : [resposta];
+}
+
+export function classificarObjetivoAds(
+  canalAds: string | undefined,
+  nomeCampanha: string | undefined,
+  conversoes: number,
+  valorConversao: number,
+  viewsVideo: number,
+): ObjetivoCampanha {
+  const tipo = (canalAds ?? '').toUpperCase();
+  const nome = (nomeCampanha ?? '').toLowerCase();
+
+  if (/whats|wpp|mensag|atendimento/.test(nome)) return 'mensagens';
+  if (valorConversao > 0) return 'vendas';
+  if (/lead|cadastro|captac|orcamento|agendamento/.test(nome) || conversoes > 0) return 'leads';
+  if (tipo === 'VIDEO' || viewsVideo > 0) return 'video';
+  if (tipo === 'DISPLAY') return 'alcance';
+  return 'trafego';
+}
+
 export function mapearAds(resposta: unknown): LinhaMetrica[] {
-  /* `searchStream` responde um ARRAY de blocos, cada um com `results`.
-     A versão não-stream responde um objeto só. Aceitar os dois evita
-     que trocar de endpoint quebre o mapeamento. */
-  const blocos = Array.isArray(resposta) ? resposta : [resposta];
+  const blocos = extrairBlocos(resposta, 'conta');
   const linhas: LinhaMetrica[] = [];
 
   for (const bloco of blocos) {
@@ -89,17 +121,23 @@ export function mapearAds(resposta: unknown): LinhaMetrica[] {
       if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) continue;
 
       const m = r.metrics ?? {};
+      const cliques = Math.round(num(m.clicks));
+      const conversoes = Math.round(num(m.conversions));
+      const receitaAtribuida = Number(num(m.conversionsValue).toFixed(2));
+      const temValorVenda = receitaAtribuida > 0;
 
       linhas.push({
         dia,
         canal: 'google',
-        /* Micros. 1.234.560 micros = R$ 1,23456, que arredonda para
-           R$ 1,23. Dividir errado aqui erra a verba por um fator de um
-           milhão, e o MER da conta iria para zero sem explicação. */
         investimento: Number((num(m.costMicros) / 1_000_000).toFixed(2)),
-        cliques: Math.round(num(m.clicks)),
+        cliques,
+        cliques_link: cliques,
         impressoes: Math.round(num(m.impressions)),
-        receita_atribuida: Number(num(m.conversionsValue).toFixed(2)),
+        receita_atribuida: receitaAtribuida,
+        compras_atribuidas: temValorVenda ? conversoes : 0,
+        leads_captados: !temValorVenda ? conversoes : 0,
+        visualizacoes_video: Math.round(num(m.videoViews)),
+        engajamentos: Math.round(num(m.interactions)),
       });
     }
   }
@@ -107,55 +145,74 @@ export function mapearAds(resposta: unknown): LinhaMetrica[] {
   return linhas;
 }
 
-export async function buscarAds({
-  segredo,
-  configuracao,
-  identificador,
-  de,
-  ate,
-}: {
-  segredo: SegredoGoogle;
-  configuracao: Record<string, unknown>;
-  identificador: string;
-  de: string;
-  ate: string;
-}): Promise<unknown> {
-  if (!segredo.developer_token) {
-    throw new Error('Google Ads: falta o developer token na credencial da agência.');
+export function mapearCampanhasAds(resposta: unknown): LinhaCampanha[] {
+  const blocos = extrairBlocos(resposta, 'campanhas');
+  const campanhas: LinhaCampanha[] = [];
+
+  for (const bloco of blocos) {
+    const results = (bloco as { results?: LinhaAds[] })?.results;
+    if (!Array.isArray(results)) continue;
+
+    for (const r of results) {
+      const dia = r.segments?.date;
+      if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) continue;
+
+      const id = String(r.campaign?.id ?? '').trim();
+      if (!id) continue;
+
+      const m = r.metrics ?? {};
+      const nome = (r.campaign?.name ?? '').trim() || `Campanha ${id}`;
+      const cliques = Math.round(num(m.clicks));
+      const conversoes = Math.round(num(m.conversions));
+      const receitaAtribuida = Number(num(m.conversionsValue).toFixed(2));
+      const viewsVideo = Math.round(num(m.videoViews));
+      const objetivo = classificarObjetivoAds(
+        r.campaign?.advertisingChannelType,
+        nome,
+        conversoes,
+        receitaAtribuida,
+        viewsVideo,
+      );
+
+      campanhas.push({
+        dia,
+        canal: 'google',
+        campanha_id: id,
+        campanha_nome: nome,
+        objetivo,
+        status_campanha: r.campaign?.status,
+        investimento: Number((num(m.costMicros) / 1_000_000).toFixed(2)),
+        impressoes: Math.round(num(m.impressions)),
+        alcance: 0,
+        cliques,
+        cliques_link: cliques,
+        visitas_pagina: 0,
+        conversas: objetivo === 'mensagens' ? conversoes : 0,
+        leads_captados: objetivo === 'leads' ? conversoes : 0,
+        compras_atribuidas: objetivo === 'vendas' ? conversoes : 0,
+        receita_atribuida: receitaAtribuida,
+        carrinhos: 0,
+        checkouts: 0,
+        engajamentos: Math.round(num(m.interactions)),
+        visualizacoes_video: viewsVideo,
+      });
+    }
   }
 
-  const cliente = identificador.replace(/\D/g, '');
-  if (!cliente) throw new Error('Google Ads: identificador da conta vazio ou inválido.');
+  return campanhas;
+}
 
-  const acesso = await tokenDeAcesso(segredo);
-
-  const cabecalhos: Record<string, string> = {
-    authorization: `Bearer ${acesso}`,
-    'developer-token': segredo.developer_token,
-    'content-type': 'application/json',
-  };
-
-  /* A conta gerenciadora (MCC) precisa se identificar, ou a API recusa
-     acesso à conta do cliente mesmo com o vínculo feito. */
-  const mcc = String(configuracao.login_customer_id ?? '').replace(/\D/g, '');
-  if (mcc) cabecalhos['login-customer-id'] = mcc;
-
-  const consulta = `
-    SELECT segments.date,
-           metrics.cost_micros,
-           metrics.clicks,
-           metrics.impressions,
-           metrics.conversions_value
-    FROM customer
-    WHERE segments.date BETWEEN '${de}' AND '${ate}'
-  `;
-
+async function consultarStream(
+  cliente: string,
+  cabecalhos: Record<string, string>,
+  query: string,
+): Promise<unknown> {
   const r = await fetch(
     `https://googleads.googleapis.com/${VERSAO_ADS}/customers/${cliente}/googleAds:searchStream`,
     {
       method: 'POST',
       headers: cabecalhos,
-      body: JSON.stringify({ query: consulta }),
+      body: JSON.stringify({ query }),
       cache: 'no-store',
     },
   );
@@ -173,17 +230,80 @@ export async function buscarAds({
   return corpo;
 }
 
+export async function buscarAds({
+  segredo,
+  configuracao,
+  identificador,
+  de,
+  ate,
+}: {
+  segredo: SegredoGoogle;
+  configuracao: Record<string, unknown>;
+  identificador: string;
+  de: string;
+  ate: string;
+}): Promise<RespostaAdsCompleta> {
+  if (!segredo.developer_token) {
+    throw new Error('Google Ads: falta o developer token na credencial da agência.');
+  }
+
+  const cliente = identificador.replace(/\D/g, '');
+  if (!cliente) throw new Error('Google Ads: identificador da conta vazio ou inválido.');
+
+  const acesso = await tokenDeAcesso(segredo);
+
+  const cabecalhos: Record<string, string> = {
+    authorization: `Bearer ${acesso}`,
+    'developer-token': segredo.developer_token,
+    'content-type': 'application/json',
+  };
+
+  const mcc = String(configuracao.login_customer_id ?? '').replace(/\D/g, '');
+  if (mcc) cabecalhos['login-customer-id'] = mcc;
+
+  const consultaConta = `
+    SELECT segments.date,
+           metrics.cost_micros,
+           metrics.clicks,
+           metrics.impressions,
+           metrics.conversions,
+           metrics.conversions_value,
+           metrics.video_views,
+           metrics.interactions
+    FROM customer
+    WHERE segments.date BETWEEN '${de}' AND '${ate}'
+  `;
+
+  const consultaCampanha = `
+    SELECT campaign.id,
+           campaign.name,
+           campaign.status,
+           campaign.advertising_channel_type,
+           segments.date,
+           metrics.cost_micros,
+           metrics.clicks,
+           metrics.impressions,
+           metrics.conversions,
+           metrics.conversions_value,
+           metrics.video_views,
+           metrics.interactions
+    FROM campaign
+    WHERE segments.date BETWEEN '${de}' AND '${ate}'
+      AND metrics.impressions > 0
+  `;
+
+  const [conta, campanhas] = await Promise.all([
+    consultarStream(cliente, cabecalhos, consultaConta),
+    consultarStream(cliente, cabecalhos, consultaCampanha).catch(() => []),
+  ]);
+
+  return { conta, campanhas };
+}
+
 /* ================================================================== */
 /* GA4                                                                */
 /* ================================================================== */
 
-/**
- * Do nome de canal do GA4 para o nosso.
- *
- * Precisa bater com o que o Google Ads e a Meta gravam, senão a mesma
- * origem vira duas linhas: uma com a sessão e outra com a verba, e o
- * ROAS por canal fica dividido pela metade em cada.
- */
 const CANAL_GA4: Record<string, string> = {
   'organic search': 'organico',
   'direct': 'direto',
@@ -220,10 +340,6 @@ export function mapearGa4(resposta: unknown): LinhaMetrica[] {
   const rows = (resposta as { rows?: LinhaGa4[] })?.rows;
   if (!Array.isArray(rows)) return [];
 
-  /* Um dia pode vir repartido em vários canais, e dois canais do GA4
-     podem cair no mesmo canal nosso — "Display" e "Cross-network" viram
-     os dois `google`. Somar aqui evita que o segundo sobrescreva o
-     primeiro na gravação. */
   const porChave = new Map<string, LinhaMetrica>();
 
   for (const r of rows) {

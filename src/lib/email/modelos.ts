@@ -535,3 +535,70 @@ Aviso automático do painel · ${SITE}/painel/configuracoes`;
 
   return { assunto, html, texto };
 }
+
+/* ================================================================== */
+/* 8. Relatório de desempenho para o cliente                          */
+/* ================================================================== */
+
+export function relatorioPronto({
+  cliente,
+  contato,
+  periodo,
+  resumo,
+  slug,
+  versao,
+}: {
+  cliente: string;
+  contato: string;
+  periodo: string;
+  resumo: string;
+  slug: string;
+  versao: number;
+}): Modelo {
+  const primeiro = (contato.trim().split(/\s+/)[0] || cliente).trim();
+  const assuntoBase = `Relatório da Psy Comunic para ${cliente}`;
+  const assunto = assuntoBase.length <= 70 ? assuntoBase : `Relatório de desempenho: ${cliente}`.slice(0, 70);
+  const url = `${SITE}/relatorio/${slug}?v=${versao}`;
+  const resumoLimpo = resumo
+    .replace(/—/g, ', ')
+    .replace(/R\$\s?[\d.,]+/gi, 'valor registrado no painel')
+    .replace(/\bfaturamento\b/gi, 'resultado');
+
+  const corpo = [
+    rotulo(`Relatório · ${periodo}`),
+    titulo(`Resultados da ${cliente}.`),
+    paragrafo(
+      `Olá, ${esc(primeiro)}. O relatório referente ao período de <strong style="color:${CORES.branco};">${esc(periodo)}</strong> está publicado e abre pelo link abaixo, inclusive com opção de salvar em PDF.`,
+    ),
+    resumoLimpo ? paragrafo(esc(resumoLimpo)) : '',
+    botao(url, 'Abrir o relatório completo'),
+    miudo('Os indicadores detalhados ficam dentro do documento privado. Qualquer dúvida, basta responder este e-mail.'),
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const html = casca({
+    assunto,
+    preheader: `Período ${periodo}. Abra o documento completo e os próximos passos da operação.`,
+    corpo,
+    rodape: rodapeExterno({
+      zap: zapGeral,
+      numero: whatsappEscrito,
+      porque: 'Você recebeu este e-mail porque acompanha os relatórios de desempenho da Psy Comunic.',
+    }),
+  });
+
+  const texto = `RELATÓRIO DE DESEMPENHO
+Período: ${periodo}
+Cliente: ${cliente}
+
+Olá, ${primeiro}. O relatório referente ao período de ${periodo} está publicado e abre por este link:
+
+${url}
+${resumoLimpo ? `\n${resumoLimpo}\n` : ''}
+Os indicadores detalhados, campanhas e próximos passos ficam dentro do documento privado, com opção de salvar em PDF. Qualquer dúvida, basta responder este e-mail.
+
+Psy Comunic · WhatsApp ${whatsappEscrito} · ${SITE}`;
+
+  return { assunto, html, texto };
+}

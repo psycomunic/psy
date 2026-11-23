@@ -28,14 +28,32 @@ export type ContaResumo = {
   id: string;
   nome: string;
   tipo: TipoConta;
+  perfilMetrica:
+    | 'automatico'
+    | 'whatsapp'
+    | 'leads'
+    | 'ecommerce'
+    | 'vendas_midia'
+    | 'branding'
+    | 'personalizado';
+  kpisVisiveis: string[] | null;
   segmento: string | null;
   plataforma: string | null;
   situacao: Situacao;
   receita: number;
+  receitaAtribuida: number;
   investimento: number;
+  conversas: number;
+  leadsCaptados: number;
+  comprasAtribuidas: number;
+  alcance: number;
+  cliquesLink: number;
   mer: number | null;
   metaAtingida: number | null;
   receitaMeta: number | null;
+  verbaMeta: number | null;
+  resultadoMeta: number | null;
+  custoResultadoTeto: number | null;
   receitaDiaNecessaria: number | null;
   variacaoReceita: number | null;
   ultimoDia: string | null;
@@ -50,7 +68,20 @@ export type DiaKpi = {
   pedidosAprovados: number;
   novosClientes: number;
   receita: number;
+  receitaAtribuida: number;
   investimento: number;
+  impressoes: number;
+  alcance: number;
+  cliques: number;
+  cliquesLink: number;
+  visitasPagina: number;
+  conversas: number;
+  leadsCaptados: number;
+  comprasAtribuidas: number;
+  carrinhos: number;
+  checkouts: number;
+  engajamentos: number;
+  visualizacoesVideo: number;
   mer: number | null;
   ticketMedio: number | null;
   cac: number | null;
@@ -62,11 +93,55 @@ export type DiaKpi = {
 export type CanalKpi = {
   canal: string;
   receita: number;
+  receitaAtribuida: number;
   investimento: number;
   pedidos: number;
+  conversas: number;
+  leadsCaptados: number;
+  comprasAtribuidas: number;
+  impressoes: number;
+  alcance: number;
+  cliques: number;
+  cliquesLink: number;
   roas: number | null;
+  roasDeclarado: number | null;
   cpc: number | null;
   ctr: number | null;
+};
+
+/** Desempenho acumulado por campanha dentro de um período. */
+export type CampanhaResumo = {
+  campanhaId: string;
+  campanhaNome: string;
+  provedor: string;
+  canal: string;
+  objetivo:
+    | 'mensagens'
+    | 'leads'
+    | 'vendas'
+    | 'trafego'
+    | 'alcance'
+    | 'engajamento'
+    | 'video'
+    | 'outro';
+  statusCampanha: string | null;
+  investimento: number;
+  impressoes: number;
+  alcance: number;
+  cliques: number;
+  cliquesLink: number;
+  visitasPagina: number;
+  conversas: number;
+  leadsCaptados: number;
+  comprasAtribuidas: number;
+  receitaAtribuida: number;
+  carrinhos: number;
+  checkouts: number;
+  engajamentos: number;
+  visualizacoesVideo: number;
+  ctr: number | null;
+  cpc: number | null;
+  cpm: number | null;
 };
 
 /** Marco no diário de bordo da conta. */
@@ -235,6 +310,9 @@ export type EstagioFunil = {
 export type ContaFicha = {
   id: string;
   nome: string;
+  tipo: TipoConta;
+  perfilMetrica: ContaResumo['perfilMetrica'];
+  kpisVisiveis: string[] | null;
   razaoSocial: string | null;
   documento: string | null;
   plataforma: string | null;
@@ -792,5 +870,116 @@ export type Postagem = {
   link: string | null;
   publicadoEm: string | null;
   arquivos: ArquivoDaPostagem[];
+  criadoEm: string;
+};
+
+/* ------------------------------------------------------------------ */
+/* Relatórios                                                          */
+/* ------------------------------------------------------------------ */
+
+export const BLOCOS_RELATORIO = [
+  'kpis',
+  'funil',
+  'serie',
+  'campanhas',
+  'canais',
+  'marcos',
+  'comercial',
+] as const;
+export type BlocoRelatorio = (typeof BLOCOS_RELATORIO)[number];
+
+export const rotuloBlocoRelatorio: Record<BlocoRelatorio, string> = {
+  kpis: 'Indicadores principais (KPIs)',
+  funil: 'Funil de conversão',
+  serie: 'Gráfico diário de evolução',
+  campanhas: 'Desempenho por campanha',
+  canais: 'Comparativo por canal',
+  marcos: 'Diário de bordo no período',
+  comercial: 'Fechamento comercial informado pelo cliente',
+};
+
+export type StatusRelatorio = 'rascunho' | 'publicado' | 'arquivado';
+
+export const rotuloStatusRelatorio: Record<StatusRelatorio, string> = {
+  rascunho: 'Rascunho',
+  publicado: 'Publicado',
+  arquivado: 'Arquivado',
+};
+
+export type ResultadoComercialRelatorio = {
+  vendasFechadas: number | null;
+  receitaFechada: number | null;
+  rotuloVenda?: string | null;
+  observacao?: string | null;
+};
+
+export type SnapshotRelatorio = {
+  geradoEm: string;
+  kpisVisiveis?: string[] | null;
+  cartoes: {
+    chave: string;
+    rotulo: string;
+    valor: string;
+    apoio?: string;
+    variacao: number | null;
+    invertido?: boolean;
+  }[];
+  funil: {
+    titulo: string;
+    apoio: string;
+    etapas: { rotulo: string; valor: string; apoio: string }[];
+    alerta?: { destaque: string; corpo: string } | null;
+  };
+  serie: DiaKpi[];
+  campanhas: CampanhaResumo[];
+  canais: CanalKpi[];
+  marcos: Marco[];
+  investimentoTotal: number;
+};
+
+export type RelatorioResumo = {
+  id: string;
+  contaId: string;
+  cliente: string;
+  segmento: string | null;
+  slug: string;
+  titulo: string;
+  contato: string | null;
+  periodoDe: string;
+  periodoAte: string;
+  perfilMetrica: Exclude<ContaResumo['perfilMetrica'], 'automatico'>;
+  status: StatusRelatorio;
+  versao: number;
+  resumoExecutivo: string;
+  acoesExecutadas: string[];
+  proximosPassos: string[];
+  blocosVisiveis: BlocoRelatorio[];
+  resultadoComercial: ResultadoComercialRelatorio | null;
+  snapshot: SnapshotRelatorio;
+  publicadoEm: string | null;
+  enviadoEm: string | null;
+  criadoEm: string;
+  autor: string | null;
+  emailContato: string | null;
+  whatsappContato: string | null;
+};
+
+export type RelatorioPublico = {
+  slug: string;
+  cliente: string;
+  segmento: string | null;
+  titulo: string;
+  contato: string | null;
+  periodoDe: string;
+  periodoAte: string;
+  perfilMetrica: Exclude<ContaResumo['perfilMetrica'], 'automatico'>;
+  versao: number;
+  resumoExecutivo: string;
+  acoesExecutadas: string[];
+  proximosPassos: string[];
+  blocosVisiveis: BlocoRelatorio[];
+  resultadoComercial: ResultadoComercialRelatorio | null;
+  snapshot: SnapshotRelatorio;
+  publicadoEm: string | null;
   criadoEm: string;
 };

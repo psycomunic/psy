@@ -1,6 +1,6 @@
 import 'server-only';
 import { clienteServico } from '@/lib/supabase/servico';
-import type { LinhaMetrica } from './csv';
+import type { LinhaMetrica, LinhaCampanha } from './csv';
 
 /**
  * A gravação de métrica, com registro do que aconteceu.
@@ -31,6 +31,7 @@ export async function gravarMetricas({
   contaId,
   provedor,
   linhas,
+  campanhas = [],
   origem,
   autorId = null,
   guardarBruto = true,
@@ -39,6 +40,7 @@ export async function gravarMetricas({
   contaId: string;
   provedor: string;
   linhas: LinhaMetrica[];
+  campanhas?: LinhaCampanha[];
   origem: Origem;
   autorId?: string | null;
   guardarBruto?: boolean;
@@ -153,6 +155,21 @@ export async function gravarMetricas({
   }
 
   const gravadas = Number(data ?? 0);
+
+  /* Grava também o detalhamento por campanha quando a fonte o trouxe.
+     Se a migração 0050 ainda não tiver rodado no banco, registra aviso
+     no console sem derrubar a sincronização diária da conta. */
+  if (campanhas.length > 0) {
+    const { error: erroCampanha } = await supabase.rpc('registrar_metricas_campanha', {
+      p_conta: contaId,
+      p_provedor: provedor,
+      p_campanhas: campanhas,
+    });
+    if (erroCampanha) {
+      console.warn('metrica_campanha:', erroCampanha.message);
+    }
+  }
+
   await fechar('sucesso', gravadas, null);
 
   return {

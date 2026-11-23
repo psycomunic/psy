@@ -7,6 +7,7 @@ import type {
   ContaResumo,
   DiaKpi,
   CanalKpi,
+  CampanhaResumo,
   FinanceiroMes,
   Lead,
   Tarefa,
@@ -14,6 +15,7 @@ import type {
   Marco,
   Situacao,
   Estagio,
+  TipoConta,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 
@@ -52,12 +54,26 @@ const hoje = () => {
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-const contasBase = [
-  { id: 'dm-1', nome: 'Loja Aurora',      plataforma: 'Nuvemshop', resp: 'Angelo Garcia', seed: 11, base: 9800,  meta: 320000, sit: 'saudavel' as Situacao },
-  { id: 'dm-2', nome: 'Verano Casa',      plataforma: 'VTEX',      resp: 'Angelo Garcia', seed: 27, base: 21500, meta: 720000, sit: 'atencao'  as Situacao },
-  { id: 'dm-3', nome: 'Nordeste Fitness', plataforma: 'Shopify',   resp: 'Angelo Garcia', seed: 43, base: 6200,  meta: 240000, sit: 'critico'  as Situacao },
-  { id: 'dm-4', nome: 'Petit Bebê',       plataforma: 'Tray',      resp: 'Angelo Garcia', seed: 59, base: 4300,  meta: 150000, sit: 'saudavel' as Situacao },
-  { id: 'dm-5', nome: 'Oficina do Ferro', plataforma: 'Magazord',  resp: 'Angelo Garcia', seed: 71, base: 12800, meta: 430000, sit: 'sem_dado' as Situacao },
+const contasBase: {
+  id: string;
+  nome: string;
+  tipo: TipoConta;
+  perfil: ContaResumo['perfilMetrica'];
+  segmento: string;
+  plataforma: string | null;
+  resp: string;
+  seed: number;
+  base: number;
+  meta: number | null;
+  verbaMeta: number;
+  resultadoMeta: number | null;
+  sit: Situacao;
+}[] = [
+  { id: 'dm-1', nome: 'Loja Aurora',        tipo: 'ecommerce', perfil: 'ecommerce', segmento: 'Moda feminina',      plataforma: 'Nuvemshop', resp: 'Angelo Garcia', seed: 11, base: 9800,  meta: 320000, verbaMeta: 85000,  resultadoMeta: null, sit: 'saudavel' },
+  { id: 'dm-2', nome: 'Pousada Serra Azul', tipo: 'trafego',   perfil: 'whatsapp',  segmento: 'Chalés e pousadas',  plataforma: null,        resp: 'Angelo Garcia', seed: 27, base: 0,     meta: null,   verbaMeta: 6500,   resultadoMeta: 420,  sit: 'saudavel' },
+  { id: 'dm-3', nome: 'Nordeste Fitness',   tipo: 'ecommerce', perfil: 'ecommerce', segmento: 'Suplementos',        plataforma: 'Shopify',   resp: 'Angelo Garcia', seed: 43, base: 6200,  meta: 240000, verbaMeta: 68000,  resultadoMeta: null, sit: 'critico'  },
+  { id: 'dm-4', nome: 'Atacado Têxtil Sul', tipo: 'trafego',   perfil: 'leads',     segmento: 'Atacado B2B',        plataforma: null,        resp: 'Angelo Garcia', seed: 59, base: 0,     meta: null,   verbaMeta: 9000,   resultadoMeta: 280,  sit: 'atencao'  },
+  { id: 'dm-5', nome: 'Oficina do Ferro',   tipo: 'ecommerce', perfil: 'ecommerce', segmento: 'Casa e decoração',   plataforma: 'Magazord',  resp: 'Angelo Garcia', seed: 71, base: 12800, meta: 430000, verbaMeta: 110000, resultadoMeta: null, sit: 'sem_dado' },
 ];
 
 /** Série diária de uma conta, com sazonalidade de fim de semana. */
@@ -81,13 +97,32 @@ export function serieDemo(contaId: string, dias = 30): DiaKpi[] {
     const declinio = c.sit === 'critico' ? 1 - (dias - i) * 0.012 : 1;
 
     const ruido = 0.72 + r() * 0.56;
-    const receita = Math.round(c.base * ruido * (fds ? 0.72 : 1) * declinio);
-    const investimento = Math.round(receita / (2.6 + r() * 1.7));
-    const sessoes = Math.round(receita / (1.6 + r() * 0.7));
-    const captados = Math.max(1, Math.round(sessoes * (0.014 + r() * 0.012)));
-    const aprovados = Math.max(1, Math.round(captados * (0.76 + r() * 0.16)));
-    const novos = Math.max(1, Math.round(aprovados * (0.42 + r() * 0.2)));
-    /* impressoes so aparecem no recorte por canal, e nao na serie diaria */
+    const ehEcommerce = c.tipo === 'ecommerce';
+    const receita = ehEcommerce ? Math.round(c.base * ruido * (fds ? 0.72 : 1) * declinio) : 0;
+    const investimento = ehEcommerce
+      ? Math.round(receita / (2.6 + r() * 1.7))
+      : Math.round((c.verbaMeta / 30) * ruido * (fds ? 1.15 : 0.95));
+    const impressoes = Math.round(investimento * (38 + r() * 22));
+    const alcance = Math.round(impressoes * (0.68 + r() * 0.14));
+    const cliquesLink = Math.max(4, Math.round(impressoes * (0.016 + r() * 0.012)));
+    const cliques = Math.round(cliquesLink * 1.32);
+    const visitasPagina = Math.round(cliquesLink * (0.76 + r() * 0.12));
+    const conversas = c.perfil === 'whatsapp'
+      ? Math.max(2, Math.round(cliquesLink * (0.19 + r() * 0.09)))
+      : Math.round(cliquesLink * 0.03);
+    const leadsCaptados = c.perfil === 'leads'
+      ? Math.max(1, Math.round(visitasPagina * (0.12 + r() * 0.07)))
+      : 0;
+    const sessoes = ehEcommerce ? Math.round(receita / (1.6 + r() * 0.7)) : visitasPagina;
+    const captados = ehEcommerce ? Math.max(1, Math.round(sessoes * (0.014 + r() * 0.012))) : 0;
+    const aprovados = ehEcommerce ? Math.max(1, Math.round(captados * (0.76 + r() * 0.16))) : 0;
+    const novos = ehEcommerce ? Math.max(1, Math.round(aprovados * (0.42 + r() * 0.2))) : 0;
+    const receitaAtribuida = ehEcommerce ? Math.round(receita * (0.78 + r() * 0.26)) : 0;
+    const comprasAtribuidas = ehEcommerce ? Math.max(1, Math.round(aprovados * 0.85)) : 0;
+    const carrinhos = ehEcommerce ? Math.round(captados * 2.8) : 0;
+    const checkouts = ehEcommerce ? Math.round(captados * 1.4) : 0;
+    const engajamentos = Math.round(impressoes * 0.035);
+    const visualizacoesVideo = Math.round(impressoes * 0.18);
 
     saida.push({
       dia: iso(d),
@@ -96,12 +131,25 @@ export function serieDemo(contaId: string, dias = 30): DiaKpi[] {
       pedidosAprovados: aprovados,
       novosClientes: novos,
       receita,
+      receitaAtribuida,
       investimento,
-      mer: Number((receita / investimento).toFixed(2)),
-      ticketMedio: Number((receita / aprovados).toFixed(2)),
-      cac: Number((investimento / novos).toFixed(2)),
-      taxaConversao: Number(((100 * captados) / sessoes).toFixed(2)),
-      taxaAprovacao: Number(((100 * aprovados) / captados).toFixed(2)),
+      impressoes,
+      alcance,
+      cliques,
+      cliquesLink,
+      visitasPagina,
+      conversas,
+      leadsCaptados,
+      comprasAtribuidas,
+      carrinhos,
+      checkouts,
+      engajamentos,
+      visualizacoesVideo,
+      mer: ehEcommerce && investimento > 0 ? Number((receita / investimento).toFixed(2)) : null,
+      ticketMedio: aprovados > 0 ? Number((receita / aprovados).toFixed(2)) : null,
+      cac: novos > 0 ? Number((investimento / novos).toFixed(2)) : null,
+      taxaConversao: sessoes > 0 && captados > 0 ? Number(((100 * captados) / sessoes).toFixed(2)) : null,
+      taxaAprovacao: captados > 0 ? Number(((100 * aprovados) / captados).toFixed(2)) : null,
     });
   }
   return saida;
@@ -112,7 +160,13 @@ export function contasDemo(): ContaResumo[] {
     const serie = serieDemo(c.id, 30);
     const doMes = serie.filter((d) => new Date(d.dia).getMonth() === hoje().getMonth());
     const receita = doMes.reduce((s, d) => s + d.receita, 0);
+    const receitaAtribuida = doMes.reduce((s, d) => s + d.receitaAtribuida, 0);
     const investimento = doMes.reduce((s, d) => s + d.investimento, 0);
+    const conversas = doMes.reduce((s, d) => s + d.conversas, 0);
+    const leadsCaptados = doMes.reduce((s, d) => s + d.leadsCaptados, 0);
+    const comprasAtribuidas = doMes.reduce((s, d) => s + d.comprasAtribuidas, 0);
+    const alcance = doMes.reduce((s, d) => s + d.alcance, 0);
+    const cliquesLink = doMes.reduce((s, d) => s + d.cliquesLink, 0);
 
     const ult7 = serie.slice(-7).reduce((s, d) => s + d.receita, 0);
     const ant7 = serie.slice(-14, -7).reduce((s, d) => s + d.receita, 0);
@@ -124,16 +178,27 @@ export function contasDemo(): ContaResumo[] {
     return {
       id: c.id,
       nome: c.nome,
-      tipo: 'ecommerce' as const,
-      segmento: null,
+      tipo: c.tipo,
+      perfilMetrica: c.perfil,
+      kpisVisiveis: null,
+      segmento: c.segmento,
       plataforma: c.plataforma,
       situacao: c.sit,
       receita,
+      receitaAtribuida,
       investimento,
-      mer: investimento > 0 ? Number((receita / investimento).toFixed(2)) : null,
-      metaAtingida: Number(((100 * receita) / c.meta).toFixed(1)),
+      conversas,
+      leadsCaptados,
+      comprasAtribuidas,
+      alcance,
+      cliquesLink,
+      mer: c.tipo === 'ecommerce' && investimento > 0 ? Number((receita / investimento).toFixed(2)) : null,
+      metaAtingida: c.meta ? Number(((100 * receita) / c.meta).toFixed(1)) : null,
       receitaMeta: c.meta,
-      receitaDiaNecessaria: Number((Math.max(c.meta - receita, 0) / restantes).toFixed(2)),
+      verbaMeta: c.verbaMeta,
+      resultadoMeta: c.resultadoMeta,
+      custoResultadoTeto: null,
+      receitaDiaNecessaria: c.meta ? Number((Math.max(c.meta - receita, 0) / restantes).toFixed(2)) : null,
       variacaoReceita: ant7 > 0 ? Number(((100 * (ult7 - ant7)) / ant7).toFixed(1)) : null,
       ultimoDia: serie.at(-1)?.dia ?? null,
       responsavel: c.resp,
@@ -144,35 +209,217 @@ export function contasDemo(): ContaResumo[] {
 export function canaisDemo(contaId: string): CanalKpi[] {
   const serie = serieDemo(contaId, 30);
   const receita = serie.reduce((s, d) => s + d.receita, 0);
+  const receitaAtribuida = serie.reduce((s, d) => s + d.receitaAtribuida, 0);
   const investimento = serie.reduce((s, d) => s + d.investimento, 0);
   const pedidos = serie.reduce((s, d) => s + d.pedidosAprovados, 0);
+  const conversas = serie.reduce((s, d) => s + d.conversas, 0);
+  const leadsCaptados = serie.reduce((s, d) => s + d.leadsCaptados, 0);
 
-  /* A divisão reflete uma operação real de e-commerce brasileiro: mídia
-     paga puxa o volume, mas orgânico e direto carregam a maior margem
-     porque não têm custo de aquisição atribuído. */
   const fatias = [
-    { canal: 'google',   rec: 0.34, inv: 0.46 },
-    { canal: 'meta',     rec: 0.28, inv: 0.44 },
+    { canal: 'meta',     rec: 0.34, inv: 0.56 },
+    { canal: 'google',   rec: 0.36, inv: 0.44 },
     { canal: 'organico', rec: 0.18, inv: 0.0 },
-    { canal: 'direto',   rec: 0.13, inv: 0.0 },
-    { canal: 'email',    rec: 0.07, inv: 0.10 },
+    { canal: 'direto',   rec: 0.12, inv: 0.0 },
   ];
 
   return fatias.map((f, i) => {
     const rec = Math.round(receita * f.rec);
+    const recAtr = Math.round(receitaAtribuida * (f.inv > 0 ? f.inv : 0));
     const inv = Math.round(investimento * f.inv);
-    const cliques = inv > 0 ? Math.round(inv / (1.1 + i * 0.2)) : 0;
+    const cliques = inv > 0 ? Math.round(inv / (1.1 + i * 0.2)) : 40;
     const impressoes = cliques * (30 + i * 6);
     return {
       canal: f.canal,
       receita: rec,
+      receitaAtribuida: recAtr,
       investimento: inv,
       pedidos: Math.round(pedidos * f.rec),
-      roas: inv > 0 ? Number((rec / inv).toFixed(2)) : null,
-      cpc: cliques > 0 ? Number((inv / cliques).toFixed(2)) : null,
+      conversas: f.inv > 0 ? Math.round(conversas * f.inv) : 0,
+      leadsCaptados: f.inv > 0 ? Math.round(leadsCaptados * f.inv) : 0,
+      comprasAtribuidas: Math.round(pedidos * f.rec),
+      impressoes,
+      alcance: Math.round(impressoes * 0.72),
+      cliques,
+      cliquesLink: cliques,
+      roas: inv > 0 && rec > 0 ? Number((rec / inv).toFixed(2)) : null,
+      roasDeclarado: inv > 0 && recAtr > 0 ? Number((recAtr / inv).toFixed(2)) : null,
+      cpc: inv > 0 && cliques > 0 ? Number((inv / cliques).toFixed(2)) : null,
       ctr: impressoes > 0 ? Number(((100 * cliques) / impressoes).toFixed(2)) : null,
     };
   });
+}
+
+export function campanhasDemo(contaId: string): CampanhaResumo[] {
+  const c = contasBase.find((x) => x.id === contaId) ?? contasBase[0];
+  const serie = serieDemo(contaId, 14);
+  const invTotal = serie.reduce((s, d) => s + d.investimento, 0) || 1200;
+
+  if (c.perfil === 'whatsapp') {
+    const convTotal = serie.reduce((s, d) => s + d.conversas, 0) || 120;
+    return [
+      {
+        campanhaId: 'cmp-wpp-1',
+        campanhaNome: '[WPP] Pacotes de Fim de Semana e Feriados',
+        provedor: 'meta_ads',
+        canal: 'meta',
+        objetivo: 'mensagens',
+        statusCampanha: 'ACTIVE',
+        investimento: Math.round(invTotal * 0.68),
+        impressoes: 64200,
+        alcance: 41800,
+        cliques: 1480,
+        cliquesLink: 1120,
+        visitasPagina: 0,
+        conversas: Math.round(convTotal * 0.82),
+        leadsCaptados: 0,
+        comprasAtribuidas: 0,
+        receitaAtribuida: 0,
+        carrinhos: 0,
+        checkouts: 0,
+        engajamentos: 1920,
+        visualizacoesVideo: 14300,
+        ctr: 1.74,
+        cpc: Number(((invTotal * 0.68) / 1120).toFixed(2)),
+        cpm: Number((((invTotal * 0.68) * 1000) / 64200).toFixed(2)),
+      },
+      {
+        campanhaId: 'cmp-alc-2',
+        campanhaNome: '[Reels] Tour pelo Chalé e Gastronomia',
+        provedor: 'meta_ads',
+        canal: 'meta',
+        objetivo: 'alcance',
+        statusCampanha: 'ACTIVE',
+        investimento: Math.round(invTotal * 0.32),
+        impressoes: 58900,
+        alcance: 47200,
+        cliques: 620,
+        cliquesLink: 310,
+        visitasPagina: 0,
+        conversas: Math.round(convTotal * 0.18),
+        leadsCaptados: 0,
+        comprasAtribuidas: 0,
+        receitaAtribuida: 0,
+        carrinhos: 0,
+        checkouts: 0,
+        engajamentos: 3410,
+        visualizacoesVideo: 29800,
+        ctr: 0.53,
+        cpc: Number(((invTotal * 0.32) / 310).toFixed(2)),
+        cpm: Number((((invTotal * 0.32) * 1000) / 58900).toFixed(2)),
+      },
+    ];
+  }
+
+  if (c.perfil === 'leads') {
+    const leadsTotal = serie.reduce((s, d) => s + d.leadsCaptados, 0) || 85;
+    return [
+      {
+        campanhaId: 'cmp-ld-1',
+        campanhaNome: '[Search] Lojistas Moda Atacado Sul/Sudeste',
+        provedor: 'google_ads',
+        canal: 'google',
+        objetivo: 'leads',
+        statusCampanha: 'ENABLED',
+        investimento: Math.round(invTotal * 0.55),
+        impressoes: 18400,
+        alcance: 14100,
+        cliques: 920,
+        cliquesLink: 920,
+        visitasPagina: 780,
+        conversas: 0,
+        leadsCaptados: Math.round(leadsTotal * 0.6),
+        comprasAtribuidas: 0,
+        receitaAtribuida: 0,
+        carrinhos: 0,
+        checkouts: 0,
+        engajamentos: 920,
+        visualizacoesVideo: 0,
+        ctr: 5.0,
+        cpc: Number(((invTotal * 0.55) / 920).toFixed(2)),
+        cpm: Number((((invTotal * 0.55) * 1000) / 18400).toFixed(2)),
+      },
+      {
+        campanhaId: 'cmp-ld-2',
+        campanhaNome: '[Meta LP] Catálogo Coleção Nova B2B',
+        provedor: 'meta_ads',
+        canal: 'meta',
+        objetivo: 'leads',
+        statusCampanha: 'ACTIVE',
+        investimento: Math.round(invTotal * 0.45),
+        impressoes: 49200,
+        alcance: 31500,
+        cliques: 1180,
+        cliquesLink: 860,
+        visitasPagina: 670,
+        conversas: 14,
+        leadsCaptados: Math.round(leadsTotal * 0.4),
+        comprasAtribuidas: 0,
+        receitaAtribuida: 0,
+        carrinhos: 0,
+        checkouts: 0,
+        engajamentos: 1410,
+        visualizacoesVideo: 8900,
+        ctr: 1.75,
+        cpc: Number(((invTotal * 0.45) / 860).toFixed(2)),
+        cpm: Number((((invTotal * 0.45) * 1000) / 49200).toFixed(2)),
+      },
+    ];
+  }
+
+  const recTotal = serie.reduce((s, d) => s + d.receitaAtribuida, 0);
+  const compTotal = serie.reduce((s, d) => s + d.comprasAtribuidas, 0);
+  return [
+    {
+      campanhaId: 'cmp-ec-1',
+      campanhaNome: '[Advantage+] Catálogo Curva A',
+      provedor: 'meta_ads',
+      canal: 'meta',
+      objetivo: 'vendas',
+      statusCampanha: 'ACTIVE',
+      investimento: Math.round(invTotal * 0.54),
+      impressoes: 142000,
+      alcance: 89000,
+      cliques: 3420,
+      cliquesLink: 2680,
+      visitasPagina: 2210,
+      conversas: 18,
+      leadsCaptados: 0,
+      comprasAtribuidas: Math.round(compTotal * 0.58),
+      receitaAtribuida: Math.round(recTotal * 0.58),
+      carrinhos: Math.round(compTotal * 2.1),
+      checkouts: Math.round(compTotal * 1.1),
+      engajamentos: 4800,
+      visualizacoesVideo: 31000,
+      ctr: 1.89,
+      cpc: Number(((invTotal * 0.54) / 2680).toFixed(2)),
+      cpm: Number((((invTotal * 0.54) * 1000) / 142000).toFixed(2)),
+    },
+    {
+      campanhaId: 'cmp-ec-2',
+      campanhaNome: '[PMax] Shopping + Remarketing Dinâmico',
+      provedor: 'google_ads',
+      canal: 'google',
+      objetivo: 'vendas',
+      statusCampanha: 'ENABLED',
+      investimento: Math.round(invTotal * 0.46),
+      impressoes: 118000,
+      alcance: 76000,
+      cliques: 2890,
+      cliquesLink: 2890,
+      visitasPagina: 2450,
+      conversas: 0,
+      leadsCaptados: 0,
+      comprasAtribuidas: Math.round(compTotal * 0.42),
+      receitaAtribuida: Math.round(recTotal * 0.42),
+      carrinhos: 0,
+      checkouts: 0,
+      engajamentos: 2890,
+      visualizacoesVideo: 0,
+      ctr: 2.45,
+      cpc: Number(((invTotal * 0.46) / 2890).toFixed(2)),
+      cpm: Number((((invTotal * 0.46) * 1000) / 118000).toFixed(2)),
+    },
+  ];
 }
 
 export function marcosDemo(contaId: string): Marco[] {
@@ -301,11 +548,14 @@ export function fichaDemo(contaId: string): ContaFicha | null {
   return {
     id: c.id,
     nome: c.nome,
+    tipo: c.tipo,
+    perfilMetrica: c.perfil,
+    kpisVisiveis: null,
     razaoSocial: null,
     documento: null,
     plataforma: c.plataforma,
     site: null,
-    segmento: null,
+    segmento: c.segmento,
     situacao: "ativa",
     dataInicio: null,
     observacoes: null,

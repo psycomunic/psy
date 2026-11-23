@@ -33,6 +33,16 @@ export const rotuloProvedor: Record<ProvedorPlanilha, string> = {
   planilha_sessao: 'Analytics: sessões',
 };
 
+export type ObjetivoCampanha =
+  | 'mensagens'
+  | 'leads'
+  | 'vendas'
+  | 'trafego'
+  | 'alcance'
+  | 'engajamento'
+  | 'video'
+  | 'outro';
+
 /** Uma linha pronta para `registrar_metricas`. */
 export type LinhaMetrica = {
   dia: string;
@@ -49,6 +59,40 @@ export type LinhaMetrica = {
   cliques?: number;
   impressoes?: number;
   receita_atribuida?: number;
+  alcance?: number;
+  cliques_link?: number;
+  visitas_pagina?: number;
+  conversas?: number;
+  leads_captados?: number;
+  compras_atribuidas?: number;
+  carrinhos?: number;
+  checkouts?: number;
+  engajamentos?: number;
+  visualizacoes_video?: number;
+};
+
+/** Uma linha diária por campanha pronta para `registrar_metricas_campanha`. */
+export type LinhaCampanha = {
+  dia: string;
+  canal: string;
+  campanha_id: string;
+  campanha_nome: string;
+  objetivo: ObjetivoCampanha;
+  status_campanha?: string;
+  investimento: number;
+  impressoes: number;
+  alcance: number;
+  cliques: number;
+  cliques_link: number;
+  visitas_pagina: number;
+  conversas: number;
+  leads_captados: number;
+  compras_atribuidas: number;
+  receita_atribuida: number;
+  carrinhos: number;
+  checkouts: number;
+  engajamentos: number;
+  visualizacoes_video: number;
 };
 
 export type ErroLinha = { linha: number; motivo: string };
@@ -121,6 +165,17 @@ const APELIDOS: Record<string, keyof LinhaMetrica> = {
   conv_value: 'receita_atribuida',
   conversion_value: 'receita_atribuida',
   valor_de_conversao: 'receita_atribuida',
+
+  alcance: 'alcance', reach: 'alcance', pessoas_alcancadas: 'alcance',
+  cliques_link: 'cliques_link', cliques_no_link: 'cliques_link', link_clicks: 'cliques_link', inline_link_clicks: 'cliques_link',
+  visitas_pagina: 'visitas_pagina', visualizacoes_pagina: 'visitas_pagina', landing_page_views: 'visitas_pagina', visitas_lp: 'visitas_pagina',
+  conversas: 'conversas', mensagens: 'conversas', conversas_iniciadas: 'conversas', whatsapp: 'conversas', messaging_conversations_started: 'conversas',
+  leads_captados: 'leads_captados', leads: 'leads_captados', cadastros: 'leads_captados',
+  compras_atribuidas: 'compras_atribuidas', compras_midia: 'compras_atribuidas', purchases: 'compras_atribuidas',
+  carrinhos: 'carrinhos', add_to_cart: 'carrinhos', adicoes_ao_carrinho: 'carrinhos',
+  checkouts: 'checkouts', finalizacoes_iniciadas: 'checkouts', initiate_checkout: 'checkouts',
+  engajamentos: 'engajamentos', engajamento: 'engajamentos', post_engagement: 'engajamentos',
+  visualizacoes_video: 'visualizacoes_video', views_video: 'visualizacoes_video', thruplay: 'visualizacoes_video', video_views: 'visualizacoes_video',
 };
 
 /* Só as chaves de valor. Um `keyof LinhaMetrica` aqui deixaria `dia`
@@ -131,12 +186,16 @@ type ChaveValor = Exclude<keyof LinhaMetrica, 'dia' | 'canal'>;
 const NUMERICAS: ChaveValor[] = [
   'sessoes', 'pedidos_captados', 'pedidos_aprovados', 'receita',
   'receita_bruta', 'frete', 'novos_clientes', 'investimento', 'cliques',
-  'impressoes', 'receita_atribuida',
+  'impressoes', 'receita_atribuida', 'alcance', 'cliques_link',
+  'visitas_pagina', 'conversas', 'leads_captados', 'compras_atribuidas',
+  'carrinhos', 'checkouts', 'engajamentos', 'visualizacoes_video',
 ];
 
 const INTEIRAS = new Set<ChaveValor>([
   'sessoes', 'pedidos_captados', 'pedidos_aprovados', 'novos_clientes',
-  'cliques', 'impressoes',
+  'cliques', 'impressoes', 'alcance', 'cliques_link', 'visitas_pagina',
+  'conversas', 'leads_captados', 'compras_atribuidas', 'carrinhos',
+  'checkouts', 'engajamentos', 'visualizacoes_video',
 ]);
 
 /* ------------------------------------------------------------------ */

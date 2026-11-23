@@ -6,6 +6,7 @@ import {
   analiseRecebida,
   avisoDeLead,
   propostaPronta,
+  relatorioPronto,
   acessoCriado,
   testeDeEnvio,
   type Modelo,
@@ -88,6 +89,18 @@ const TODOS: { nome: string; modelo: Modelo; paraFora: boolean }[] = [
     /* Vai para a caixa da agência, mas entra como "para fora" de
        propósito: as regras mais rígidas também valem para ele, e um dia
        alguém vai mandar esse teste para a caixa de um cliente. */
+    paraFora: true,
+  },
+  {
+    nome: 'relatorioPronto',
+    modelo: relatorioPronto({
+      cliente: 'Chalés Encantos da Natureza',
+      contato: 'Marcos Vieira',
+      periodo: '01/11/2026 a 22/11/2026',
+      resumo: 'As campanhas de mensagens mantiveram volume consistente de conversas qualificadas.',
+      slug: 'chales-encantos-a1b2c3d4',
+      versao: 1,
+    }),
     paraFora: true,
   },
 ];

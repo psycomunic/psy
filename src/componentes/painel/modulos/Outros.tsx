@@ -10,7 +10,8 @@ import {
 } from '@/lib/dados/consultas';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
 import { rotuloEstagio, rotuloTipoConta } from '@/lib/dados/tipos';
-import { dinheiro, dinheiroCurto, vezes } from '@/lib/formato';
+import { dinheiro, dinheiroCurto, numero, contagemCurta, vezes } from '@/lib/formato';
+import { resolverPerfil } from '@/lib/dominio/perfis-metrica';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
   FormNovaConta,
@@ -378,7 +379,7 @@ export async function Contas({ papel }: { papel: Papel }) {
             <tr>
               <th scope="col" className={th}>Cliente</th>
               <th scope="col" className={th}>Situação</th>
-              <th scope="col" className={th}>Receita do mês</th>
+              <th scope="col" className={th}>Resultado do mês</th>
               <th scope="col" className={th}>Verba</th>
               <th scope="col" className={th}>MER</th>
               <th scope="col" className={th}>Meta</th>
@@ -389,11 +390,14 @@ export async function Contas({ papel }: { papel: Papel }) {
             {[...contas]
               .sort((a, b) => b.receita - a.receita || b.investimento - a.investimento)
               .map((c) => {
-                /* Loja mede venda. Cliente de tráfego não: a receita
-                   dele acontece na recepção do chalé, no pátio da
-                   concessionária, fora de qualquer sistema que a gente
-                   integre. Mostrar R$ 0 seria afirmar que não vendeu. */
                 const vende = c.tipo === 'ecommerce';
+                const perfil = resolverPerfil(c.perfilMetrica, c.tipo);
+                const resultadoTrf =
+                  perfil === 'leads'
+                    ? `${numero(c.leadsCaptados)} leads`
+                    : perfil === 'branding'
+                      ? `${contagemCurta(c.alcance)} alcance`
+                      : `${numero(c.conversas)} conversas`;
                 return (
                   <tr key={c.id}>
                     <th scope="row" className={`${td} font-normal`}>
@@ -415,7 +419,13 @@ export async function Contas({ papel }: { papel: Papel }) {
                     </th>
                     <td className={td}><SeloSituacao situacao={c.situacao} /></td>
                     <td className={`${td} tabular`}>
-                      {vende ? dinheiro(c.receita) : <span className="text-cinza">—</span>}
+                      {vende ? (
+                        dinheiro(c.receita)
+                      ) : c.conversas > 0 || c.leadsCaptados > 0 || c.alcance > 0 ? (
+                        <span className="text-neve">{resultadoTrf}</span>
+                      ) : (
+                        <span className="text-cinza">—</span>
+                      )}
                     </td>
                     <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
                     <td className={`${td} tabular`}>

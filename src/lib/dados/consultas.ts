@@ -6,6 +6,7 @@ import type {
   ContaResumo,
   DiaKpi,
   CanalKpi,
+  CampanhaResumo,
   FinanceiroMes,
   Lead,
   Tarefa,
@@ -41,6 +42,11 @@ import type {
   FormatoPost,
   SituacaoPost,
   ArquivoDaPostagem,
+  RelatorioResumo,
+  StatusRelatorio,
+  BlocoRelatorio,
+  ResultadoComercialRelatorio,
+  SnapshotRelatorio,
 } from './tipos';
 import { ESTAGIOS } from './tipos';
 import * as demo from './demonstracao';
@@ -132,7 +138,9 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
   const [rMes, rSaude, rContas] = await Promise.all([
     supabase.from('kpi_mes').select('*'),
     supabase.from('saude_conta').select('*'),
-    supabase.from('conta').select('id, nome, tipo, segmento, plataforma'),
+    /* `select('*')` para continuar funcionando mesmo antes da migração
+       0050 adicionar `perfil_metrica` e `kpis_visiveis` no banco. */
+    supabase.from('conta').select('*'),
   ]);
 
   if (faltamTabelas(rMes.error)) return semBanco(demo.contasDemo());
@@ -142,23 +150,48 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
   const contas = rContas.data;
 
   const porId = new Map((saude ?? []).map((s) => [s.conta_id as string, s]));
-  const info = new Map((contas ?? []).map((c) => [c.id as string, c]));
+  const info = new Map((contas ?? []).map((c) => [c.id as string, c as Record<string, unknown>]));
 
   return doBanco(
     (mes ?? []).map((m) => {
+      const mRec = m as Record<string, unknown>;
       const s = porId.get(m.conta_id as string);
+      const inf = info.get(m.conta_id as string);
       return {
         id: m.conta_id as string,
         nome: m.conta_nome as string,
-        tipo: ((info.get(m.conta_id as string)?.tipo as TipoConta) ?? 'ecommerce'),
-        segmento: (info.get(m.conta_id as string)?.segmento as string) ?? null,
-        plataforma: (info.get(m.conta_id as string)?.plataforma as string) ?? null,
+        tipo: ((inf?.tipo as TipoConta) ?? 'ecommerce'),
+        perfilMetrica:
+          ((inf?.perfil_metrica as ContaResumo['perfilMetrica']) ?? 'automatico'),
+        kpisVisiveis: Array.isArray(inf?.kpis_visiveis)
+          ? (inf.kpis_visiveis as string[])
+          : null,
+        segmento: (inf?.segmento as string) ?? null,
+        plataforma: (inf?.plataforma as string) ?? null,
         situacao: ((s?.situacao as Situacao) ?? 'sem_dado'),
         receita: Number(m.receita ?? 0),
+        receitaAtribuida: Number(mRec.receita_atribuida ?? 0),
         investimento: Number(m.investimento ?? 0),
+        conversas: Number(mRec.conversas ?? 0),
+        leadsCaptados: Number(mRec.leads_captados ?? 0),
+        comprasAtribuidas: Number(mRec.compras_atribuidas ?? 0),
+        alcance: Number(mRec.alcance ?? 0),
+        cliquesLink: Number(mRec.cliques_link ?? 0),
         mer: m.mer === null || m.mer === undefined ? null : Number(m.mer),
         metaAtingida: m.meta_atingida === null ? null : Number(m.meta_atingida),
         receitaMeta: m.receita_meta === null ? null : Number(m.receita_meta),
+        verbaMeta:
+          mRec.verba_meta === null || mRec.verba_meta === undefined
+            ? null
+            : Number(mRec.verba_meta),
+        resultadoMeta:
+          mRec.resultado_meta === null || mRec.resultado_meta === undefined
+            ? null
+            : Number(mRec.resultado_meta),
+        custoResultadoTeto:
+          mRec.custo_resultado_teto === null || mRec.custo_resultado_teto === undefined
+            ? null
+            : Number(mRec.custo_resultado_teto),
         receitaDiaNecessaria:
           m.receita_dia_necessaria === null ? null : Number(m.receita_dia_necessaria),
         variacaoReceita:
@@ -172,40 +205,204 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
   );
 }
 
+function mapearDiaKpi(d: Record<string, unknown>): DiaKpi {
+  const receita = Number(d.receita ?? 0);
+  const investimento = Number(d.investimento ?? 0);
+  const pedidosCaptados = Number(d.pedidos_captados ?? 0);
+  const pedidosAprovados = Number(d.pedidos_aprovados ?? 0);
+  const novosClientes = Number(d.novos_clientes ?? 0);
+  const sessoes = Number(d.sessoes ?? 0);
+  const cliques = Number(d.cliques ?? 0);
+  const cliquesLink = Number(d.cliques_link ?? 0);
+
+  return {
+    dia: d.dia as string,
+    sessoes,
+    pedidosCaptados,
+    pedidosAprovados,
+    novosClientes,
+    receita,
+    receitaAtribuida: Number(d.receita_atribuida ?? 0),
+    investimento,
+    impressoes: Number(d.impressoes ?? 0),
+    alcance: Number(d.alcance ?? 0),
+    cliques,
+    cliquesLink: cliquesLink > 0 ? cliquesLink : cliques,
+    visitasPagina: Number(d.visitas_pagina ?? 0),
+    conversas: Number(d.conversas ?? 0),
+    leadsCaptados: Number(d.leads_captados ?? 0),
+    comprasAtribuidas: Number(d.compras_atribuidas ?? 0),
+    carrinhos: Number(d.carrinhos ?? 0),
+    checkouts: Number(d.checkouts ?? 0),
+    engajamentos: Number(d.engajamentos ?? 0),
+    visualizacoesVideo: Number(d.visualizacoes_video ?? 0),
+    mer:
+      d.mer !== undefined
+        ? d.mer === null
+          ? null
+          : Number(d.mer)
+        : investimento > 0
+          ? Number((receita / investimento).toFixed(2))
+          : null,
+    ticketMedio:
+      d.ticket_medio !== undefined
+        ? d.ticket_medio === null
+          ? null
+          : Number(d.ticket_medio)
+        : pedidosAprovados > 0
+          ? Number((receita / pedidosAprovados).toFixed(2))
+          : null,
+    cac:
+      d.cac !== undefined
+        ? d.cac === null
+          ? null
+          : Number(d.cac)
+        : novosClientes > 0
+          ? Number((investimento / novosClientes).toFixed(2))
+          : null,
+    taxaConversao:
+      d.taxa_conversao !== undefined
+        ? d.taxa_conversao === null
+          ? null
+          : Number(d.taxa_conversao)
+        : sessoes > 0
+          ? Number(((100 * pedidosCaptados) / sessoes).toFixed(2))
+          : null,
+    taxaAprovacao:
+      d.taxa_aprovacao !== undefined
+        ? d.taxa_aprovacao === null
+          ? null
+          : Number(d.taxa_aprovacao)
+        : pedidosCaptados > 0
+          ? Number(((100 * pedidosAprovados) / pedidosCaptados).toFixed(2))
+          : null,
+  };
+}
+
+export async function serieDaContaPeriodo(
+  contaId: string,
+  de: string,
+  ate: string,
+  canalFiltro?: string,
+): Promise<Resposta<DiaKpi[]>> {
+  const dias = Math.max(
+    1,
+    Math.round((Date.parse(`${ate}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / 86400000) + 1,
+  );
+
+  if (!bancoConfigurado) {
+    const todos = demo.serieDemo(contaId, Math.max(dias + 30, 60));
+    return semBanco(todos.filter((d) => d.dia >= de && d.dia <= ate));
+  }
+
+  const supabase = await clienteServidor();
+  const filtrarCanal = canalFiltro && canalFiltro !== 'todos';
+
+  const consulta = filtrarCanal
+    ? supabase
+        .from('metrica_diaria')
+        .select('*')
+        .eq('conta_id', contaId)
+        .eq('canal', canalFiltro)
+        .gte('dia', de)
+        .lte('dia', ate)
+        .order('dia', { ascending: true })
+    : supabase
+        .from('kpi_diario')
+        .select('*')
+        .eq('conta_id', contaId)
+        .gte('dia', de)
+        .lte('dia', ate)
+        .order('dia', { ascending: true });
+
+  const { data, error } = await consulta;
+  if (faltamTabelas(error)) {
+    const todos = demo.serieDemo(contaId, Math.max(dias + 30, 60));
+    return semBanco(todos.filter((d) => d.dia >= de && d.dia <= ate));
+  }
+
+  return doBanco((data ?? []).map((d) => mapearDiaKpi(d as Record<string, unknown>)));
+}
+
 export async function serieDaConta(
   contaId: string,
   dias = 30,
 ): Promise<Resposta<DiaKpi[]>> {
-  if (!bancoConfigurado) return semBanco(demo.serieDemo(contaId, dias));
+  const hoje = hojeBR();
+  const desde = somarDias(hoje, -dias);
+  return serieDaContaPeriodo(contaId, desde, hoje);
+}
 
-  const desde = new Date();
-  desde.setDate(desde.getDate() - dias);
+export async function canaisDaContaPeriodo(
+  contaId: string,
+  de: string,
+  ate: string,
+): Promise<Resposta<CanalKpi[]>> {
+  if (!bancoConfigurado) return semBanco(demo.canaisDemo(contaId));
 
   const supabase = await clienteServidor();
   const { data, error } = await supabase
-    .from('kpi_diario')
+    .from('kpi_canal')
     .select('*')
     .eq('conta_id', contaId)
-    .gte('dia', desde.toISOString().slice(0, 10))
-    .order('dia', { ascending: true });
+    .gte('dia', de)
+    .lte('dia', ate);
 
-  if (faltamTabelas(error)) return semBanco(demo.serieDemo(contaId, dias));
+  if (faltamTabelas(error)) return semBanco(demo.canaisDemo(contaId));
+
+  const acc = new Map<string, CanalKpi>();
+  for (const bruto of data ?? []) {
+    const d = bruto as Record<string, unknown>;
+    const canal = d.canal as string;
+    const a = acc.get(canal) ?? {
+      canal,
+      receita: 0,
+      receitaAtribuida: 0,
+      investimento: 0,
+      pedidos: 0,
+      conversas: 0,
+      leadsCaptados: 0,
+      comprasAtribuidas: 0,
+      impressoes: 0,
+      alcance: 0,
+      cliques: 0,
+      cliquesLink: 0,
+      roas: null,
+      roasDeclarado: null,
+      cpc: null,
+      ctr: null,
+    };
+    a.receita += Number(d.receita ?? 0);
+    a.receitaAtribuida += Number(d.receita_atribuida ?? 0);
+    a.investimento += Number(d.investimento ?? 0);
+    a.pedidos += Number(d.pedidos_aprovados ?? 0);
+    a.conversas += Number(d.conversas ?? 0);
+    a.leadsCaptados += Number(d.leads_captados ?? 0);
+    a.comprasAtribuidas += Number(d.compras_atribuidas ?? 0);
+    a.impressoes += Number(d.impressoes ?? 0);
+    a.alcance += Number(d.alcance ?? 0);
+    a.cliques += Number(d.cliques ?? 0);
+    a.cliquesLink += Number(d.cliques_link ?? 0);
+    acc.set(canal, a);
+  }
 
   return doBanco(
-    (data ?? []).map((d) => ({
-      dia: d.dia as string,
-      sessoes: Number(d.sessoes ?? 0),
-      pedidosCaptados: Number(d.pedidos_captados ?? 0),
-      pedidosAprovados: Number(d.pedidos_aprovados ?? 0),
-      novosClientes: Number(d.novos_clientes ?? 0),
-      receita: Number(d.receita ?? 0),
-      investimento: Number(d.investimento ?? 0),
-      mer: d.mer === null ? null : Number(d.mer),
-      ticketMedio: d.ticket_medio === null ? null : Number(d.ticket_medio),
-      cac: d.cac === null ? null : Number(d.cac),
-      taxaConversao: d.taxa_conversao === null ? null : Number(d.taxa_conversao),
-      taxaAprovacao: d.taxa_aprovacao === null ? null : Number(d.taxa_aprovacao),
-    })),
+    [...acc.values()]
+      .map((a) => {
+        const cliquesRef = a.cliquesLink > 0 ? a.cliquesLink : a.cliques;
+        return {
+          ...a,
+          cliquesLink: cliquesRef,
+          roas: a.investimento > 0 && a.receita > 0 ? Number((a.receita / a.investimento).toFixed(2)) : null,
+          roasDeclarado:
+            a.investimento > 0 && a.receitaAtribuida > 0
+              ? Number((a.receitaAtribuida / a.investimento).toFixed(2))
+              : null,
+          cpc: cliquesRef > 0 && a.investimento > 0 ? Number((a.investimento / cliquesRef).toFixed(2)) : null,
+          ctr: a.impressoes > 0 ? Number(((100 * cliquesRef) / a.impressoes).toFixed(2)) : null,
+        };
+      })
+      .sort((x, y) => y.investimento - x.investimento || y.receita - x.receita),
   );
 }
 
@@ -213,51 +410,110 @@ export async function canaisDaConta(
   contaId: string,
   dias = 30,
 ): Promise<Resposta<CanalKpi[]>> {
-  if (!bancoConfigurado) return semBanco(demo.canaisDemo(contaId));
+  const hoje = hojeBR();
+  return canaisDaContaPeriodo(contaId, somarDias(hoje, -dias), hoje);
+}
 
-  const desde = new Date();
-  desde.setDate(desde.getDate() - dias);
+export async function campanhasDaContaPeriodo(
+  contaId: string,
+  de: string,
+  ate: string,
+  canalFiltro?: string,
+): Promise<Resposta<CampanhaResumo[]>> {
+  if (!bancoConfigurado) {
+    const lista = demo.campanhasDemo(contaId);
+    return semBanco(
+      canalFiltro && canalFiltro !== 'todos'
+        ? lista.filter((c) => c.canal === canalFiltro)
+        : lista,
+    );
+  }
 
   const supabase = await clienteServidor();
-  const { data, error } = await supabase
-    .from('kpi_canal')
+  let consulta = supabase
+    .from('metrica_campanha')
     .select('*')
     .eq('conta_id', contaId)
-    .gte('dia', desde.toISOString().slice(0, 10));
+    .gte('dia', de)
+    .lte('dia', ate);
 
-  if (faltamTabelas(error)) return semBanco(demo.canaisDemo(contaId));
+  if (canalFiltro && canalFiltro !== 'todos') {
+    consulta = consulta.eq('canal', canalFiltro);
+  }
 
-  /* A view é por dia e por canal. O acumulado do período é somado aqui:
-     somar receita e investimento e SÓ DEPOIS dividir é o que dá o ROAS
-     correto. Média de ROAS diário pesa igualmente um dia de R$ 50 e um
-     de R$ 50 mil, e sai errado. */
-  const acc = new Map<string, CanalKpi & { cliques: number; impressoes: number }>();
-  for (const d of data ?? []) {
-    const canal = d.canal as string;
-    const a = acc.get(canal) ?? {
-      canal, receita: 0, investimento: 0, pedidos: 0,
-      roas: null, cpc: null, ctr: null, cliques: 0, impressoes: 0,
+  const { data, error } = await consulta;
+  /* Se a migração 0050 ainda não rodou no banco real, devolve vazio do
+     banco — nunca campanha fictícia em cima de cliente real. */
+  if (error) return doBanco([]);
+
+  const acc = new Map<string, CampanhaResumo>();
+  for (const bruto of data ?? []) {
+    const d = bruto as Record<string, unknown>;
+    const chave = `${d.provedor as string}|${d.campanha_id as string}`;
+    const atual = acc.get(chave) ?? {
+      campanhaId: d.campanha_id as string,
+      campanhaNome: (d.campanha_nome as string) ?? 'Campanha',
+      provedor: (d.provedor as string) ?? 'meta_ads',
+      canal: (d.canal as string) ?? 'meta',
+      objetivo: ((d.objetivo as CampanhaResumo['objetivo']) ?? 'outro'),
+      statusCampanha: (d.status_campanha as string) ?? null,
+      investimento: 0,
+      impressoes: 0,
+      alcance: 0,
+      cliques: 0,
+      cliquesLink: 0,
+      visitasPagina: 0,
+      conversas: 0,
+      leadsCaptados: 0,
+      comprasAtribuidas: 0,
+      receitaAtribuida: 0,
+      carrinhos: 0,
+      checkouts: 0,
+      engajamentos: 0,
+      visualizacoesVideo: 0,
+      ctr: null,
+      cpc: null,
+      cpm: null,
     };
-    a.receita += Number(d.receita ?? 0);
-    a.investimento += Number(d.investimento ?? 0);
-    a.pedidos += Number(d.pedidos_aprovados ?? 0);
-    a.cliques += Number(d.cliques ?? 0);
-    a.impressoes += Number(d.impressoes ?? 0);
-    acc.set(canal, a);
+
+    atual.campanhaNome = (d.campanha_nome as string) || atual.campanhaNome;
+    if (d.status_campanha) atual.statusCampanha = d.status_campanha as string;
+    atual.investimento += Number(d.investimento ?? 0);
+    atual.impressoes += Number(d.impressoes ?? 0);
+    /* Alcance somado dia a dia superestima alcance único do mês, mas é a
+       melhor aproximação diária disponível por campanha sem reconsultar
+       a janela inteira na API. */
+    atual.alcance = Math.max(atual.alcance, Number(d.alcance ?? 0));
+    atual.cliques += Number(d.cliques ?? 0);
+    atual.cliquesLink += Number(d.cliques_link ?? 0);
+    atual.visitasPagina += Number(d.visitas_pagina ?? 0);
+    atual.conversas += Number(d.conversas ?? 0);
+    atual.leadsCaptados += Number(d.leads_captados ?? 0);
+    atual.comprasAtribuidas += Number(d.compras_atribuidas ?? 0);
+    atual.receitaAtribuida += Number(d.receita_atribuida ?? 0);
+    atual.carrinhos += Number(d.carrinhos ?? 0);
+    atual.checkouts += Number(d.checkouts ?? 0);
+    atual.engajamentos += Number(d.engajamentos ?? 0);
+    atual.visualizacoesVideo += Number(d.visualizacoes_video ?? 0);
+    acc.set(chave, atual);
   }
 
   return doBanco(
     [...acc.values()]
-      .map((a) => ({
-        canal: a.canal,
-        receita: a.receita,
-        investimento: a.investimento,
-        pedidos: a.pedidos,
-        roas: a.investimento > 0 ? Number((a.receita / a.investimento).toFixed(2)) : null,
-        cpc: a.cliques > 0 ? Number((a.investimento / a.cliques).toFixed(2)) : null,
-        ctr: a.impressoes > 0 ? Number(((100 * a.cliques) / a.impressoes).toFixed(2)) : null,
-      }))
-      .sort((x, y) => y.receita - x.receita),
+      .map((c) => {
+        const cliquesRef = c.cliquesLink > 0 ? c.cliquesLink : c.cliques;
+        const inv = Number(c.investimento.toFixed(2));
+        return {
+          ...c,
+          investimento: inv,
+          receitaAtribuida: Number(c.receitaAtribuida.toFixed(2)),
+          cliquesLink: cliquesRef,
+          ctr: c.impressoes > 0 ? Number(((100 * cliquesRef) / c.impressoes).toFixed(2)) : null,
+          cpc: cliquesRef > 0 ? Number((inv / cliquesRef).toFixed(2)) : null,
+          cpm: c.impressoes > 0 ? Number(((inv * 1000) / c.impressoes).toFixed(2)) : null,
+        };
+      })
+      .sort((a, b) => b.investimento - a.investimento),
   );
 }
 
@@ -516,7 +772,7 @@ export async function fichaDaConta(
   const [rConta, rSaude] = await Promise.all([
     supabase
       .from('conta')
-      .select('id, nome, razao_social, documento, plataforma, site, segmento, situacao, data_inicio, observacoes, perfil:responsavel_id(nome)')
+      .select('*, perfil:responsavel_id(nome)')
       .eq('id', contaId)
       .maybeSingle(),
     supabase
@@ -529,12 +785,16 @@ export async function fichaDaConta(
   if (faltamTabelas(rConta.error)) return semBanco(demo.fichaDemo(contaId));
   if (!rConta.data) return doBanco(null);
 
-  const c = rConta.data;
+  const c = rConta.data as Record<string, unknown>;
   const s = rSaude.data;
 
   return doBanco({
     id: c.id as string,
     nome: c.nome as string,
+    tipo: ((c.tipo as TipoConta) ?? 'ecommerce'),
+    perfilMetrica:
+      ((c.perfil_metrica as ContaResumo['perfilMetrica']) ?? 'automatico'),
+    kpisVisiveis: Array.isArray(c.kpis_visiveis) ? (c.kpis_visiveis as string[]) : null,
     razaoSocial: (c.razao_social as string) ?? null,
     documento: (c.documento as string) ?? null,
     plataforma: (c.plataforma as string) ?? null,
@@ -1370,4 +1630,205 @@ export async function listarContratos(): Promise<Resposta<ContratoAtivo[]>> {
       faturadoNoMes: faturados.has(c.id as string),
     })),
   );
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Marcos no período, Contatos principais e Relatórios                */
+/* ------------------------------------------------------------------ */
+
+export async function marcosDaContaPeriodo(
+  contaId: string,
+  de: string,
+  ate: string,
+): Promise<Resposta<Marco[]>> {
+  if (!bancoConfigurado) {
+    return semBanco(demo.marcosDemo(contaId).filter((m) => m.dia >= de && m.dia <= ate));
+  }
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('marco_conta')
+    .select('id, dia, tipo, titulo, detalhe')
+    .eq('conta_id', contaId)
+    .gte('dia', de)
+    .lte('dia', ate)
+    .order('dia', { ascending: false })
+    .limit(40);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((m) => ({
+      id: m.id as string,
+      dia: m.dia as string,
+      tipo: m.tipo as string,
+      titulo: m.titulo as string,
+      detalhe: (m.detalhe as string) ?? null,
+    })),
+  );
+}
+
+export async function contatosPrincipaisDasContas(): Promise<
+  Record<string, { nome: string; email: string | null; whatsapp: string | null }>
+> {
+  if (!bancoConfigurado) return {};
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('contato')
+    .select('conta_id, nome, email, whatsapp, telefone, principal')
+    .order('principal', { ascending: false });
+
+  if (error) return {};
+
+  const mapa: Record<string, { nome: string; email: string | null; whatsapp: string | null }> = {};
+  for (const c of data ?? []) {
+    const contaId = c.conta_id as string;
+    if (mapa[contaId]) continue;
+    const fone = ((c.whatsapp as string) || (c.telefone as string) || '').trim() || null;
+    mapa[contaId] = {
+      nome: (c.nome as string) ?? '',
+      email: ((c.email as string) || '').trim() || null,
+      whatsapp: fone,
+    };
+  }
+  return mapa;
+}
+
+const SNAPSHOT_VAZIO: SnapshotRelatorio = {
+  geradoEm: '',
+  cartoes: [],
+  funil: { titulo: '', apoio: '', etapas: [], alerta: null },
+  serie: [],
+  campanhas: [],
+  canais: [],
+  marcos: [],
+  investimentoTotal: 0,
+};
+
+function normalizarSnapshot(bruto: unknown): SnapshotRelatorio {
+  if (!bruto || typeof bruto !== 'object') return SNAPSHOT_VAZIO;
+  const s = bruto as Partial<SnapshotRelatorio>;
+  return {
+    geradoEm: typeof s.geradoEm === 'string' ? s.geradoEm : '',
+    kpisVisiveis: Array.isArray(s.kpisVisiveis) ? s.kpisVisiveis : null,
+    cartoes: Array.isArray(s.cartoes) ? s.cartoes : [],
+    funil:
+      s.funil && typeof s.funil === 'object'
+        ? {
+            titulo: s.funil.titulo ?? '',
+            apoio: s.funil.apoio ?? '',
+            etapas: Array.isArray(s.funil.etapas) ? s.funil.etapas : [],
+            alerta: s.funil.alerta ?? null,
+          }
+        : SNAPSHOT_VAZIO.funil,
+    serie: Array.isArray(s.serie) ? s.serie : [],
+    campanhas: Array.isArray(s.campanhas) ? s.campanhas : [],
+    canais: Array.isArray(s.canais) ? s.canais : [],
+    marcos: Array.isArray(s.marcos) ? s.marcos : [],
+    investimentoTotal: typeof s.investimentoTotal === 'number' ? s.investimentoTotal : 0,
+  };
+}
+
+export async function listarRelatorios(contaId?: string): Promise<Resposta<RelatorioResumo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const [supabase, contatos] = await Promise.all([
+    clienteServidor(),
+    contatosPrincipaisDasContas(),
+  ]);
+
+  let consulta = supabase
+    .from('relatorio')
+    .select(
+      'id, conta_id, slug, titulo, contato, periodo_de, periodo_ate, perfil_metrica, status, versao, resumo_executivo, acoes_executadas, proximos_passos, blocos_visiveis, resultado_comercial, snapshot, publicado_em, enviado_em, criado_em, conta:conta_id(nome, segmento), perfil:autor_id(nome)',
+    )
+    .order('criado_em', { ascending: false })
+    .limit(80);
+
+  if (contaId) consulta = consulta.eq('conta_id', contaId);
+
+  const { data, error } = await consulta;
+  if (error) return doBanco([]);
+
+  return doBanco(
+    (data ?? []).map((r) => {
+      const conta = r.conta as unknown as { nome: string; segmento: string | null } | null;
+      const cId = r.conta_id as string;
+      const contatoPrincipal = contatos[cId];
+
+      return {
+        id: r.id as string,
+        contaId: cId,
+        cliente: conta?.nome ?? 'Cliente',
+        segmento: conta?.segmento ?? null,
+        slug: r.slug as string,
+        titulo: r.titulo as string,
+        contato: (r.contato as string) ?? contatoPrincipal?.nome ?? null,
+        periodoDe: r.periodo_de as string,
+        periodoAte: r.periodo_ate as string,
+        perfilMetrica:
+          ((r.perfil_metrica as RelatorioResumo['perfilMetrica']) ?? 'whatsapp'),
+        status: (r.status as StatusRelatorio) ?? 'rascunho',
+        versao: Number(r.versao ?? 1),
+        resumoExecutivo: (r.resumo_executivo as string) ?? '',
+        acoesExecutadas: Array.isArray(r.acoes_executadas)
+          ? (r.acoes_executadas as string[])
+          : [],
+        proximosPassos: Array.isArray(r.proximos_passos)
+          ? (r.proximos_passos as string[])
+          : [],
+        blocosVisiveis: Array.isArray(r.blocos_visiveis)
+          ? (r.blocos_visiveis as BlocoRelatorio[])
+          : ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'],
+        resultadoComercial:
+          (r.resultado_comercial as ResultadoComercialRelatorio | null) ?? null,
+        snapshot: normalizarSnapshot(r.snapshot),
+        publicadoEm: (r.publicado_em as string) ?? null,
+        enviadoEm: (r.enviado_em as string) ?? null,
+        criadoEm: r.criado_em as string,
+        autor: (r.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        emailContato: contatoPrincipal?.email ?? null,
+        whatsappContato: contatoPrincipal?.whatsapp ?? null,
+      };
+    }),
+  );
+}
+
+export async function buscarRelatorioPublico(slug: string) {
+  if (!bancoConfigurado) return null;
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase.rpc('relatorio_por_link', { p_slug: slug });
+  if (error || !Array.isArray(data) || data.length === 0) return null;
+
+  const r = data[0] as Record<string, unknown>;
+
+  return {
+    slug: r.slug as string,
+    cliente: (r.cliente as string) ?? 'Cliente',
+    segmento: (r.segmento as string) ?? null,
+    titulo: (r.titulo as string) ?? 'Relatório de desempenho',
+    contato: (r.contato as string) ?? null,
+    periodoDe: r.periodo_de as string,
+    periodoAte: r.periodo_ate as string,
+    perfilMetrica: ((r.perfil_metrica as RelatorioResumo['perfilMetrica']) ?? 'whatsapp'),
+    versao: Number(r.versao ?? 1),
+    resumoExecutivo: (r.resumo_executivo as string) ?? '',
+    acoesExecutadas: Array.isArray(r.acoes_executadas)
+      ? (r.acoes_executadas as string[])
+      : [],
+    proximosPassos: Array.isArray(r.proximos_passos)
+      ? (r.proximos_passos as string[])
+      : [],
+    blocosVisiveis: Array.isArray(r.blocos_visiveis)
+      ? (r.blocos_visiveis as BlocoRelatorio[])
+      : ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'],
+    resultadoComercial:
+      (r.resultado_comercial as ResultadoComercialRelatorio | null) ?? null,
+    snapshot: normalizarSnapshot(r.snapshot),
+    publicadoEm: (r.publicado_em as string) ?? null,
+    criadoEm: r.criado_em as string,
+  };
 }

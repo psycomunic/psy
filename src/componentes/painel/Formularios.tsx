@@ -3,6 +3,7 @@
 import { useActionState, useState, useId } from 'react';
 import {
   criarConta,
+  salvarPerfilMetrica,
   convidarUsuario,
   alterarAcesso,
   definirMeta,
@@ -12,6 +13,15 @@ import {
 } from '@/app/painel/acoes';
 import type { Resultado } from '@/app/painel/acoes';
 import { PAPEIS, rotuloPapel, descricaoPapel, type Papel } from '@/lib/papeis';
+import {
+  PERFIS_METRICA,
+  rotuloPerfilMetrica,
+  descricaoPerfilMetrica,
+  CHAVES_KPI,
+  rotuloChaveKpi,
+  KPIS_PADRAO_POR_PERFIL,
+  type PerfilMetrica,
+} from '@/lib/dominio/perfis-metrica';
 
 /* Estilos compartilhados: campo e rótulo iguais em toda a plataforma. */
 const campo =
@@ -111,12 +121,19 @@ export function FormNovaConta() {
               <option value="trafego">Só tráfego</option>
               <option value="outro">Outro</option>
             </select>
-            {/* O aviso onde a escolha acontece. Sem ele, alguém cadastra
-                um chalé como loja online e depois estranha ver o
-                semáforo vermelho para sempre. */}
             <p className="mt-1.5 text-xs leading-relaxed text-cinza">
-              Cliente de tráfego não tem venda registrada aqui, e o semáforo de saúde deixa
-              de descontar por meta e ROAS.
+              Cliente de tráfego não tem venda de plataforma registrada aqui, e o semáforo de saúde não desconta por ROAS de loja.
+            </p>
+          </div>
+          <div>
+            <label htmlFor="c-perfil" className={rotulo}>Modelo de métricas e relatórios</label>
+            <select id="c-perfil" name="perfil_metrica" defaultValue="automatico" className={`mt-2 ${campo}`}>
+              {PERFIS_METRICA.filter((p) => p !== 'personalizado').map((p) => (
+                <option key={p} value={p}>{rotuloPerfilMetrica[p]}</option>
+              ))}
+            </select>
+            <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+              Define se a tela prioriza conversas de WhatsApp, leads, vendas de loja ou alcance. Pode ser alterado depois na tela de Métricas.
             </p>
           </div>
           <div>
@@ -373,17 +390,15 @@ export function FormMeta({ contas }: { contas: { id: string; nome: string }[] })
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(definirMeta, null);
 
   return (
-    <Dobra titulo="Definir meta do mês" acaoRotulo="Nova meta">
+    <Dobra titulo="Definir metas do mês" acaoRotulo="Nova meta">
       <form action={acao} className="space-y-5">
         <p className="text-sm leading-relaxed text-cinza">
-          Sem meta, o painel mostra o número e não diz se ele é bom. É a meta que
-          transforma &ldquo;R$ 180 mil&rdquo; em &ldquo;83% do mês&rdquo; e calcula
-          quanto a loja precisa faturar por dia no que resta.
+          Preencha o que faz sentido para o nicho do cliente: receita para e-commerce, ou orçamento de mídia e volume de conversas/leads para clientes de tráfego.
         </p>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label htmlFor="m-conta" className={rotulo}>Loja *</label>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="md:col-span-2 lg:col-span-4">
+            <label htmlFor="m-conta" className={rotulo}>Cliente *</label>
             <select id="m-conta" name="conta_id" required className={`mt-2 ${campo}`}>
               <option value="">Escolha</option>
               {contas.map((c) => (
@@ -392,13 +407,42 @@ export function FormMeta({ contas }: { contas: { id: string; nome: string }[] })
             </select>
           </div>
           <div>
-            <label htmlFor="m-receita" className={rotulo}>Meta de receita do mês *</label>
+            <label htmlFor="m-verba" className={rotulo}>Orçamento de mídia (R$)</label>
+            <input
+              id="m-verba"
+              name="verba_meta"
+              inputMode="decimal"
+              placeholder="Ex.: 5.000"
+              className={`mt-2 ${campo}`}
+            />
+          </div>
+          <div>
+            <label htmlFor="m-resultado" className={rotulo}>Meta de conversas / leads</label>
+            <input
+              id="m-resultado"
+              name="resultado_meta"
+              inputMode="numeric"
+              placeholder="Ex.: 300"
+              className={`mt-2 ${campo}`}
+            />
+          </div>
+          <div>
+            <label htmlFor="m-teto" className={rotulo}>Custo máximo por resultado (R$)</label>
+            <input
+              id="m-teto"
+              name="custo_resultado_teto"
+              inputMode="decimal"
+              placeholder="Ex.: 12,00"
+              className={`mt-2 ${campo}`}
+            />
+          </div>
+          <div>
+            <label htmlFor="m-receita" className={rotulo}>Meta de receita da loja (R$)</label>
             <input
               id="m-receita"
               name="receita_meta"
-              required
               inputMode="decimal"
-              placeholder="320000"
+              placeholder="Só para e-commerce"
               className={`mt-2 ${campo}`}
             />
           </div>
@@ -412,6 +456,97 @@ export function FormMeta({ contas }: { contas: { id: string; nome: string }[] })
           className="rounded-full bg-magenta px-7 py-3 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
         >
           {pendente ? 'Salvando...' : 'Salvar meta'}
+        </button>
+      </form>
+    </Dobra>
+  );
+}
+
+export function FormPerfilMetrica({
+  contaId,
+  perfilAtual,
+  kpisAtuais,
+}: {
+  contaId: string;
+  perfilAtual: PerfilMetrica;
+  kpisAtuais: string[] | null;
+}) {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    salvarPerfilMetrica,
+    null,
+  );
+  const [perfil, setPerfil] = useState<PerfilMetrica>(perfilAtual);
+  const selecionadosIniciais =
+    kpisAtuais && kpisAtuais.length > 0
+      ? kpisAtuais
+      : KPIS_PADRAO_POR_PERFIL[perfilAtual === 'automatico' ? 'whatsapp' : perfilAtual];
+  const [marcados, setMarcados] = useState<string[]>(selecionadosIniciais);
+
+  function alternar(chave: string) {
+    setMarcados((atual) =>
+      atual.includes(chave) ? atual.filter((x) => x !== chave) : [...atual, chave],
+    );
+  }
+
+  return (
+    <Dobra titulo="Modelo de métricas deste cliente" acaoRotulo="Personalizar leitura">
+      <form action={acao} className="space-y-5">
+        <input type="hidden" name="conta_id" value={contaId} />
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label htmlFor="pm-perfil" className={rotulo}>Lente principal *</label>
+            <select
+              id="pm-perfil"
+              name="perfil_metrica"
+              value={perfil}
+              onChange={(e) => setPerfil(e.target.value as PerfilMetrica)}
+              className={`mt-2 ${campo}`}
+            >
+              {PERFIS_METRICA.map((p) => (
+                <option key={p} value={p}>{rotuloPerfilMetrica[p]}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <p className="rounded-xl border border-fio bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-cinza">
+              {descricaoPerfilMetrica[perfil]}
+            </p>
+          </div>
+        </div>
+
+        {perfil === 'personalizado' ? (
+          <fieldset>
+            <legend className={rotulo}>Indicadores em destaque (escolha de 4 a 8)</legend>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {CHAVES_KPI.map((k) => (
+                <label
+                  key={k}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-fio bg-white/[0.02] px-3.5 py-2.5 text-xs text-neve transition-colors hover:bg-white/[0.05]"
+                >
+                  <input
+                    type="checkbox"
+                    name="kpis"
+                    value={k}
+                    checked={marcados.includes(k)}
+                    onChange={() => alternar(k)}
+                    className="h-4 w-4 shrink-0 accent-[#E4155F]"
+                  />
+                  {rotuloChaveKpi[k]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
+
+        <Aviso r={estado} />
+
+        <button
+          type="submit"
+          disabled={pendente}
+          className="rounded-full bg-magenta px-6 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+        >
+          {pendente ? 'Salvando...' : 'Aplicar modelo de métricas'}
         </button>
       </form>
     </Dobra>

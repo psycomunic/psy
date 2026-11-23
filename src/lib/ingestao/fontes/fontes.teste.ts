@@ -14,8 +14,18 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { mapear as mapearMeta, receitaDeCompra } from './meta.ts';
-import { mapearAds, mapearGa4, canalDoGa4, diaDoGa4 } from './google.ts';
+import {
+  mapear as mapearMeta,
+  mapearCampanhas as mapearCampanhasMeta,
+  receitaDeCompra,
+} from './meta.ts';
+import {
+  mapearAds,
+  mapearCampanhasAds,
+  mapearGa4,
+  canalDoGa4,
+  diaDoGa4,
+} from './google.ts';
 
 describe('Meta', () => {
   const resposta = {
@@ -96,6 +106,75 @@ describe('Meta', () => {
     const l = mapearMeta({ data: [{ date_start: '2026-08-19', spend: '-50' }] });
     assert.equal(l[0].investimento, 0);
   });
+
+  test('extrai conversas de WhatsApp, leads, cliques no link e alcance sem duplicar', () => {
+    const pacote = {
+      conta: {
+        data: [
+          {
+            date_start: '2026-11-20',
+            spend: '320.50',
+            impressions: '18400',
+            reach: '12100',
+            clicks: '540',
+            inline_link_clicks: '310',
+            actions: [
+              { action_type: 'onsite_conversion.messaging_conversation_started_7d', value: '42' },
+              { action_type: 'onsite_conversion.total_messaging_connection', value: '55' },
+              { action_type: 'lead', value: '9' },
+              { action_type: 'offsite_conversion.fb_pixel_lead', value: '9' },
+              { action_type: 'landing_page_view', value: '240' },
+              { action_type: 'video_thruplay_watched_actions', value: '1900' },
+            ],
+          },
+        ],
+      },
+      campanhas: {
+        data: [
+          {
+            date_start: '2026-11-20',
+            campaign_id: 'cmp_1',
+            campaign_name: '[WPP] Reservas Fim de Semana',
+            objective: 'OUTCOME_ENGAGEMENT',
+            spend: '220.50',
+            impressions: '10400',
+            reach: '8200',
+            clicks: '410',
+            inline_link_clicks: '260',
+            actions: [
+              { action_type: 'onsite_conversion.messaging_conversation_started_7d', value: '42' },
+            ],
+          },
+          {
+            date_start: '2026-11-20',
+            campaign_id: 'cmp_2',
+            campaign_name: '[Reels] Institucional Chalé',
+            objective: 'OUTCOME_AWARENESS',
+            spend: '100.00',
+            impressions: '8000',
+            reach: '6500',
+            clicks: '130',
+            inline_link_clicks: '50',
+          },
+        ],
+      },
+    };
+
+    const conta = mapearMeta(pacote);
+    assert.equal(conta.length, 1);
+    assert.equal(conta[0].alcance, 12100);
+    assert.equal(conta[0].cliques_link, 310);
+    assert.equal(conta[0].conversas, 42);
+    assert.equal(conta[0].leads_captados, 9);
+    assert.equal(conta[0].visitas_pagina, 240);
+    assert.equal(conta[0].visualizacoes_video, 1900);
+
+    const camps = mapearCampanhasMeta(pacote);
+    assert.equal(camps.length, 2);
+    assert.equal(camps[0].objetivo, 'mensagens');
+    assert.equal(camps[0].conversas, 42);
+    assert.equal(camps[1].objetivo, 'alcance');
+  });
 });
 
 describe('Google Ads', () => {
@@ -145,6 +224,38 @@ describe('Google Ads', () => {
   test('resposta de erro não vira linha', () => {
     assert.deepEqual(mapearAds([{ error: { message: 'sem permissão' } }]), []);
     assert.deepEqual(mapearAds(null), []);
+  });
+
+  test('mapeia campanhas do Google Ads separando vendas e captação de leads', () => {
+    const pacote = {
+      campanhas: [
+        {
+          results: [
+            {
+              segments: { date: '2026-11-20' },
+              campaign: {
+                id: '9001',
+                name: 'Search - Captação de Leads B2B',
+                status: 'ENABLED',
+                advertisingChannelType: 'SEARCH',
+              },
+              metrics: {
+                costMicros: '450000000',
+                clicks: '180',
+                impressions: '2100',
+                conversions: '15',
+                conversionsValue: '0',
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const camps = mapearCampanhasAds(pacote);
+    assert.equal(camps.length, 1);
+    assert.equal(camps[0].objetivo, 'leads');
+    assert.equal(camps[0].leads_captados, 15);
+    assert.equal(camps[0].investimento, 450);
   });
 });
 

@@ -1,8 +1,19 @@
 'use client';
 
 import { useState, useId } from 'react';
-import type { DiaKpi, CanalKpi, MesFinanceiro } from '@/lib/dados/tipos';
-import { dinheiroCurto, dinheiro, diaCurto, diaLongo, vezes, nomeCanal, porcento } from '@/lib/formato';
+import type { DiaKpi, CanalKpi, MesFinanceiro, Marco } from '@/lib/dados/tipos';
+import {
+  dinheiroCurto,
+  dinheiro,
+  dinheiroExato,
+  contagemCurta,
+  numero,
+  diaCurto,
+  diaLongo,
+  vezes,
+  nomeCanal,
+  porcento,
+} from '@/lib/formato';
 import {
   COR_RECEITA,
   COR_INVESTIMENTO,
@@ -224,24 +235,51 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
    piores, e piora quando as fatias são parecidas.
    ================================================================== */
 
+export type MedidaCanal =
+  | 'receita'
+  | 'roas'
+  | 'investimento'
+  | 'conversas'
+  | 'leads'
+  | 'cliques';
+
 export function BarrasCanal({
   canais,
   medida = 'receita',
 }: {
   canais: CanalKpi[];
-  medida?: 'receita' | 'roas';
+  medida?: MedidaCanal;
 }) {
   const [ativo, setAtivo] = useState<string | null>(null);
 
-  const valor = (c: CanalKpi) => (medida === 'receita' ? c.receita : (c.roas ?? 0));
+  const valor = (c: CanalKpi) => {
+    switch (medida) {
+      case 'investimento': return c.investimento;
+      case 'conversas': return c.conversas;
+      case 'leads': return c.leadsCaptados;
+      case 'cliques': return c.cliquesLink;
+      case 'roas': return c.roas ?? c.roasDeclarado ?? 0;
+      default: return c.receita;
+    }
+  };
   const max = Math.max(...canais.map(valor), 1);
-  const fmt = (c: CanalKpi) => (medida === 'receita' ? dinheiro(c.receita) : vezes(c.roas));
+  const fmt = (c: CanalKpi) => {
+    switch (medida) {
+      case 'investimento': return c.investimento > 0 ? dinheiro(c.investimento) : '—';
+      case 'conversas': return numero(c.conversas);
+      case 'leads': return numero(c.leadsCaptados);
+      case 'cliques': return numero(c.cliquesLink);
+      case 'roas': return vezes(c.roas ?? c.roasDeclarado);
+      default: return dinheiro(c.receita);
+    }
+  };
 
   return (
     <ul className="space-y-3.5">
       {canais.map((c) => {
-        const largura = Math.max((valor(c) / max) * 100, 1.5);
-        const semInvestimento = medida === 'roas' && c.roas === null;
+        const v = valor(c);
+        const largura = v > 0 ? Math.max((v / max) * 100, 1.5) : 0;
+        const semInvestimento = medida === 'roas' && c.roas === null && c.roasDeclarado === null;
 
         return (
           <li
@@ -259,8 +297,6 @@ export function BarrasCanal({
                 />
                 {nomeCanal(c.canal)}
               </span>
-              {/* Rótulo direto em toda barra: são cinco, e ler o valor
-                  exato é o objetivo desta tela. */}
               <span className="tabular text-sm font-semibold text-branco">
                 {semInvestimento ? 'sem mídia' : fmt(c)}
               </span>
@@ -277,18 +313,20 @@ export function BarrasCanal({
             </div>
 
             {ativo === c.canal ? (
-              <div className="absolute right-0 top-full z-10 mt-2 min-w-[12rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
+              <div className="absolute right-0 top-full z-10 mt-2 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
                 <dl className="space-y-1.5">
                   {[
-                    ['Receita', dinheiro(c.receita)],
                     ['Investimento', c.investimento > 0 ? dinheiro(c.investimento) : '—'],
-                    ['Pedidos', String(c.pedidos)],
-                    ['ROAS', c.roas === null ? 'sem mídia' : vezes(c.roas)],
+                    ...(c.conversas > 0 ? [['Conversas', numero(c.conversas)]] : []),
+                    ...(c.leadsCaptados > 0 ? [['Leads', numero(c.leadsCaptados)]] : []),
+                    ...(c.receita > 0 ? [['Receita loja', dinheiro(c.receita)]] : []),
+                    ['Cliques link', numero(c.cliquesLink)],
+                    ['CPC', c.cpc === null ? '—' : dinheiroExato(c.cpc)],
                     ['CTR', porcento(c.ctr, 2)],
-                  ].map(([k, v]) => (
+                  ].map(([k, val]) => (
                     <div key={k} className="flex justify-between gap-6">
                       <dt className="text-cinza">{k}</dt>
-                      <dd className="tabular text-branco">{v}</dd>
+                      <dd className="tabular text-branco">{val}</dd>
                     </div>
                   ))}
                 </dl>
@@ -298,6 +336,331 @@ export function BarrasCanal({
         );
       })}
     </ul>
+  );
+}
+
+/* ==================================================================
+   SÉRIE TEMPORAL MULTI-NICHO
+
+   Adapta o eixo e a geometria ao perfil do cliente:
+   - Moeda dupla (e-commerce e vendas diretas): duas linhas na mesma
+     escala em reais.
+   - Verba + volume (WhatsApp, leads e branding): barras arredondadas
+     para o volume diário (conversas, leads ou alcance) e linha contínua
+     para o ritmo de investimento, com marcos do diário assinalados.
+   ================================================================== */
+
+export function SerieMultinicho({
+  serie,
+  modo,
+  rotuloResultado,
+  perfil,
+  marcos = [],
+}: {
+  serie: DiaKpi[];
+  modo: 'moeda_dupla' | 'verba_e_volume';
+  rotuloResultado: string;
+  perfil: 'whatsapp' | 'leads' | 'ecommerce' | 'vendas_midia' | 'branding' | 'personalizado';
+  marcos?: Marco[];
+}) {
+  const [ativo, setAtivo] = useState<number | null>(null);
+  const id = useId();
+
+  if (serie.length === 0) {
+    return (
+      <p className="py-16 text-center text-sm text-cinza">
+        Nenhum dado registrado neste período ainda.
+      </p>
+    );
+  }
+
+  const extrair = (d: DiaKpi): number => {
+    switch (perfil) {
+      case 'ecommerce': return d.receita;
+      case 'vendas_midia': return d.receitaAtribuida;
+      case 'leads': return d.leadsCaptados;
+      case 'branding': return d.alcance > 0 ? d.alcance : d.impressoes;
+      default: return d.conversas > 0 ? d.conversas : d.cliquesLink || d.cliques;
+    }
+  };
+
+  if (serie.length === 1) {
+    const unico = serie[0];
+    const res = extrair(unico);
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-6 py-8">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-cinza">
+            {diaLongo(unico.dia)} (1 dia no recorte)
+          </p>
+          <p className="mt-2 font-display text-2xl font-extrabold text-branco">
+            {modo === 'moeda_dupla' ? dinheiro(res) : `${numero(res)} ${rotuloResultado.toLowerCase()}`}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-cinza">Investimento</p>
+          <p className="tabular mt-2 font-display text-xl font-bold text-neve">
+            {dinheiro(unico.investimento)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const marcosPorDia = new Map<string, Marco>();
+  for (const m of marcos) {
+    if (!marcosPorDia.has(m.dia)) marcosPorDia.set(m.dia, m);
+  }
+
+  const MR_DIR = modo === 'verba_e_volume' ? 62 : R;
+  const maxRes = Math.max(...serie.map(extrair), 1);
+  const maxInv = Math.max(...serie.map((d) => d.investimento), 1);
+  const tetoComum = Math.max(maxRes, maxInv) * 1.14 || 1;
+  const tetoRes = (modo === 'moeda_dupla' ? tetoComum : maxRes * 1.18) || 1;
+  const tetoInv = (modo === 'moeda_dupla' ? tetoComum : maxInv * 1.25) || 1;
+
+  const larguraUtil = W - L - MR_DIR;
+  const alturaUtil = H - T - B;
+  const px = (i: number) => L + (i * larguraUtil) / (serie.length - 1);
+  const pyRes = (v: number) => T + alturaUtil * (1 - v / tetoRes);
+  const pyInv = (v: number) => T + alturaUtil * (1 - v / tetoInv);
+
+  const linha = (sel: (d: DiaKpi) => number, mapY: (v: number) => number) =>
+    serie.map((d, i) => `${i === 0 ? 'M' : 'L'} ${px(i).toFixed(1)} ${mapY(sel(d)).toFixed(1)}`).join(' ');
+
+  const area = (sel: (d: DiaKpi) => number, mapY: (v: number) => number) =>
+    `${linha(sel, mapY)} L ${px(serie.length - 1).toFixed(1)} ${(T + alturaUtil).toFixed(1)} L ${px(0).toFixed(1)} ${(T + alturaUtil).toFixed(1)} Z`;
+
+  const marcasEsq = [0, 0.5, 1].map((f) => f * tetoRes);
+  const marcasDir = [0, 0.5, 1].map((f) => f * tetoInv);
+  const passoX = Math.max(1, Math.floor(serie.length / 6));
+  const larguraBarra = Math.max(4, Math.min(20, (larguraUtil / serie.length) * 0.56));
+
+  const d = ativo === null ? null : serie[ativo];
+  const marcoAtivo = d ? marcosPorDia.get(d.dia) : undefined;
+
+  return (
+    <figure className="relative">
+      <figcaption className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-5">
+          <span className="flex items-center gap-2 text-xs text-neve">
+            <span
+              aria-hidden
+              className={modo === 'verba_e_volume' ? 'h-2.5 w-2.5 rounded-xs' : 'h-2.5 w-2.5 rounded-full'}
+              style={{ background: COR_RECEITA }}
+            />
+            {rotuloResultado}
+          </span>
+          <span className="flex items-center gap-2 text-xs text-neve">
+            <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: COR_INVESTIMENTO }} />
+            Investimento em mídia
+          </span>
+        </div>
+        {marcosPorDia.size > 0 ? (
+          <span className="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+            ◆ marco do diário de bordo
+          </span>
+        ) : null}
+      </figcaption>
+
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full"
+        role="img"
+        aria-label={`${rotuloResultado} e investimento nos ${serie.length} dias selecionados`}
+        onMouseLeave={() => setAtivo(null)}
+      >
+        <defs>
+          <linearGradient id={`${id}-res`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={COR_RECEITA} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={COR_RECEITA} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {marcasEsq.map((v, i) => (
+          <g key={i}>
+            <line x1={L} y1={pyRes(v)} x2={W - MR_DIR} y2={pyRes(v)} stroke={GRADE} strokeWidth="1" />
+            <text
+              x={L - 8}
+              y={pyRes(v) + 4}
+              textAnchor="end"
+              fontSize="10"
+              fill={EIXO}
+              fontFamily="var(--font-mono)"
+            >
+              {i === 0
+                ? '0'
+                : modo === 'moeda_dupla'
+                  ? dinheiroCurto(v).replace('R$ ', '')
+                  : contagemCurta(Math.round(v))}
+            </text>
+          </g>
+        ))}
+
+        {modo === 'verba_e_volume'
+          ? marcasDir.map((v, i) => (
+              <text
+                key={i}
+                x={W - MR_DIR + 8}
+                y={pyInv(v) + 4}
+                textAnchor="start"
+                fontSize="10"
+                fill={EIXO}
+                fontFamily="var(--font-mono)"
+              >
+                {i === 0 ? 'R$ 0' : dinheiroCurto(v)}
+              </text>
+            ))
+          : null}
+
+        {modo === 'moeda_dupla' ? (
+          <>
+            <path d={area(extrair, pyRes)} fill={`url(#${id}-res)`} />
+            <path
+              d={linha((x) => x.investimento, pyInv)}
+              fill="none"
+              stroke={COR_INVESTIMENTO}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            <path
+              d={linha(extrair, pyRes)}
+              fill="none"
+              stroke={COR_RECEITA}
+              strokeWidth="2.2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </>
+        ) : (
+          <>
+            {serie.map((s, i) => {
+              const val = extrair(s);
+              const topo = pyRes(val);
+              const alt = Math.max(T + alturaUtil - topo, val > 0 ? 2 : 0);
+              return (
+                <rect
+                  key={s.dia}
+                  x={px(i) - larguraBarra / 2}
+                  y={topo}
+                  width={larguraBarra}
+                  height={alt}
+                  rx={3}
+                  fill={COR_RECEITA}
+                  fillOpacity={ativo === i ? 0.95 : 0.42}
+                />
+              );
+            })}
+            <path
+              d={linha((x) => x.investimento, pyInv)}
+              fill="none"
+              stroke={COR_INVESTIMENTO}
+              strokeWidth="2.2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+
+        {/* Marcos registrados no diário */}
+        {serie.map((s, i) =>
+          marcosPorDia.has(s.dia) ? (
+            <line
+              key={`m-${s.dia}`}
+              x1={px(i)}
+              y1={T}
+              x2={px(i)}
+              y2={H - B}
+              stroke="rgba(228,21,95,0.45)"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+            />
+          ) : null,
+        )}
+
+        {serie.map((s, i) =>
+          i % passoX === 0 || i === serie.length - 1 ? (
+            <text
+              key={s.dia}
+              x={px(i)}
+              y={H - 8}
+              textAnchor="middle"
+              fontSize="10"
+              fill={EIXO}
+              fontFamily="var(--font-mono)"
+            >
+              {diaCurto(s.dia)}
+            </text>
+          ) : null,
+        )}
+
+        {ativo !== null && d ? (
+          <g pointerEvents="none">
+            <line x1={px(ativo)} y1={T} x2={px(ativo)} y2={H - B} stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
+            <circle cx={px(ativo)} cy={pyInv(d.investimento)} r="5" fill={COR_INVESTIMENTO} stroke="#0B1730" strokeWidth="2" />
+            <circle cx={px(ativo)} cy={pyRes(extrair(d))} r="5" fill={COR_RECEITA} stroke="#0B1730" strokeWidth="2" />
+          </g>
+        ) : null}
+
+        {serie.map((s, i) => (
+          <rect
+            key={s.dia}
+            x={px(i) - larguraUtil / (serie.length - 1) / 2}
+            y={T}
+            width={larguraUtil / (serie.length - 1)}
+            height={alturaUtil}
+            fill="transparent"
+            onMouseEnter={() => setAtivo(i)}
+          />
+        ))}
+      </svg>
+
+      {d ? (
+        <div
+          className="pointer-events-none absolute top-10 z-10 min-w-[14rem] rounded-xl border border-fio bg-marinho-fundo/95 p-4 shadow-2xl backdrop-blur print:hidden"
+          style={{
+            left: `${(px(ativo!) / W) * 100}%`,
+            transform: ativo! > serie.length / 2 ? 'translateX(-105%)' : 'translateX(5%)',
+          }}
+        >
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+            {diaLongo(d.dia)}
+          </p>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-6">
+              <dt className="flex items-center gap-2 text-cinza">
+                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: COR_RECEITA }} />
+                {rotuloResultado}
+              </dt>
+              <dd className="tabular font-semibold text-branco">
+                {modo === 'moeda_dupla' ? dinheiro(extrair(d)) : numero(extrair(d))}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-6">
+              <dt className="flex items-center gap-2 text-cinza">
+                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: COR_INVESTIMENTO }} />
+                Investimento
+              </dt>
+              <dd className="tabular font-semibold text-branco">{dinheiroExato(d.investimento)}</dd>
+            </div>
+            {modo === 'verba_e_volume' && extrair(d) > 0 && d.investimento > 0 ? (
+              <div className="flex items-center justify-between gap-6 border-t border-fio pt-2 text-xs">
+                <dt className="text-cinza">Custo unitário no dia</dt>
+                <dd className="tabular font-semibold text-neve">
+                  {dinheiroExato(d.investimento / extrair(d))}
+                </dd>
+              </div>
+            ) : null}
+            {marcoAtivo ? (
+              <div className="border-t border-fio pt-2 text-xs text-magenta-texto">
+                ◆ {marcoAtivo.titulo}
+              </div>
+            ) : null}
+          </dl>
+        </div>
+      ) : null}
+    </figure>
   );
 }
 

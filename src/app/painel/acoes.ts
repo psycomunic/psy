@@ -5,6 +5,7 @@ import { sessaoAtual } from '@/lib/supabase/servidor';
 import { clienteServico } from '@/lib/supabase/servico';
 import {
   esquemaConta,
+  esquemaPerfilMetricaConta,
   esquemaUsuario,
   esquemaAcesso,
   esquemaMeta,
@@ -12,7 +13,8 @@ import {
   esquemaTransferencia,
   validar,
 } from '@/lib/validacao/painel';
-import { rotuloPapel } from '@/lib/papeis';
+import { pode, rotuloPapel } from '@/lib/papeis';
+import { CHAVES_KPI } from '@/lib/dominio/perfis-metrica';
 import { enviarEmail } from '@/lib/email/remetente';
 import { acessoCriado } from '@/lib/email/modelos';
 
@@ -76,7 +78,7 @@ export async function criarConta(
 
     const v = validar(esquemaConta, fd);
     if (!v.ok) return v;
-    const { nome, tipo, segmento, plataforma, site, documento } = v.dados;
+    const { nome, tipo, perfil_metrica, segmento, plataforma, site, documento } = v.dados;
 
     const s = clienteServico();
 
@@ -90,19 +92,86 @@ export async function criarConta(
 
     if (existente) return { ok: false, mensagem: `Já existe uma conta chamada "${nome}".` };
 
-    const { data, error } = await s
+    let { data, error } = await s
       .from('conta')
-      .insert({ nome, tipo, segmento, plataforma, site, documento })
+      .insert({ nome, tipo, perfil_metrica, segmento, plataforma, site, documento })
       .select('id, nome')
       .single();
 
-    if (error) return { ok: false, mensagem: error.message };
+    /* Compatibilidade se a migração 0050 ainda não tiver rodado no banco. */
+    if (error && /perfil_metrica/i.test(error.message)) {
+      const fallback = await s
+        .from('conta')
+        .insert({ nome, tipo, segmento, plataforma, site, documento })
+        .select('id, nome')
+        .single();
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    if (error || !data) return { ok: false, mensagem: error?.message ?? 'Erro ao cadastrar.' };
 
     await registrar(sessao.id, 'criou', 'conta', data.id);
     revalidatePath('/painel/contas');
+    revalidatePath('/painel/metricas');
     revalidatePath('/painel/visao');
 
-    return { ok: true, mensagem: `Loja "${data.nome}" cadastrada.` };
+    return { ok: true, mensagem: `Cliente "${data.nome}" cadastrado.` };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+export async function salvarPerfilMetrica(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await sessaoAtual();
+    if (!sessao) return { ok: false, mensagem: 'Sessão expirada. Entre de novo.' };
+    if (!pode(sessao.papel, 'metricas', 'editar')) {
+      return { ok: false, mensagem: 'Seu perfil não altera a configuração de métricas.' };
+    }
+
+    const v = validar(esquemaPerfilMetricaConta, fd);
+    if (!v.ok) return v;
+    const { conta_id: contaId, perfil_metrica: perfil, kpis } = v.dados;
+
+    const permitidos = new Set<string>(CHAVES_KPI);
+    const kpisLimpos = kpis.filter((k) => permitidos.has(k));
+
+    if (perfil === 'personalizado' && kpisLimpos.length === 0) {
+      return {
+        ok: false,
+        mensagem: 'No modo personalizado, marque pelo menos um indicador para exibir.',
+      };
+    }
+
+    const s = clienteServico();
+    const { error } = await s
+      .from('conta')
+      .update({
+        perfil_metrica: perfil,
+        kpis_visiveis: perfil === 'personalizado' ? kpisLimpos : null,
+      })
+      .eq('id', contaId);
+
+    if (error) {
+      if (/perfil_metrica|kpis_visiveis/i.test(error.message)) {
+        return {
+          ok: false,
+          mensagem:
+            'Aplique a migração 0050 no Supabase para salvar perfis personalizados por cliente.',
+        };
+      }
+      return { ok: false, mensagem: error.message };
+    }
+
+    revalidatePath('/painel/metricas');
+    revalidatePath('/painel/contas');
+    revalidatePath('/painel/relatorios');
+
+    return { ok: true, mensagem: 'Perfil de métricas do cliente atualizado.' };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }
@@ -260,7 +329,13 @@ export async function definirMeta(
        espalhada em cada action. */
     const v = validar(esquemaMeta, fd);
     if (!v.ok) return v;
-    const { conta_id: contaId, receita_meta: receita } = v.dados;
+    const {
+      conta_id: contaId,
+      receita_meta: receita,
+      verba_meta: verba,
+      resultado_meta: resultado,
+      custo_resultado_teto: custoTeto,
+    } = v.dados;
 
     /* Sempre dia 1: a chave única é (conta, mês), e uma data no meio do
        mês criaria uma segunda meta para o mesmo mês. */
@@ -268,15 +343,38 @@ export async function definirMeta(
     const mes = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-01`;
 
     const s = clienteServico();
-    const { error } = await s
+    const payloadNovo: Record<string, unknown> = {
+      conta_id: contaId,
+      mes,
+      receita_meta: receita ?? 0,
+      verba_meta: verba,
+      resultado_meta: resultado,
+      custo_resultado_teto: custoTeto,
+    };
+
+    let { error } = await s
       .from('meta_conta')
-      .upsert({ conta_id: contaId, mes, receita_meta: receita }, { onConflict: 'conta_id,mes' });
+      .upsert(payloadNovo, { onConflict: 'conta_id,mes' });
+
+    if (error && /verba_meta|resultado_meta|custo_resultado_teto/i.test(error.message)) {
+      if (receita === null) {
+        return {
+          ok: false,
+          mensagem: 'Aplique a migração 0050 no Supabase para salvar metas de verba e resultados.',
+        };
+      }
+      const fallback = await s
+        .from('meta_conta')
+        .upsert({ conta_id: contaId, mes, receita_meta: receita }, { onConflict: 'conta_id,mes' });
+      error = fallback.error;
+    }
 
     if (error) return { ok: false, mensagem: error.message };
 
     await registrar(sessao.id, 'definiu meta', 'meta_conta', contaId);
     revalidatePath('/painel/visao');
     revalidatePath('/painel/contas');
+    revalidatePath('/painel/metricas');
 
     return { ok: true, mensagem: 'Meta do mês definida.' };
   } catch (e) {

@@ -32,6 +32,7 @@ import { Propostas } from '@/componentes/painel/modulos/Propostas';
 import { Prospeccao } from '@/componentes/painel/modulos/Prospeccao';
 import { Projetos } from '@/componentes/painel/modulos/Projetos';
 import { Postagens, mesDaUrl } from '@/componentes/painel/modulos/Postagens';
+import { Relatorios } from '@/componentes/painel/modulos/Relatorios';
 
 /**
  * O CONTEÚDO de um módulo. A casca mora no layout, um nível acima.
@@ -43,13 +44,7 @@ import { Postagens, mesDaUrl } from '@/componentes/painel/modulos/Postagens';
  * sem piscar a navegação.
  */
 
-const AINDA_NAO: Partial<Record<Modulo, string[]>> = {
-  relatorios: [
-    'Relatório mensal por conta, com o diário de bordo junto',
-    'Exportação em PDF',
-    'Envio automático no fechamento do mês',
-  ],
-};
+const AINDA_NAO: Partial<Record<Modulo, string[]>> = {};
 
 export default async function PainelModulo({
   params,
@@ -61,11 +56,32 @@ export default async function PainelModulo({
     pagina?: string; lead?: string; filtro?: string; editar?: string; mes?: string;
     vista?: string;
     google?: string;
+    periodo?: string;
+    de?: string;
+    ate?: string;
+    canal?: string;
+    visao?: string;
   }>;
 }) {
   const { modulo } = await params;
-  const { papel: papelDaUrl, conta, ficha, aba, pagina, lead, filtro, editar, mes, vista, google } =
-    await searchParams;
+  const {
+    papel: papelDaUrl,
+    conta,
+    ficha,
+    aba,
+    pagina,
+    lead,
+    filtro,
+    editar,
+    mes,
+    vista,
+    google,
+    periodo,
+    de,
+    ate,
+    canal,
+    visao,
+  } = await searchParams;
 
   if (!MODULOS.includes(modulo as Modulo)) notFound();
   const moduloAtual = modulo as Modulo;
@@ -139,7 +155,17 @@ export default async function PainelModulo({
 
       <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
         {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
-        {moduloAtual === 'metricas' ? <Metricas papel={papel} contaPedida={conta} /> : null}
+        {moduloAtual === 'metricas' ? (
+          <Metricas
+            papel={papel}
+            contaPedida={conta}
+            periodoPedido={periodo}
+            dePedido={de}
+            atePedido={ate}
+            canalPedido={canal}
+            visaoPedida={visao}
+          />
+        ) : null}
         {moduloAtual === 'prospeccao' ? <Prospeccao papel={papel} /> : null}
         {moduloAtual === 'crm' ? <Crm papel={papel} abrir={lead} /> : null}
         {naFicha ? (
@@ -165,6 +191,15 @@ export default async function PainelModulo({
         {moduloAtual === 'configuracoes' ? <Configuracoes papel={papel} aviso={google} /> : null}
         {moduloAtual === 'propostas' ? (
           <Propostas papel={papel} leadId={lead} editarId={editar} />
+        ) : null}
+        {moduloAtual === 'relatorios' ? (
+          <Relatorios
+            papel={papel}
+            contaId={conta}
+            dePedido={de}
+            atePedido={ate}
+            editarId={editar}
+          />
         ) : null}
         {AINDA_NAO[moduloAtual] ? (
           <EmConstrucao nome={rotuloModulo[moduloAtual]} itens={AINDA_NAO[moduloAtual]!} />

@@ -29,21 +29,26 @@ function confere(recebido: string, esperado: string) {
 }
 
 async function executar(req: Request, contaId?: string) {
-  const esperado = process.env.INGESTAO_TOKEN;
+  const esperado = process.env.INGESTAO_TOKEN ?? '';
+  const segredoCron = process.env.CRON_SECRET ?? '';
 
-  if (!esperado || esperado.length < 24) {
+  if (esperado.length < 24 && segredoCron.length < 16) {
     return NextResponse.json(
-      { ok: false, erro: 'Sincronização desligada: INGESTAO_TOKEN ausente ou curto demais.' },
+      { ok: false, erro: 'Sincronização desligada: INGESTAO_TOKEN ou CRON_SECRET ausente.' },
       { status: 503 },
     );
   }
 
-  /* Aceita o cabeçalho próprio e o `authorization: Bearer`, que é o que
-     o cron da Vercel manda. */
+  /* Aceita o cabeçalho próprio (`INGESTAO_TOKEN`) e o `authorization: Bearer`
+     do cron da Vercel (`CRON_SECRET` ou `INGESTAO_TOKEN`). */
   const doCabecalho = req.headers.get('x-psy-token') ?? '';
   const doBearer = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
 
-  if (!confere(doCabecalho, esperado) && !confere(doBearer, esperado)) {
+  const autorizado =
+    (esperado.length >= 24 && (confere(doCabecalho, esperado) || confere(doBearer, esperado))) ||
+    (segredoCron.length >= 16 && confere(doBearer, segredoCron));
+
+  if (!autorizado) {
     return NextResponse.json({ ok: false, erro: 'Não autorizado.' }, { status: 401 });
   }
 

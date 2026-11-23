@@ -37,6 +37,15 @@ const textoOpcional = z
  * eternamente crítico por "gastou em mídia e não teve receita".
  */
 export const TIPOS_DE_CONTA = ['ecommerce', 'trafego', 'outro'] as const;
+export const PERFIS_METRICA_VALIDOS = [
+  'automatico',
+  'whatsapp',
+  'leads',
+  'ecommerce',
+  'vendas_midia',
+  'branding',
+  'personalizado',
+] as const;
 
 export const esquemaConta = z.object({
   nome: textoObrigatorio(2, 'Informe o nome do cliente.'),
@@ -45,6 +54,7 @@ export const esquemaConta = z.object({
      em vez de virar e-commerce em silêncio. Um POST dizendo
      tipo: 'chale' merece erro, e não um dado trocado sem aviso. */
   tipo: z.enum(TIPOS_DE_CONTA).default('ecommerce'),
+  perfil_metrica: z.enum(PERFIS_METRICA_VALIDOS).default('automatico'),
   segmento: textoOpcional.optional().transform((s) => s ?? null),
   plataforma: textoOpcional,
   /* URL só é validada quando existe: campo opcional vazio não pode
@@ -56,6 +66,12 @@ export const esquemaConta = z.object({
     .nullable()
     .refine((v) => v === null || /^https?:\/\/.+\..+/.test(v), 'Site inválido.'),
   documento: textoOpcional,
+});
+
+export const esquemaPerfilMetricaConta = z.object({
+  conta_id: z.uuid('Loja inválida.'),
+  perfil_metrica: z.enum(PERFIS_METRICA_VALIDOS),
+  kpis: z.array(z.string().trim()).default([]),
 });
 
 /** Lista de uuid vinda de um campo repetido no formulário. */
@@ -118,14 +134,37 @@ export const esquemaAcesso = z.object({
   ativo: z.enum(['true', 'false']).transform((v) => v === 'true'),
 });
 
-export const esquemaMeta = z.object({
-  conta_id: z.uuid('Escolha a loja.'),
-  receita_meta: z
-    .string()
-    .trim()
-    .transform(paraNumero)
-    .refine((n) => Number.isFinite(n) && n > 0, 'A meta precisa ser maior que zero.'),
-});
+const numeroPositivoOpcional = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (!v || v === '' ? null : paraNumero(v)))
+  .refine((n) => n === null || (Number.isFinite(n) && n > 0), 'O valor precisa ser maior que zero.');
+
+export const esquemaMeta = z
+  .object({
+    conta_id: z.uuid('Escolha a loja.'),
+    receita_meta: numeroPositivoOpcional,
+    verba_meta: numeroPositivoOpcional,
+    resultado_meta: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (!v || v === '' ? null : Math.round(paraNumero(v))))
+      .refine(
+        (n) => n === null || (Number.isFinite(n) && n > 0),
+        'A meta de resultados precisa ser maior que zero.',
+      ),
+    custo_resultado_teto: numeroPositivoOpcional,
+  })
+  .refine(
+    (d) =>
+      d.receita_meta !== null ||
+      d.verba_meta !== null ||
+      d.resultado_meta !== null ||
+      d.custo_resultado_teto !== null,
+    { message: 'Preencha pelo menos uma meta para o mês.', path: ['receita_meta'] },
+  );
 
 /**
  * Converte FormData e valida numa só chamada.
@@ -154,7 +193,7 @@ export function validar<T extends z.ZodType>(
   /* Campo de múltipla escolha com UMA marcada chega como string. O
      esquema espera array, então normaliza aqui: a alternativa seria
      cada campo lidar com os dois formatos. */
-  for (const chave of ['contas']) {
+  for (const chave of ['contas', 'kpis']) {
     if (chave in bruto && !Array.isArray(bruto[chave])) {
       bruto[chave] = bruto[chave] === '' ? [] : [bruto[chave]];
     }

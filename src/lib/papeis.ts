@@ -164,7 +164,7 @@ export const permissoes: Matriz = {
     projetos: ['ver', 'editar', 'excluir'],
     postagens: ['ver', 'editar', 'excluir'],
     tarefas: ['ver', 'editar', 'excluir'],
-    relatorios: ['ver', 'editar'],
+    relatorios: ['ver', 'editar', 'excluir'],
     equipe: ['ver', 'editar', 'excluir'],
     auditoria: ['ver'],
     configuracoes: ['ver', 'editar'],

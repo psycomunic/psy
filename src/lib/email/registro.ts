@@ -33,6 +33,7 @@ export const ROTULO_DO_TIPO: Record<string, string> = {
   analise_recebida: 'Confirmação de pedido de análise',
   aviso_lead: 'Aviso de lead do site',
   proposta_enviada: 'Proposta',
+  relatorio_enviado: 'Relatório de desempenho',
   acesso_criado: 'Acesso ao painel',
   teste: 'Teste de configuração',
 };

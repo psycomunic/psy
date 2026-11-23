@@ -3,7 +3,7 @@ import { clienteServico } from '@/lib/supabase/servico';
 import { janela } from '@/lib/datas';
 import { abrirSegredo } from './credenciais';
 import { gravarMetricas } from './registrar';
-import type { LinhaMetrica } from './csv';
+import type { LinhaMetrica, LinhaCampanha } from './csv';
 import * as meta from './fontes/meta';
 import * as google from './fontes/google';
 
@@ -50,7 +50,7 @@ async function buscarEMapear(
   f: Fila,
   de: string,
   ate: string,
-): Promise<{ bruto: unknown; linhas: LinhaMetrica[] }> {
+): Promise<{ bruto: unknown; linhas: LinhaMetrica[]; campanhas: LinhaCampanha[] }> {
   if (!f.identificador) {
     throw new Error('Falta o identificador da conta nesta integração.');
   }
@@ -74,7 +74,11 @@ async function buscarEMapear(
         de,
         ate,
       });
-      return { bruto, linhas: meta.mapear(bruto) };
+      return {
+        bruto,
+        linhas: meta.mapear(bruto),
+        campanhas: meta.mapearCampanhas(bruto),
+      };
     }
 
     case 'google_ads': {
@@ -85,7 +89,11 @@ async function buscarEMapear(
         de,
         ate,
       });
-      return { bruto, linhas: google.mapearAds(bruto) };
+      return {
+        bruto,
+        linhas: google.mapearAds(bruto),
+        campanhas: google.mapearCampanhasAds(bruto),
+      };
     }
 
     case 'ga4': {
@@ -95,7 +103,7 @@ async function buscarEMapear(
         de,
         ate,
       });
-      return { bruto, linhas: google.mapearGa4(bruto) };
+      return { bruto, linhas: google.mapearGa4(bruto), campanhas: [] };
     }
 
     default:
@@ -132,9 +140,9 @@ export async function sincronizarUma(f: Fila): Promise<ResultadoDaFonte> {
   const { de, ate } = janela(f.janela_dias ?? 7);
 
   try {
-    const { bruto, linhas } = await buscarEMapear(f, de, ate);
+    const { bruto, linhas, campanhas } = await buscarEMapear(f, de, ate);
 
-    if (linhas.length === 0) {
+    if (linhas.length === 0 && campanhas.length === 0) {
       await registrarFalha(f, de, ate, 'A fonte respondeu, mas sem nenhuma linha no período.');
       return {
         integracaoId: f.id,
@@ -150,6 +158,7 @@ export async function sincronizarUma(f: Fila): Promise<ResultadoDaFonte> {
       contaId: f.conta_id,
       provedor: f.provedor,
       linhas,
+      campanhas,
       origem: 'cron',
       bruto,
     });

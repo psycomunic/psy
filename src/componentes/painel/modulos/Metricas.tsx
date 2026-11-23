@@ -1,124 +1,347 @@
 import Link from 'next/link';
-import { listarContas, serieDaConta, canaisDaConta, marcosDaConta } from '@/lib/dados/consultas';
-import { SerieTempo, BarrasCanal } from '../Graficos';
-import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { dinheiro, vezes, porcento, numero, diaLongo, nomeCanal } from '@/lib/formato';
-import type { Papel } from '@/lib/papeis';
+import {
+  listarContas,
+  serieDaContaPeriodo,
+  canaisDaContaPeriodo,
+  campanhasDaContaPeriodo,
+  marcosDaConta,
+} from '@/lib/dados/consultas';
+import { SerieMultinicho, BarrasCanal, type MedidaCanal } from '../Graficos';
+import { BarraMetricas } from '../BarraMetricas';
+import { FormPerfilMetrica } from '../Formularios';
+import {
+  Kpi,
+  SeloSituacao,
+  Progresso,
+  AvisoProcedencia,
+  Secao,
+  Tabela,
+  th,
+  td,
+} from '../base';
+import {
+  dinheiro,
+  dinheiroExato,
+  vezes,
+  porcento,
+  numero,
+  contagemCurta,
+  diaLongo,
+  nomeCanal,
+} from '@/lib/formato';
+import {
+  resolverPerfil,
+  resolverJanelaPeriodo,
+  agregarPeriodo,
+  montarCartoesKpi,
+  montarFunil,
+  configSerieDoPerfil,
+  rotuloPerfilMetrica,
+  rotuloObjetivoCampanha,
+  avaliarResultadoCampanha,
+  type PerfilMetricaEfetivo,
+} from '@/lib/dominio/perfis-metrica';
+import { pode, type Papel } from '@/lib/papeis';
+import type { ContaResumo } from '@/lib/dados/tipos';
 
 /**
- * Métricas de uma conta.
+ * Métricas multi-nicho e por campanha.
  *
- * A MESMA tela serve o time da agência e o lojista. Não existe versão
- * "do cliente" com menos números: se um dado é bom o bastante para
- * decidir, ele é bom o bastante para o dono da loja ver.
- *
- * O que muda é o ESCOPO, e ele é decidido no banco. Para o time, a
- * lista traz todas as contas; para o cliente, o RLS devolve só a dele.
- * Nenhuma linha de front esconde nada, porque esconder no front é
- * maquiagem: quem abrir a aba de rede vê o resto.
+ * Adapta KPIs, funil, gráfico diário, canais e tabela de campanhas ao
+ * modelo real de cada cliente (WhatsApp/Atendimento, Captação de Leads,
+ * E-commerce com Loja, Vendas na Mídia, Branding ou Personalizado).
  */
+
+function resultadoDoMesNaCarteira(c: ContaResumo, perfil: PerfilMetricaEfetivo) {
+  switch (perfil) {
+    case 'ecommerce':
+      return { principal: dinheiro(c.receita), custoOuRetorno: vezes(c.mer), rotulo: 'MER' };
+    case 'vendas_midia':
+      return {
+        principal: `${numero(c.comprasAtribuidas)} (${dinheiro(c.receitaAtribuida)})`,
+        custoOuRetorno: c.investimento > 0 && c.receitaAtribuida > 0 ? vezes(c.receitaAtribuida / c.investimento) : '—',
+        rotulo: 'ROAS',
+      };
+    case 'leads':
+      return {
+        principal: `${numero(c.leadsCaptados)} leads`,
+        custoOuRetorno: c.leadsCaptados > 0 ? dinheiroExato(c.investimento / c.leadsCaptados) : '—',
+        rotulo: 'CPL',
+      };
+    case 'branding':
+      return {
+        principal: `${contagemCurta(c.alcance)} alcance`,
+        custoOuRetorno: `${numero(c.cliquesLink)} cliques`,
+        rotulo: 'Tráfego',
+      };
+    default:
+      return {
+        principal: `${numero(c.conversas)} conversas`,
+        custoOuRetorno: c.conversas > 0 ? dinheiroExato(c.investimento / c.conversas) : '—',
+        rotulo: 'por conversa',
+      };
+  }
+}
+
+function medidasDeCanalPorPerfil(perfil: PerfilMetricaEfetivo): {
+  esq: { titulo: string; medida: MedidaCanal };
+  dir: { titulo: string; medida: MedidaCanal };
+} {
+  switch (perfil) {
+    case 'ecommerce':
+      return {
+        esq: { titulo: 'Receita aprovada por canal', medida: 'receita' },
+        dir: { titulo: 'ROAS por canal', medida: 'roas' },
+      };
+    case 'vendas_midia':
+      return {
+        esq: { titulo: 'Investimento por canal', medida: 'investimento' },
+        dir: { titulo: 'ROAS atribuído por canal', medida: 'roas' },
+      };
+    case 'leads':
+      return {
+        esq: { titulo: 'Investimento por canal', medida: 'investimento' },
+        dir: { titulo: 'Leads captados por canal', medida: 'leads' },
+      };
+    case 'branding':
+      return {
+        esq: { titulo: 'Investimento por canal', medida: 'investimento' },
+        dir: { titulo: 'Cliques de saída por canal', medida: 'cliques' },
+      };
+    default:
+      return {
+        esq: { titulo: 'Investimento por canal', medida: 'investimento' },
+        dir: { titulo: 'Conversas iniciadas por canal', medida: 'conversas' },
+      };
+  }
+}
+
 export async function Metricas({
   papel,
   contaPedida,
+  periodoPedido,
+  dePedido,
+  atePedido,
+  canalPedido,
+  visaoPedida,
 }: {
   papel: Papel;
   contaPedida?: string;
+  periodoPedido?: string;
+  dePedido?: string;
+  atePedido?: string;
+  canalPedido?: string;
+  visaoPedida?: string;
 }) {
   const { dados: todas, procedencia } = await listarContas();
 
-  /*
-    Escopo do cliente.
-
-    Com banco, esta linha não faz nada: o RLS já devolveu só a conta
-    dele, e `todas` tem um item. Sem banco não existe RLS, e a
-    demonstração devolveria as cinco contas fictícias para um perfil de
-    cliente. Isso desenharia um sistema que vaza, e alguém olharia a
-    tela e concluiria que está tudo certo.
-
-    Recortar aqui não é segurança, é fidelidade da maquete. A segurança
-    de verdade está na política `metrica_leitura`, no Postgres.
-  */
   const contas =
-    papel === 'cliente' && procedencia === 'demonstracao' ? todas.slice(0, 1) : todas;
+    (papel === 'cliente' || papel === 'cliente_leitura') && procedencia === 'demonstracao'
+      ? todas.slice(0, 1)
+      : todas;
 
   if (contas.length === 0) {
     return (
       <>
         <AvisoProcedencia procedencia={procedencia} />
-        <p className="cartao mt-8 p-8 text-cinza">
-          Nenhuma conta disponível para o seu acesso.
-        </p>
+        <div className="cartao mt-8 space-y-3 p-8">
+          <p className="font-display text-lg font-bold text-branco">
+            Nenhuma conta disponível para o seu acesso.
+          </p>
+          <p className="max-w-[60ch] text-sm leading-relaxed text-cinza">
+            Cadastre o cliente na aba <strong className="text-neve">Clientes</strong>, vincule o ID
+            da conta de anúncios em <strong className="text-neve">Origem dos dados</strong> e rode
+            a sincronização para visualizar os números aqui.
+          </p>
+        </div>
       </>
     );
   }
 
-  const conta = contas.find((c) => c.id === contaPedida) ?? contas[0];
+  const janela = resolverJanelaPeriodo({
+    periodo: periodoPedido,
+    de: dePedido,
+    ate: atePedido,
+  });
 
-  const [{ dados: serie }, { dados: canais }, { dados: marcos }] = await Promise.all([
-    serieDaConta(conta.id, 30),
-    canaisDaConta(conta.id, 30),
+  const canalAtivo = canalPedido && ['meta', 'google', 'organico'].includes(canalPedido)
+    ? canalPedido
+    : 'todos';
+
+  const conta = contas.find((c) => c.id === contaPedida) ?? contas[0];
+  const ehCliente = papel === 'cliente' || papel === 'cliente_leitura';
+  const visaoCarteira = !ehCliente && visaoPedida === 'carteira' && contas.length > 1;
+  const podeEditarMetricas = pode(papel, 'metricas', 'editar') && procedencia === 'banco';
+  const podeGerarRelatorio = pode(papel, 'relatorios', 'editar');
+
+  const itensSeletor = contas.map((c) => {
+    const p = resolverPerfil(c.perfilMetrica, c.tipo);
+    return {
+      id: c.id,
+      nome: c.nome,
+      segmento: c.segmento,
+      perfilRotulo: rotuloPerfilMetrica[p],
+      situacao: c.situacao,
+    };
+  });
+
+  /* Visão panorâmica de todos os clientes lado a lado */
+  if (visaoCarteira) {
+    return (
+      <>
+        <AvisoProcedencia procedencia={procedencia} />
+
+        <div className="mt-6">
+          <BarraMetricas
+            contas={itensSeletor}
+            contaAtualId={conta.id}
+            periodoAtual={janela.chave}
+            deAtual={janela.de}
+            ateAtual={janela.ate}
+            canalAtual={canalAtivo}
+            visaoCarteira
+            podeGerarRelatorio={podeGerarRelatorio}
+          />
+        </div>
+
+        <Secao
+          titulo="Panorama da carteira no mês corrente"
+          apoio="Cada cliente é lido pela régua do próprio nicho: conversas para WhatsApp, leads para captação e receita para e-commerce."
+        >
+          <Tabela>
+            <caption className="sr-only">Desempenho mensal de todos os clientes ativos</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={th}>Cliente</th>
+                <th scope="col" className={th}>Modelo</th>
+                <th scope="col" className={th}>Saúde</th>
+                <th scope="col" className={th}>Investimento (mês)</th>
+                <th scope="col" className={th}>Resultado principal</th>
+                <th scope="col" className={th}>Custo / Eficiência</th>
+                <th scope="col" className={th}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...contas]
+                .sort((a, b) => b.investimento - a.investimento || b.receita - a.receita)
+                .map((c) => {
+                  const p = resolverPerfil(c.perfilMetrica, c.tipo);
+                  const res = resultadoDoMesNaCarteira(c, p);
+                  return (
+                    <tr key={c.id}>
+                      <th scope="row" className={`${td} font-normal`}>
+                        <Link
+                          href={`/painel/metricas?conta=${c.id}&periodo=${janela.chave}`}
+                          className="font-semibold text-branco underline-offset-4 hover:underline"
+                        >
+                          {c.nome}
+                        </Link>
+                        {c.segmento ? (
+                          <span className="mt-0.5 block text-xs text-cinza">{c.segmento}</span>
+                        ) : null}
+                      </th>
+                      <td className={`${td} text-xs text-neve`}>{rotuloPerfilMetrica[p]}</td>
+                      <td className={td}><SeloSituacao situacao={c.situacao} /></td>
+                      <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
+                      <td className={`${td} tabular font-semibold text-branco`}>{res.principal}</td>
+                      <td className={`${td} tabular`}>
+                        <span className="text-neve">{res.custoOuRetorno}</span>
+                        <span className="ml-1.5 text-xs text-cinza">{res.rotulo}</span>
+                      </td>
+                      <td className={td}>
+                        <div className="flex items-center gap-4">
+                          <Link
+                            href={`/painel/metricas?conta=${c.id}&periodo=${janela.chave}`}
+                            className="text-xs font-semibold text-magenta-texto hover:underline"
+                          >
+                            Abrir →
+                          </Link>
+                          {podeGerarRelatorio ? (
+                            <Link
+                              href={`/painel/relatorios?conta=${c.id}&de=${janela.de}&ate=${janela.ate}`}
+                              className="text-xs text-cinza hover:text-neve"
+                            >
+                              Relatório
+                            </Link>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </Tabela>
+        </Secao>
+      </>
+    );
+  }
+
+  /* Busca única cobrindo o período atual + o anterior equivalente */
+  const [
+    { dados: serieDupla },
+    { dados: canais },
+    { dados: campanhas },
+    { dados: marcos },
+  ] = await Promise.all([
+    serieDaContaPeriodo(conta.id, janela.anteriorDe, janela.ate, canalAtivo),
+    canaisDaContaPeriodo(conta.id, janela.de, janela.ate),
+    campanhasDaContaPeriodo(conta.id, janela.de, janela.ate, canalAtivo),
     marcosDaConta(conta.id),
   ]);
 
-  /* Comparação de 7 dias contra os 7 anteriores. É a janela que a
-     agência usa na reunião semanal, e a que absorve o efeito de fim de
-     semana sem precisar de média móvel. */
-  const ult7 = serie.slice(-7);
-  const ant7 = serie.slice(-14, -7);
-  const soma = (l: typeof serie, k: keyof (typeof serie)[number]) =>
-    l.reduce((s, d) => s + (Number(d[k]) || 0), 0);
+  const serieAtual = serieDupla.filter((d) => d.dia >= janela.de && d.dia <= janela.ate);
+  const serieAnterior = serieDupla.filter(
+    (d) => d.dia >= janela.anteriorDe && d.dia <= janela.anteriorAte,
+  );
 
-  const varPct = (a: number, b: number) =>
-    b > 0 ? Number(((100 * (a - b)) / b).toFixed(1)) : null;
+  const perfilEfetivo = resolverPerfil(conta.perfilMetrica, conta.tipo);
+  const agregadoAtual = agregarPeriodo(serieAtual);
+  const agregadoAnterior = agregarPeriodo(serieAnterior);
 
-  const rec7 = soma(ult7, 'receita');
-  const inv7 = soma(ult7, 'investimento');
-  const ped7 = soma(ult7, 'pedidosAprovados');
-  const cap7 = soma(ult7, 'pedidosCaptados');
-  const nov7 = soma(ult7, 'novosClientes');
-  const ses7 = soma(ult7, 'sessoes');
+  const cartoes = montarCartoesKpi({
+    perfil: perfilEfetivo,
+    kpisVisiveis: conta.kpisVisiveis,
+    atual: agregadoAtual,
+    anterior: agregadoAnterior,
+  });
 
-  const recAnt = soma(ant7, 'receita');
-  const pedAnt = soma(ant7, 'pedidosAprovados');
-  const invAnt = soma(ant7, 'investimento');
-  const novAnt = soma(ant7, 'novosClientes');
+  const funil = montarFunil(perfilEfetivo, agregadoAtual);
+  const cfgSerie = configSerieDoPerfil(perfilEfetivo);
+  const cfgCanais = medidasDeCanalPorPerfil(perfilEfetivo);
 
-  const mer = inv7 > 0 ? Number((rec7 / inv7).toFixed(2)) : null;
-  const merAnt = invAnt > 0 ? recAnt / invAnt : 0;
-  const ticket = ped7 > 0 ? Number((rec7 / ped7).toFixed(2)) : null;
-  const ticketAnt = pedAnt > 0 ? recAnt / pedAnt : 0;
-  const cac = nov7 > 0 ? Number((inv7 / nov7).toFixed(2)) : null;
-  const cacAnt = novAnt > 0 ? invAnt / novAnt : 0;
-  const aprovacao = cap7 > 0 ? Number(((100 * ped7) / cap7).toFixed(1)) : null;
-  const conversao = ses7 > 0 ? Number(((100 * cap7) / ses7).toFixed(2)) : null;
-
-  const perdidos = cap7 - ped7;
-  const perdaEstimada = ticket ? perdidos * ticket : 0;
+  /* Progresso de meta adaptado ao nicho */
+  const progressoMeta =
+    perfilEfetivo === 'ecommerce'
+      ? conta.metaAtingida
+      : conta.resultadoMeta && conta.resultadoMeta > 0
+        ? Number(
+            (
+              (100 *
+                (perfilEfetivo === 'leads' ? conta.leadsCaptados : conta.conversas)) /
+              conta.resultadoMeta
+            ).toFixed(1),
+          )
+        : conta.verbaMeta && conta.verbaMeta > 0
+          ? Number(((100 * conta.investimento) / conta.verbaMeta).toFixed(1))
+          : null;
 
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
 
-      {/* Seletor de conta: só aparece para quem tem mais de uma. O
-          cliente enxerga uma, então não recebe um seletor inútil. */}
-      {contas.length > 1 ? (
-        <nav aria-label="Escolher conta" className="mt-6 flex flex-wrap gap-2">
-          {contas.map((c) => (
-            <Link
-              key={c.id}
-              href={`/painel/metricas?conta=${c.id}`}
-              aria-current={c.id === conta.id ? 'true' : undefined}
-              className={
-                'rounded-full px-4 py-2 text-sm transition-colors ' +
-                (c.id === conta.id
-                  ? 'bg-magenta font-semibold text-branco'
-                  : 'border border-fio text-neve hover:bg-white/5')
-              }
-            >
-              {c.nome}
-            </Link>
-          ))}
-        </nav>
+      {!ehCliente ? (
+        <div className="mt-6">
+          <BarraMetricas
+            contas={itensSeletor}
+            contaAtualId={conta.id}
+            periodoAtual={janela.chave}
+            deAtual={janela.de}
+            ateAtual={janela.ate}
+            canalAtual={canalAtivo}
+            visaoCarteira={false}
+            podeGerarRelatorio={podeGerarRelatorio}
+          />
+        </div>
       ) : null}
 
       {/* Cabeçalho da conta */}
@@ -128,129 +351,220 @@ export async function Metricas({
             {conta.nome}
           </h1>
           <p className="mt-2 font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
-            {conta.plataforma ?? 'Plataforma a definir'}
-            {conta.ultimoDia ? ` · dado até ${diaLongo(conta.ultimoDia)}` : ''}
+            {[
+              conta.segmento ?? rotuloPerfilMetrica[perfilEfetivo],
+              conta.tipo === 'ecommerce' && conta.plataforma ? conta.plataforma : null,
+              conta.ultimoDia ? `dado até ${diaLongo(conta.ultimoDia)}` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center gap-5">
           <SeloSituacao situacao={conta.situacao} />
-          <div className="w-44">
-            <Progresso percentual={conta.metaAtingida} />
+          <div className="w-48">
+            <Progresso percentual={progressoMeta} />
+            {conta.verbaMeta && perfilEfetivo !== 'ecommerce' ? (
+              <p className="mt-1 text-right text-[0.7rem] text-cinza">
+                Verba no mês: {dinheiro(conta.investimento)} de {dinheiro(conta.verbaMeta)}
+              </p>
+            ) : null}
           </div>
+          {!ehCliente ? (
+            <Link
+              href={`/painel/contas?ficha=${conta.id}&aba=dados`}
+              className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:bg-white/5"
+            >
+              Fontes e sync →
+            </Link>
+          ) : null}
         </div>
       </header>
 
       {conta.situacao === 'sem_dado' ? (
         <p className="mt-6 rounded-xl border border-magenta/40 bg-magenta/10 px-5 py-4 text-sm leading-relaxed text-neve">
-          <strong className="text-magenta-texto">A sincronização parou.</strong> O último
-          dado é de {conta.ultimoDia ? diaLongo(conta.ultimoDia) : 'data desconhecida'}. Os
-          números abaixo estão desatualizados: conferir a integração antes de tomar
-          qualquer decisão de verba.
+          <strong className="text-magenta-texto">A sincronização está atrasada.</strong> O último
+          dado recebido é de {conta.ultimoDia ? diaLongo(conta.ultimoDia) : 'data desconhecida'}.
+          Confira a aba Origem dos dados da ficha antes de decidir ajuste de verba.
         </p>
       ) : null}
 
-      {/* Os números da semana */}
+      {/* Troca rápida do modelo de métricas do cliente */}
+      {podeEditarMetricas && !ehCliente ? (
+        <div className="mt-6">
+          <FormPerfilMetrica
+            contaId={conta.id}
+            perfilAtual={conta.perfilMetrica}
+            kpisAtuais={conta.kpisVisiveis}
+          />
+        </div>
+      ) : null}
+
+      {/* KPIs adaptados ao nicho */}
       <Secao
-        titulo="Últimos 7 dias"
-        apoio="Comparado com os 7 dias anteriores. A janela de 7 absorve o efeito de fim de semana."
+        titulo={`${janela.rotulo}`}
+        apoio={`Comparado com os ${janela.dias} dias imediatamente anteriores (${janela.anteriorDe.split('-').reverse().join('/')} a ${janela.anteriorAte.split('-').reverse().join('/')}).`}
       >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Kpi rotulo="Receita aprovada" valor={dinheiro(rec7)} variacao={varPct(rec7, recAnt)} />
-          <Kpi
-            rotulo="MER"
-            valor={vezes(mer)}
-            apoio="Receita total ÷ investimento total. Diferente do ROAS de plataforma."
-            variacao={merAnt > 0 && mer ? varPct(mer, merAnt) : null}
-          />
-          <Kpi rotulo="Ticket médio" valor={dinheiro(ticket)} variacao={ticketAnt > 0 && ticket ? varPct(ticket, ticketAnt) : null} />
-          <Kpi
-            rotulo="CAC"
-            valor={dinheiro(cac)}
-            apoio="Investimento ÷ clientes novos. Recompra não entra na conta."
-            variacao={cacAnt > 0 && cac ? varPct(cac, cacAnt) : null}
-            invertido
-          />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {cartoes.map((k) => (
+            <Kpi
+              key={k.chave}
+              rotulo={k.rotulo}
+              valor={k.valor}
+              apoio={k.apoio}
+              variacao={k.variacao}
+              invertido={k.invertido}
+            />
+          ))}
         </div>
       </Secao>
 
-      {/* O funil, que é onde o dinheiro some sem aparecer em relatório */}
-      <Secao
-        titulo="O funil, da visita ao pagamento"
-        apoio="O buraco entre pedido captado e pedido aprovado é o que nenhum painel de mídia mostra."
-      >
+      {/* Funil adaptativo */}
+      <Secao titulo={funil.titulo} apoio={funil.apoio}>
         <div className="cartao p-7">
           <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { r: 'Sessões', v: numero(ses7), a: 'Visitas na loja' },
-              { r: 'Pedidos captados', v: numero(cap7), a: `Conversão de ${porcento(conversao, 2)}` },
-              { r: 'Pedidos aprovados', v: numero(ped7), a: `Aprovação de ${porcento(aprovacao)}` },
-              { r: 'Clientes novos', v: numero(nov7), a: `${numero(ped7 - nov7)} foram recompra` },
-            ].map((e, i) => (
-              <li key={e.r} className={i > 0 ? 'sm:border-l sm:border-fio sm:pl-6' : ''}>
+            {funil.etapas.map((e, i) => (
+              <li key={e.rotulo} className={i > 0 ? 'sm:border-l sm:border-fio sm:pl-6' : ''}>
                 <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
-                  {e.r}
+                  {e.rotulo}
                 </p>
                 <p className="tabular mt-2 font-display text-2xl font-extrabold tracking-[-0.03em]">
-                  {e.v}
+                  {e.valor}
                 </p>
-                <p className="mt-1.5 text-xs text-cinza">{e.a}</p>
+                <p className="mt-1.5 text-xs text-cinza">{e.apoio}</p>
               </li>
             ))}
           </ol>
 
-          {perdidos > 0 && ticket ? (
+          {funil.alerta ? (
             <p className="mt-7 border-t border-fio pt-6 text-sm leading-relaxed text-neve">
-              <strong className="text-magenta-texto">
-                {numero(perdidos)} pedidos não foram pagos nesta semana.
-              </strong>{' '}
-              No ticket médio atual, são cerca de {dinheiro(perdaEstimada)} que entraram no
-              checkout e não viraram receita. Boleto vencido, PIX expirado e cartão recusado
-              por antifraude somem aqui, e não aparecem em nenhum relatório de mídia.
+              <strong className="text-magenta-texto">{funil.alerta.destaque}</strong>{' '}
+              {funil.alerta.corpo}
             </p>
           ) : null}
         </div>
       </Secao>
 
-      {/* Série temporal */}
-      <Secao titulo="Receita e investimento, dia a dia" apoio="Últimos 30 dias. Passe o cursor para ver o dia.">
+      {/* Série temporal adaptativa */}
+      <Secao titulo={cfgSerie.titulo} apoio={cfgSerie.apoio}>
         <div className="cartao p-7">
-          <SerieTempo serie={serie} />
+          <SerieMultinicho
+            serie={serieAtual}
+            modo={cfgSerie.modo}
+            rotuloResultado={cfgSerie.rotuloResultado}
+            perfil={perfilEfetivo}
+            marcos={marcos}
+          />
         </div>
       </Secao>
 
-      {/* Canais */}
-      <Secao titulo="De onde vem a receita" apoio="Acumulado de 30 dias. Orgânico e direto não têm custo de mídia atribuído.">
+      {/* Desempenho por campanha e objetivo */}
+      <Secao
+        titulo="Desempenho por campanha"
+        apoio="Cada campanha é avaliada pelo próprio objetivo: campanha de alcance não é cobrada por venda, e campanha de WhatsApp mostra o custo exato por conversa."
+      >
+        {campanhas.length === 0 ? (
+          <div className="cartao p-6 text-sm leading-relaxed text-cinza">
+            Nenhuma campanha detalhada neste recorte ainda. Rode <strong className="text-neve">Sincronizar agora</strong> na ficha do cliente (após aplicar a migração <code className="font-mono text-neve">0050</code>) para abrir os resultados campanha a campanha.
+          </div>
+        ) : (
+          <Tabela>
+            <caption className="sr-only">Resultados por campanha no período selecionado</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={th}>Campanha</th>
+                <th scope="col" className={th}>Objetivo</th>
+                <th scope="col" className={th}>Investimento</th>
+                <th scope="col" className={th}>Alcance / Impr.</th>
+                <th scope="col" className={th}>Cliques (CTR)</th>
+                <th scope="col" className={th}>Resultado</th>
+                <th scope="col" className={th}>Custo / Retorno</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campanhas.map((c) => {
+                const av = avaliarResultadoCampanha(c);
+                return (
+                  <tr key={`${c.provedor}-${c.campanhaId}`}>
+                    <th scope="row" className={`${td} max-w-[20rem] font-normal`}>
+                      <span className="block truncate font-semibold text-branco" title={c.campanhaNome}>
+                        {c.campanhaNome}
+                      </span>
+                      <span className="mt-0.5 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+                        {nomeCanal(c.canal)}
+                      </span>
+                    </th>
+                    <td className={td}>
+                      <span className="inline-block rounded-full border border-fio bg-white/[0.03] px-3 py-1 text-xs text-neve">
+                        {rotuloObjetivoCampanha[c.objetivo]}
+                      </span>
+                    </td>
+                    <td className={`${td} tabular font-semibold text-branco`}>
+                      {dinheiroExato(c.investimento)}
+                    </td>
+                    <td className={`${td} tabular text-xs`}>
+                      <span className="text-neve">
+                        {c.alcance > 0 ? contagemCurta(c.alcance) : '—'}
+                      </span>
+                      <span className="block text-cinza">{contagemCurta(c.impressoes)} impr.</span>
+                    </td>
+                    <td className={`${td} tabular text-xs`}>
+                      <span className="text-neve">{numero(c.cliquesLink)}</span>
+                      <span className="block text-cinza">CTR {porcento(c.ctr, 2)}</span>
+                    </td>
+                    <td className={`${td} tabular`}>
+                      <span className="font-semibold text-branco">{av.resultado}</span>
+                      <span className="ml-1.5 text-xs text-cinza">{av.unidade}</span>
+                    </td>
+                    <td className={`${td} tabular`}>
+                      <span className="font-semibold text-neve">{av.custoOuRetorno}</span>
+                      <span className="ml-1.5 text-xs text-cinza">{av.rotuloCusto}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Tabela>
+        )}
+      </Secao>
+
+      {/* Comparativo por canal adaptado ao nicho */}
+      <Secao
+        titulo="Comparativo por canal"
+        apoio="Acumulado do período selecionado em cada origem."
+      >
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="cartao p-7">
             <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
-              Receita por canal
+              {cfgCanais.esq.titulo}
             </h3>
             <div className="mt-6">
-              <BarrasCanal canais={canais} medida="receita" />
+              <BarrasCanal canais={canais} medida={cfgCanais.esq.medida} />
             </div>
           </div>
           <div className="cartao p-7">
             <h3 className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
-              ROAS por canal
+              {cfgCanais.dir.titulo}
             </h3>
             <div className="mt-6">
-              <BarrasCanal canais={canais} medida="roas" />
+              <BarrasCanal canais={canais} medida={cfgCanais.dir.medida} />
             </div>
           </div>
         </div>
 
-        {/* Tabela: mesma informação em texto, para leitor de tela e para
-            quem precisa do número exato. */}
         <div className="mt-6">
           <Tabela>
-            <caption className="sr-only">Desempenho por canal nos últimos 30 dias</caption>
+            <caption className="sr-only">Desempenho detalhado por canal no período</caption>
             <thead>
               <tr>
                 <th scope="col" className={th}>Canal</th>
-                <th scope="col" className={th}>Receita</th>
                 <th scope="col" className={th}>Investimento</th>
-                <th scope="col" className={th}>Pedidos</th>
-                <th scope="col" className={th}>ROAS</th>
+                <th scope="col" className={th}>Impressões</th>
+                <th scope="col" className={th}>Cliques</th>
+                <th scope="col" className={th}>Conversas / Leads</th>
+                {perfilEfetivo === 'ecommerce' || perfilEfetivo === 'vendas_midia' ? (
+                  <th scope="col" className={th}>Receita / ROAS</th>
+                ) : null}
                 <th scope="col" className={th}>CPC</th>
                 <th scope="col" className={th}>CTR</th>
               </tr>
@@ -258,12 +572,28 @@ export async function Metricas({
             <tbody>
               {canais.map((c) => (
                 <tr key={c.canal}>
-                  <th scope="row" className={`${td} font-normal`}>{nomeCanal(c.canal)}</th>
-                  <td className={`${td} tabular`}>{dinheiro(c.receita)}</td>
+                  <th scope="row" className={`${td} font-normal text-branco`}>{nomeCanal(c.canal)}</th>
                   <td className={`${td} tabular`}>{c.investimento > 0 ? dinheiro(c.investimento) : '—'}</td>
-                  <td className={`${td} tabular`}>{numero(c.pedidos)}</td>
-                  <td className={`${td} tabular`}>{c.roas === null ? 'sem mídia' : vezes(c.roas)}</td>
-                  <td className={`${td} tabular`}>{c.cpc === null ? '—' : dinheiro(c.cpc)}</td>
+                  <td className={`${td} tabular`}>{contagemCurta(c.impressoes)}</td>
+                  <td className={`${td} tabular`}>{numero(c.cliquesLink)}</td>
+                  <td className={`${td} tabular text-xs`}>
+                    {c.conversas > 0 || c.leadsCaptados > 0
+                      ? [
+                          c.conversas > 0 ? `${numero(c.conversas)} conv.` : null,
+                          c.leadsCaptados > 0 ? `${numero(c.leadsCaptados)} leads` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')
+                      : '—'}
+                  </td>
+                  {perfilEfetivo === 'ecommerce' || perfilEfetivo === 'vendas_midia' ? (
+                    <td className={`${td} tabular text-xs`}>
+                      {perfilEfetivo === 'ecommerce'
+                        ? `${dinheiro(c.receita)} (${c.roas === null ? '—' : vezes(c.roas)})`
+                        : `${dinheiro(c.receitaAtribuida)} (${c.roasDeclarado === null ? '—' : vezes(c.roasDeclarado)})`}
+                    </td>
+                  ) : null}
+                  <td className={`${td} tabular`}>{c.cpc === null ? '—' : dinheiroExato(c.cpc)}</td>
                   <td className={`${td} tabular`}>{porcento(c.ctr, 2)}</td>
                 </tr>
               ))}
@@ -275,7 +605,7 @@ export async function Metricas({
       {/* Diário de bordo */}
       <Secao
         titulo="Diário de bordo"
-        apoio="O que explica os degraus no gráfico. Sem isso, três meses depois ninguém lembra por que a curva mudou."
+        apoio="O histórico das ações da equipe que explicam as mudanças na curva."
       >
         {marcos.length === 0 ? (
           <p className="cartao p-6 text-sm text-cinza">Nenhum marco registrado ainda.</p>
@@ -299,10 +629,10 @@ export async function Metricas({
         )}
       </Secao>
 
-      {papel === 'cliente' ? (
+      {ehCliente ? (
         <p className="mt-12 rounded-xl border border-fio bg-white/[0.02] px-6 py-5 text-sm leading-relaxed text-cinza">
-          Estes são os números da sua loja, atualizados automaticamente. Dúvida sobre
-          qualquer linha: fale com a Psy Comunic pelo WhatsApp.
+          Estes são os números atualizados da sua operação. Em caso de dúvida sobre qualquer
+          indicador ou campanha, fale com a equipe da Psy Comunic pelo WhatsApp.
         </p>
       ) : null}
     </>
