@@ -746,12 +746,14 @@ export async function buscarSaldoConta({
   contaId,
   contaNome,
   gastoUltimos7Dias,
+  pisoAlertaReais = 150,
 }: {
   segredo: SegredoMeta;
   identificador: string;
   contaId: string;
   contaNome: string;
   gastoUltimos7Dias: number;
+  pisoAlertaReais?: number;
 }): Promise<SaldoContaMidia | null> {
   const conta = identificador.startsWith('act_') ? identificador : `act_${identificador}`;
   const campos =
@@ -773,5 +775,6 @@ export async function buscarSaldoConta({
     contaId,
     contaNome,
     gastoUltimos7Dias,
+    pisoAlertaReais,
   });
 }

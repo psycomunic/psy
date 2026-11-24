@@ -10,6 +10,8 @@ import {
   type ProvedorApi,
 } from '@/lib/ingestao/credenciais';
 import { sincronizar } from '@/lib/ingestao/sincronizar';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
+import { dispararAlertasSaldoWhatsapp } from '@/lib/whatsapp/remetente';
 import type { Resultado } from './acoes';
 
 /**
@@ -259,6 +261,36 @@ export async function sincronizarAgora(
           ? `${bons.length} fonte(s) ok. Falhou — ${detalhe}`
           : `Nenhuma fonte sincronizou. ${detalhe}`,
     };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
+/* ================================================================== */
+/* Disparar teste real de alerta de saldo no WhatsApp                 */
+/* ================================================================== */
+
+export async function testarAlertaWhatsapp(
+  _anterior: Resultado | null,
+  _fd: FormData,
+): Promise<Resultado> {
+  try {
+    await exigirAdmin();
+
+    const saldos = await consultarSaldosMidia({
+      notificarNoPainel: false,
+      notificarNoWhatsapp: false,
+    });
+    const urgentesOuAmostra = saldos.filter(
+      (s) => s.nivel === 'zerado' || s.nivel === 'critico',
+    );
+
+    const r = await dispararAlertasSaldoWhatsapp(
+      urgentesOuAmostra.length > 0 ? urgentesOuAmostra : saldos.slice(0, 3),
+      { forcarTeste: true },
+    );
+
+    return { ok: r.enviado, mensagem: r.mensagem };
   } catch (e) {
     return { ok: false, mensagem: (e as Error).message };
   }

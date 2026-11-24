@@ -15,7 +15,14 @@ import { cifrarCom, decifrarCom, lerChave, final, ErroDeCripto } from '@/lib/cri
  * processo; as de escrita recebem o claro e devolvem só a pista.
  */
 
-export const PROVEDORES_DE_API = ['meta_ads', 'google_ads', 'ga4', 'hospedi', 'asaas'] as const;
+export const PROVEDORES_DE_API = [
+  'meta_ads',
+  'google_ads',
+  'ga4',
+  'hospedi',
+  'whatsapp_alertas',
+  'asaas',
+] as const;
 export type ProvedorApi = (typeof PROVEDORES_DE_API)[number];
 
 export const rotuloProvedorApi: Record<ProvedorApi, string> = {
@@ -23,6 +30,7 @@ export const rotuloProvedorApi: Record<ProvedorApi, string> = {
   google_ads: 'Google Ads (MCC da agência)',
   ga4: 'Google Analytics 4',
   hospedi: 'Hospedi (hospedi.app)',
+  whatsapp_alertas: 'WhatsApp · Alertas de Saldo Baixo',
   asaas: 'Asaas (cobrança)',
 };
 
@@ -41,6 +49,7 @@ export const CAMPOS_DO_PROVEDOR: Record<
     segredo: boolean;
     obrigatorio: boolean;
     ajuda: string;
+    valorPadrao?: string;
     /* Lista fechada vira <select> na tela. Existe para o campo
        'ambiente': ele era texto livre, e qualquer coisa diferente de
        'producao' cai em sandbox. Quem digitava 'produção' com acento
@@ -86,6 +95,78 @@ export const CAMPOS_DO_PROVEDOR: Record<
       ajuda: 'Guardada cifrada com AES-256; nunca volta para a tela.',
     },
   ],
+  whatsapp_alertas: [
+    {
+      chave: 'modo',
+      rotulo: 'Canal de disparo',
+      segredo: false,
+      obrigatorio: true,
+      opcoes: [
+        { valor: 'cloud_api', rotulo: 'Opção A — WhatsApp Cloud API Oficial (Meta)' },
+        { valor: 'webhook', rotulo: 'Opção B — Gateway / Webhook (Z-API, Evolution, Uazapi, n8n)' },
+      ],
+      ajuda: 'Comece pela Opção A (Meta Oficial). Se um dia preferir Z-API ou Evolution via QR Code, basta trocar aqui.',
+    },
+    {
+      chave: 'destinatario',
+      rotulo: 'WhatsApp que recebe os alertas de saldo',
+      segredo: false,
+      obrigatorio: true,
+      valorPadrao: '5547992406661',
+      ajuda: 'Com DDI 55 e DDD, só números. As demais notificações do sistema continuam apenas no sino do painel.',
+    },
+    {
+      chave: 'piso_alerta',
+      rotulo: 'Avisar quando o saldo cair abaixo de (R$)',
+      segredo: false,
+      obrigatorio: false,
+      valorPadrao: '150',
+      ajuda: 'Dispara quando o saldo pré-pago ficar menor que este valor OU durar menos de 3 dias pelo gasto médio.',
+    },
+    {
+      chave: 'phone_number_id',
+      rotulo: 'Phone Number ID da Meta (Opção A)',
+      segredo: false,
+      obrigatorio: false,
+      ajuda: 'Meta for Developers > Seu App > WhatsApp > Configuração da API > "Identificação do número de telefone".',
+    },
+    {
+      chave: 'access_token',
+      rotulo: 'Token WhatsApp da Meta (opcional na Opção A)',
+      segredo: true,
+      obrigatorio: false,
+      ajuda: 'Se deixar em branco, reutiliza automaticamente o token da Meta Ads já salvo acima (basta o usuário de sistema ter whatsapp_business_messaging).',
+    },
+    {
+      chave: 'template_nome',
+      rotulo: 'Nome do Template aprovado na Meta (opcional na Opção A)',
+      segredo: false,
+      obrigatorio: false,
+      ajuda: 'Ex.: alerta_saldo (ou hello_world para testar). Em branco, envia texto livre completo quando a janela de 24h estiver aberta.',
+    },
+    {
+      chave: 'template_idioma',
+      rotulo: 'Idioma do Template (Opção A)',
+      segredo: false,
+      obrigatorio: false,
+      valorPadrao: 'pt_BR',
+      ajuda: 'Padrão pt_BR (para o template de teste hello_world da Meta, o sistema usa en_US automaticamente).',
+    },
+    {
+      chave: 'webhook_url',
+      rotulo: 'URL de envio HTTP POST (apenas Opção B)',
+      segredo: false,
+      obrigatorio: false,
+      ajuda: 'Preencha somente se escolher a Opção B (endpoint send-text da Z-API, Evolution API, Uazapi ou n8n).',
+    },
+    {
+      chave: 'webhook_token',
+      rotulo: 'Token / API Key do Gateway (apenas Opção B)',
+      segredo: true,
+      obrigatorio: false,
+      ajuda: 'Client-Token da Z-API, apikey da Evolution ou Bearer token do webhook.',
+    },
+  ],
   asaas: [
     {
       chave: 'api_key',
@@ -116,7 +197,20 @@ export const CAMPOS_DO_PROVEDOR: Record<
 };
 
 /** Campos que NÃO são segredo e ficam legíveis em `configuracao`. */
-const ABERTOS = new Set(['client_id', 'login_customer_id', 'property_id', 'ambiente', 'email']);
+const ABERTOS = new Set([
+  'client_id',
+  'login_customer_id',
+  'property_id',
+  'ambiente',
+  'email',
+  'modo',
+  'destinatario',
+  'piso_alerta',
+  'phone_number_id',
+  'template_nome',
+  'template_idioma',
+  'webhook_url',
+]);
 
 function chave() {
   const bruta = process.env.CRIPTO_CHAVE;
@@ -233,7 +327,12 @@ export async function guardarCredencial({
      para não precisar buscar o token. Um provedor futuro sem nenhum
      campo reconhecível cai no genérico em vez de quebrar a invariante. */
   const paraPista =
-    segredos.access_token ?? segredos.refresh_token ?? segredos.api_key ?? segredos.senha ?? '';
+    segredos.access_token ??
+    segredos.refresh_token ??
+    segredos.api_key ??
+    segredos.senha ??
+    segredos.webhook_token ??
+    '';
   const pista = paraPista ? final(paraPista) : '••••';
 
   const supabase = clienteServico();

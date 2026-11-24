@@ -18,7 +18,11 @@ import {
 import { ultimosEnvios, falhasRecentes, ROTULO_DO_TIPO } from '@/lib/email/registro';
 import { TesteDeEmail } from '../TesteDeEmail';
 import { sessaoAtual } from '@/lib/supabase/servidor';
-import { FormCredencial, BotaoDesligarCredencial } from '../FormCredencial';
+import {
+  FormCredencial,
+  BotaoDesligarCredencial,
+  BotaoTestarWhatsapp,
+} from '../FormCredencial';
 import { BotaoSincronizar } from '../FormFonte';
 import { CORES_SITUACAO } from '../paleta';
 import type { Papel } from '@/lib/papeis';
@@ -335,25 +339,28 @@ GOOGLE_CLIENT_SECRET=...`}
 
                 {c && Object.keys(c.configuracao).length > 0 ? (
                   <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-fio pt-4 text-sm">
-                    {Object.entries(c.configuracao).map(([k, v]) => (
-                      <div key={k}>
-                        <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
-                          {k}
-                        </dt>
-                        <dd className="tabular mt-0.5 break-all text-neve">{v}</dd>
-                      </div>
-                    ))}
+                    {Object.entries(c.configuracao)
+                      .filter(([k]) => !k.startsWith('_'))
+                      .map(([k, v]) => (
+                        <div key={k}>
+                          <dt className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                            {k}
+                          </dt>
+                          <dd className="tabular mt-0.5 break-all text-neve">{String(v)}</dd>
+                        </div>
+                      ))}
                   </dl>
                 ) : null}
 
                 {pronta ? (
-                  <div className="mt-5 flex flex-wrap items-center gap-5">
+                  <div className="mt-5 flex flex-wrap items-start gap-4">
                     <FormCredencial
                       provedor={p}
                       rotuloProvedor={rotuloProvedorApi[p]}
                       campos={CAMPOS_DO_PROVEDOR[p]}
                       jaExiste={Boolean(c)}
                     />
+                    {c && p === 'whatsapp_alertas' ? <BotaoTestarWhatsapp /> : null}
                     {c ? <BotaoDesligarCredencial id={c.id} rotulo={c.rotulo} /> : null}
                   </div>
                 ) : null}

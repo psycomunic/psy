@@ -5,6 +5,7 @@ import { hojeBR, somarDias } from '@/lib/datas';
 import { dinheiroExato } from '@/lib/formato';
 import { abrirSegredo } from './credenciais';
 import * as meta from './fontes/meta';
+import { lerConfigWhatsapp, dispararAlertasSaldoWhatsapp } from '@/lib/whatsapp/remetente';
 import type { SaldoContaMidia, NivelSaldoMidia } from '@/lib/dados/tipos';
 
 const PESO_NIVEL: Record<NivelSaldoMidia, number> = {
@@ -27,14 +28,18 @@ const PESO_NIVEL: Record<NivelSaldoMidia, number> = {
 export async function consultarSaldosMidia({
   contaId,
   notificarNoPainel = true,
+  notificarNoWhatsapp = true,
 }: {
   contaId?: string;
   notificarNoPainel?: boolean;
+  notificarNoWhatsapp?: boolean;
 } = {}): Promise<SaldoContaMidia[]> {
   if (!bancoConfigurado) return [];
 
   try {
     const supabase = clienteServico();
+    const cfgWpp = await lerConfigWhatsapp().catch(() => null);
+    const pisoAlertaReais = cfgWpp?.pisoAlerta ?? 150;
 
     let qInt = supabase
       .from('integracao')
@@ -86,6 +91,7 @@ export async function consultarSaldosMidia({
           contaId: i.conta_id as string,
           contaNome: contaObj?.nome ?? 'Cliente',
           gastoUltimos7Dias: gastoPorConta.get(i.conta_id as string) ?? 0,
+          pisoAlertaReais,
         });
       } catch {
         return null;
@@ -101,12 +107,19 @@ export async function consultarSaldosMidia({
         return (a.saldoDisponivel ?? 999999) - (b.saldoDisponivel ?? 999999);
       });
 
-    if (notificarNoPainel) {
+    if (notificarNoPainel || notificarNoWhatsapp) {
       const urgentes = saldos.filter((s) => s.nivel === 'zerado' || s.nivel === 'critico');
       if (urgentes.length > 0) {
-        await emitirNotificacoesSaldoBaixo(urgentes, hoje).catch((e) =>
-          console.warn('emitirNotificacoesSaldoBaixo:', (e as Error).message),
-        );
+        if (notificarNoPainel) {
+          await emitirNotificacoesSaldoBaixo(urgentes, hoje).catch((e) =>
+            console.warn('emitirNotificacoesSaldoBaixo:', (e as Error).message),
+          );
+        }
+        if (notificarNoWhatsapp && cfgWpp) {
+          await dispararAlertasSaldoWhatsapp(urgentes).catch((e) =>
+            console.warn('dispararAlertasSaldoWhatsapp:', (e as Error).message),
+          );
+        }
       }
     }
 

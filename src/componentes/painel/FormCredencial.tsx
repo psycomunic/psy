@@ -1,7 +1,11 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { salvarCredencial, desligarCredencial } from '@/app/painel/acoes-integracao';
+import {
+  salvarCredencial,
+  desligarCredencial,
+  testarAlertaWhatsapp,
+} from '@/app/painel/acoes-integracao';
 import type { Resultado } from '@/app/painel/acoes';
 
 const campo =
@@ -19,6 +23,7 @@ type Campo = {
   segredo: boolean;
   obrigatorio: boolean;
   ajuda: string;
+  valorPadrao?: string;
   opcoes?: { valor: string; rotulo: string }[];
 };
 
@@ -147,20 +152,9 @@ export function FormCredencial({
           <input
             id={`${provedor}-${c.chave}`}
             name={c.chave}
-            /*
-              Obrigatório só na PRIMEIRA vez.
-
-              Com uma credencial já guardada, campo em branco significa
-              "não mexi neste" — e o `required` do HTML tornava isso
-              impossível de expressar: o navegador barrava o envio antes
-              de o servidor ver qualquer coisa. Trocar só a chave do
-              Asaas exigiria redigitar o token do webhook, que a tela
-              não mostra e ninguém tem à mão.
-            */
+            defaultValue={!jaExiste && c.valorPadrao ? c.valorPadrao : undefined}
+            placeholder={jaExiste && c.valorPadrao ? `Manter guardado (ex.: ${c.valorPadrao})` : c.valorPadrao}
             required={c.obrigatorio && !jaExiste}
-            /* `password` não é sobre esconder de quem está digitando: é
-               para o navegador não guardar no autofill e para a captura
-               de tela de suporte não levar o token junto. */
             type={c.segredo ? 'password' : 'text'}
             autoComplete="off"
             spellCheck={false}
@@ -215,6 +209,26 @@ export function BotaoDesligarCredencial({ id, rotulo }: { id: string; rotulo: st
       {estado && !estado.ok ? (
         <span className="ml-3 text-xs text-magenta-texto">{estado.mensagem}</span>
       ) : null}
+    </form>
+  );
+}
+
+export function BotaoTestarWhatsapp() {
+  const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(
+    testarAlertaWhatsapp,
+    null,
+  );
+
+  return (
+    <form action={acao} className="space-y-2">
+      <button
+        type="submit"
+        disabled={pendente}
+        className="rounded-full bg-magenta px-5 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte disabled:opacity-60"
+      >
+        {pendente ? 'Enviando teste...' : 'Enviar teste no WhatsApp'}
+      </button>
+      <Aviso r={estado} />
     </form>
   );
 }
