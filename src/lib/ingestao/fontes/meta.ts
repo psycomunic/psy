@@ -1,5 +1,5 @@
 import type { LinhaMetrica, LinhaCampanha, ObjetivoCampanha } from '../csv.ts';
-import type { CriativoResumo, StatusCriativo } from '../../dados/tipos.ts';
+import type { CriativoResumo, StatusCriativo, SaldoContaMidia, NivelSaldoMidia } from '../../dados/tipos.ts';
 
 /**
  * Meta Marketing API — insights consolidados da conta e abertos por campanha.
@@ -579,5 +579,199 @@ export async function buscarCriativos({
   return mapearCriativos({
     anuncios: { data: [...listaAtivos, ...extras] },
     insights: { data: listaInsights },
+  });
+}
+
+/* ================================================================== */
+/* Saldo em tempo real da conta de anúncios (PIX/Boleto e Cartão)      */
+/* ================================================================== */
+
+type ContaSaldoMetaBruta = {
+  id?: string;
+  account_id?: string;
+  name?: string;
+  account_status?: number;
+  currency?: string;
+  balance?: string | number;
+  amount_spent?: string | number;
+  spend_cap?: string | number;
+  is_prepay_account?: boolean;
+  funding_source_details?: {
+    id?: string;
+    display_string?: string;
+    type?: number;
+  };
+};
+
+/**
+ * Extrai valor em reais de strings do tipo `"Saldo disponível (R$1.235,14 BRL)"`
+ * ou `"Available balance (R$600.00 BRL)"`.
+ */
+export function extrairValorMonetarioMeta(texto: string | undefined | null): number | null {
+  if (!texto) return null;
+  const m = texto.match(/R\$\s*([\d.,]+)/i);
+  if (!m) return null;
+  const bruto = m[1].trim();
+  /* Formato brasileiro `1.234,56` vs inglês `1,234.56` */
+  const normalizado = bruto.includes(',')
+    ? bruto.replace(/\./g, '').replace(',', '.')
+    : bruto;
+  const valor = Number(normalizado);
+  return Number.isFinite(valor) && valor >= 0 ? Number(valor.toFixed(2)) : null;
+}
+
+export function mapearSaldoContaMeta({
+  bruto,
+  contaId,
+  contaNome,
+  gastoUltimos7Dias,
+  pisoAlertaReais = 150,
+}: {
+  bruto: unknown;
+  contaId: string;
+  contaNome: string;
+  gastoUltimos7Dias: number;
+  pisoAlertaReais?: number;
+}): SaldoContaMidia | null {
+  if (!bruto || typeof bruto !== 'object' || 'error' in (bruto as Record<string, unknown>)) {
+    return null;
+  }
+  const d = bruto as ContaSaldoMetaBruta;
+  const adAccountId = (d.account_id ?? d.id ?? '').replace(/^act_/, '');
+  if (!adAccountId) return null;
+
+  const ativaNaMeta = Number(d.account_status ?? 1) === 1;
+  const display = d.funding_source_details?.display_string?.trim() ?? null;
+  const tipoFonte = d.funding_source_details?.type;
+  const ehPrePago = Boolean(
+    d.is_prepay_account ||
+      tipoFonte === 20 ||
+      (display && /saldo dispon[ií]vel|available balance/i.test(display)),
+  );
+
+  const spendCapCentavos = numero(d.spend_cap);
+  const amountSpentCentavos = numero(d.amount_spent);
+  const balanceCentavos = numero(d.balance);
+
+  const gastoMedioDiario =
+    gastoUltimos7Dias > 0 ? Number((gastoUltimos7Dias / 7).toFixed(2)) : 0;
+
+  if (ehPrePago) {
+    const doTexto = extrairValorMonetarioMeta(display);
+    const doTeto =
+      spendCapCentavos > 0
+        ? Number(Math.max(0, (spendCapCentavos - amountSpentCentavos) / 100).toFixed(2))
+        : null;
+    const saldo = doTexto !== null ? doTexto : (doTeto ?? 0);
+
+    const diasRestantes =
+      gastoMedioDiario >= 1 ? Number((saldo / gastoMedioDiario).toFixed(1)) : null;
+
+    let nivel: NivelSaldoMidia = 'saudavel';
+    if (!ativaNaMeta || saldo <= 5) {
+      nivel = 'zerado';
+    } else if (saldo < pisoAlertaReais || (diasRestantes !== null && diasRestantes < 3)) {
+      nivel = 'critico';
+    } else if (saldo < pisoAlertaReais * 1.8 || (diasRestantes !== null && diasRestantes < 5)) {
+      nivel = 'atencao';
+    }
+
+    const resumo =
+      nivel === 'zerado'
+        ? 'Saldo esgotado — recarregue via PIX/Boleto para destravar a veiculação.'
+        : diasRestantes !== null
+          ? `Dura cerca de ${diasRestantes.toFixed(1).replace('.', ',')} dias no ritmo atual (R$ ${gastoMedioDiario.toFixed(0)}/dia).`
+          : 'Conta pré-paga (PIX / Boleto).';
+
+    return {
+      contaId,
+      contaNome,
+      adAccountId,
+      adAccountNome: d.name?.trim() || contaNome,
+      ativaNaMeta,
+      modalidade: 'pre_pago',
+      saldoDisponivel: saldo,
+      faturaAberta: null,
+      textoFontePagamento: display,
+      gastoMedioDiario,
+      diasRestantes,
+      nivel,
+      resumo,
+      verificadoEm: new Date().toISOString(),
+    };
+  }
+
+  /* Pós-pago (cartão de crédito / faturamento mensal) */
+  const faturaAberta = Number((balanceCentavos / 100).toFixed(2));
+  const tetoRestante =
+    spendCapCentavos > 0
+      ? Number(Math.max(0, (spendCapCentavos - amountSpentCentavos) / 100).toFixed(2))
+      : null;
+
+  let nivel: NivelSaldoMidia = 'pos_pago';
+  if (!ativaNaMeta || (tetoRestante !== null && tetoRestante <= 5)) {
+    nivel = 'zerado';
+  } else if (tetoRestante !== null && tetoRestante < pisoAlertaReais) {
+    nivel = 'critico';
+  }
+
+  return {
+    contaId,
+    contaNome,
+    adAccountId,
+    adAccountNome: d.name?.trim() || contaNome,
+    ativaNaMeta,
+    modalidade: 'pos_pago',
+    saldoDisponivel: tetoRestante,
+    faturaAberta,
+    textoFontePagamento: display,
+    gastoMedioDiario,
+    diasRestantes:
+      tetoRestante !== null && gastoMedioDiario >= 1
+        ? Number((tetoRestante / gastoMedioDiario).toFixed(1))
+        : null,
+    nivel,
+    resumo: !ativaNaMeta
+      ? 'Conta com restrição ou cobrança pendente na Meta.'
+      : display
+        ? `Cobrança automática (${display}).`
+        : 'Cobrança automática por cartão.',
+    verificadoEm: new Date().toISOString(),
+  };
+}
+
+export async function buscarSaldoConta({
+  segredo,
+  identificador,
+  contaId,
+  contaNome,
+  gastoUltimos7Dias,
+}: {
+  segredo: SegredoMeta;
+  identificador: string;
+  contaId: string;
+  contaNome: string;
+  gastoUltimos7Dias: number;
+}): Promise<SaldoContaMidia | null> {
+  const conta = identificador.startsWith('act_') ? identificador : `act_${identificador}`;
+  const campos =
+    'id,account_id,name,account_status,currency,balance,amount_spent,spend_cap,is_prepay_account,funding_source_details';
+
+  const url = new URL(`https://graph.facebook.com/${VERSAO_API}/${conta}`);
+  url.searchParams.set('fields', campos);
+
+  const r = await fetch(url, {
+    headers: { authorization: `Bearer ${segredo.access_token}` },
+    next: { revalidate: 120 },
+  });
+
+  if (!r.ok) return null;
+  const bruto = await r.json().catch(() => null);
+
+  return mapearSaldoContaMeta({
+    bruto,
+    contaId,
+    contaNome,
+    gastoUltimos7Dias,
   });
 }

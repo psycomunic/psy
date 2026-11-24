@@ -12,6 +12,7 @@ import { BarraMetricas } from '../BarraMetricas';
 import { GaleriaCriativos } from '../GaleriaCriativos';
 import { FormPerfilMetrica } from '../Formularios';
 import { criativosDaContaPeriodo } from '@/lib/ingestao/criativos';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 import {
   Kpi,
   SeloSituacao,
@@ -79,7 +80,10 @@ function resultadoDoMesNaCarteira(c: ContaResumo, perfil: PerfilMetricaEfetivo) 
       };
     default:
       return {
-        principal: `${numero(c.conversas)} conversas`,
+        principal:
+          c.receita > 0
+            ? `${numero(c.conversas)} conv. · ${dinheiro(c.receita)} vendas`
+            : `${numero(c.conversas)} conversas`,
         custoOuRetorno: c.conversas > 0 ? dinheiroExato(c.investimento / c.conversas) : '—',
         rotulo: 'por conversa',
       };
@@ -190,6 +194,10 @@ export async function Metricas({
 
   /* Visão panorâmica de todos os clientes lado a lado */
   if (visaoCarteira) {
+    const saldosCarteira =
+      procedencia === 'banco' ? await consultarSaldosMidia({ notificarNoPainel: true }) : [];
+    const saldoPorConta = new Map(saldosCarteira.map((s) => [s.contaId, s]));
+
     return (
       <>
         <AvisoProcedencia procedencia={procedencia} />
@@ -209,7 +217,7 @@ export async function Metricas({
 
         <Secao
           titulo="Panorama da carteira no mês corrente"
-          apoio="Cada cliente é lido pela régua do próprio nicho: conversas para WhatsApp, leads para captação e receita para e-commerce."
+          apoio="Cada cliente é lido pela régua do próprio nicho: conversas, reservas da Hospedi, leads e saldo disponível na conta de anúncios."
         >
           <Tabela>
             <caption className="sr-only">Desempenho mensal de todos os clientes ativos</caption>
@@ -217,7 +225,7 @@ export async function Metricas({
               <tr>
                 <th scope="col" className={th}>Cliente</th>
                 <th scope="col" className={th}>Modelo</th>
-                <th scope="col" className={th}>Saúde</th>
+                <th scope="col" className={th}>Saldo Meta</th>
                 <th scope="col" className={th}>Investimento (mês)</th>
                 <th scope="col" className={th}>Resultado principal</th>
                 <th scope="col" className={th}>Custo / Eficiência</th>
@@ -230,6 +238,16 @@ export async function Metricas({
                 .map((c) => {
                   const p = resolverPerfil(c.perfilMetrica, c.tipo);
                   const res = resultadoDoMesNaCarteira(c, p);
+                  const saldo = saldoPorConta.get(c.id);
+                  const corSaldo =
+                    saldo?.nivel === 'zerado'
+                      ? '#FB7185'
+                      : saldo?.nivel === 'critico'
+                        ? '#F97316'
+                        : saldo?.nivel === 'atencao'
+                          ? '#FBBF24'
+                          : '#4ADE80';
+
                   return (
                     <tr key={c.id}>
                       <th scope="row" className={`${td} font-normal`}>
@@ -244,7 +262,25 @@ export async function Metricas({
                         ) : null}
                       </th>
                       <td className={`${td} text-xs text-neve`}>{rotuloPerfilMetrica[p]}</td>
-                      <td className={td}><SeloSituacao situacao={c.situacao} /></td>
+                      <td className={`${td} tabular text-xs`}>
+                        {saldo ? (
+                          <div>
+                            <span className="font-semibold" style={{ color: corSaldo }}>
+                              ●{' '}
+                              {saldo.modalidade === 'pre_pago' || saldo.saldoDisponivel !== null
+                                ? dinheiroExato(saldo.saldoDisponivel ?? 0)
+                                : 'Cartão'}
+                            </span>
+                            {saldo.diasRestantes !== null ? (
+                              <span className="block text-[0.68rem] text-cinza">
+                                ~{saldo.diasRestantes.toFixed(1).replace('.', ',')} dias
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <SeloSituacao situacao={c.situacao} />
+                        )}
+                      </td>
                       <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
                       <td className={`${td} tabular font-semibold text-branco`}>{res.principal}</td>
                       <td className={`${td} tabular`}>
@@ -282,11 +318,12 @@ export async function Metricas({
   /* Busca única cobrindo o período atual + o anterior equivalente */
   const [
     { dados: serieDupla },
-    { dados: canais },
+    { dados: canaisBrutos },
     { dados: campanhas },
     { dados: marcos },
     primeiroDiaBanco,
     criativos,
+    saldosConta,
   ] = await Promise.all([
     serieDaContaPeriodo(conta.id, janela.anteriorDe, janela.ate, canalAtivo),
     canaisDaContaPeriodo(conta.id, janela.de, janela.ate),
@@ -296,7 +333,42 @@ export async function Metricas({
     procedencia === 'banco' && (canalAtivo === 'todos' || canalAtivo === 'meta')
       ? criativosDaContaPeriodo(conta.id, janela.de, janela.ate)
       : Promise.resolve([]),
+    procedencia === 'banco' && !ehCliente
+      ? consultarSaldosMidia({ contaId: conta.id, notificarNoPainel: true })
+      : Promise.resolve([]),
   ]);
+
+  /* Oculta linhas de canal 100% zeradas no período (ex.: hospedi_ota sem Airbnb/Booking) */
+  const canais = canaisBrutos.filter(
+    (c) =>
+      c.investimento > 0 ||
+      c.receita > 0 ||
+      c.pedidos > 0 ||
+      c.conversas > 0 ||
+      c.leadsCaptados > 0 ||
+      c.impressoes > 0 ||
+      c.cliquesLink > 0,
+  );
+  const saldoMeta = saldosConta[0] ?? null;
+
+  /* Resumo comercial da Hospedi / Loja sincronizada no período (visível mesmo quando
+     o operador filtra um canal de mídia ou escolhe outro modelo de KPIs) */
+  const canaisHospedi = canaisBrutos.filter((c) => c.canal.startsWith('hospedi'));
+  const temHospediConectada = canaisHospedi.length > 0;
+  const reservasHospedi = canaisHospedi.reduce((s, c) => s + c.pedidos, 0);
+  const receitaHospedi = Number(canaisHospedi.reduce((s, c) => s + c.receita, 0).toFixed(2));
+  const receitaDiretaHospedi = Number(
+    canaisHospedi
+      .filter((c) => c.canal === 'hospedi_direto' || c.canal === 'hospedi')
+      .reduce((s, c) => s + c.receita, 0)
+      .toFixed(2),
+  );
+  const receitaOtaHospedi = Number(
+    canaisHospedi
+      .filter((c) => c.canal === 'hospedi_ota')
+      .reduce((s, c) => s + c.receita, 0)
+      .toFixed(2),
+  );
 
   const serieAtual = serieDupla.filter((d) => d.dia >= janela.de && d.dia <= janela.ate);
   const serieAnterior = serieDupla.filter(
@@ -401,6 +473,59 @@ export async function Metricas({
         </p>
       ) : null}
 
+      {/* Cartão ao vivo de Saldo da Conta de Anúncios */}
+      {saldoMeta && !ehCliente ? (
+        <div
+          className={
+            'mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-5 py-4 ' +
+            (saldoMeta.nivel === 'zerado'
+              ? 'border-[#FB7185]/50 bg-[#FB7185]/10'
+              : saldoMeta.nivel === 'critico'
+                ? 'border-[#F97316]/50 bg-[#F97316]/10'
+                : saldoMeta.nivel === 'atencao'
+                  ? 'border-[#FBBF24]/40 bg-[#FBBF24]/[0.07]'
+                  : 'border-fio bg-white/[0.02]')
+          }
+        >
+          <div className="space-y-1">
+            <p className="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
+              Saldo da conta Meta Ads ({saldoMeta.adAccountNome})
+            </p>
+            <p className="text-sm text-neve">{saldoMeta.resumo}</p>
+          </div>
+          <div className="text-right">
+            <p
+              className="tabular font-display text-2xl font-extrabold tracking-[-0.03em]"
+              style={{
+                color:
+                  saldoMeta.nivel === 'zerado'
+                    ? '#FB7185'
+                    : saldoMeta.nivel === 'critico'
+                      ? '#F97316'
+                      : saldoMeta.nivel === 'atencao'
+                        ? '#FBBF24'
+                        : '#4ADE80',
+              }}
+            >
+              {saldoMeta.modalidade === 'pre_pago' || saldoMeta.saldoDisponivel !== null
+                ? dinheiroExato(saldoMeta.saldoDisponivel ?? 0)
+                : saldoMeta.faturaAberta !== null
+                  ? `${dinheiroExato(saldoMeta.faturaAberta)} aberto`
+                  : 'Pós-pago'}
+            </p>
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.12em] text-cinza">
+              {saldoMeta.nivel === 'zerado'
+                ? '● Saldo esgotado'
+                : saldoMeta.nivel === 'critico'
+                  ? '● Saldo baixo'
+                  : saldoMeta.nivel === 'atencao'
+                    ? '● Atenção à recarga'
+                    : '● Saldo atualizado ao vivo'}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Troca rápida do modelo de métricas do cliente */}
       {podeEditarMetricas && !ehCliente ? (
         <div className="mt-6">
@@ -430,6 +555,77 @@ export async function Metricas({
           ))}
         </div>
       </Secao>
+
+      {/* Bloco em destaque das vendas/reservas sincronizadas da Hospedi */}
+      {temHospediConectada ? (
+        <Secao
+          titulo="Reservas e receita na Hospedi (hospedi.app)"
+          apoio={` Reservas confirmadas fechadas entre ${janela.de.split('-').reverse().join('/')} e ${janela.ate.split('-').reverse().join('/')}, cruzadas com o investimento em tráfego do período.`}
+        >
+          <div className="rounded-2xl border border-[#4ADE80]/30 bg-[#4ADE80]/[0.05] p-6">
+            <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt className="font-mono text-[0.72rem] uppercase tracking-[0.14em] text-cinza">
+                  Reservas confirmadas
+                </dt>
+                <dd className="tabular mt-2 font-display text-3xl font-extrabold text-branco">
+                  {numero(reservasHospedi)}
+                </dd>
+                <p className="mt-1 text-xs text-cinza">
+                  {reservasHospedi > 0
+                    ? `Ticket médio de ${dinheiro(receitaHospedi / reservasHospedi)}`
+                    : 'Nenhuma reserva criada neste recorte'}
+                </p>
+              </div>
+
+              <div className="sm:border-l sm:border-fio sm:pl-6">
+                <dt className="font-mono text-[0.72rem] uppercase tracking-[0.14em] text-cinza">
+                  Receita confirmada
+                </dt>
+                <dd className="tabular mt-2 font-display text-3xl font-extrabold text-[#4ADE80]">
+                  {dinheiro(receitaHospedi)}
+                </dd>
+                <p className="mt-1 text-xs text-cinza">
+                  {[
+                    receitaDiretaHospedi > 0 ? `Direto: ${dinheiro(receitaDiretaHospedi)}` : null,
+                    receitaOtaHospedi > 0 ? `Airbnb/Booking: ${dinheiro(receitaOtaHospedi)}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || 'Sincronizado da Hospedi'}
+                </p>
+              </div>
+
+              <div className="lg:border-l lg:border-fio lg:pl-6">
+                <dt className="font-mono text-[0.72rem] uppercase tracking-[0.14em] text-cinza">
+                  ROAS Real sobre a mídia
+                </dt>
+                <dd className="tabular mt-2 font-display text-3xl font-extrabold text-branco">
+                  {agregadoAtual.investimento > 0 && receitaHospedi > 0
+                    ? vezes(receitaHospedi / agregadoAtual.investimento)
+                    : '—'}
+                </dd>
+                <p className="mt-1 text-xs text-cinza">
+                  Receita Hospedi ÷ {dinheiroExato(agregadoAtual.investimento)} em anúncios
+                </p>
+              </div>
+
+              <div className="sm:border-l sm:border-fio sm:pl-6">
+                <dt className="font-mono text-[0.72rem] uppercase tracking-[0.14em] text-cinza">
+                  Custo de mídia por reserva
+                </dt>
+                <dd className="tabular mt-2 font-display text-3xl font-extrabold text-branco">
+                  {agregadoAtual.investimento > 0 && reservasHospedi > 0
+                    ? dinheiroExato(agregadoAtual.investimento / reservasHospedi)
+                    : '—'}
+                </dd>
+                <p className="mt-1 text-xs text-cinza">
+                  Investimento em anúncios ÷ reservas
+                </p>
+              </div>
+            </dl>
+          </div>
+        </Secao>
+      ) : null}
 
       {/* Funil adaptativo */}
       <Secao titulo={funil.titulo} apoio={funil.apoio}>
@@ -587,8 +783,10 @@ export async function Metricas({
                 <th scope="col" className={th}>Impressões</th>
                 <th scope="col" className={th}>Cliques</th>
                 <th scope="col" className={th}>Conversas / Leads</th>
-                {perfilEfetivo === 'ecommerce' || perfilEfetivo === 'vendas_midia' ? (
-                  <th scope="col" className={th}>Receita / ROAS</th>
+                {perfilEfetivo === 'ecommerce' ||
+                perfilEfetivo === 'vendas_midia' ||
+                canais.some((x) => x.receita > 0 || x.pedidos > 0) ? (
+                  <th scope="col" className={th}>Reservas / Receita</th>
                 ) : null}
                 <th scope="col" className={th}>CPC</th>
                 <th scope="col" className={th}>CTR</th>
@@ -599,8 +797,8 @@ export async function Metricas({
                 <tr key={c.canal}>
                   <th scope="row" className={`${td} font-normal text-branco`}>{nomeCanal(c.canal)}</th>
                   <td className={`${td} tabular`}>{c.investimento > 0 ? dinheiro(c.investimento) : '—'}</td>
-                  <td className={`${td} tabular`}>{contagemCurta(c.impressoes)}</td>
-                  <td className={`${td} tabular`}>{numero(c.cliquesLink)}</td>
+                  <td className={`${td} tabular`}>{c.impressoes > 0 ? contagemCurta(c.impressoes) : '—'}</td>
+                  <td className={`${td} tabular`}>{c.cliquesLink > 0 ? numero(c.cliquesLink) : '—'}</td>
                   <td className={`${td} tabular text-xs`}>
                     {c.conversas > 0 || c.leadsCaptados > 0
                       ? [
@@ -611,15 +809,19 @@ export async function Metricas({
                           .join(' · ')
                       : '—'}
                   </td>
-                  {perfilEfetivo === 'ecommerce' || perfilEfetivo === 'vendas_midia' ? (
+                  {perfilEfetivo === 'ecommerce' ||
+                  perfilEfetivo === 'vendas_midia' ||
+                  canais.some((x) => x.receita > 0 || x.pedidos > 0) ? (
                     <td className={`${td} tabular text-xs`}>
-                      {perfilEfetivo === 'ecommerce'
-                        ? `${dinheiro(c.receita)} (${c.roas === null ? '—' : vezes(c.roas)})`
-                        : `${dinheiro(c.receitaAtribuida)} (${c.roasDeclarado === null ? '—' : vezes(c.roasDeclarado)})`}
+                      {perfilEfetivo === 'vendas_midia' && c.receitaAtribuida > 0
+                        ? `${dinheiro(c.receitaAtribuida)} (${c.roasDeclarado === null ? '—' : vezes(c.roasDeclarado)})`
+                        : c.receita > 0 || c.pedidos > 0
+                          ? `${c.pedidos > 0 ? `${numero(c.pedidos)} res. · ` : ''}${dinheiro(c.receita)}${c.roas !== null ? ` (${vezes(c.roas)})` : ''}`
+                          : '—'}
                     </td>
                   ) : null}
                   <td className={`${td} tabular`}>{c.cpc === null ? '—' : dinheiroExato(c.cpc)}</td>
-                  <td className={`${td} tabular`}>{porcento(c.ctr, 2)}</td>
+                  <td className={`${td} tabular`}>{c.impressoes > 0 ? porcento(c.ctr, 2) : '—'}</td>
                 </tr>
               ))}
             </tbody>

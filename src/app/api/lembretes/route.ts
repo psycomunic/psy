@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { clienteServico } from '@/lib/supabase/servico';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 
 /**
  * A rotina que gera os lembretes do dia.
@@ -81,14 +82,21 @@ async function executar(req: Request) {
   }
 
   const supabase = clienteServico();
-  const { data, error } = await supabase.rpc('gerar_lembretes');
+  const [{ data, error }, saldos] = await Promise.all([
+    supabase.rpc('gerar_lembretes'),
+    consultarSaldosMidia({ notificarNoPainel: true }),
+  ]);
 
   if (error) {
     console.error('[lembretes]', error.message);
     return NextResponse.json({ ok: false, erro: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, criados: Number(data ?? 0) });
+  return NextResponse.json({
+    ok: true,
+    criados: Number(data ?? 0),
+    saldosBaixos: saldos.filter((s) => s.nivel === 'zerado' || s.nivel === 'critico').length,
+  });
 }
 
 /* O cron da Vercel chama por GET. O POST existe para disparo manual e

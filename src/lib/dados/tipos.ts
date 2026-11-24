@@ -879,6 +879,25 @@ export type Postagem = {
 
 export type StatusCriativo = 'ativo' | 'em_analise' | 'erro' | 'pausado';
 
+export type NivelSaldoMidia = 'zerado' | 'critico' | 'atencao' | 'saudavel' | 'pos_pago';
+
+export type SaldoContaMidia = {
+  contaId: string;
+  contaNome: string;
+  adAccountId: string;
+  adAccountNome: string;
+  ativaNaMeta: boolean;
+  modalidade: 'pre_pago' | 'pos_pago';
+  saldoDisponivel: number | null; // preenchido em contas pré-pagas (PIX/Boleto) ou com teto
+  faturaAberta: number | null;    // preenchido em contas pós-pagas (cartão)
+  textoFontePagamento: string | null;
+  gastoMedioDiario: number;
+  diasRestantes: number | null;
+  nivel: NivelSaldoMidia;
+  resumo: string;
+  verificadoEm: string;
+};
+
 export type CriativoResumo = {
   id: string;
   nome: string;

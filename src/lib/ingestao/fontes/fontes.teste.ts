@@ -18,6 +18,8 @@ import {
   mapear as mapearMeta,
   mapearCampanhas as mapearCampanhasMeta,
   mapearCriativos as mapearCriativosMeta,
+  extrairValorMonetarioMeta,
+  mapearSaldoContaMeta,
   receitaDeCompra,
 } from './meta.ts';
 import {
@@ -522,5 +524,34 @@ describe('Meta Criativos', () => {
     assert.equal(criativos[2].id, 'ad-pausado-com-gasto');
     assert.equal(criativos[2].status, 'pausado');
     assert.equal(criativos[2].conversas, 10);
+  });
+});
+
+describe('Meta Saldo da Conta', () => {
+  test('extrai saldo disponível de contas pré-pagas brasileiras (PIX/Boleto) e estima dias restantes', () => {
+    assert.equal(extrairValorMonetarioMeta('Saldo disponível (R$135,14\u00a0BRL)'), 135.14);
+    assert.equal(extrairValorMonetarioMeta('Saldo disponível (R$1.450,80 BRL)'), 1450.8);
+
+    const critico = mapearSaldoContaMeta({
+      bruto: {
+        id: 'act_878950454109782',
+        account_id: '878950454109782',
+        name: 'CA - Chalé Império da Serra',
+        account_status: 1,
+        is_prepay_account: true,
+        funding_source_details: {
+          display_string: 'Saldo disponível (R$135,14\u00a0BRL)',
+          type: 20,
+        },
+      },
+      contaId: 'c-imperio',
+      contaNome: 'Chalé Império da Serra',
+      gastoUltimos7Dias: 350, // R$ 50/dia -> 2,7 dias restantes
+    });
+
+    assert.equal(critico?.modalidade, 'pre_pago');
+    assert.equal(critico?.saldoDisponivel, 135.14);
+    assert.equal(critico?.nivel, 'critico');
+    assert.equal(critico?.diasRestantes, 2.7);
   });
 });

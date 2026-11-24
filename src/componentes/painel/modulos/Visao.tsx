@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { listarContas, financeiroDoMes, listarTarefas, listarPropostas } from '@/lib/dados/consultas';
 import { resumoDaOperacao, atividadeRecente } from '@/lib/dados/operacao';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 import { SeloSituacao, AvisoProcedencia } from '../base';
 import { Anel, Numero, Bloco, Pendencia, Atalho, LinhaDoTempo } from '../Painel';
 import { CORES_SITUACAO } from '../paleta';
-import { dinheiro, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
+import { dinheiro, dinheiroExato, dinheiroCurto, vezes, diasAte } from '@/lib/formato';
 import { hojeBR } from '@/lib/datas';
 import type { Papel } from '@/lib/papeis';
 
@@ -56,6 +57,7 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
     { dados: propostas },
     resumo,
     eventos,
+    saldosMidia,
   ] = await Promise.all([
     listarContas(),
     financeiroDoMes(),
@@ -63,7 +65,12 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
     listarPropostas(),
     resumoDaOperacao(),
     atividadeRecente(10),
+    papel !== 'financeiro' ? consultarSaldosMidia({ notificarNoPainel: true }) : Promise.resolve([]),
   ]);
+
+  const saldosUrgentes = saldosMidia.filter(
+    (s) => s.nivel === 'zerado' || s.nivel === 'critico',
+  );
 
   const podeVerFinanceiro = papel === 'administrador' || papel === 'financeiro';
 
@@ -191,12 +198,26 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
       {/* ---------------------------------------------------------- */}
       {/* O que exige decisão hoje                                     */}
       {/* ---------------------------------------------------------- */}
-      {emRisco.length + atencao.length + atrasadas.length + vencendo.length + resumo.integracoesComErro > 0 ? (
+      {emRisco.length + atencao.length + atrasadas.length + vencendo.length + resumo.integracoesComErro + saldosUrgentes.length > 0 ? (
         <Bloco
           titulo="Precisa de você hoje"
-          apoio="Ordenado por gravidade. Loja sem dado vem primeiro: antes de discutir performance, é preciso saber se o número chegou."
+          apoio="Ordenado por gravidade. Saldo esgotado e loja sem dado vêm primeiro para nenhuma campanha parar sem aviso."
         >
           <ul className="grid gap-3 lg:grid-cols-2">
+            {saldosUrgentes.map((s) => (
+              <Pendencia
+                key={`saldo-${s.contaId}`}
+                severidade={s.nivel === 'zerado' ? 'critico' : 'atencao'}
+                titulo={
+                  s.nivel === 'zerado'
+                    ? `Saldo esgotado: ${s.contaNome} (${dinheiroExato(s.saldoDisponivel ?? 0)})`
+                    : `Saldo baixo: ${s.contaNome} (${dinheiroExato(s.saldoDisponivel ?? 0)})`
+                }
+                detalhe={s.resumo}
+                href={`/painel/metricas?conta=${s.contaId}`}
+                acao="Ver conta"
+              />
+            ))}
             {emRisco.map((c) => (
               <Pendencia
                 key={c.id}
@@ -261,6 +282,84 @@ export async function Visao({ papel, nome }: { papel: Papel; nome?: string | nul
               />
             ))}
           </ul>
+        </Bloco>
+      ) : null}
+
+      {/* ---------------------------------------------------------- */}
+      {/* Saldos ao vivo das contas de anúncio                         */}
+      {/* ---------------------------------------------------------- */}
+      {saldosMidia.length > 0 ? (
+        <Bloco
+          titulo="Saldos das contas de anúncio"
+          apoio="Consultado direto na Meta Ads e cruzado com o ritmo diário dos últimos 7 dias. Contas abaixo de R$ 150 ou de 3 dias geram aviso automático no sino."
+        >
+          <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+            {saldosMidia.map((s) => {
+              const cor =
+                s.nivel === 'zerado'
+                  ? '#FB7185'
+                  : s.nivel === 'critico'
+                    ? '#F97316'
+                    : s.nivel === 'atencao'
+                      ? '#FBBF24'
+                      : s.nivel === 'saudavel'
+                        ? '#4ADE80'
+                        : '#38BDF8';
+              const rotuloNivel =
+                s.nivel === 'zerado'
+                  ? 'Esgotado'
+                  : s.nivel === 'critico'
+                    ? 'Saldo baixo'
+                    : s.nivel === 'atencao'
+                      ? 'Recarregar em breve'
+                      : s.nivel === 'saudavel'
+                        ? 'Saldo em dia'
+                        : 'Cartão pós-pago';
+
+              return (
+                <Link
+                  key={s.contaId}
+                  href={`/painel/metricas?conta=${s.contaId}`}
+                  className={
+                    'cartao flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-white/[0.03] ' +
+                    (s.nivel === 'zerado' || s.nivel === 'critico'
+                      ? 'border-[#F97316]/45'
+                      : '')
+                  }
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-display text-base font-bold text-branco">
+                        {s.contaNome}
+                      </p>
+                      <p className="mt-0.5 truncate font-mono text-[0.68rem] uppercase tracking-[0.12em] text-cinza">
+                        Meta · {s.adAccountNome}
+                      </p>
+                    </div>
+                    <span
+                      className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[0.68rem] font-semibold"
+                      style={{ color: cor }}
+                    >
+                      ● {rotuloNivel}
+                    </span>
+                  </div>
+
+                  <div>
+                    <p className="tabular font-display text-2xl font-extrabold tracking-[-0.03em] text-branco">
+                      {s.modalidade === 'pre_pago' || s.saldoDisponivel !== null
+                        ? dinheiroExato(s.saldoDisponivel ?? 0)
+                        : s.faturaAberta !== null
+                          ? `${dinheiroExato(s.faturaAberta)} em aberto`
+                          : 'Automático'}
+                    </p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-cinza">
+                      {s.resumo}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </Bloco>
       ) : null}
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { sincronizar } from '@/lib/ingestao/sincronizar';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 
 /**
  * O gatilho da rotina automática.
@@ -54,6 +55,7 @@ async function executar(req: Request, contaId?: string) {
 
   try {
     const resultados = await sincronizar({ contaId });
+    const saldos = await consultarSaldosMidia({ contaId, notificarNoPainel: true });
 
     return NextResponse.json({
       ok: true,
@@ -61,6 +63,7 @@ async function executar(req: Request, contaId?: string) {
       comSucesso: resultados.filter((r) => r.ok).length,
       comFalha: resultados.filter((r) => !r.ok).length,
       gravadas: resultados.reduce((s, r) => s + r.gravadas, 0),
+      saldosBaixos: saldos.filter((s) => s.nivel === 'zerado' || s.nivel === 'critico').length,
       resultados,
     });
   } catch (e) {
