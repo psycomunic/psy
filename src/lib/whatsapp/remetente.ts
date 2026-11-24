@@ -7,8 +7,11 @@ import type { SaldoContaMidia } from '@/lib/dados/tipos';
 import {
   NUMERO_DESTINO_PADRAO,
   PISO_ALERTA_PADRAO_REAIS,
+  TEMPLATE_PADRAO_META,
+  limparPhoneNumberId,
   normalizarNumeroWhatsapp,
   montarMensagemSaldoBaixo,
+  montarParametroTemplateSaldo,
   montarRequisicaoGateway,
 } from './formato';
 
@@ -96,7 +99,7 @@ export async function lerConfigWhatsapp(): Promise<ConfigWhatsapp | null> {
     modo,
     destinatario: normalizarNumeroWhatsapp(String(cfg.destinatario ?? NUMERO_DESTINO_PADRAO)),
     pisoAlerta,
-    phoneNumberId: String(cfg.phone_number_id ?? '').trim() || null,
+    phoneNumberId: limparPhoneNumberId(String(cfg.phone_number_id ?? '')),
     accessToken: tokenMeta,
     templateNome: String(cfg.template_nome ?? '').trim() || null,
     templateIdioma: String(cfg.template_idioma ?? 'pt_BR').trim() || 'pt_BR',
@@ -104,6 +107,54 @@ export async function lerConfigWhatsapp(): Promise<ConfigWhatsapp | null> {
     webhookToken: segredos.webhook_token?.trim() || null,
     configuracaoBruta: cfg,
   };
+}
+
+/**
+ * Descobre automaticamente o primeiro número `CLOUD_API` conectado nas WABAs da BM
+ * quando o `phone_number_id` foi deixado em branco ou preenchido incorretamente.
+ */
+async function descobrirPhoneNumberIdMeta(accessToken: string): Promise<string | null> {
+  try {
+    const resContas = await fetch(
+      `https://graph.facebook.com/${VERSAO_META_API}/me/adaccounts?fields=business{id}&limit=25&access_token=${encodeURIComponent(accessToken)}`,
+      { cache: 'no-store' },
+    );
+    const jsonContas = (await resContas.json().catch(() => ({}))) as {
+      data?: { business?: { id?: string } }[];
+    };
+    const bms = [
+      ...new Set(
+        (jsonContas.data ?? [])
+          .map((c) => c.business?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    for (const bmId of bms) {
+      const resWaba = await fetch(
+        `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(bmId)}/owned_whatsapp_business_accounts?fields=phone_numbers{id,status,platform_type}&limit=25&access_token=${encodeURIComponent(accessToken)}`,
+        { cache: 'no-store' },
+      );
+      const jsonWaba = (await resWaba.json().catch(() => ({}))) as {
+        data?: {
+          phone_numbers?: {
+            data?: { id?: string; status?: string; platform_type?: string }[];
+          };
+        }[];
+      };
+
+      const todos = (jsonWaba.data ?? []).flatMap((w) => w.phone_numbers?.data ?? []);
+      const conectadoCloud =
+        todos.find((p) => p.status === 'CONNECTED' && p.platform_type === 'CLOUD_API') ??
+        todos.find((p) => p.status === 'CONNECTED');
+
+      const limpo = limparPhoneNumberId(conectadoCloud?.id);
+      if (limpo) return limpo;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 async function enviarPelaCloudApiMeta({
@@ -115,12 +166,6 @@ async function enviarPelaCloudApiMeta({
   texto: string;
   saldos: SaldoContaMidia[];
 }): Promise<{ ok: boolean; id?: string | null; erro?: string }> {
-  if (!cfg.phoneNumberId) {
-    return {
-      ok: false,
-      erro: 'Falta informar o Phone Number ID da Meta em Configurações > WhatsApp · Alertas de Saldo.',
-    };
-  }
   if (!cfg.accessToken) {
     return {
       ok: false,
@@ -128,36 +173,55 @@ async function enviarPelaCloudApiMeta({
     };
   }
 
-  const endpoint = `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(cfg.phoneNumberId)}/messages`;
+  let phoneNumberId = cfg.phoneNumberId;
+  if (!phoneNumberId) {
+    phoneNumberId = await descobrirPhoneNumberIdMeta(cfg.accessToken);
+    if (phoneNumberId && bancoConfigurado) {
+      /* Persiste o ID numérico descoberto para não precisar buscar toda vez */
+      await clienteServico()
+        .from('credencial_agencia')
+        .update({
+          configuracao: {
+            ...cfg.configuracaoBruta,
+            phone_number_id: phoneNumberId,
+          },
+        })
+        .eq('id', cfg.credencialId)
+        .then(() => undefined, () => undefined);
+    }
+  }
+
+  if (!phoneNumberId) {
+    return {
+      ok: false,
+      erro: 'Falta informar o Phone Number ID numérico da Meta (ex.: 1201735229697128) em Configurações > WhatsApp · Alertas de Saldo.',
+    };
+  }
+
+  const endpoint = `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(phoneNumberId)}/messages`;
   const headers = {
     Authorization: `Bearer ${cfg.accessToken}`,
     'Content-Type': 'application/json',
   };
 
-  /* Se um template oficial foi informado, dispara via template (funciona mesmo
-     fora da janela de 24h de conversa). */
-  if (cfg.templateNome) {
-    const ehHelloWorld = cfg.templateNome === 'hello_world';
-    const idioma = ehHelloWorld ? 'en_US' : cfg.templateIdioma;
-    const resumoCurto =
-      saldos.length > 0
-        ? saldos
-            .map(
-              (s) =>
-                `${s.contaNome} (R$ ${(s.saldoDisponivel ?? 0).toFixed(2).replace('.', ',')})`,
-            )
-            .join(', ')
-        : 'Teste de alerta de saldo Psy Comunic';
+  /* Prioriza template `UTILITY` (informado pelo usuário ou `alerta_saldo_conta` padrão)
+     porque entrega 24h/7 mesmo quando o destinatário não conversou nas últimas 24h.
+     Se o template padrão ainda estiver em análise na Meta (#132001), cai automaticamente
+     para o envio de texto livre. */
+  const templateEscolhido = cfg.templateNome || TEMPLATE_PADRAO_META;
+  const usouTemplatePadraoAutomatico = !cfg.templateNome;
 
-    /* Tenta primeiro com 1 parâmetro de corpo (padrão de template de alerta) e,
-       se o template não tiver variáveis (ex.: `hello_world` ou template estático),
-       reenvia sem `components`. */
+  {
+    const ehHelloWorld = templateEscolhido === 'hello_world';
+    const idioma = ehHelloWorld ? 'en_US' : cfg.templateIdioma;
+    const resumoCurto = montarParametroTemplateSaldo(saldos);
+
     const corpoComParam = {
       messaging_product: 'whatsapp',
       to: cfg.destinatario,
       type: 'template',
       template: {
-        name: cfg.templateNome,
+        name: templateEscolhido,
         language: { code: idioma },
         ...(ehHelloWorld
           ? {}
@@ -165,7 +229,7 @@ async function enviarPelaCloudApiMeta({
               components: [
                 {
                   type: 'body',
-                  parameters: [{ type: 'text', text: resumoCurto.slice(0, 900) }],
+                  parameters: [{ type: 'text', text: resumoCurto }],
                 },
               ],
             }),
@@ -183,7 +247,7 @@ async function enviarPelaCloudApiMeta({
       error?: { code?: number; message?: string };
     };
 
-    /* Código 132000 = número de parâmetros diferente (ex.: template sem variáveis) */
+    /* Código 132000 = número de parâmetros diferente (ex.: template estático sem variáveis) */
     if (!res.ok && json.error?.code === 132000 && !ehHelloWorld) {
       res = await fetch(endpoint, {
         method: 'POST',
@@ -193,7 +257,7 @@ async function enviarPelaCloudApiMeta({
           to: cfg.destinatario,
           type: 'template',
           template: {
-            name: cfg.templateNome,
+            name: templateEscolhido,
             language: { code: idioma },
           },
         }),
@@ -202,14 +266,21 @@ async function enviarPelaCloudApiMeta({
       json = await res.json().catch(() => ({}));
     }
 
-    if (!res.ok) {
-      return {
-        ok: false,
-        erro: `Meta WhatsApp (#${json.error?.code ?? res.status}): ${json.error?.message ?? 'Falha ao enviar template.'}`,
-      };
+    if (res.ok) {
+      return { ok: true, id: json.messages?.[0]?.id ?? null };
     }
 
-    return { ok: true, id: json.messages?.[0]?.id ?? null };
+    /* Se o usuário digitou um nome de template específico e a Meta recusou, devolve o erro exato.
+       Se era apenas a tentativa automática com `alerta_saldo_conta` (ex.: ainda pendente de aprovação),
+       segue adiante para o disparo de texto livre. */
+    const codigoErro = json.error?.code;
+    const templateIndisponivel = codigoErro === 132001 || codigoErro === 132005 || codigoErro === 100;
+    if (!usouTemplatePadraoAutomatico || !templateIndisponivel) {
+      return {
+        ok: false,
+        erro: `Meta WhatsApp (#${codigoErro ?? res.status}): ${json.error?.message ?? 'Falha ao enviar template.'}`,
+      };
+    }
   }
 
   /* Sem template configurado: envia mensagem de texto livre completa (funciona

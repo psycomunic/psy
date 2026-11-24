@@ -10,6 +10,44 @@ import type { SaldoContaMidia } from '../dados/tipos.ts';
 
 export const NUMERO_DESTINO_PADRAO = '5547992406661';
 export const PISO_ALERTA_PADRAO_REAIS = 150;
+export const TEMPLATE_PADRAO_META = 'alerta_saldo_conta';
+
+/**
+ * Valida e limpa o `Phone Number ID` da Cloud API da Meta (sempre numérico de 8 a 25 dígitos).
+ * Rejeita textos como `"Principal"` inseridos por preenchimento automático do navegador.
+ */
+export function limparPhoneNumberId(bruto: string | null | undefined): string | null {
+  const limpo = (bruto ?? '').trim().replace(/\s+/g, '');
+  if (!limpo) return null;
+  return /^\d{8,25}$/.test(limpo) ? limpo : null;
+}
+
+/**
+ * Monta o parâmetro `{{1}}` de corpo para templates `UTILITY` da Meta.
+ * A Cloud API proíbe `\n`, `\t` e mais de 4 espaços seguidos em parâmetros de template (#132018).
+ */
+export function montarParametroTemplateSaldo(saldos: SaldoContaMidia[]): string {
+  if (saldos.length === 0) {
+    return 'Teste de conexão validado — nenhuma conta com saldo crítico neste momento';
+  }
+
+  const texto = saldos
+    .map((s) => {
+      const valor = dinheiroExato(s.saldoDisponivel ?? 0);
+      const dias =
+        s.diasRestantes !== null
+          ? ` — ~${s.diasRestantes.toFixed(1).replace('.', ',')} dias no ritmo de ${dinheiroExato(s.gastoMedioDiario)}/dia`
+          : '';
+      return `${s.contaNome} (saldo ${valor}${dias})`;
+    })
+    .join('; ');
+
+  return texto
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, 900);
+}
 
 /**
  * Normaliza telefone brasileiro para E.164 sem sinal de `+` (`5547992406661`).

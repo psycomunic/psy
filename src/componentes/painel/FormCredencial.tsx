@@ -156,7 +156,9 @@ export function FormCredencial({
             placeholder={jaExiste && c.valorPadrao ? `Manter guardado (ex.: ${c.valorPadrao})` : c.valorPadrao}
             required={c.obrigatorio && !jaExiste}
             type={c.segredo ? 'password' : 'text'}
-            autoComplete="off"
+            autoComplete={c.segredo ? 'new-password' : 'off'}
+            data-lpignore="true"
+            data-1p-ignore="true"
             spellCheck={false}
             className={`mt-2 ${campo}`}
           />

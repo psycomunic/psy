@@ -128,7 +128,7 @@ export const CAMPOS_DO_PROVEDOR: Record<
       rotulo: 'Phone Number ID da Meta (Opção A)',
       segredo: false,
       obrigatorio: false,
-      ajuda: 'Meta for Developers > Seu App > WhatsApp > Configuração da API > "Identificação do número de telefone".',
+      ajuda: 'Apenas números (ex.: 1201735229697128). Se deixar em branco, o sistema localiza automaticamente o número Cloud API ativo na sua BM.',
     },
     {
       chave: 'access_token',
@@ -142,7 +142,7 @@ export const CAMPOS_DO_PROVEDOR: Record<
       rotulo: 'Nome do Template aprovado na Meta (opcional na Opção A)',
       segredo: false,
       obrigatorio: false,
-      ajuda: 'Ex.: alerta_saldo (ou hello_world para testar). Em branco, envia texto livre completo quando a janela de 24h estiver aberta.',
+      ajuda: 'Ex.: alerta_saldo_conta (padrão automático para entregar mesmo fora da janela de 24h) ou hello_world.',
     },
     {
       chave: 'template_idioma',
@@ -312,9 +312,33 @@ export async function guardarCredencial({
   const segredos: Record<string, string> = { ...segredosAntigos };
   const configuracao: Record<string, string> = { ...configAntiga };
 
+  /* Se já havia um valor não numérico gravado antes por autofill (ex.: "Principal"),
+     higieniza ao salvar novamente. */
+  if (
+    provedor === 'whatsapp_alertas' &&
+    configuracao.phone_number_id &&
+    !/^\d{8,25}$/.test(configuracao.phone_number_id.trim())
+  ) {
+    delete configuracao.phone_number_id;
+  }
+
   for (const campo of CAMPOS_DO_PROVEDOR[provedor]) {
     const v = valores[campo.chave]?.trim();
     if (!v) continue;
+
+    if (provedor === 'whatsapp_alertas' && campo.chave === 'phone_number_id') {
+      /* Ignora preenchimento automático de gerenciador de senhas (ex.: "Principal") */
+      if (v.toLowerCase() === rotulo.toLowerCase()) continue;
+      const soDigitos = v.replace(/\s+/g, '');
+      if (!/^\d{8,25}$/.test(soDigitos)) {
+        throw new Error(
+          'O Phone Number ID da Meta precisa conter apenas números (ex.: 1201735229697128), ou deixe em branco para detecção automática.',
+        );
+      }
+      configuracao[campo.chave] = soDigitos;
+      continue;
+    }
+
     if (ABERTOS.has(campo.chave)) configuracao[campo.chave] = v;
     else segredos[campo.chave] = v;
   }
