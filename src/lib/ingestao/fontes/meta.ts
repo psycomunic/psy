@@ -1,4 +1,5 @@
 import type { LinhaMetrica, LinhaCampanha, ObjetivoCampanha } from '../csv.ts';
+import type { CriativoResumo, StatusCriativo } from '../../dados/tipos.ts';
 
 /**
  * Meta Marketing API — insights consolidados da conta e abertos por campanha.
@@ -310,4 +311,273 @@ export async function buscar({
   ]);
 
   return { conta: resConta, campanhas: resCampanhas };
+}
+
+/* ================================================================== */
+/* Criativos ativos e com entrega no período (miniaturas + status)     */
+/* ================================================================== */
+
+type AnuncioMetaBruto = {
+  id?: string;
+  name?: string;
+  status?: string;
+  effective_status?: string;
+  campaign?: { id?: string; name?: string; objective?: string };
+  adset?: { id?: string; name?: string };
+  creative?: {
+    id?: string;
+    name?: string;
+    thumbnail_url?: string;
+    image_url?: string;
+    object_type?: string;
+    video_id?: string;
+    title?: string;
+    body?: string;
+  };
+};
+
+type InsightAnuncioBruto = LinhaMeta & {
+  ad_id?: string;
+  ad_name?: string;
+  adset_name?: string;
+};
+
+function traduzirStatusAnuncio(bruto: string | undefined): {
+  status: StatusCriativo;
+  detalhe: string;
+} {
+  const s = (bruto ?? '').trim().toUpperCase();
+  if (s === 'ACTIVE') return { status: 'ativo', detalhe: 'Rodando agora' };
+  if (s === 'PENDING_REVIEW' || s === 'IN_PROCESS' || s === 'PREAPPROVED') {
+    return { status: 'em_analise', detalhe: 'Em análise na Meta' };
+  }
+  if (s === 'DISAPPROVED') {
+    return { status: 'erro', detalhe: 'Reprovado pela Meta' };
+  }
+  if (s === 'WITH_ISSUES' || s === 'PENDING_BILLING_INFO') {
+    return { status: 'erro', detalhe: 'Com alerta de entrega' };
+  }
+  if (s === 'CAMPAIGN_PAUSED') {
+    return { status: 'pausado', detalhe: 'Campanha pausada' };
+  }
+  if (s === 'ADSET_PAUSED') {
+    return { status: 'pausado', detalhe: 'Conjunto pausado' };
+  }
+  return { status: 'pausado', detalhe: 'Pausado' };
+}
+
+function formatoDoCriativo(c: AnuncioMetaBruto['creative']): 'video' | 'imagem' | 'post' {
+  const tipo = (c?.object_type ?? '').toUpperCase();
+  if (c?.video_id || tipo === 'VIDEO') return 'video';
+  if (tipo === 'SHARE') return 'post';
+  return 'imagem';
+}
+
+const PESO_ORDEM_STATUS: Record<StatusCriativo, number> = {
+  erro: 0,
+  ativo: 1,
+  em_analise: 2,
+  pausado: 3,
+};
+
+export function mapearCriativos({
+  anuncios,
+  insights,
+}: {
+  anuncios: unknown;
+  insights: unknown;
+}): CriativoResumo[] {
+  const listaAds = Array.isArray((anuncios as { data?: unknown[] })?.data)
+    ? ((anuncios as { data: AnuncioMetaBruto[] }).data)
+    : Array.isArray(anuncios)
+      ? (anuncios as AnuncioMetaBruto[])
+      : [];
+
+  const listaInsights = Array.isArray((insights as { data?: unknown[] })?.data)
+    ? ((insights as { data: InsightAnuncioBruto[] }).data)
+    : Array.isArray(insights)
+      ? (insights as InsightAnuncioBruto[])
+      : [];
+
+  const adsPorId = new Map<string, AnuncioMetaBruto>();
+  for (const a of listaAds) {
+    if (a.id) adsPorId.set(a.id, a);
+  }
+
+  const insightsPorId = new Map<string, InsightAnuncioBruto>();
+  for (const i of listaInsights) {
+    if (i.ad_id) insightsPorId.set(i.ad_id, i);
+  }
+
+  const todosIds = new Set<string>([...adsPorId.keys(), ...insightsPorId.keys()]);
+  const saida: CriativoResumo[] = [];
+
+  for (const id of todosIds) {
+    const ad = adsPorId.get(id);
+    const ins = insightsPorId.get(id);
+
+    const m = ins
+      ? extrairMetricasComuns(ins)
+      : {
+          investimento: 0,
+          impressoes: 0,
+          alcance: 0,
+          cliques: 0,
+          cliques_link: 0,
+          visitas_pagina: 0,
+          conversas: 0,
+          leads_captados: 0,
+          compras_atribuidas: 0,
+          receita_atribuida: 0,
+          carrinhos: 0,
+          checkouts: 0,
+          engajamentos: 0,
+          visualizacoes_video: 0,
+        };
+
+    const { status, detalhe } = traduzirStatusAnuncio(
+      ad?.effective_status ?? ad?.status ?? (ins ? 'PAUSED' : undefined),
+    );
+
+    /* Anúncio pausado que também não teve gasto nem impressão no período não
+       ajuda na auditoria operacional; mantemos todos os ativos/em análise/com
+       erro + os pausados que rodaram no período selecionado. */
+    if (status === 'pausado' && m.investimento <= 0 && m.impressoes <= 0) {
+      continue;
+    }
+
+    const campanhaNome =
+      ad?.campaign?.name?.trim() ||
+      ins?.campaign_name?.trim() ||
+      'Campanha';
+    const campanhaId =
+      ad?.campaign?.id?.trim() ||
+      ins?.campaign_id?.trim() ||
+      '';
+    const objetivoBruto = ad?.campaign?.objective ?? ins?.objective;
+
+    const cliquesEfetivos = m.cliques_link > 0 ? m.cliques_link : m.cliques;
+    const ctr =
+      m.impressoes > 0
+        ? Number(((100 * cliquesEfetivos) / m.impressoes).toFixed(2))
+        : null;
+
+    const miniatura = ad?.creative?.thumbnail_url?.trim() || ad?.creative?.image_url?.trim() || null;
+    const imagem = ad?.creative?.image_url?.trim() || miniatura;
+
+    saida.push({
+      id,
+      nome: ad?.name?.trim() || ins?.ad_name?.trim() || `Anúncio ${id.slice(-6)}`,
+      campanhaId,
+      campanhaNome,
+      conjuntoNome: ad?.adset?.name?.trim() || ins?.adset_name?.trim() || null,
+      objetivo: classificarObjetivoMeta(objetivoBruto, campanhaNome, m),
+      status,
+      statusDetalhe: detalhe,
+      formato: formatoDoCriativo(ad?.creative),
+      miniaturaUrl: miniatura,
+      imagemUrl: imagem,
+      titulo: ad?.creative?.title?.trim() || null,
+      corpo: ad?.creative?.body?.trim() || null,
+      investimento: m.investimento,
+      impressoes: m.impressoes,
+      alcance: m.alcance,
+      cliquesLink: cliquesEfetivos,
+      ctr,
+      visitasPagina: m.visitas_pagina,
+      conversas: m.conversas,
+      leadsCaptados: m.leads_captados,
+      comprasAtribuidas: m.compras_atribuidas,
+      receitaAtribuida: m.receita_atribuida,
+      engajamentos: m.engajamentos,
+      visualizacoesVideo: m.visualizacoes_video,
+    });
+  }
+
+  return saida.sort((a, b) => {
+    const diffStatus = PESO_ORDEM_STATUS[a.status] - PESO_ORDEM_STATUS[b.status];
+    if (diffStatus !== 0) return diffStatus;
+    return b.investimento - a.investimento || b.impressoes - a.impressoes;
+  });
+}
+
+export async function buscarCriativos({
+  segredo,
+  identificador,
+  de,
+  ate,
+}: {
+  segredo: SegredoMeta;
+  identificador: string;
+  de: string;
+  ate: string;
+}): Promise<CriativoResumo[]> {
+  const conta = identificador.startsWith('act_') ? identificador : `act_${identificador}`;
+  const cabecalhos = { authorization: `Bearer ${segredo.access_token}` };
+
+  const camposAd =
+    'id,name,status,effective_status,campaign{id,name,objective},adset{id,name},creative.thumbnail_width(480).thumbnail_height(480){id,name,thumbnail_url,image_url,object_type,video_id,title,body}';
+  const camposInsights =
+    'ad_id,ad_name,adset_name,campaign_id,campaign_name,objective,spend,impressions,reach,clicks,inline_link_clicks,actions,action_values';
+
+  const urlAtivos = new URL(`https://graph.facebook.com/${VERSAO_API}/${conta}/ads`);
+  urlAtivos.searchParams.set(
+    'effective_status',
+    JSON.stringify(['ACTIVE', 'IN_PROCESS', 'PENDING_REVIEW', 'DISAPPROVED', 'WITH_ISSUES']),
+  );
+  urlAtivos.searchParams.set('fields', camposAd);
+  urlAtivos.searchParams.set('limit', '60');
+
+  const urlInsights = new URL(`https://graph.facebook.com/${VERSAO_API}/${conta}/insights`);
+  urlInsights.searchParams.set('level', 'ad');
+  urlInsights.searchParams.set('time_range', JSON.stringify({ since: de, until: ate }));
+  urlInsights.searchParams.set('fields', camposInsights);
+  urlInsights.searchParams.set('limit', '100');
+
+  const [resAtivos, resInsights] = await Promise.all([
+    fetch(urlAtivos, { headers: cabecalhos, next: { revalidate: 300 } })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .catch(() => ({ data: [] })),
+    fetch(urlInsights, { headers: cabecalhos, next: { revalidate: 300 } })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .catch(() => ({ data: [] })),
+  ]);
+
+  const listaAtivos: AnuncioMetaBruto[] = Array.isArray(resAtivos?.data) ? resAtivos.data : [];
+  const listaInsights: InsightAnuncioBruto[] = Array.isArray(resInsights?.data)
+    ? resInsights.data
+    : [];
+
+  const idsConhecidos = new Set(listaAtivos.map((a) => a.id).filter(Boolean));
+  const faltantes = listaInsights
+    .map((i) => i.ad_id)
+    .filter((id): id is string => Boolean(id && !idsConhecidos.has(id)))
+    .slice(0, 24);
+
+  let extras: AnuncioMetaBruto[] = [];
+  if (faltantes.length > 0) {
+    const urlPausados = new URL(`https://graph.facebook.com/${VERSAO_API}/${conta}/ads`);
+    urlPausados.searchParams.set(
+      'filtering',
+      JSON.stringify([{ field: 'id', operator: 'IN', value: faltantes }]),
+    );
+    urlPausados.searchParams.set('fields', camposAd);
+    urlPausados.searchParams.set('limit', '30');
+
+    const resPausados = await fetch(urlPausados, {
+      headers: cabecalhos,
+      next: { revalidate: 300 },
+    })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .catch(() => ({ data: [] }));
+
+    if (Array.isArray(resPausados?.data)) {
+      extras = resPausados.data;
+    }
+  }
+
+  return mapearCriativos({
+    anuncios: { data: [...listaAtivos, ...extras] },
+    insights: { data: listaInsights },
+  });
 }

@@ -874,6 +874,48 @@ export type Postagem = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Criativos de mídia                                                  */
+/* ------------------------------------------------------------------ */
+
+export type StatusCriativo = 'ativo' | 'em_analise' | 'erro' | 'pausado';
+
+export type CriativoResumo = {
+  id: string;
+  nome: string;
+  campanhaId: string;
+  campanhaNome: string;
+  conjuntoNome: string | null;
+  objetivo:
+    | 'mensagens'
+    | 'leads'
+    | 'vendas'
+    | 'trafego'
+    | 'alcance'
+    | 'engajamento'
+    | 'video'
+    | 'outro';
+  status: StatusCriativo;
+  statusDetalhe: string;
+  formato: 'video' | 'imagem' | 'post';
+  miniaturaUrl: string | null;
+  imagemUrl: string | null;
+  titulo: string | null;
+  corpo: string | null;
+  investimento: number;
+  impressoes: number;
+  alcance: number;
+  cliquesLink: number;
+  ctr: number | null;
+  visitasPagina: number;
+  conversas: number;
+  leadsCaptados: number;
+  comprasAtribuidas: number;
+  receitaAtribuida: number;
+  engajamentos: number;
+  visualizacoesVideo: number;
+};
+
+/* ------------------------------------------------------------------ */
 /* Relatórios                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -882,6 +924,7 @@ export const BLOCOS_RELATORIO = [
   'funil',
   'serie',
   'campanhas',
+  'criativos',
   'canais',
   'marcos',
   'comercial',
@@ -893,6 +936,7 @@ export const rotuloBlocoRelatorio: Record<BlocoRelatorio, string> = {
   funil: 'Funil de conversão',
   serie: 'Gráfico diário de evolução',
   campanhas: 'Desempenho por campanha',
+  criativos: 'Miniaturas dos criativos em veiculação',
   canais: 'Comparativo por canal',
   marcos: 'Diário de bordo no período',
   comercial: 'Fechamento comercial informado pelo cliente',
@@ -932,6 +976,7 @@ export type SnapshotRelatorio = {
   };
   serie: DiaKpi[];
   campanhas: CampanhaResumo[];
+  criativos?: CriativoResumo[];
   canais: CanalKpi[];
   marcos: Marco[];
   investimentoTotal: number;

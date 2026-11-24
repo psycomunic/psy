@@ -32,6 +32,7 @@ import {
 } from '@/lib/dominio/perfis-metrica';
 import { enviarEmail, pareceEmail } from '@/lib/email/remetente';
 import { relatorioPronto } from '@/lib/email/modelos';
+import { criativosDaContaPeriodo } from '@/lib/ingestao/criativos';
 import type { Resultado } from './acoes';
 
 /**
@@ -100,11 +101,13 @@ async function construirSnapshot({
     { dados: canais },
     { dados: campanhas },
     { dados: marcos },
+    criativos,
   ] = await Promise.all([
     serieDaContaPeriodo(contaId, anteriorDe, ate),
     canaisDaContaPeriodo(contaId, de, ate),
     campanhasDaContaPeriodo(contaId, de, ate),
     marcosDaContaPeriodo(contaId, de, ate),
+    criativosDaContaPeriodo(contaId, de, ate),
   ]);
 
   const serieAtual = serieDupla.filter((d) => d.dia >= de && d.dia <= ate);
@@ -125,6 +128,7 @@ async function construirSnapshot({
     funil: montarFunil(perfil, atual),
     serie: serieAtual,
     campanhas,
+    criativos,
     canais,
     marcos,
     investimentoTotal: atual.investimento,
@@ -366,8 +370,8 @@ export async function gerarRelatoriosEmLote(
       );
       const comercialAuto = resultadoComercialAutomatico(perfilEfetivo, snapshot);
       const blocosLote: BlocoRelatorio[] = comercialAuto
-        ? ['kpis', 'comercial', 'funil', 'serie', 'campanhas', 'canais', 'marcos']
-        : ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'];
+        ? ['kpis', 'comercial', 'funil', 'serie', 'criativos', 'campanhas', 'canais', 'marcos']
+        : ['kpis', 'funil', 'serie', 'criativos', 'campanhas', 'canais', 'marcos'];
 
       const { error } = await supabase.from('relatorio').insert({
         conta_id: conta.id,

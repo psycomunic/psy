@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buscarRelatorioPublico } from '@/lib/dados/consultas';
 import { SerieMultinicho, BarrasCanal, type MedidaCanal } from '@/componentes/painel/Graficos';
+import { GaleriaCriativos } from '@/componentes/painel/GaleriaCriativos';
 import { Kpi, Tabela, th, td } from '@/componentes/painel/base';
 import {
   configSerieDoPerfil,
@@ -315,6 +316,21 @@ export default async function PaginaRelatorioPublico({
                 perfil={r.perfilMetrica}
                 marcos={r.snapshot.marcos}
               />
+            </div>
+          </section>
+        ) : null}
+
+        {/* Criativos */}
+        {mostrar('criativos') && (r.snapshot.criativos?.length ?? 0) > 0 ? (
+          <section className="mt-12 break-inside-avoid">
+            <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
+              Criativos em veiculação
+            </h2>
+            <p className="mt-1 text-sm text-cinza">
+              Anúncios ativos e criativos que entregaram resultado no período avaliado.
+            </p>
+            <div className="mt-5">
+              <GaleriaCriativos criativos={r.snapshot.criativos!} somenteLeitura />
             </div>
           </section>
         ) : null}

@@ -61,6 +61,7 @@ const BLOCOS_PADRAO: BlocoRelatorio[] = [
   'kpis',
   'funil',
   'serie',
+  'criativos',
   'campanhas',
   'canais',
   'marcos',

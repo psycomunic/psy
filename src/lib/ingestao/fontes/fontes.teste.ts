@@ -17,6 +17,7 @@ import assert from 'node:assert/strict';
 import {
   mapear as mapearMeta,
   mapearCampanhas as mapearCampanhasMeta,
+  mapearCriativos as mapearCriativosMeta,
   receitaDeCompra,
 } from './meta.ts';
 import {
@@ -429,5 +430,97 @@ describe('Hospedi', () => {
     const d21Direto = linhas.find((l) => l.dia === '2026-11-21' && l.canal === 'hospedi_direto');
     assert.equal(d21Direto?.pedidos_aprovados, 0);
     assert.equal(d21Direto?.receita, 0);
+  });
+});
+
+describe('Meta Criativos', () => {
+  test('combina miniatura, status ao vivo e métricas do período priorizando alertas e ativos', () => {
+    const anuncios = {
+      data: [
+        {
+          id: 'ad-ativo',
+          name: 'AD01 - Tour Chalé Hidro',
+          effective_status: 'ACTIVE',
+          campaign: { id: 'c1', name: '[PSY][MENSAGEM]', objective: 'OUTCOME_ENGAGEMENT' },
+          adset: { id: 's1', name: 'Casais 150km' },
+          creative: {
+            id: 'cr1',
+            thumbnail_url: 'https://scontent.xx.fbcdn.net/thumb_ad01.jpg',
+            object_type: 'VIDEO',
+            video_id: 'v1',
+            title: 'Reserve seu fim de semana',
+          },
+        },
+        {
+          id: 'ad-erro',
+          name: 'AD02 - Promo Inverno',
+          effective_status: 'DISAPPROVED',
+          campaign: { id: 'c1', name: '[PSY][MENSAGEM]', objective: 'OUTCOME_ENGAGEMENT' },
+          creative: {
+            id: 'cr2',
+            thumbnail_url: 'https://scontent.xx.fbcdn.net/thumb_ad02.jpg',
+            object_type: 'SHARE',
+          },
+        },
+        {
+          id: 'ad-pausado-zerado',
+          name: 'AD Antigo Sem Gasto',
+          effective_status: 'PAUSED',
+          campaign: { id: 'c0', name: 'Antiga' },
+          creative: { thumbnail_url: 'https://scontent.xx.fbcdn.net/old.jpg' },
+        },
+      ],
+    };
+
+    const insights = {
+      data: [
+        {
+          ad_id: 'ad-ativo',
+          ad_name: 'AD01 - Tour Chalé Hidro',
+          campaign_id: 'c1',
+          campaign_name: '[PSY][MENSAGEM]',
+          spend: '145.50',
+          impressions: '8200',
+          reach: '6100',
+          inline_link_clicks: '120',
+          actions: [
+            { action_type: 'onsite_conversion.messaging_conversation_started_7d', value: '50' },
+          ],
+        },
+        {
+          ad_id: 'ad-pausado-com-gasto',
+          ad_name: 'AD03 - Vídeo Lareira',
+          campaign_id: 'c1',
+          campaign_name: '[PSY][MENSAGEM]',
+          spend: '40.00',
+          impressions: '2000',
+          inline_link_clicks: '25',
+          actions: [
+            { action_type: 'onsite_conversion.messaging_conversation_started_7d', value: '10' },
+          ],
+        },
+      ],
+    };
+
+    const criativos = mapearCriativosMeta({ anuncios, insights });
+    /* `ad-pausado-zerado` fica de fora por estar pausado e sem entrega no período. */
+    assert.equal(criativos.length, 3);
+
+    /* 1º: criativo com erro/reprovação aparece no topo para auditoria imediata */
+    assert.equal(criativos[0].id, 'ad-erro');
+    assert.equal(criativos[0].status, 'erro');
+
+    /* 2º: criativo ativo com conversas e miniatura de vídeo */
+    assert.equal(criativos[1].id, 'ad-ativo');
+    assert.equal(criativos[1].status, 'ativo');
+    assert.equal(criativos[1].formato, 'video');
+    assert.equal(criativos[1].conversas, 50);
+    assert.equal(criativos[1].investimento, 145.5);
+    assert.equal(criativos[1].miniaturaUrl, 'https://scontent.xx.fbcdn.net/thumb_ad01.jpg');
+
+    /* 3º: pausado que teve gasto no período */
+    assert.equal(criativos[2].id, 'ad-pausado-com-gasto');
+    assert.equal(criativos[2].status, 'pausado');
+    assert.equal(criativos[2].conversas, 10);
   });
 });

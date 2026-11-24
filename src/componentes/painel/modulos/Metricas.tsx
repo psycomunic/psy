@@ -9,7 +9,9 @@ import {
 } from '@/lib/dados/consultas';
 import { SerieMultinicho, BarrasCanal, type MedidaCanal } from '../Graficos';
 import { BarraMetricas } from '../BarraMetricas';
+import { GaleriaCriativos } from '../GaleriaCriativos';
 import { FormPerfilMetrica } from '../Formularios';
+import { criativosDaContaPeriodo } from '@/lib/ingestao/criativos';
 import {
   Kpi,
   SeloSituacao,
@@ -284,12 +286,16 @@ export async function Metricas({
     { dados: campanhas },
     { dados: marcos },
     primeiroDiaBanco,
+    criativos,
   ] = await Promise.all([
     serieDaContaPeriodo(conta.id, janela.anteriorDe, janela.ate, canalAtivo),
     canaisDaContaPeriodo(conta.id, janela.de, janela.ate),
     campanhasDaContaPeriodo(conta.id, janela.de, janela.ate, canalAtivo),
     marcosDaConta(conta.id),
     primeiroDiaSincronizado(conta.id),
+    procedencia === 'banco' && (canalAtivo === 'todos' || canalAtivo === 'meta')
+      ? criativosDaContaPeriodo(conta.id, janela.de, janela.ate)
+      : Promise.resolve([]),
   ]);
 
   const serieAtual = serieDupla.filter((d) => d.dia >= janela.de && d.dia <= janela.ate);
@@ -463,6 +469,16 @@ export async function Metricas({
           />
         </div>
       </Secao>
+
+      {/* Criativos em veiculação com miniatura e status ao vivo */}
+      {criativos.length > 0 ? (
+        <Secao
+          titulo="Criativos em veiculação"
+          apoio="Miniatura, status de aprovação ao vivo na Meta e resultado individual de cada anúncio no período selecionado. Clique num cartão para ampliar."
+        >
+          <GaleriaCriativos criativos={criativos} />
+        </Secao>
+      ) : null}
 
       {/* Desempenho por campanha e objetivo */}
       <Secao
