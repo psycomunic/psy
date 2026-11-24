@@ -470,13 +470,16 @@ export async function Metricas({
         </div>
       </Secao>
 
-      {/* Criativos em veiculação com miniatura e status ao vivo */}
+      {/* Criativos em veiculação com miniatura, ranking e diagnóstico */}
       {criativos.length > 0 ? (
         <Secao
-          titulo="Criativos em veiculação"
-          apoio="Miniatura, status de aprovação ao vivo na Meta e resultado individual de cada anúncio no período selecionado. Clique num cartão para ampliar."
+          titulo="Criativos em veiculação e diagnóstico"
+          apoio="Classifica automaticamente os campeões de resultado, identifica gargalos (gancho fraco, conversão pós-clique ou fadiga de frequência) e sugere o próximo ajuste prático."
         >
-          <GaleriaCriativos criativos={criativos} />
+          <GaleriaCriativos
+            criativos={criativos}
+            tetoCustoResultado={conta.custoResultadoTeto}
+          />
         </Secao>
       ) : null}
 
