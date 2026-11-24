@@ -529,20 +529,43 @@ export function montarCartoesKpi({
     CHAVES_KPI.includes(k as ChaveKpi),
   );
 
+  const temRetornoRealNoWhatsapp =
+    perfil === 'whatsapp' && (atual.receita > 0 || atual.pedidosAprovados > 0);
+
   const chaves =
     perfil === 'personalizado' && validos.length > 0
       ? validos
-      : KPIS_PADRAO_POR_PERFIL[perfil];
+      : temRetornoRealNoWhatsapp
+        ? (['investimento', 'conversas', 'custo_conversa', 'pedidos', 'receita', 'mer'] as ChaveKpi[])
+        : KPIS_PADRAO_POR_PERFIL[perfil];
 
   return chaves.map((chave) => {
     const f = formatarKpi(atual, chave);
     const vAtual = valorBrutoKpi(atual, chave);
     const vAnt = anterior ? valorBrutoKpi(anterior, chave) : null;
+
+    let rotulo = rotuloChaveKpi[chave];
+    let apoio = f.apoio;
+    if (temRetornoRealNoWhatsapp) {
+      if (chave === 'pedidos') {
+        rotulo = 'Reservas / Vendas';
+        apoio = atual.ticketMedio
+          ? `Ticket médio de ${dinheiro(atual.ticketMedio)}.`
+          : 'Confirmadas no painel comercial.';
+      } else if (chave === 'receita') {
+        rotulo = 'Receita confirmada';
+        apoio = 'Faturamento real sincronizado.';
+      } else if (chave === 'mer') {
+        rotulo = 'ROAS Real';
+        apoio = 'Receita confirmada ÷ investimento em mídia.';
+      }
+    }
+
     return {
       chave,
-      rotulo: rotuloChaveKpi[chave],
+      rotulo,
       valor: f.valor,
-      apoio: f.apoio,
+      apoio,
       invertido: f.invertido,
       variacao: deltaPct(vAtual, vAnt),
     };
@@ -657,6 +680,45 @@ export function montarFunil(perfil: PerfilMetricaEfetivo, r: ResumoAgregado): Fu
           apoio: `${contagemCurta(r.visualizacoesVideo)} views de vídeo · ${contagemCurta(r.engajamentos)} interações`,
         },
         { rotulo: 'Cliques de saída', valor: numero(r.cliquesLink), apoio: `CTR de ${porcento(r.ctr, 2)}` },
+      ],
+      alerta: null,
+    };
+  }
+
+  /* whatsapp e personalizado: quando há reservas/vendas sincronizadas
+     (ex.: Hospedi para chalés e pousadas), fecha o funil até a reserva real. */
+  if (perfil === 'whatsapp' && (r.receita > 0 || r.pedidosAprovados > 0)) {
+    const convConversaReserva = pct(r.pedidosAprovados, r.conversas, 1);
+    return {
+      titulo: 'Do anúncio à reserva confirmada',
+      apoio: 'Cruza o alcance e as conversas de mídia com as reservas e receitas sincronizadas do painel comercial.',
+      etapas: [
+        {
+          rotulo: 'Alcance único',
+          valor: r.alcance > 0 ? contagemCurta(r.alcance) : contagemCurta(r.impressoes),
+          apoio: r.alcance > 0 ? `${contagemCurta(r.impressoes)} impressões totais` : 'Exibições dos anúncios',
+        },
+        {
+          rotulo: 'Cliques no link',
+          valor: numero(r.cliquesLink),
+          apoio: `CTR de ${porcento(r.ctr, 2)} · CPC ${dinheiroExato(r.cpc)}`,
+        },
+        {
+          rotulo: 'Conversas iniciadas',
+          valor: numero(r.conversas),
+          apoio:
+            r.conversas > 0
+              ? `${dinheiroExato(r.custoConversa)} por conversa`
+              : 'WhatsApp e Direct',
+        },
+        {
+          rotulo: 'Reservas / Vendas',
+          valor: numero(r.pedidosAprovados),
+          apoio:
+            convConversaReserva !== null
+              ? `${porcento(convConversaReserva, 1)} das conversas · ${dinheiro(r.receita)}`
+              : `Faturamento de ${dinheiro(r.receita)}`,
+        },
       ],
       alerta: null,
     };

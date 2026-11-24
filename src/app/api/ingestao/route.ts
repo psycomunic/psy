@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic';
 const esquema = z.object({
   conta_id: z.uuid('conta_id precisa ser um uuid.'),
   provedor: z.enum([
-    'loja', 'magazord', 'shopify',
+    'loja', 'magazord', 'shopify', 'hospedi',
     'ga4', 'analytics',
     'google_ads', 'meta_ads', 'tiktok_ads',
   ]),

@@ -26,6 +26,11 @@ import {
   canalDoGa4,
   diaDoGa4,
 } from './google.ts';
+import {
+  mapear as mapearHospedi,
+  localizarPerfilHospedi,
+  diaBrasiliaDeIso,
+} from './hospedi.ts';
 
 describe('Meta', () => {
   const resposta = {
@@ -320,5 +325,109 @@ describe('GA4', () => {
   test('resposta sem linhas devolve lista vazia', () => {
     assert.deepEqual(mapearGa4({}), []);
     assert.deepEqual(mapearGa4({ rows: [] }), []);
+  });
+});
+
+describe('Hospedi', () => {
+  test('converte timestamp UTC para a data de Brasília', () => {
+    /* 01:30 UTC de 21/11 ainda é 22:30 de 20/11 em Brasília (-03:00). */
+    assert.equal(diaBrasiliaDeIso('2026-11-21T01:30:00.000Z'), '2026-11-20');
+    assert.equal(diaBrasiliaDeIso('2026-11-21T15:00:00.000Z'), '2026-11-21');
+  });
+
+  test('localiza o chalé por nome fantasia sem acento, por e-mail ou por "propria"', () => {
+    const perfis = [
+      { id: 'u-admin', name: 'Admin', role: 'admin', email: 'admin@hospedi.app' },
+      {
+        id: 'u-chale',
+        name: 'Proprietário',
+        company_name: 'Chalés Encantos da Natureza',
+        email: 'contato@encantos.com.br',
+        role: 'client',
+      },
+      {
+        id: 'u-outro',
+        name: 'Outro',
+        company_name: 'Cabana da Serra',
+        email: 'serra@cabana.com.br',
+        role: 'client',
+      },
+    ];
+
+    assert.equal(
+      localizarPerfilHospedi(perfis, 'u-admin', 'Chales Encantos da Natureza').id,
+      'u-chale',
+    );
+    assert.equal(
+      localizarPerfilHospedi(perfis, 'u-admin', 'encantos da natureza').id,
+      'u-chale',
+    );
+    assert.equal(
+      localizarPerfilHospedi(perfis, 'u-admin', 'contato@encantos.com.br').id,
+      'u-chale',
+    );
+    assert.equal(
+      localizarPerfilHospedi([perfis[1]], 'u-chale', 'propria').id,
+      'u-chale',
+    );
+  });
+
+  test('separa reservas diretas e OTAs, ignora canceladas e zera dias sem reserva na janela', () => {
+    const bruto = {
+      clienteId: 'u-chale',
+      clienteNome: 'Chalés Encantos da Natureza',
+      reservas: [
+        {
+          id: 'r1',
+          created_at: '2026-11-20T14:00:00-03:00',
+          status: 'confirmed',
+          gross_value: 1850.5,
+          channel: 'direct',
+          guest_phone: '47999991111',
+        },
+        {
+          id: 'r2',
+          created_at: '2026-11-20T19:00:00-03:00',
+          status: 'confirmed',
+          gross_value: 1200,
+          channel: 'direct',
+          guest_phone: '47999992222',
+        },
+        {
+          id: 'r3',
+          created_at: '2026-11-20T21:00:00-03:00',
+          status: 'confirmed',
+          gross_value: 2100,
+          channel: 'airbnb',
+          guest_id: 'g-airbnb',
+        },
+        {
+          id: 'r4',
+          created_at: '2026-11-21T10:00:00-03:00',
+          status: 'cancelled',
+          gross_value: 3000,
+          channel: 'direct',
+          guest_id: 'g-cancel',
+        },
+      ],
+    };
+
+    const linhas = mapearHospedi(bruto, '2026-11-20', '2026-11-21');
+    /* 2 dias × 2 canais (`hospedi_direto` e `hospedi_ota`) = 4 linhas */
+    assert.equal(linhas.length, 4);
+
+    const d20Direto = linhas.find((l) => l.dia === '2026-11-20' && l.canal === 'hospedi_direto');
+    assert.equal(d20Direto?.pedidos_aprovados, 2);
+    assert.equal(d20Direto?.receita, 3050.5);
+    assert.equal(d20Direto?.novos_clientes, 2);
+
+    const d20Ota = linhas.find((l) => l.dia === '2026-11-20' && l.canal === 'hospedi_ota');
+    assert.equal(d20Ota?.pedidos_aprovados, 1);
+    assert.equal(d20Ota?.receita, 2100);
+
+    /* Dia 21 só teve reserva cancelada -> permanece zerado para limpar eventual saldo antigo */
+    const d21Direto = linhas.find((l) => l.dia === '2026-11-21' && l.canal === 'hospedi_direto');
+    assert.equal(d21Direto?.pedidos_aprovados, 0);
+    assert.equal(d21Direto?.receita, 0);
   });
 });

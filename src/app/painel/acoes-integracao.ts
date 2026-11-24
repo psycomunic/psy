@@ -126,14 +126,28 @@ export async function vincularFonte(
 
     const supabase = clienteServico();
 
-    const { data: cred } = await supabase
+    const { data: creds } = await supabase
       .from('credencial_agencia')
-      .select('id')
+      .select('id, rotulo, configuracao')
       .eq('provedor', provedor)
       .eq('ativa', true)
-      .not('segredo', 'is', null)
-      .limit(1)
-      .maybeSingle();
+      .not('segredo', 'is', null);
+
+    const listaCreds = (creds ?? []) as {
+      id: string;
+      rotulo: string;
+      configuracao: Record<string, unknown> | null;
+    }[];
+
+    const idNorm = identificador.toLowerCase();
+    const cred =
+      listaCreds.find((c) => {
+        const rot = c.rotulo.toLowerCase();
+        const em = String(c.configuracao?.email ?? '').toLowerCase();
+        return rot === idNorm || (em && em === idNorm);
+      }) ??
+      listaCreds.find((c) => c.rotulo.toLowerCase() === 'principal') ??
+      listaCreds[0];
 
     if (!cred) {
       return {

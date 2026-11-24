@@ -137,9 +137,14 @@ export async function gravarMetricas({
     if (error) console.warn('metrica_bruta:', error.message);
   }
 
+  /* `hospedi` grava nas mesmas colunas comerciais de loja (`pedidos_captados`,
+     `pedidos_aprovados`, `receita`, `novos_clientes`) usando `canal` próprio
+     (`hospedi_direto` e `hospedi_ota`), sem exigir migração extra na RPC. */
+  const provedorRpc = provedor === 'hospedi' ? 'loja' : provedor;
+
   const { data, error } = await supabase.rpc('registrar_metricas', {
     p_conta: contaId,
-    p_provedor: provedor,
+    p_provedor: provedorRpc,
     p_linhas: linhas,
   });
 

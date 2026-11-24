@@ -366,7 +366,7 @@ GOOGLE_CLIENT_SECRET=...`}
       {porProvedor.size > 0 ? (
         <Secao
           titulo="Sincronização"
-          apoio="Puxa Meta, Google Ads e GA4 de todas as lojas ativas. A janela termina ontem: dia pela metade desenha uma queda que não existe."
+          apoio="Puxa Meta Ads, Google Ads, GA4 e Hospedi de todas as contas ativas. A janela termina ontem: dia pela metade desenha uma queda que não existe."
         >
           <div className="cartao p-6">
             <BotaoSincronizar />

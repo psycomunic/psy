@@ -15,13 +15,14 @@ import { cifrarCom, decifrarCom, lerChave, final, ErroDeCripto } from '@/lib/cri
  * processo; as de escrita recebem o claro e devolvem só a pista.
  */
 
-export const PROVEDORES_DE_API = ['meta_ads', 'google_ads', 'ga4', 'asaas'] as const;
+export const PROVEDORES_DE_API = ['meta_ads', 'google_ads', 'ga4', 'hospedi', 'asaas'] as const;
 export type ProvedorApi = (typeof PROVEDORES_DE_API)[number];
 
 export const rotuloProvedorApi: Record<ProvedorApi, string> = {
   meta_ads: 'Meta Ads (BM da agência)',
   google_ads: 'Google Ads (MCC da agência)',
   ga4: 'Google Analytics 4',
+  hospedi: 'Hospedi (hospedi.app)',
   asaas: 'Asaas (cobrança)',
 };
 
@@ -69,6 +70,22 @@ export const CAMPOS_DO_PROVEDOR: Record<
     { chave: 'client_secret', rotulo: 'Client secret', segredo: true, obrigatorio: true, ajuda: 'Pode ser o mesmo do Google Ads.' },
     { chave: 'refresh_token', rotulo: 'Refresh token', segredo: true, obrigatorio: true, ajuda: 'Precisa ter sido gerado com o escopo analytics.readonly.' },
   ],
+  hospedi: [
+    {
+      chave: 'email',
+      rotulo: 'E-mail de acesso na Hospedi',
+      segredo: false,
+      obrigatorio: true,
+      ajuda: 'Conta admin em hospedi.app (enxerga várias hospedagens) ou o e-mail de login direto do chalé.',
+    },
+    {
+      chave: 'senha',
+      rotulo: 'Senha de acesso na Hospedi',
+      segredo: true,
+      obrigatorio: true,
+      ajuda: 'Guardada cifrada com AES-256; nunca volta para a tela.',
+    },
+  ],
   asaas: [
     {
       chave: 'api_key',
@@ -99,7 +116,7 @@ export const CAMPOS_DO_PROVEDOR: Record<
 };
 
 /** Campos que NÃO são segredo e ficam legíveis em `configuracao`. */
-const ABERTOS = new Set(['client_id', 'login_customer_id', 'property_id', 'ambiente']);
+const ABERTOS = new Set(['client_id', 'login_customer_id', 'property_id', 'ambiente', 'email']);
 
 function chave() {
   const bruta = process.env.CRIPTO_CHAVE;
@@ -215,7 +232,8 @@ export async function guardarCredencial({
      "pista preenchida" como resposta para "tem segredo?" — justamente
      para não precisar buscar o token. Um provedor futuro sem nenhum
      campo reconhecível cai no genérico em vez de quebrar a invariante. */
-  const paraPista = segredos.access_token ?? segredos.refresh_token ?? '';
+  const paraPista =
+    segredos.access_token ?? segredos.refresh_token ?? segredos.api_key ?? segredos.senha ?? '';
   const pista = paraPista ? final(paraPista) : '••••';
 
   const supabase = clienteServico();

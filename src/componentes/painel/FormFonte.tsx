@@ -34,6 +34,12 @@ const FONTES = [
     exemplo: '456789012',
     onde: 'GA4 > Administrador > Detalhes da propriedade > ID da propriedade.',
   },
+  {
+    v: 'hospedi',
+    r: 'Hospedi (Reservas e Receita)',
+    exemplo: 'Chalés Encantos da Natureza',
+    onde: 'Nome da hospedagem na Hospedi, e-mail do cliente ou "propria" (se o login for exclusivo deste chalé).',
+  },
 ] as const;
 
 function Aviso({ r }: { r: Resultado | null }) {

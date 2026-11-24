@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { sessaoAtual, clienteServidor } from '@/lib/supabase/servidor';
 import { pode } from '@/lib/papeis';
 import { paraNumero } from '@/lib/numero';
+import { dinheiro } from '@/lib/formato';
 import { somarDias } from '@/lib/datas';
 import {
   listarContas,
@@ -163,6 +164,48 @@ function lerResultadoComercial(fd: FormData): ResultadoComercialRelatorio | null
   };
 }
 
+/**
+ * Quando o cliente não é e-commerce puro (ex.: chalé/pousada com perfil WhatsApp)
+ * mas tem reservas e receitas sincronizadas automaticamente (ex.: Hospedi),
+ * preenche o retorno comercial sozinho caso o operador não tenha digitado outro valor.
+ */
+function resultadoComercialAutomatico(
+  perfil: PerfilMetricaEfetivo,
+  snapshot: SnapshotRelatorio,
+): ResultadoComercialRelatorio | null {
+  if (perfil === 'ecommerce') return null;
+
+  const resumo = agregarPeriodo(snapshot.serie);
+  if (resumo.pedidosAprovados <= 0 && resumo.receita <= 0) return null;
+
+  const direto = snapshot.canais.find((c) => c.canal === 'hospedi_direto');
+  const ota = snapshot.canais.find((c) => c.canal === 'hospedi_ota');
+  const hospedi = snapshot.canais.find((c) => c.canal === 'hospedi');
+  const temHospedi = Boolean(direto || ota || hospedi);
+
+  let observacao: string | null = null;
+  if (temHospedi) {
+    const partes: string[] = [];
+    if (direto && direto.receita > 0) {
+      partes.push(`Reservas diretas: ${dinheiro(direto.receita)}`);
+    }
+    if (ota && ota.receita > 0) {
+      partes.push(`Airbnb / Booking: ${dinheiro(ota.receita)}`);
+    }
+    observacao =
+      partes.length > 0
+        ? `Dados sincronizados automaticamente da Hospedi (${partes.join(' · ')}).`
+        : 'Dados sincronizados automaticamente do painel da Hospedi.';
+  }
+
+  return {
+    vendasFechadas: resumo.pedidosAprovados > 0 ? resumo.pedidosAprovados : null,
+    receitaFechada: resumo.receita > 0 ? resumo.receita : null,
+    rotuloVenda: temHospedi ? 'Reservas confirmadas (Hospedi)' : 'Vendas / Reservas confirmadas',
+    observacao,
+  };
+}
+
 export async function gerarRelatorio(
   _anterior: Resultado | null,
   fd: FormData,
@@ -214,7 +257,8 @@ export async function gerarRelatorio(
         : snapshot.marcos.map((m) => (m.detalhe ? `${m.titulo}: ${m.detalhe}` : m.titulo));
 
     const proximosPassos = linhasTexto(fd.get('proximos_passos'));
-    const resultadoComercial = lerResultadoComercial(fd);
+    const resultadoComercial =
+      lerResultadoComercial(fd) ?? resultadoComercialAutomatico(perfilEfetivo, snapshot);
     const blocosVisiveis = lerBlocos(fd, resultadoComercial !== null);
 
     const intervalo = formatarIntervaloCurto(periodoDe, periodoAte);
@@ -320,6 +364,10 @@ export async function gerarRelatoriosEmLote(
       const acoesExecutadas = snapshot.marcos.map((m) =>
         m.detalhe ? `${m.titulo}: ${m.detalhe}` : m.titulo,
       );
+      const comercialAuto = resultadoComercialAutomatico(perfilEfetivo, snapshot);
+      const blocosLote: BlocoRelatorio[] = comercialAuto
+        ? ['kpis', 'comercial', 'funil', 'serie', 'campanhas', 'canais', 'marcos']
+        : ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'];
 
       const { error } = await supabase.from('relatorio').insert({
         conta_id: conta.id,
@@ -333,8 +381,8 @@ export async function gerarRelatoriosEmLote(
         resumo_executivo: `Consolidado dos indicadores e campanhas de ${conta.nome} no período de ${intervalo}.`,
         acoes_executadas: acoesExecutadas,
         proximos_passos: [],
-        blocos_visiveis: ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'],
-        resultado_comercial: null,
+        blocos_visiveis: blocosLote,
+        resultado_comercial: comercialAuto,
         snapshot,
         publicado_em: publicarDireto ? new Date().toISOString() : null,
         autor_id: sessao.id,
@@ -463,7 +511,7 @@ export async function atualizarNumerosRelatorio(
     const supabase = await clienteServidor();
     const { data: atual } = await supabase
       .from('relatorio')
-      .select('id, conta_id, slug, versao, periodo_de, periodo_ate, perfil_metrica')
+      .select('id, conta_id, slug, versao, periodo_de, periodo_ate, perfil_metrica, resultado_comercial, blocos_visiveis')
       .eq('id', id)
       .maybeSingle();
 
@@ -471,19 +519,37 @@ export async function atualizarNumerosRelatorio(
 
     const { dados: contas } = await listarContas();
     const conta = contas.find((c) => c.id === (atual.conta_id as string));
+    const perfilRelatorio = ((atual.perfil_metrica as PerfilMetricaEfetivo) ?? 'whatsapp');
 
     const snapshot = await construirSnapshot({
       contaId: atual.conta_id as string,
       de: atual.periodo_de as string,
       ate: atual.periodo_ate as string,
-      perfil: (atual.perfil_metrica as PerfilMetricaEfetivo) ?? 'whatsapp',
+      perfil: perfilRelatorio,
       kpisVisiveis: conta?.kpisVisiveis,
     });
+
+    const comExistente = atual.resultado_comercial as ResultadoComercialRelatorio | null;
+    const ehAutoHospedi =
+      !comExistente ||
+      (comExistente.observacao?.includes('sincronizados automaticamente') ?? false);
+    const comercialAtualizado = ehAutoHospedi
+      ? resultadoComercialAutomatico(perfilRelatorio, snapshot) ?? comExistente
+      : comExistente;
+
+    const blocosAtuais = Array.isArray(atual.blocos_visiveis)
+      ? ([...(atual.blocos_visiveis as BlocoRelatorio[])])
+      : (['kpis', 'funil', 'serie', 'campanhas'] as BlocoRelatorio[]);
+    if (comercialAtualizado && !blocosAtuais.includes('comercial')) {
+      blocosAtuais.push('comercial');
+    }
 
     const { error } = await supabase
       .from('relatorio')
       .update({
         snapshot,
+        resultado_comercial: comercialAtualizado,
+        blocos_visiveis: blocosAtuais,
         versao: Number(atual.versao ?? 1) + 1,
       })
       .eq('id', id);

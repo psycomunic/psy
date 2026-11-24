@@ -97,6 +97,9 @@ export const rotuloCanal: Record<string, string> = {
   direto: 'Direto',
   email: 'E-mail',
   loja: 'Loja',
+  hospedi: 'Hospedi',
+  hospedi_direto: 'Hospedi (Direto)',
+  hospedi_ota: 'Hospedi (Airbnb / Booking)',
 };
 
 export const nomeCanal = (c: string) => rotuloCanal[c] ?? c;

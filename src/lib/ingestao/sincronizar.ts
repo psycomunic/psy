@@ -6,6 +6,7 @@ import { gravarMetricas } from './registrar';
 import type { LinhaMetrica, LinhaCampanha } from './csv';
 import * as meta from './fontes/meta';
 import * as google from './fontes/google';
+import * as hospedi from './fontes/hospedi';
 
 /**
  * A rotina que puxa o dado das APIs.
@@ -106,6 +107,23 @@ async function buscarEMapear(
       return { bruto, linhas: google.mapearGa4(bruto), campanhas: [] };
     }
 
+    case 'hospedi': {
+      const bruto = await hospedi.buscar({
+        segredo: {
+          ...(segredo as unknown as hospedi.SegredoHospedi),
+          ...pegarAbertos(configuracao),
+        },
+        identificador: f.identificador,
+        de,
+        ate,
+      });
+      return {
+        bruto,
+        linhas: hospedi.mapear(bruto, de, ate),
+        campanhas: [],
+      };
+    }
+
     default:
       /* Magazord, Shopify e as plataformas de loja entram por
          `/api/ingestao` ou por planilha, e não por aqui. Dizer isso é
@@ -120,7 +138,7 @@ async function buscarEMapear(
     esperam tudo junto no segredo. */
 function pegarAbertos(c: Record<string, unknown>): Record<string, string> {
   const fora: Record<string, string> = {};
-  for (const k of ['client_id', 'login_customer_id']) {
+  for (const k of ['client_id', 'login_customer_id', 'email']) {
     if (typeof c[k] === 'string' && c[k]) fora[k] = c[k] as string;
   }
   return fora;
