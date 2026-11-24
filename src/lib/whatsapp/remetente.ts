@@ -132,19 +132,37 @@ async function descobrirPhoneNumberIdMeta(accessToken: string): Promise<string |
 
     for (const bmId of bms) {
       const resWaba = await fetch(
-        `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(bmId)}/owned_whatsapp_business_accounts?fields=phone_numbers{id,status,platform_type}&limit=25&access_token=${encodeURIComponent(accessToken)}`,
+        `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(bmId)}/owned_whatsapp_business_accounts?fields=health_status,phone_numbers{id,status,name_status,platform_type}&limit=25&access_token=${encodeURIComponent(accessToken)}`,
         { cache: 'no-store' },
       );
       const jsonWaba = (await resWaba.json().catch(() => ({}))) as {
         data?: {
+          health_status?: { can_send_message?: string };
           phone_numbers?: {
-            data?: { id?: string; status?: string; platform_type?: string }[];
+            data?: {
+              id?: string;
+              status?: string;
+              name_status?: string;
+              platform_type?: string;
+            }[];
           };
         }[];
       };
 
-      const todos = (jsonWaba.data ?? []).flatMap((w) => w.phone_numbers?.data ?? []);
+      const todos = (jsonWaba.data ?? []).flatMap((w) =>
+        (w.phone_numbers?.data ?? []).map((p) => ({
+          ...p,
+          wabaOk: w.health_status?.can_send_message !== 'BLOCKED',
+        })),
+      );
       const conectadoCloud =
+        todos.find(
+          (p) =>
+            p.wabaOk &&
+            p.status === 'CONNECTED' &&
+            p.platform_type === 'CLOUD_API' &&
+            p.name_status !== 'DECLINED',
+        ) ??
         todos.find((p) => p.status === 'CONNECTED' && p.platform_type === 'CLOUD_API') ??
         todos.find((p) => p.status === 'CONNECTED');
 
@@ -155,6 +173,81 @@ async function descobrirPhoneNumberIdMeta(accessToken: string): Promise<string |
     return null;
   }
   return null;
+}
+
+type DiagnosticoNumeroMeta = {
+  bloqueado: boolean;
+  avisoPosEnvio?: string;
+  motivoBloqueio?: string;
+};
+
+/**
+ * Consulta `health_status` e `name_status` do número na Meta.
+ * A Cloud API costuma responder HTTP 200 (`accepted`) no `/messages` e descartar a mensagem
+ * 1 segundo depois de forma assíncrona quando `can_send_message = BLOCKED` (ex.: falta cartão na WABA)
+ * ou quando `name_status = DECLINED` (#131037 nome de exibição recusado).
+ */
+async function diagnosticarNumeroMeta(
+  phoneNumberId: string,
+  accessToken: string,
+): Promise<DiagnosticoNumeroMeta> {
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/${VERSAO_META_API}/${encodeURIComponent(phoneNumberId)}?fields=display_phone_number,verified_name,status,name_status,health_status&access_token=${encodeURIComponent(accessToken)}`,
+      { cache: 'no-store' },
+    );
+    if (!res.ok) return { bloqueado: false };
+
+    const info = (await res.json().catch(() => ({}))) as {
+      display_phone_number?: string;
+      verified_name?: string;
+      status?: string;
+      name_status?: string;
+      health_status?: {
+        can_send_message?: string;
+        entities?: {
+          entity_type?: string;
+          can_send_message?: string;
+          errors?: { error_code?: number; error_description?: string }[];
+        }[];
+      };
+    };
+
+    const rotuloNumero =
+      [info.display_phone_number, info.verified_name ? `(${info.verified_name})` : '']
+        .filter(Boolean)
+        .join(' ') || phoneNumberId;
+
+    if (info.health_status?.can_send_message === 'BLOCKED') {
+      const erros = (info.health_status.entities ?? [])
+        .filter((e) => e.can_send_message === 'BLOCKED')
+        .flatMap((e) => e.errors ?? [])
+        .map((er) => `(#${er.error_code ?? '?'}) ${er.error_description ?? 'Bloqueado'}`);
+
+      return {
+        bloqueado: true,
+        motivoBloqueio: `O número ${rotuloNumero} está BLOQUEADO para envio na Meta: ${erros.join(' · ') || 'verifique forma de pagamento e registro no WhatsApp Manager'}.`,
+      };
+    }
+
+    if (info.name_status === 'DECLINED') {
+      return {
+        bloqueado: true,
+        motivoBloqueio: `O número ${rotuloNumero} está com o Nome de Exibição RECUSADO (name_status: DECLINED) no WhatsApp Manager da Meta. A Meta aceita a chamada mas bloqueia a entrega no celular (#131037) até você aprovar um novo nome de exibição para este número ou usar o Phone Number ID do Número de Teste da Meta.`,
+      };
+    }
+
+    if (info.status && info.status !== 'CONNECTED') {
+      return {
+        bloqueado: false,
+        avisoPosEnvio: `Atenção: o número ${rotuloNumero} consta com status "${info.status}" na Meta.`,
+      };
+    }
+
+    return { bloqueado: false };
+  } catch {
+    return { bloqueado: false };
+  }
 }
 
 async function enviarPelaCloudApiMeta({
@@ -195,6 +288,14 @@ async function enviarPelaCloudApiMeta({
     return {
       ok: false,
       erro: 'Falta informar o Phone Number ID numérico da Meta (ex.: 1201735229697128) em Configurações > WhatsApp · Alertas de Saldo.',
+    };
+  }
+
+  const diagnostico = await diagnosticarNumeroMeta(phoneNumberId, cfg.accessToken);
+  if (diagnostico.bloqueado) {
+    return {
+      ok: false,
+      erro: diagnostico.motivoBloqueio ?? 'Este número WhatsApp está bloqueado para envio na Meta.',
     };
   }
 
