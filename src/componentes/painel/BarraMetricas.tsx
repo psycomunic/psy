@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Situacao } from '@/lib/dados/tipos';
+import { sincronizarAgora } from '@/app/painel/acoes-integracao';
+import type { Resultado } from '@/app/painel/acoes';
 import { CORES_SITUACAO } from './paleta';
 import {
   PERIODOS,
@@ -25,6 +27,8 @@ const CANAIS_FILTRO = [
   { v: 'google', r: 'Google Ads' },
   { v: 'organico', r: 'Orgânico' },
 ] as const;
+
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 function montarUrl({
   conta,
@@ -54,30 +58,123 @@ function montarUrl({
   return str ? `/painel/metricas?${str}` : '/painel/metricas';
 }
 
+function SeletorIntervaloDatas({
+  deInicial,
+  ateInicial,
+  carregando,
+  aoAplicar,
+}: {
+  deInicial: string;
+  ateInicial: string;
+  carregando: boolean;
+  aoAplicar: (novoDe: string, novoAte: string) => void;
+}) {
+  const [de, setDe] = useState(deInicial);
+  const [ate, setAte] = useState(ateInicial);
+
+  function mudarDe(valor: string) {
+    setDe(valor);
+    if (DATA_ISO.test(valor) && DATA_ISO.test(ate) && valor <= ate) {
+      aoAplicar(valor, ate);
+    }
+  }
+
+  function mudarAte(valor: string) {
+    setAte(valor);
+    if (DATA_ISO.test(de) && DATA_ISO.test(valor) && de <= valor) {
+      aoAplicar(de, valor);
+    }
+  }
+
+  function submeter(e: React.FormEvent) {
+    e.preventDefault();
+    if (!DATA_ISO.test(de) || !DATA_ISO.test(ate) || de > ate) return;
+    aoAplicar(de, ate);
+  }
+
+  return (
+    <form
+      onSubmit={submeter}
+      className="flex flex-wrap items-end gap-3 border-t border-fio pt-4"
+    >
+      <div>
+        <label htmlFor="m-de" className="block font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
+          De
+        </label>
+        <input
+          id="m-de"
+          type="date"
+          value={de}
+          onChange={(e) => mudarDe(e.target.value)}
+          className="mt-1 rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-branco outline-none focus:border-magenta"
+        />
+      </div>
+      <div>
+        <label htmlFor="m-ate" className="block font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
+          Até
+        </label>
+        <input
+          id="m-ate"
+          type="date"
+          value={ate}
+          onChange={(e) => mudarAte(e.target.value)}
+          className="mt-1 rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-branco outline-none focus:border-magenta"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={carregando}
+        className="rounded-lg border border-fio bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/[0.09] disabled:opacity-60"
+      >
+        {carregando ? 'Atualizando...' : 'Aplicar intervalo'}
+      </button>
+      <span className="ml-auto font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
+        {carregando
+          ? 'Carregando período...'
+          : `Recorte ativo: ${deInicial.split('-').reverse().join('/')} a ${ateInicial.split('-').reverse().join('/')}`}
+      </span>
+    </form>
+  );
+}
+
 export function BarraMetricas({
   contas,
   contaAtualId,
   periodoAtual,
   deAtual,
   ateAtual,
+  anteriorDeAtual,
   canalAtual,
   visaoCarteira,
   podeGerarRelatorio,
+  podeSincronizar = false,
+  primeiroDiaBanco = null,
 }: {
   contas: ItemConta[];
   contaAtualId: string;
   periodoAtual: ChavePeriodo;
   deAtual: string;
   ateAtual: string;
+  anteriorDeAtual?: string;
   canalAtual: string;
   visaoCarteira: boolean;
   podeGerarRelatorio: boolean;
+  podeSincronizar?: boolean;
+  primeiroDiaBanco?: string | null;
 }) {
   const router = useRouter();
+  const [emTransicao, iniciarTransicao] = useTransition();
   const [busca, setBusca] = useState('');
   const [aberto, setAberto] = useState(false);
-  const [de, setDe] = useState(deAtual);
-  const [ate, setAte] = useState(ateAtual);
+
+  const [estadoSync, acaoSync, sincronizando] = useActionState<Resultado | null, FormData>(
+    async (ant, fd) => {
+      const r = await sincronizarAgora(ant, fd);
+      if (r.ok) router.refresh();
+      return r;
+    },
+    null,
+  );
 
   const atual = contas.find((c) => c.id === contaAtualId) ?? contas[0];
   const filtradas = contas.filter((c) => {
@@ -90,20 +187,29 @@ export function BarraMetricas({
     );
   });
 
-  function aplicarDatasPersonalizadas(e: React.FormEvent) {
-    e.preventDefault();
-    if (!de || !ate || de > ate) return;
-    router.push(
+  function navegarPara(url: string) {
+    iniciarTransicao(() => {
+      router.push(url);
+    });
+  }
+
+  function aplicarDatasPersonalizadas(novoDe: string, novoAte: string) {
+    navegarPara(
       montarUrl({
         conta: contaAtualId,
         periodo: 'personalizado',
-        de,
-        ate,
+        de: novoDe,
+        ate: novoAte,
         canal: canalAtual,
         visao: visaoCarteira ? 'carteira' : undefined,
       }),
     );
   }
+
+  const faltaHistoricoNoPeriodo =
+    !visaoCarteira && Boolean(primeiroDiaBanco && deAtual < primeiroDiaBanco);
+
+  const deParaSync = anteriorDeAtual && anteriorDeAtual < deAtual ? anteriorDeAtual : deAtual;
 
   return (
     <section
@@ -162,6 +268,7 @@ export function BarraMetricas({
                           return (
                             <li key={c.id}>
                               <Link
+                                prefetch={false}
                                 href={montarUrl({
                                   conta: c.id,
                                   periodo: periodoAtual,
@@ -201,6 +308,7 @@ export function BarraMetricas({
               </div>
 
               <Link
+                prefetch={false}
                 href={montarUrl({
                   conta: contaAtualId,
                   periodo: periodoAtual,
@@ -235,16 +343,33 @@ export function BarraMetricas({
           )}
         </div>
 
-        {/* Atalho direto para criar o relatório do período atual */}
-        {podeGerarRelatorio && !visaoCarteira ? (
-          <Link
-            href={`/painel/relatorios?conta=${contaAtualId}&de=${deAtual}&ate=${ateAtual}`}
-            className="inline-flex items-center gap-2 rounded-full bg-magenta px-5 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
-          >
-            Gerar relatório deste período
-            <span aria-hidden>→</span>
-          </Link>
-        ) : null}
+        {/* Atalhos de sincronização do período e geração de relatório */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {podeSincronizar && !visaoCarteira ? (
+            <form action={acaoSync}>
+              <input type="hidden" name="conta_id" value={contaAtualId} />
+              <input type="hidden" name="de" value={deParaSync} />
+              <input type="hidden" name="ate" value={ateAtual} />
+              <button
+                type="submit"
+                disabled={sincronizando}
+                className="rounded-full border border-fio bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-neve transition-colors hover:bg-white/[0.08] disabled:opacity-60"
+              >
+                {sincronizando ? 'Sincronizando período...' : 'Sincronizar período'}
+              </button>
+            </form>
+          ) : null}
+
+          {podeGerarRelatorio && !visaoCarteira ? (
+            <Link
+              href={`/painel/relatorios?conta=${contaAtualId}&de=${deAtual}&ate=${ateAtual}`}
+              className="inline-flex items-center gap-2 rounded-full bg-magenta px-5 py-2.5 text-sm font-semibold text-branco transition-colors hover:bg-magenta-forte"
+            >
+              Gerar relatório deste período
+              <span aria-hidden>→</span>
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {/* Período + Canal */}
@@ -253,14 +378,20 @@ export function BarraMetricas({
           {PERIODOS.filter((p) => p !== 'personalizado').map((p) => {
             const ativo = periodoAtual === p;
             return (
-              <Link
+              <button
                 key={p}
-                href={montarUrl({
-                  conta: contaAtualId,
-                  periodo: p,
-                  canal: canalAtual,
-                  visao: visaoCarteira ? 'carteira' : undefined,
-                })}
+                type="button"
+                disabled={emTransicao}
+                onClick={() =>
+                  navegarPara(
+                    montarUrl({
+                      conta: contaAtualId,
+                      periodo: p,
+                      canal: canalAtual,
+                      visao: visaoCarteira ? 'carteira' : undefined,
+                    }),
+                  )
+                }
                 className={
                   'rounded-full px-3.5 py-1.5 text-xs transition-colors ' +
                   (ativo
@@ -269,7 +400,7 @@ export function BarraMetricas({
                 }
               >
                 {rotuloPeriodo[p]}
-              </Link>
+              </button>
             );
           })}
         </div>
@@ -279,15 +410,21 @@ export function BarraMetricas({
             {CANAIS_FILTRO.map((c) => {
               const ativo = canalAtual === c.v;
               return (
-                <Link
+                <button
                   key={c.v}
-                  href={montarUrl({
-                    conta: contaAtualId,
-                    periodo: periodoAtual,
-                    de: deAtual,
-                    ate: ateAtual,
-                    canal: c.v,
-                  })}
+                  type="button"
+                  disabled={emTransicao}
+                  onClick={() =>
+                    navegarPara(
+                      montarUrl({
+                        conta: contaAtualId,
+                        periodo: periodoAtual,
+                        de: deAtual,
+                        ate: ateAtual,
+                        canal: c.v,
+                      }),
+                    )
+                  }
                   className={
                     'rounded-full px-3 py-1.5 text-xs transition-colors ' +
                     (ativo
@@ -296,52 +433,47 @@ export function BarraMetricas({
                   }
                 >
                   {c.r}
-                </Link>
+                </button>
               );
             })}
           </div>
         ) : null}
       </div>
 
-      {/* Intervalo personalizado sempre à mão */}
-      <form
-        onSubmit={aplicarDatasPersonalizadas}
-        className="flex flex-wrap items-end gap-3 border-t border-fio pt-4"
-      >
-        <div>
-          <label htmlFor="m-de" className="block font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
-            De
-          </label>
-          <input
-            id="m-de"
-            type="date"
-            value={de}
-            onChange={(e) => setDe(e.target.value)}
-            className="mt-1 rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-branco outline-none focus:border-magenta"
-          />
+      {/* Intervalo personalizado sempre sincronizado com o recorte ativo */}
+      <SeletorIntervaloDatas
+        key={`${periodoAtual}:${deAtual}:${ateAtual}`}
+        deInicial={deAtual}
+        ateInicial={ateAtual}
+        carregando={emTransicao}
+        aoAplicar={aplicarDatasPersonalizadas}
+      />
+
+      {faltaHistoricoNoPeriodo && primeiroDiaBanco ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-xs text-neve">
+          <span>
+            O histórico salvo desta conta começa em{' '}
+            <strong className="text-branco">{primeiroDiaBanco.split('-').reverse().join('/')}</strong>.
+            {podeSincronizar
+              ? ' Clique em "Sincronizar período" acima para puxar os dias anteriores direto das plataformas.'
+              : ''}
+          </span>
         </div>
-        <div>
-          <label htmlFor="m-ate" className="block font-mono text-[0.68rem] uppercase tracking-[0.14em] text-cinza">
-            Até
-          </label>
-          <input
-            id="m-ate"
-            type="date"
-            value={ate}
-            onChange={(e) => setAte(e.target.value)}
-            className="mt-1 rounded-lg border border-fio bg-white/[0.03] px-3 py-1.5 text-xs text-branco outline-none focus:border-magenta"
-          />
-        </div>
-        <button
-          type="submit"
-          className="rounded-lg border border-fio bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-neve transition-colors hover:bg-white/[0.09]"
+      ) : null}
+
+      {estadoSync ? (
+        <p
+          role="status"
+          className={
+            'rounded-xl border px-4 py-2.5 text-xs ' +
+            (estadoSync.ok
+              ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
+              : 'border-magenta/40 bg-magenta/10 text-magenta-texto')
+          }
         >
-          Aplicar intervalo
-        </button>
-        <span className="ml-auto font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
-          Recorte ativo: {deAtual.split('-').reverse().join('/')} a {ateAtual.split('-').reverse().join('/')}
-        </span>
-      </form>
+          {estadoSync.mensagem}
+        </p>
+      ) : null}
     </section>
   );
 }

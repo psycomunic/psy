@@ -127,13 +127,12 @@ export function FormFonte({ contaId }: { contaId: string }) {
             type="number"
             min={1}
             max={90}
-            defaultValue={7}
+            defaultValue={30}
             className={`mt-2 ${campo}`}
           />
           <p className="mt-1.5 text-xs leading-relaxed text-cinza">
-            Quantos dias reprocessar a cada rodada. Pedido aprovado muda de status depois
-            do fato, então buscar só ontem congela a aprovação num número que ainda ia
-            mudar.
+            Quantos dias reprocessar por rodada (na primeira sincronização o sistema traz 90 dias
+            para liberar comparativos mensais).
           </p>
         </div>
       </div>

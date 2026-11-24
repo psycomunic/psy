@@ -221,10 +221,20 @@ export async function sincronizarAgora(
     await exigirAdmin();
 
     const contaId = String(fd.get('conta_id') ?? '') || undefined;
-    const resultados = await sincronizar({ contaId });
+    const de = String(fd.get('de') ?? '').trim();
+    const ate = String(fd.get('ate') ?? '').trim();
+    const dataIso = /^\d{4}-\d{2}-\d{2}$/;
+    const temPeriodo = dataIso.test(de) && dataIso.test(ate) && de <= ate;
+
+    const resultados = await sincronizar({
+      contaId,
+      de: temPeriodo ? de : undefined,
+      ate: temPeriodo ? ate : undefined,
+    });
 
     revalidatePath('/painel/contas');
     revalidatePath('/painel/metricas');
+    revalidatePath('/painel/relatorios');
 
     if (resultados.length === 0) {
       return { ok: false, mensagem: 'Nenhuma fonte ativa para sincronizar.' };

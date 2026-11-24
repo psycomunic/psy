@@ -5,6 +5,7 @@ import {
   canaisDaContaPeriodo,
   campanhasDaContaPeriodo,
   marcosDaConta,
+  primeiroDiaSincronizado,
 } from '@/lib/dados/consultas';
 import { SerieMultinicho, BarrasCanal, type MedidaCanal } from '../Graficos';
 import { BarraMetricas } from '../BarraMetricas';
@@ -282,11 +283,13 @@ export async function Metricas({
     { dados: canais },
     { dados: campanhas },
     { dados: marcos },
+    primeiroDiaBanco,
   ] = await Promise.all([
     serieDaContaPeriodo(conta.id, janela.anteriorDe, janela.ate, canalAtivo),
     canaisDaContaPeriodo(conta.id, janela.de, janela.ate),
     campanhasDaContaPeriodo(conta.id, janela.de, janela.ate, canalAtivo),
     marcosDaConta(conta.id),
+    primeiroDiaSincronizado(conta.id),
   ]);
 
   const serieAtual = serieDupla.filter((d) => d.dia >= janela.de && d.dia <= janela.ate);
@@ -337,9 +340,12 @@ export async function Metricas({
             periodoAtual={janela.chave}
             deAtual={janela.de}
             ateAtual={janela.ate}
+            anteriorDeAtual={janela.anteriorDe}
             canalAtual={canalAtivo}
             visaoCarteira={false}
             podeGerarRelatorio={podeGerarRelatorio}
+            podeSincronizar={papel === 'administrador' && procedencia === 'banco'}
+            primeiroDiaBanco={primeiroDiaBanco}
           />
         </div>
       ) : null}

@@ -46,6 +46,8 @@ import { Relatorios } from '@/componentes/painel/modulos/Relatorios';
 
 const AINDA_NAO: Partial<Record<Modulo, string[]>> = {};
 
+export const dynamic = 'force-dynamic';
+
 export default async function PainelModulo({
   params,
   searchParams,

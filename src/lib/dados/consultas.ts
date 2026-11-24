@@ -333,6 +333,23 @@ export async function serieDaConta(
   return serieDaContaPeriodo(contaId, desde, hoje);
 }
 
+/** Menor data já gravada em `metrica_diaria` para esta conta, usada para avisar
+    quando o filtro selecionado começa antes do histórico sincronizado. */
+export async function primeiroDiaSincronizado(contaId: string): Promise<string | null> {
+  if (!bancoConfigurado) return null;
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('metrica_diaria')
+    .select('dia')
+    .eq('conta_id', contaId)
+    .order('dia', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return (data.dia as string) ?? null;
+}
+
 export async function canaisDaContaPeriodo(
   contaId: string,
   de: string,

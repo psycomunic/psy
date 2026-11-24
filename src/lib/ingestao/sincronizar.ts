@@ -34,7 +34,7 @@ export type ResultadoDaFonte = {
 /* O `select` precisa ser um literal único: concatenar quebra a
    inferência de tipos do Supabase e tudo vira GenericStringError. */
 const SELECT_FILA =
-  'id, conta_id, provedor, identificador, janela_dias, ativa, segredo, credencial:credencial_id(id, segredo, configuracao, ativa), conta:conta_id(nome, situacao)';
+  'id, conta_id, provedor, identificador, janela_dias, ativa, ultima_sync_ok, segredo, credencial:credencial_id(id, segredo, configuracao, ativa), conta:conta_id(nome, situacao)';
 
 type Fila = {
   id: string;
@@ -42,6 +42,7 @@ type Fila = {
   provedor: string;
   identificador: string | null;
   janela_dias: number;
+  ultima_sync_ok?: string | null;
   segredo: string | null;
   credencial: { id: string; segredo: string | null; configuracao: Record<string, unknown>; ativa: boolean } | null;
   conta: { nome: string; situacao: string } | null;
@@ -153,9 +154,16 @@ function pegarAbertos(c: Record<string, unknown>): Record<string, string> {
  * log justamente no caso em que o log é a única pista. Por isso o
  * `catch` grava a falha na mão.
  */
-export async function sincronizarUma(f: Fila): Promise<ResultadoDaFonte> {
+export async function sincronizarUma(
+  f: Fila,
+  periodoCustom?: { de: string; ate: string },
+): Promise<ResultadoDaFonte> {
   const contaNome = f.conta?.nome ?? 'loja';
-  const { de, ate } = janela(f.janela_dias ?? 7);
+  /* Na primeira sincronização da conta (`ultima_sync_ok` nulo), busca 90 dias
+     para que os filtros de 14 dias, 30 dias, Este mês e Mês passado já tenham
+     histórico real sem depender do cron diário curto. */
+  const diasPadrao = f.ultima_sync_ok ? (f.janela_dias ?? 7) : Math.max(f.janela_dias ?? 7, 90);
+  const { de, ate } = periodoCustom ?? janela(diasPadrao);
 
   try {
     const { bruto, linhas, campanhas } = await buscarEMapear(f, de, ate);
@@ -237,7 +245,14 @@ async function registrarFalha(f: Fila, de: string, ate: string, erro: string) {
 export async function sincronizar({
   contaId,
   integracaoId,
-}: { contaId?: string; integracaoId?: string } = {}): Promise<ResultadoDaFonte[]> {
+  de,
+  ate,
+}: {
+  contaId?: string;
+  integracaoId?: string;
+  de?: string;
+  ate?: string;
+} = {}): Promise<ResultadoDaFonte[]> {
   const supabase = clienteServico();
 
   let consulta = supabase.from('integracao').select(SELECT_FILA).eq('ativa', true);
@@ -248,11 +263,12 @@ export async function sincronizar({
   if (error) throw new Error(error.message);
 
   const fila = (data ?? []) as unknown as Fila[];
+  const periodoCustom = de && ate ? { de, ate } : undefined;
 
   const resultados: ResultadoDaFonte[] = [];
   for (const f of fila) {
     if (f.conta && !['ativa', 'onboarding'].includes(f.conta.situacao)) continue;
-    resultados.push(await sincronizarUma(f));
+    resultados.push(await sincronizarUma(f, periodoCustom));
   }
 
   return resultados;
