@@ -35,6 +35,8 @@ export const ROTULO_DO_TIPO: Record<string, string> = {
   proposta_enviada: 'Proposta',
   relatorio_enviado: 'Relatório de desempenho',
   acesso_criado: 'Acesso ao painel',
+  saldo_midia: 'Alerta de saldo baixo',
+  teste_saldo_midia: 'Teste de alerta de saldo',
   teste: 'Teste de configuração',
 };
 

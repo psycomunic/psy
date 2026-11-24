@@ -6,6 +6,12 @@ import { dinheiroExato } from '@/lib/formato';
 import { abrirSegredo } from './credenciais';
 import * as meta from './fontes/meta';
 import { lerConfigWhatsapp, dispararAlertasSaldoWhatsapp } from '@/lib/whatsapp/remetente';
+import {
+  emailConfigurado,
+  caixaDaAgencia,
+  enviarEmail,
+} from '@/lib/email/remetente';
+import { avisoSaldoBaixo } from '@/lib/email/modelos';
 import type { SaldoContaMidia, NivelSaldoMidia } from '@/lib/dados/tipos';
 
 const PESO_NIVEL: Record<NivelSaldoMidia, number> = {
@@ -29,10 +35,12 @@ export async function consultarSaldosMidia({
   contaId,
   notificarNoPainel = true,
   notificarNoWhatsapp = true,
+  notificarNoEmail = true,
 }: {
   contaId?: string;
   notificarNoPainel?: boolean;
   notificarNoWhatsapp?: boolean;
+  notificarNoEmail?: boolean;
 } = {}): Promise<SaldoContaMidia[]> {
   if (!bancoConfigurado) return [];
 
@@ -107,12 +115,17 @@ export async function consultarSaldosMidia({
         return (a.saldoDisponivel ?? 999999) - (b.saldoDisponivel ?? 999999);
       });
 
-    if (notificarNoPainel || notificarNoWhatsapp) {
+    if (notificarNoPainel || notificarNoWhatsapp || notificarNoEmail) {
       const urgentes = saldos.filter((s) => s.nivel === 'zerado' || s.nivel === 'critico');
       if (urgentes.length > 0) {
         if (notificarNoPainel) {
           await emitirNotificacoesSaldoBaixo(urgentes, hoje).catch((e) =>
             console.warn('emitirNotificacoesSaldoBaixo:', (e as Error).message),
+          );
+        }
+        if (notificarNoEmail && emailConfigurado) {
+          await dispararAlertasSaldoEmail(urgentes).catch((e) =>
+            console.warn('dispararAlertasSaldoEmail:', (e as Error).message),
           );
         }
         if (notificarNoWhatsapp && cfgWpp) {
@@ -128,6 +141,113 @@ export async function consultarSaldosMidia({
     console.warn('consultarSaldosMidia:', (e as Error).message);
     return [];
   }
+}
+
+export async function dispararAlertasSaldoEmail(
+  saldosUrgentes: SaldoContaMidia[],
+  opcoes?: { forcarTeste?: boolean; destinoTeste?: string },
+): Promise<{ enviado: boolean; destino: string; mensagem: string }> {
+  const ehTeste = Boolean(opcoes?.forcarTeste);
+
+  if (!emailConfigurado) {
+    return {
+      enviado: false,
+      destino: caixaDaAgencia,
+      mensagem: 'Falta RESEND_API_KEY no ambiente do servidor.',
+    };
+  }
+
+  const supabase = clienteServico();
+  const hoje = hojeBR();
+
+  let destinos: string[] = [];
+  if (ehTeste && opcoes?.destinoTeste) {
+    destinos = [opcoes.destinoTeste];
+  } else {
+    const { data: admins } = await supabase
+      .from('perfil')
+      .select('email')
+      .eq('papel', 'administrador')
+      .eq('ativo', true);
+
+    destinos = [
+      ...new Set(
+        [caixaDaAgencia, ...(admins ?? []).map((a) => String(a.email ?? '').trim())].filter(
+          Boolean,
+        ),
+      ),
+    ];
+  }
+
+  let pendentes = saldosUrgentes;
+
+  if (!ehTeste) {
+    if (saldosUrgentes.length === 0) {
+      return {
+        enviado: false,
+        destino: destinos.join(', '),
+        mensagem: 'Nenhuma conta com saldo crítico no momento.',
+      };
+    }
+
+    /* Verifica na trilha `email_enviado` quais contas já receberam alerta hoje neste nível,
+       evitando e-mails repetidos a cada rodada do cron ou abertura do painel. */
+    const jaAlertadasHoje = new Set<string>();
+    const { data: jaEnviados } = await supabase
+      .from('email_enviado')
+      .select('chave')
+      .eq('tipo', 'saldo_midia')
+      .eq('status', 'enviado')
+      .like('chave', `${hoje}|%`);
+
+    for (const linha of jaEnviados ?? []) {
+      const partes = String(linha.chave ?? '').split('|')[1] ?? '';
+      for (const item of partes.split(',')) {
+        if (item) jaAlertadasHoje.add(item);
+      }
+    }
+
+    pendentes = saldosUrgentes.filter((s) => !jaAlertadasHoje.has(`${s.contaId}:${s.nivel}`));
+
+    if (pendentes.length === 0) {
+      return {
+        enviado: false,
+        destino: destinos.join(', '),
+        mensagem: 'Os alertas de saldo baixo de hoje já foram enviados por e-mail.',
+      };
+    }
+  }
+
+  const chave = ehTeste
+    ? undefined
+    : `${hoje}|${pendentes
+        .map((s) => `${s.contaId}:${s.nivel}`)
+        .sort()
+        .join(',')}`;
+
+  const modelo = avisoSaldoBaixo({ saldos: pendentes, ehTeste });
+  const r = await enviarEmail({
+    tipo: ehTeste ? 'teste_saldo_midia' : 'saldo_midia',
+    para: destinos,
+    chave,
+    ...modelo,
+  });
+
+  if (!r.ok) {
+    return {
+      enviado: false,
+      destino: destinos.join(', '),
+      mensagem: r.erro,
+    };
+  }
+
+  return {
+    enviado: !r.repetido,
+    destino: destinos.join(', '),
+    mensagem: r.repetido
+      ? 'O alerta de saldo baixo de hoje já havia saído por e-mail.'
+      : `Alerta de saldo enviado por e-mail para ${destinos.join(', ')}.`,
+  };
 }
 
 async function emitirNotificacoesSaldoBaixo(urgentes: SaldoContaMidia[], hoje: string) {

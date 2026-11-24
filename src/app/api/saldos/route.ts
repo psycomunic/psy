@@ -45,6 +45,7 @@ async function executar(req: Request) {
 
   const saldos = await consultarSaldosMidia({
     notificarNoPainel: true,
+    notificarNoEmail: true,
     notificarNoWhatsapp: true,
   });
 

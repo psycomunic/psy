@@ -280,6 +280,7 @@ export async function testarAlertaWhatsapp(
     const saldos = await consultarSaldosMidia({
       notificarNoPainel: false,
       notificarNoWhatsapp: false,
+      notificarNoEmail: false,
     });
     const urgentesOuAmostra = saldos.filter(
       (s) => s.nivel === 'zerado' || s.nivel === 'critico',

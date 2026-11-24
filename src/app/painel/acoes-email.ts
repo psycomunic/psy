@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { sessaoAtual } from '@/lib/supabase/servidor';
 import { enviarEmail, remetente } from '@/lib/email/remetente';
 import { testeDeEnvio } from '@/lib/email/modelos';
+import { consultarSaldosMidia, dispararAlertasSaldoEmail } from '@/lib/ingestao/saldos';
 
 /**
  * Disparar um e-mail de teste do painel.
@@ -65,4 +66,40 @@ export async function testarEnvioDeEmail(
   }
 
   return { ok: false, mensagem: envio.erro };
+}
+
+export async function testarAlertaSaldoPorEmail(
+  _anterior: Resultado | null,
+  _fd: FormData,
+): Promise<Resultado> {
+  const sessao = await sessaoAtual();
+
+  if (!sessao) return { ok: false, mensagem: 'Sessão expirada. Entre de novo.' };
+  if (sessao.papel !== 'administrador') {
+    return { ok: false, mensagem: 'Só administradores podem disparar o teste.' };
+  }
+
+  const saldos = await consultarSaldosMidia({
+    notificarNoPainel: false,
+    notificarNoWhatsapp: false,
+    notificarNoEmail: false,
+  });
+  const urgentes = saldos.filter((s) => s.nivel === 'zerado' || s.nivel === 'critico');
+  const amostra = urgentes.length > 0 ? urgentes : saldos.slice(0, 3);
+
+  const r = await dispararAlertasSaldoEmail(amostra, {
+    forcarTeste: true,
+    destinoTeste: sessao.email,
+  });
+
+  revalidatePath('/painel/configuracoes');
+
+  if (r.enviado) {
+    return {
+      ok: true,
+      mensagem: `Alerta de saldo saiu de ${remetente} para ${sessao.email}. Confira sua caixa de entrada.`,
+    };
+  }
+
+  return { ok: false, mensagem: r.mensagem };
 }

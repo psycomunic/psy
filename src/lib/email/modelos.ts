@@ -13,6 +13,8 @@ import {
 } from './casca.ts';
 import { whatsapp, whatsappEscrito } from '../../conteudo/navegacao.ts';
 import { selecao } from '../../conteudo/selecao-braganca.ts';
+import { dinheiroExato } from '../formato.ts';
+import type { SaldoContaMidia } from '../dados/tipos.ts';
 
 /**
  * Os e-mails que o sistema manda, um por situação.
@@ -599,6 +601,143 @@ ${resumoLimpo ? `\n${resumoLimpo}\n` : ''}
 Os indicadores detalhados, campanhas e próximos passos ficam dentro do documento privado, com opção de salvar em PDF. Qualquer dúvida, basta responder este e-mail.
 
 Psy Comunic · WhatsApp ${whatsappEscrito} · ${SITE}`;
+
+  return { assunto, html, texto };
+}
+
+/* ================================================================== */
+/* 9. Alerta interno de saldo baixo nas contas de anúncio             */
+/* ================================================================== */
+
+export function avisoSaldoBaixo({
+  saldos,
+  ehTeste = false,
+}: {
+  saldos: SaldoContaMidia[];
+  ehTeste?: boolean;
+}): Modelo {
+  const temZerado = saldos.some((s) => s.nivel === 'zerado');
+  const assuntoCru = ehTeste
+    ? 'Teste de alerta de saldo baixo da Psy Comunic'
+    : temZerado
+      ? `Urgente: saldo esgotado em ${saldos.length === 1 ? saldos[0].contaNome : `${saldos.length} contas`}`
+      : `Alerta de saldo baixo: ${saldos.length === 1 ? saldos[0].contaNome : `${saldos.length} contas`}`;
+  const assunto = assuntoCru.replace(/—/g, '-').slice(0, 70);
+
+  const caminhoDestino =
+    saldos.length === 1
+      ? `/painel/metricas?conta=${encodeURIComponent(saldos[0].contaId)}`
+      : '/painel/visao';
+  const urlBotao = `${SITE}${caminhoDestino}`;
+
+  if (saldos.length === 0) {
+    const corpoVazio = [
+      rotulo(ehTeste ? 'Teste · Monitoramento de saldo' : 'Monitoramento de saldo'),
+      titulo('Nenhuma conta com saldo crítico.'),
+      paragrafo(
+        'O disparo automático de alertas de saldo por e-mail está ativo e validado na Psy Comunic. Neste momento todas as contas pré-pagas monitoradas estão com saldo saudável.',
+      ),
+      botao(`${SITE}/painel/visao`, 'Abrir visão geral do painel'),
+    ].join('\n');
+
+    const htmlVazio = casca({
+      assunto,
+      preheader: 'Monitoramento automático de saldo por e-mail validado com sucesso.',
+      corpo: corpoVazio,
+      rodape: rodapeInterno('/painel/visao'),
+    });
+
+    const textoVazio = `MONITORAMENTO DE SALDO · PSY COMUNIC
+
+Nenhuma conta com saldo crítico neste momento.
+
+O disparo automático de alertas de saldo por e-mail está ativo e validado na Psy Comunic. Quando alguma conta pré-paga ficar abaixo do piso configurado ou com menos de 3 dias de autonomia, o aviso chega automaticamente nesta caixa.
+
+Painel: ${SITE}/painel/visao`;
+
+    return { assunto, html: htmlVazio, texto: textoVazio };
+  }
+
+  const blocosHtml = saldos
+    .map((s) => {
+      const limpoConta = s.contaNome.replace(/—/g, '-');
+      const limpoAd = s.adAccountNome.replace(/—/g, '-');
+      const situacaoTxt =
+        s.nivel === 'zerado'
+          ? 'Saldo esgotado (risco imediato de pausa)'
+          : s.nivel === 'critico'
+            ? 'Saldo crítico (providenciar recarga)'
+            : 'Acompanhamento de saldo';
+      const valor = dinheiroExato(s.saldoDisponivel ?? 0);
+      const autonomia =
+        s.diasRestantes !== null
+          ? `Cerca de ${s.diasRestantes.toFixed(1).replace('.', ',')} dias restantes no ritmo de ${dinheiroExato(s.gastoMedioDiario)}/dia`
+          : `Gasto médio recente: ${dinheiroExato(s.gastoMedioDiario)}/dia`;
+
+      return [
+        ficha([
+          { rotulo: 'Cliente', valor: `<strong style="color:${CORES.branco};">${esc(limpoConta)}</strong>` },
+          { rotulo: 'Conta Meta Ads', valor: esc(limpoAd) },
+          {
+            rotulo: 'Saldo disponível',
+            valor: `<strong style="color:${CORES.magentaTexto};">${esc(valor)}</strong> · ${esc(situacaoTxt)}`,
+          },
+          { rotulo: 'Autonomia estimada', valor: esc(autonomia) },
+        ]),
+      ].join('\n');
+    })
+    .join(`\n${separador()}\n`);
+
+  const corpo = [
+    rotulo(ehTeste ? 'Teste · Alerta de saldo baixo' : 'Operação · Alerta de saldo baixo'),
+    titulo(
+      temZerado
+        ? 'Há conta de anúncio sem saldo disponível.'
+        : 'Saldo baixo identificado nas contas de mídia.',
+    ),
+    paragrafo(
+      ehTeste
+        ? 'Este é um disparo de teste com a leitura real das contas pré-pagas conectadas hoje na Psy Comunic.'
+        : 'O monitoramento automático da Psy Comunic identificou saldo abaixo do limite de segurança nas contas abaixo. Solicite recarga via PIX ou boleto para evitar interrupção na entrega das campanhas.',
+    ),
+    separador(),
+    blocosHtml,
+    separador(),
+    botao(urlBotao, saldos.length === 1 ? 'Abrir métricas desta conta' : 'Conferir saldos no painel'),
+  ].join('\n');
+
+  const html = casca({
+    assunto,
+    preheader: `${saldos[0].contaNome.replace(/—/g, '-')}: saldo em ${dinheiroExato(saldos[0].saldoDisponivel ?? 0)}.`,
+    corpo,
+    rodape: rodapeInterno(caminhoDestino),
+  });
+
+  const blocosTexto = saldos
+    .map((s) => {
+      const limpoConta = s.contaNome.replace(/—/g, '-');
+      const limpoAd = s.adAccountNome.replace(/—/g, '-');
+      const valor = dinheiroExato(s.saldoDisponivel ?? 0);
+      const autonomia =
+        s.diasRestantes !== null
+          ? `Cerca de ${s.diasRestantes.toFixed(1).replace('.', ',')} dias restantes (${dinheiroExato(s.gastoMedioDiario)}/dia)`
+          : `Gasto médio: ${dinheiroExato(s.gastoMedioDiario)}/dia`;
+      return [
+        `Cliente: ${limpoConta}`,
+        `Conta Meta Ads: ${limpoAd}`,
+        `Saldo disponível: ${valor}`,
+        `Autonomia: ${autonomia}`,
+      ].join('\n');
+    })
+    .join('\n\n');
+
+  const texto = `${ehTeste ? 'TESTE · ' : ''}ALERTA DE SALDO BAIXO · PSY COMUNIC
+
+${ehTeste ? 'Disparo de teste com os dados reais das contas conectadas hoje.' : 'O monitoramento automático identificou saldo abaixo do limite de segurança nas contas abaixo. Solicite recarga via PIX ou boleto para evitar pausa nas campanhas.'}
+
+${blocosTexto}
+
+Conferir no painel: ${urlBotao}`;
 
   return { assunto, html, texto };
 }

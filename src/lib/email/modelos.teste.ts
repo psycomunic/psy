@@ -9,6 +9,7 @@ import {
   relatorioPronto,
   acessoCriado,
   testeDeEnvio,
+  avisoSaldoBaixo,
   type Modelo,
 } from './modelos.ts';
 
@@ -102,6 +103,30 @@ const TODOS: { nome: string; modelo: Modelo; paraFora: boolean }[] = [
       versao: 1,
     }),
     paraFora: true,
+  },
+  {
+    nome: 'avisoSaldoBaixo',
+    modelo: avisoSaldoBaixo({
+      saldos: [
+        {
+          contaId: '48d2abba-f5be-4d92-80cc-16e018c1a5ed',
+          contaNome: 'Chalé Império da Serra',
+          adAccountId: '878950454109782',
+          adAccountNome: 'CA - Chalé Império da Serra',
+          ativaNaMeta: true,
+          modalidade: 'pre_pago',
+          saldoDisponivel: 135.14,
+          faturaAberta: null,
+          textoFontePagamento: 'Saldo disponível (R$135,14 BRL)',
+          gastoMedioDiario: 48.2,
+          diasRestantes: 2.8,
+          nivel: 'critico',
+          resumo: 'Dura cerca de 2,8 dias',
+          verificadoEm: '2026-11-24T12:00:00Z',
+        },
+      ],
+    }),
+    paraFora: false,
   },
 ];
 
