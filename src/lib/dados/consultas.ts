@@ -42,6 +42,10 @@ import type {
   FormatoPost,
   SituacaoPost,
   ArquivoDaPostagem,
+  Contato,
+  LinksUteisConta,
+  MetaMesConta,
+  ResumoCarteiraOperacional,
   RelatorioResumo,
   StatusRelatorio,
   BlocoRelatorio,
@@ -804,6 +808,32 @@ export async function fichaDaConta(
 
   const c = rConta.data as Record<string, unknown>;
   const s = rSaude.data;
+  const linksBruto =
+    c.links_uteis && typeof c.links_uteis === 'object'
+      ? (c.links_uteis as Record<string, unknown>)
+      : {};
+  const checklistBruto =
+    c.checklist_onboarding && typeof c.checklist_onboarding === 'object'
+      ? (c.checklist_onboarding as Record<string, unknown>)
+      : {};
+
+  const linksUteis: LinksUteisConta = {
+    drive: typeof linksBruto.drive === 'string' && linksBruto.drive ? linksBruto.drive : undefined,
+    comercial:
+      typeof linksBruto.comercial === 'string' && linksBruto.comercial
+        ? linksBruto.comercial
+        : undefined,
+    gerenciador:
+      typeof linksBruto.gerenciador === 'string' && linksBruto.gerenciador
+        ? linksBruto.gerenciador
+        : undefined,
+    extra: typeof linksBruto.extra === 'string' && linksBruto.extra ? linksBruto.extra : undefined,
+  };
+
+  const checklistOnboarding: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(checklistBruto)) {
+    checklistOnboarding[k] = Boolean(v);
+  }
 
   return doBanco({
     id: c.id as string,
@@ -816,11 +846,20 @@ export async function fichaDaConta(
     documento: (c.documento as string) ?? null,
     plataforma: (c.plataforma as string) ?? null,
     site: (c.site as string) ?? null,
+    instagram: (c.instagram as string) ?? null,
     segmento: (c.segmento as string) ?? null,
     situacao: c.situacao as ContaFicha['situacao'],
     dataInicio: (c.data_inicio as string) ?? null,
     observacoes: (c.observacoes as string) ?? null,
     responsavel: (c.perfil as unknown as { nome: string } | null)?.nome ?? null,
+    responsavelId: (c.responsavel_id as string) ?? null,
+    escopo: Array.isArray(c.escopo) ? (c.escopo as string[]) : [],
+    objetivoPrincipal: (c.objetivo_principal as string) ?? null,
+    publicoAlvo: (c.publico_alvo as string) ?? null,
+    ofertaPrincipal: (c.oferta_principal as string) ?? null,
+    diferenciais: (c.diferenciais as string) ?? null,
+    linksUteis,
+    checklistOnboarding,
     pontuacao: s?.pontuacao === null || s?.pontuacao === undefined ? null : Number(s.pontuacao),
     tarefasAtrasadas: Number(s?.tarefas_atrasadas ?? 0),
     inadimplencia: Number(s?.inadimplencia ?? 0),
@@ -1902,4 +1941,259 @@ export async function buscarRelatorioExibido(slug: string) {
   }
 
   return buscarRelatorioPublico(slug);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dossiê 360° do Cliente (Ficha + Carteira Operacional)              */
+/* ------------------------------------------------------------------ */
+
+export async function contatosDaConta(contaId: string): Promise<Resposta<Contato[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('contato')
+    .select('id, conta_id, nome, cargo, email, telefone, whatsapp, principal')
+    .eq('conta_id', contaId)
+    .order('principal', { ascending: false })
+    .order('nome', { ascending: true });
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  return doBanco(
+    (data ?? []).map((c) => ({
+      id: c.id as string,
+      contaId: c.conta_id as string,
+      nome: c.nome as string,
+      cargo: (c.cargo as string) ?? null,
+      email: (c.email as string) ?? null,
+      telefone: (c.telefone as string) ?? null,
+      whatsapp: (c.whatsapp as string) ?? null,
+      principal: Boolean(c.principal),
+    })),
+  );
+}
+
+export async function metaAtualDaConta(contaId: string): Promise<MetaMesConta> {
+  const vazio: MetaMesConta = {
+    receitaMeta: null,
+    verbaMeta: null,
+    resultadoMeta: null,
+    custoResultadoTeto: null,
+  };
+  if (!bancoConfigurado) return vazio;
+
+  const supabase = await clienteServidor();
+  const mes = `${hojeBR().slice(0, 7)}-01`;
+  const { data, error } = await supabase
+    .from('meta_conta')
+    .select('*')
+    .eq('conta_id', contaId)
+    .eq('mes', mes)
+    .maybeSingle();
+
+  if (error || !data) return vazio;
+  const r = data as Record<string, unknown>;
+
+  return {
+    receitaMeta:
+      r.receita_meta === null || r.receita_meta === undefined ? null : Number(r.receita_meta),
+    verbaMeta:
+      r.verba_meta === null || r.verba_meta === undefined ? null : Number(r.verba_meta),
+    resultadoMeta:
+      r.resultado_meta === null || r.resultado_meta === undefined
+        ? null
+        : Number(r.resultado_meta),
+    custoResultadoTeto:
+      r.custo_resultado_teto === null || r.custo_resultado_teto === undefined
+        ? null
+        : Number(r.custo_resultado_teto),
+  };
+}
+
+export async function tarefasDaConta(contaId: string): Promise<Resposta<Tarefa[]>> {
+  if (!bancoConfigurado) {
+    return semBanco(demo.tarefasDemo().filter((t) => t.contaId === contaId));
+  }
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('tarefa')
+    .select('id, titulo, detalhe, status, prazo, prioridade, recorrencia, lembrar_dias, concluida_em, conta_id, responsavel_id, conta:conta_id(nome), perfil:responsavel_id(nome)')
+    .eq('conta_id', contaId)
+    .order('prazo', { ascending: true, nullsFirst: false })
+    .limit(120);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const hojeMs = Date.parse(`${hojeBR()}T00:00:00Z`);
+
+  return doBanco(
+    (data ?? []).map((t) => {
+      const prazo = (t.prazo as string) ?? null;
+      return {
+        id: t.id as string,
+        titulo: t.titulo as string,
+        detalhe: (t.detalhe as string) ?? null,
+        conta: (t.conta as unknown as { nome: string } | null)?.nome ?? null,
+        contaId: (t.conta_id as string) ?? null,
+        status: t.status as Tarefa['status'],
+        responsavel: (t.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        responsavelId: (t.responsavel_id as string) ?? null,
+        prazo,
+        prioridade: t.prioridade as Tarefa['prioridade'],
+        recorrencia: (t.recorrencia ?? 'nenhuma') as Tarefa['recorrencia'],
+        lembrarDias: Number(t.lembrar_dias ?? 1),
+        concluidaEm: (t.concluida_em as string) ?? null,
+        diasAtePrazo:
+          prazo === null
+            ? null
+            : Math.round((Date.parse(`${prazo}T00:00:00Z`) - hojeMs) / 86400000),
+      };
+    }),
+  );
+}
+
+export async function projetosDaConta(contaId: string): Promise<Resposta<Projeto[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('projeto')
+    .select('id, nome, tipo, situacao, cliente, conta_id, responsavel_id, prazo, link, observacoes, entregue_em, situacao_desde, criado_em, conta:conta_id(nome), perfil:responsavel_id(nome)')
+    .eq('conta_id', contaId)
+    .order('situacao', { ascending: true })
+    .order('prazo', { ascending: true, nullsFirst: false })
+    .limit(80);
+
+  if (faltamTabelas(error)) return semBanco([]);
+
+  const agora = Date.now();
+  const hoje = new Date(hojeBR()).getTime();
+
+  return doBanco(
+    (data ?? []).map((p) => {
+      const conta = p.conta as unknown as { nome: string } | null;
+      const prazo = (p.prazo as string) ?? null;
+      return {
+        id: p.id as string,
+        nome: p.nome as string,
+        tipo: p.tipo as TipoProjeto,
+        situacao: p.situacao as SituacaoProjeto,
+        cliente: conta?.nome ?? ((p.cliente as string) || null),
+        contaId: (p.conta_id as string) ?? null,
+        responsavel: (p.perfil as unknown as { nome: string } | null)?.nome ?? null,
+        responsavelId: (p.responsavel_id as string) ?? null,
+        prazo,
+        link: (p.link as string) ?? null,
+        observacoes: (p.observacoes as string) ?? null,
+        entregueEm: (p.entregue_em as string) ?? null,
+        diasNaSituacao: Math.floor(
+          (agora - new Date(p.situacao_desde as string).getTime()) / 86400000,
+        ),
+        diasAteOPrazo:
+          prazo === null ? null : Math.round((new Date(prazo).getTime() - hoje) / 86400000),
+        criadoEm: p.criado_em as string,
+      };
+    }),
+  );
+}
+
+export async function faturasDaConta(
+  contaId: string,
+  limite = 12,
+): Promise<Resposta<FaturaResumo[]>> {
+  if (!bancoConfigurado) return semBanco([]);
+
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase
+    .from('fatura')
+    .select('id, numero, conta_id, contrato_id, status, valor, valor_liquido, descricao, parcelas, competencia, vencimento, paga_em, asaas_id, link_pagamento, pix_copia_cola, forma_pagamento, conta:conta_id(nome)')
+    .eq('conta_id', contaId)
+    .order('vencimento', { ascending: false })
+    .limit(limite);
+
+  if (faltamTabelas(error)) return semBanco([]);
+  const hoje = hojeBR();
+
+  return doBanco(
+    (data ?? []).map((f) => ({
+      id: f.id as string,
+      numero: f.numero as string,
+      conta: (f.conta as unknown as { nome: string } | null)?.nome ?? null,
+      contaId: f.conta_id as string,
+      contratoId: (f.contrato_id as string) ?? null,
+      status: f.status as FaturaResumo['status'],
+      valor: Number(f.valor ?? 0),
+      valorLiquido:
+        f.valor_liquido === null || f.valor_liquido === undefined ? null : Number(f.valor_liquido),
+      descricao: (f.descricao as string) ?? null,
+      parcelas: Number(f.parcelas ?? 1),
+      competencia: f.competencia as string,
+      vencimento: f.vencimento as string,
+      pagaEm: (f.paga_em as string) ?? null,
+      asaasId: (f.asaas_id as string) ?? null,
+      linkPagamento: (f.link_pagamento as string) ?? null,
+      pixCopiaCola: (f.pix_copia_cola as string) ?? null,
+      formaPagamento: (f.forma_pagamento as string) ?? null,
+      diasAteVencer: Math.round(
+        (Date.parse(`${f.vencimento}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86400000,
+      ),
+    })),
+  );
+}
+
+export async function resumoOperacionalPorConta(): Promise<
+  Record<string, ResumoCarteiraOperacional>
+> {
+  if (!bancoConfigurado) return {};
+
+  const supabase = await clienteServidor();
+  const hoje = hojeBR();
+
+  const [rTarefas, rProjetos] = await Promise.all([
+    supabase
+      .from('tarefa')
+      .select('conta_id, status, prazo')
+      .in('status', ['aberta', 'fazendo'])
+      .not('conta_id', 'is', null),
+    supabase
+      .from('projeto')
+      .select('conta_id, situacao')
+      .in('situacao', ['briefing', 'andamento', 'alteracao', 'aguardando_cliente'])
+      .not('conta_id', 'is', null),
+  ]);
+
+  const mapa: Record<string, ResumoCarteiraOperacional> = {};
+  const garantir = (id: string) => {
+    if (!mapa[id]) {
+      mapa[id] = {
+        tarefasAbertas: 0,
+        tarefasAtrasadas: 0,
+        projetosAtivos: 0,
+        projetosComAlteracao: 0,
+        projetosComCliente: 0,
+      };
+    }
+    return mapa[id];
+  };
+
+  for (const t of rTarefas.data ?? []) {
+    const cid = t.conta_id as string;
+    const item = garantir(cid);
+    item.tarefasAbertas += 1;
+    if (t.prazo && (t.prazo as string) < hoje) {
+      item.tarefasAtrasadas += 1;
+    }
+  }
+
+  for (const p of rProjetos.data ?? []) {
+    const cid = p.conta_id as string;
+    const item = garantir(cid);
+    item.projetosAtivos += 1;
+    if (p.situacao === 'alteracao') item.projetosComAlteracao += 1;
+    if (p.situacao === 'aguardando_cliente') item.projetosComCliente += 1;
+  }
+
+  return mapa;
 }

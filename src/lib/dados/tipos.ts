@@ -306,6 +306,47 @@ export type EstagioFunil = {
   parados: number;
 };
 
+export const ESCOPOS_CONTA = [
+  'Tráfego Meta Ads',
+  'Google Ads',
+  'Criativos de performance',
+  'Landing page / Site',
+  'Social media',
+  'CRM e automação',
+  'SEO / Google Meu Negócio',
+] as const;
+
+export const ITENS_CHECKLIST_ONBOARDING = [
+  { chave: 'acessos', rotulo: 'Acessos de BM, conta de anúncios e Instagram liberados' },
+  { chave: 'rastreamento', rotulo: 'Pixel, API de Conversões ou eventos de WhatsApp validados' },
+  { chave: 'fontes', rotulo: 'Fontes de dados vinculadas e sincronizando no painel' },
+  { chave: 'briefing', rotulo: 'Briefing estratégico, público e oferta principal preenchidos' },
+  { chave: 'metas', rotulo: 'Metas do mês (verba, volume e teto de custo) definidas' },
+  { chave: 'campanhas', rotulo: 'Estrutura de campanhas e criativos no ar' },
+] as const;
+
+export type LinksUteisConta = {
+  drive?: string;
+  comercial?: string;
+  gerenciador?: string;
+  extra?: string;
+};
+
+export type MetaMesConta = {
+  receitaMeta: number | null;
+  verbaMeta: number | null;
+  resultadoMeta: number | null;
+  custoResultadoTeto: number | null;
+};
+
+export type ResumoCarteiraOperacional = {
+  tarefasAbertas: number;
+  tarefasAtrasadas: number;
+  projetosAtivos: number;
+  projetosComAlteracao: number;
+  projetosComCliente: number;
+};
+
 /** Ficha completa de uma loja. */
 export type ContaFicha = {
   id: string;
@@ -317,11 +358,20 @@ export type ContaFicha = {
   documento: string | null;
   plataforma: string | null;
   site: string | null;
+  instagram: string | null;
   segmento: string | null;
   situacao: 'prospect' | 'onboarding' | 'ativa' | 'pausada' | 'encerrada';
   dataInicio: string | null;
   observacoes: string | null;
   responsavel: string | null;
+  responsavelId: string | null;
+  escopo: string[];
+  objetivoPrincipal: string | null;
+  publicoAlvo: string | null;
+  ofertaPrincipal: string | null;
+  diferenciais: string | null;
+  linksUteis: LinksUteisConta;
+  checklistOnboarding: Record<string, boolean>;
   /** Nota de 0 a 100 e o porquê. */
   pontuacao: number | null;
   tarefasAtrasadas: number;

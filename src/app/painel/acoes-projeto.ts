@@ -37,6 +37,7 @@ async function exigirInterno() {
 function revalidar() {
   revalidatePath('/painel/projetos');
   revalidatePath('/painel/visao');
+  revalidatePath('/painel/contas');
 }
 
 export async function criarProjeto(

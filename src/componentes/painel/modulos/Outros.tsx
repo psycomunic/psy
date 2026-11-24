@@ -7,11 +7,14 @@ import {
   listarFunil,
   interacoesDosLeads,
   listarProspeccao,
+  resumoOperacionalPorConta,
 } from '@/lib/dados/consultas';
+import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
-import { rotuloEstagio, rotuloTipoConta } from '@/lib/dados/tipos';
-import { dinheiro, dinheiroCurto, numero, contagemCurta, vezes } from '@/lib/formato';
-import { resolverPerfil } from '@/lib/dominio/perfis-metrica';
+import { rotuloEstagio } from '@/lib/dados/tipos';
+import { dinheiro, dinheiroCurto, dinheiroExato, numero, contagemCurta, vezes } from '@/lib/formato';
+import { resolverPerfil, rotuloPerfilMetrica } from '@/lib/dominio/perfis-metrica';
+import { resumirMetaNaCarteira } from '@/lib/dominio/diagnostico-cliente';
 import { rotuloPapel, type Papel } from '@/lib/papeis';
 import {
   FormNovaConta,
@@ -353,51 +356,117 @@ export async function Crm({ papel, abrir }: { papel: Papel; abrir?: string }) {
 /* ================================================================== */
 
 export async function Contas({ papel }: { papel: Papel }) {
-  const { dados: contas, procedencia } = await listarContas();
+  const [{ dados: contas, procedencia }, operacaoPorConta, saldosMidia] = await Promise.all([
+    listarContas(),
+    resumoOperacionalPorConta(),
+    consultarSaldosMidia({
+      notificarNoPainel: false,
+      notificarNoWhatsapp: false,
+      notificarNoEmail: false,
+    }),
+  ]);
   const podeEscrever = papel === 'administrador' && procedencia === 'banco';
+  const saldoPorConta = new Map(saldosMidia.map((s) => [s.contaId, s]));
+
+  const verbaTotalMes = contas.reduce((s, c) => s + c.investimento, 0);
+  const tarefasAbertasTotal = Object.values(operacaoPorConta).reduce(
+    (s, o) => s + o.tarefasAbertas,
+    0,
+  );
+  const projetosAtivosTotal = Object.values(operacaoPorConta).reduce(
+    (s, o) => s + o.projetosAtivos,
+    0,
+  );
+  const contasComAcaoUrgente = contas.filter((c) => {
+    const op = operacaoPorConta[c.id];
+    const sd = saldoPorConta.get(c.id);
+    return (
+      c.situacao === 'critico' ||
+      (op && (op.tarefasAtrasadas > 0 || op.projetosComAlteracao > 0)) ||
+      (sd && (sd.nivel === 'zerado' || sd.nivel === 'critico'))
+    );
+  }).length;
 
   return (
     <>
       <AvisoProcedencia procedencia={procedencia} />
 
-      {/* Escrita so para admin, e so com banco de verdade: formulario
-          gravando em dados de demonstracao nao grava em lugar nenhum. */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi
+          rotulo="Clientes na carteira"
+          valor={String(contas.length)}
+          apoio="Clique em qualquer cliente para abrir a Ficha 360°"
+        />
+        <Kpi
+          rotulo="Pedem ação hoje"
+          valor={String(contasComAcaoUrgente)}
+          apoio="Saldo baixo, tarefa atrasada, alteração ou sinal crítico"
+        />
+        <Kpi
+          rotulo="Verba investida no mês"
+          valor={dinheiro(verbaTotalMes)}
+          apoio="Soma da mídia paga sincronizada no mês corrente"
+        />
+        <Kpi
+          rotulo="Em execução na equipe"
+          valor={`${tarefasAbertasTotal} tar. · ${projetosAtivosTotal} proj.`}
+          apoio="Tarefas abertas e entregas ativas nas contas"
+        />
+      </div>
+
       {podeEscrever ? (
-        <div className="mt-8 grid gap-4">
+        <div className="mt-6 grid gap-4">
           <FormNovaConta />
           <FormMeta contas={contas.map((c) => ({ id: c.id, nome: c.nome }))} />
         </div>
       ) : null}
 
       <Secao
-        titulo="Carteira"
-        apoio="Ordenada por receita do mês. Cliente de tráfego não tem venda registrada aqui, e por isso aparece com traço em vez de zero: zero afirma que não vendeu, traço diz que a agência não mede isso."
+        titulo="Carteira de clientes"
+        apoio="Cada cliente é acompanhado pela régua do próprio nicho: conversas, reservas confirmadas, leads, vendas, saldo pré-pago e pendências."
       >
         <Tabela>
-          <caption className="sr-only">Clientes ativos com receita, verba, MER e progresso da meta</caption>
+          <caption className="sr-only">
+            Clientes ativos com situação, saldo, resultado, verba, metas e operação ativa
+          </caption>
           <thead>
             <tr>
               <th scope="col" className={th}>Cliente</th>
-              <th scope="col" className={th}>Situação</th>
-              <th scope="col" className={th}>Resultado do mês</th>
+              <th scope="col" className={th}>Saúde</th>
+              <th scope="col" className={th}>Saldo Meta</th>
+              <th scope="col" className={th}>Resultado no mês</th>
               <th scope="col" className={th}>Verba</th>
-              <th scope="col" className={th}>MER</th>
-              <th scope="col" className={th}>Meta</th>
+              <th scope="col" className={th}>Meta do mês</th>
+              <th scope="col" className={th}>Operação</th>
               <th scope="col" className={th}></th>
             </tr>
           </thead>
           <tbody>
             {[...contas]
-              .sort((a, b) => b.receita - a.receita || b.investimento - a.investimento)
+              .sort((a, b) => b.investimento - a.investimento || b.receita - a.receita)
               .map((c) => {
                 const vende = c.tipo === 'ecommerce';
                 const perfil = resolverPerfil(c.perfilMetrica, c.tipo);
+                const op = operacaoPorConta[c.id];
+                const saldo = saldoPorConta.get(c.id);
+                const metaInfo = resumirMetaNaCarteira(c);
+
+                const corSaldo =
+                  saldo?.nivel === 'zerado'
+                    ? '#FB7185'
+                    : saldo?.nivel === 'critico'
+                      ? '#F97316'
+                      : saldo?.nivel === 'atencao'
+                        ? '#FBBF24'
+                        : '#4ADE80';
+
                 const resultadoTrf =
                   perfil === 'leads'
                     ? `${numero(c.leadsCaptados)} leads`
                     : perfil === 'branding'
                       ? `${contagemCurta(c.alcance)} alcance`
                       : `${numero(c.conversas)} conversas`;
+
                 return (
                   <tr key={c.id}>
                     <th scope="row" className={`${td} font-normal`}>
@@ -407,9 +476,9 @@ export async function Contas({ papel }: { papel: Papel }) {
                       >
                         {c.nome}
                       </Link>
-                      <span className="mt-1 block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+                      <span className="mt-1 block font-mono text-[0.7rem] uppercase tracking-[0.12em] text-cinza">
                         {[
-                          rotuloTipoConta[c.tipo],
+                          rotuloPerfilMetrica[perfil],
                           c.segmento,
                           vende ? c.plataforma : null,
                         ]
@@ -418,32 +487,89 @@ export async function Contas({ papel }: { papel: Papel }) {
                       </span>
                     </th>
                     <td className={td}><SeloSituacao situacao={c.situacao} /></td>
+                    <td className={`${td} tabular whitespace-nowrap`}>
+                      {saldo ? (
+                        <div>
+                          <span className="font-semibold text-branco">
+                            {saldo.modalidade === 'pre_pago' || saldo.saldoDisponivel !== null
+                              ? dinheiroExato(saldo.saldoDisponivel ?? 0)
+                              : 'Pós-pago'}
+                          </span>
+                          {saldo.diasRestantes !== null ? (
+                            <span
+                              className="block text-[0.7rem] font-semibold"
+                              style={{ color: corSaldo }}
+                            >
+                              ~{saldo.diasRestantes.toFixed(1).replace('.', ',')}d
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="text-cinza">—</span>
+                      )}
+                    </td>
                     <td className={`${td} tabular`}>
                       {vende ? (
-                        dinheiro(c.receita)
-                      ) : c.conversas > 0 || c.leadsCaptados > 0 || c.alcance > 0 ? (
-                        <span className="text-neve">{resultadoTrf}</span>
+                        <div>
+                          <span className="text-neve">{dinheiro(c.receita)}</span>
+                          {c.mer !== null ? (
+                            <span className="block text-xs text-cinza">MER {vezes(c.mer)}</span>
+                          ) : null}
+                        </div>
+                      ) : c.conversas > 0 || c.leadsCaptados > 0 || c.alcance > 0 || c.receita > 0 ? (
+                        <div>
+                          <span className="text-neve">{resultadoTrf}</span>
+                          {c.receita > 0 ? (
+                            <span className="block text-xs text-[#4ADE80]">
+                              + {dinheiro(c.receita)} comercial
+                            </span>
+                          ) : null}
+                        </div>
                       ) : (
                         <span className="text-cinza">—</span>
                       )}
                     </td>
                     <td className={`${td} tabular`}>{dinheiro(c.investimento)}</td>
-                    <td className={`${td} tabular`}>
-                      {vende ? vezes(c.mer) : <span className="text-cinza">—</span>}
-                    </td>
-                    <td className={`${td} w-40`}>
-                      {vende ? (
-                        <Progresso percentual={c.metaAtingida} />
+                    <td className={`${td} min-w-[11rem]`}>
+                      {metaInfo.percentual !== null ? (
+                        <div>
+                          <Progresso percentual={metaInfo.percentual} />
+                          <span className="mt-1 block text-[0.7rem] text-cinza">
+                            {metaInfo.rotulo}
+                          </span>
+                        </div>
                       ) : (
-                        <span className="text-xs text-cinza">sem meta de venda</span>
+                        <Link
+                          href={`/painel/contas?ficha=${c.id}&aba=resumo#metas-cliente`}
+                          className="text-xs text-cinza underline-offset-4 hover:text-magenta-texto hover:underline"
+                        >
+                          Definir meta →
+                        </Link>
                       )}
                     </td>
                     <td className={td}>
+                      {op && (op.tarefasAtrasadas > 0 || op.projetosComAlteracao > 0) ? (
+                        <span className="inline-flex items-center rounded-full border border-[#FB7185]/40 bg-[#FB7185]/10 px-2.5 py-1 text-xs font-semibold text-[#FB7185]">
+                          {op.tarefasAtrasadas > 0
+                            ? `${op.tarefasAtrasadas} atrasada(s)`
+                            : `${op.projetosComAlteracao} alteração`}
+                        </span>
+                      ) : op && (op.tarefasAbertas > 0 || op.projetosAtivos > 0) ? (
+                        <span className="text-xs text-neve">
+                          {op.tarefasAbertas > 0 ? `${op.tarefasAbertas} tar.` : ''}
+                          {op.tarefasAbertas > 0 && op.projetosAtivos > 0 ? ' · ' : ''}
+                          {op.projetosAtivos > 0 ? `${op.projetosAtivos} proj.` : ''}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-cinza">Em dia</span>
+                      )}
+                    </td>
+                    <td className={`${td} whitespace-nowrap`}>
                       <Link
                         href={`/painel/contas?ficha=${c.id}`}
-                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto"
+                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto hover:underline"
                       >
-                        Ficha →
+                        Ficha 360° →
                       </Link>
                     </td>
                   </tr>
