@@ -45,6 +45,7 @@ export function Kpi({
   apoio,
   variacao,
   invertido = false,
+  rotuloComparacao = 'vs. período anterior',
 }: {
   rotulo: string;
   valor: string;
@@ -53,29 +54,30 @@ export function Kpi({
   variacao?: number | null;
   /** true quando SUBIR é ruim: CAC, inadimplência, custo por clique. */
   invertido?: boolean;
+  rotuloComparacao?: string;
 }) {
   const bom = variacao === null || variacao === undefined
     ? null
     : invertido ? variacao <= 0 : variacao >= 0;
 
   return (
-    <div className="cartao p-6">
-      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
+    <div className="cartao bloco-indivisivel p-6 print:p-4">
+      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza print:text-[0.65rem]">
         {rotulo}
       </p>
-      <p className="tabular mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">
+      <p className="tabular mt-3 font-display text-3xl font-extrabold tracking-[-0.035em] print:mt-1.5 print:text-2xl">
         {valor}
       </p>
-      {apoio ? <p className="mt-2 text-xs leading-relaxed text-cinza">{apoio}</p> : null}
+      {apoio ? <p className="mt-2 text-xs leading-relaxed text-cinza print:mt-1 print:text-[0.68rem]">{apoio}</p> : null}
       {variacao !== null && variacao !== undefined ? (
         <p
-          className="tabular mt-3 text-xs font-semibold"
-          style={{ color: bom ? CORES_SITUACAO.saudavel : CORES_SITUACAO.critico }}
+          className="tabular mt-3 text-xs font-semibold print:mt-2 print:text-[0.68rem]"
+          style={{ color: bom ? '#16A34A' : '#E11D48' }}
         >
           {/* Seta além da cor: mesma regra do selo. */}
           <span aria-hidden>{variacao >= 0 ? '↑' : '↓'}</span>{' '}
           {`${variacao > 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}%`}
-          <span className="ml-1 font-normal text-cinza">vs. 7 dias antes</span>
+          <span className="ml-1 font-normal text-cinza">{rotuloComparacao}</span>
         </p>
       ) : null}
     </div>

@@ -302,7 +302,7 @@ export function BarrasCanal({
               </span>
             </div>
 
-            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-fio/50">
               <div
                 className="h-full rounded-full transition-[width] duration-500"
                 style={{
@@ -479,13 +479,13 @@ export function SerieMultinicho({
 
         {marcasEsq.map((v, i) => (
           <g key={i}>
-            <line x1={L} y1={pyRes(v)} x2={W - MR_DIR} y2={pyRes(v)} stroke={GRADE} strokeWidth="1" />
+            <line x1={L} y1={pyRes(v)} x2={W - MR_DIR} y2={pyRes(v)} stroke="var(--fio)" strokeWidth="1" />
             <text
               x={L - 8}
               y={pyRes(v) + 4}
               textAnchor="end"
               fontSize="10"
-              fill={EIXO}
+              fill="var(--cinza)"
               fontFamily="var(--font-mono)"
             >
               {i === 0
@@ -505,7 +505,7 @@ export function SerieMultinicho({
                 y={pyInv(v) + 4}
                 textAnchor="start"
                 fontSize="10"
-                fill={EIXO}
+                fill="var(--cinza)"
                 fontFamily="var(--font-mono)"
               >
                 {i === 0 ? 'R$ 0' : dinheiroCurto(v)}
@@ -587,7 +587,7 @@ export function SerieMultinicho({
               y={H - 8}
               textAnchor="middle"
               fontSize="10"
-              fill={EIXO}
+              fill="var(--cinza)"
               fontFamily="var(--font-mono)"
             >
               {diaCurto(s.dia)}

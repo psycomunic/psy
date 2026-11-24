@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { sessaoAtual, clienteServidor } from '@/lib/supabase/servidor';
 import { pode } from '@/lib/papeis';
 import { paraNumero } from '@/lib/numero';
-import { dinheiro } from '@/lib/formato';
+import { dinheiro, dinheiroExato, numero, vezes } from '@/lib/formato';
 import { somarDias } from '@/lib/datas';
 import {
   listarContas,
@@ -210,6 +210,59 @@ function resultadoComercialAutomatico(
   };
 }
 
+function gerarSinteseExecutivaPadrao({
+  cliente,
+  intervalo,
+  perfil,
+  snapshot,
+  comercial,
+}: {
+  cliente: string;
+  intervalo: string;
+  perfil: PerfilMetricaEfetivo;
+  snapshot: SnapshotRelatorio;
+  comercial: ResultadoComercialRelatorio | null;
+}): string {
+  const r = agregarPeriodo(snapshot.serie);
+  const partes: string[] = [];
+
+  if (r.investimento > 0) {
+    partes.push(
+      `No período de ${intervalo}, a operação de mídia de ${cliente} investiu ${dinheiroExato(r.investimento)}, alcançando ${numero(r.alcance > 0 ? r.alcance : r.impressoes)} ${r.alcance > 0 ? 'pessoas únicas' : 'impressões'} e gerando ${numero(r.cliquesLink)} cliques qualificados.`,
+    );
+  } else {
+    partes.push(`Consolidado de desempenho e resultados de ${cliente} referente ao período de ${intervalo}.`);
+  }
+
+  if (perfil === 'whatsapp' && r.conversas > 0) {
+    partes.push(
+      `As campanhas iniciaram ${numero(r.conversas)} conversas diretas de atendimento ao custo médio de ${dinheiroExato(r.custoConversa)} por conversa.`,
+    );
+  } else if (perfil === 'leads' && r.leadsCaptados > 0) {
+    partes.push(
+      `Foram captados ${numero(r.leadsCaptados)} leads com custo por lead (CPL) médio de ${dinheiroExato(r.cpl)}.`,
+    );
+  } else if (perfil === 'ecommerce' && r.receita > 0) {
+    partes.push(
+      `A loja registrou ${numero(r.pedidosAprovados)} pedidos aprovados e ${dinheiro(r.receita)} em receita${r.mer ? `, resultando em MER de ${vezes(r.mer)}` : ''}.`,
+    );
+  } else if (perfil === 'vendas_midia' && r.comprasAtribuidas > 0) {
+    partes.push(
+      `As campanhas registraram ${numero(r.comprasAtribuidas)} compras atribuídas (${dinheiro(r.receitaAtribuida)})${r.roasMidia ? `, com ROAS de ${vezes(r.roasMidia)}` : ''}.`,
+    );
+  }
+
+  if (comercial?.receitaFechada && comercial.receitaFechada > 0) {
+    const roasReal =
+      r.investimento > 0 ? vezes(comercial.receitaFechada / r.investimento) : null;
+    partes.push(
+      `No fechamento comercial real, foram confirmadas ${comercial.vendasFechadas ? `${numero(comercial.vendasFechadas)} reservas/vendas somando ` : ''}${dinheiro(comercial.receitaFechada)}${roasReal ? ` (retorno real de ${roasReal} sobre a verba de anúncios)` : ''}.`,
+    );
+  }
+
+  return partes.join(' ');
+}
+
 export async function gerarRelatorio(
   _anterior: Resultado | null,
   fd: FormData,
@@ -271,7 +324,13 @@ export async function gerarRelatorio(
 
     const resumoFinal =
       resumoExecutivo ||
-      `Acompanhamento consolidado das campanhas e resultados de ${conta.nome} no período de ${intervalo}.`;
+      gerarSinteseExecutivaPadrao({
+        cliente: conta.nome,
+        intervalo,
+        perfil: perfilEfetivo,
+        snapshot,
+        comercial: resultadoComercial,
+      });
 
     const supabase = await clienteServidor();
     const status = publicarDireto ? 'publicado' : 'rascunho';
@@ -382,7 +441,13 @@ export async function gerarRelatoriosEmLote(
         periodo_ate: periodoAte,
         perfil_metrica: perfilEfetivo,
         status: publicarDireto ? 'publicado' : 'rascunho',
-        resumo_executivo: `Consolidado dos indicadores e campanhas de ${conta.nome} no período de ${intervalo}.`,
+        resumo_executivo: gerarSinteseExecutivaPadrao({
+          cliente: conta.nome,
+          intervalo,
+          perfil: perfilEfetivo,
+          snapshot,
+          comercial: comercialAuto,
+        }),
         acoes_executadas: acoesExecutadas,
         proximos_passos: [],
         blocos_visiveis: blocosLote,

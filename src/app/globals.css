@@ -1329,3 +1329,126 @@ body {
   .cena-curtir { color: var(--magenta); }
   .cena-mapa-tracado { stroke-dashoffset: 0; }
 }
+
+/* =================================================================
+   FOLHA EDITORIAL A4 E IMPRESSÃO DE RELATÓRIOS (/relatorio/[slug])
+
+   Conserta os 4 defeitos clássicos de `window.print()` em tema escuro:
+     1. Desliga `.grao-camada` (ruído SVG `feTurbulence` fixo que forçava
+        o Chrome a rasterizar o PDF inteiro como imagem borrada).
+     2. Remapeia os tokens do documento para tinta marinho sobre papel
+        claro — legível em 100% das impressoras e leitores de PDF mesmo
+        quando "Gráficos de plano de fundo" está desmarcado no navegador.
+     3. Destrava `overflow-x-auto` e `min-w-[44rem]` das tabelas para
+        nenhuma coluna de resultado ser decepada na margem direita do A4.
+     4. Evita cabeçalhos órfãos e cartões partidos ao meio entre páginas.
+   ================================================================= */
+
+.documento-relatorio.modo-folha-pdf {
+  --marinho:        #FFFFFF;
+  --marinho-fundo:  #F1F5F9;
+  --marinho-alto:   #E2E8F0;
+  --branco:         #0B1730;
+  --neve:           #1E293B;
+  --cinza:          #475569;
+  --magenta-texto:  #C2114F;
+  --fio:            #CBD5E1;
+  --fio-forte:      #94A3B8;
+  --superficie:     #F8FAFC;
+  background-color: #E2E8F0;
+  color: #0B1730;
+  color-scheme: light;
+}
+
+.documento-relatorio.modo-folha-pdf .folha-relatorio {
+  background-color: #FFFFFF;
+  box-shadow: 0 24px 60px -15px rgba(11, 23, 48, 0.22);
+  border: 1px solid #CBD5E1;
+  border-radius: 1rem;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 11mm 12mm;
+}
+
+@media print {
+  .grao-camada {
+    display: none !important;
+  }
+
+  html:has(.documento-relatorio),
+  body:has(.documento-relatorio) {
+    background: #FFFFFF !important;
+    color: #0B1730 !important;
+    color-scheme: light !important;
+    overflow: visible !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .documento-relatorio {
+    --marinho:        #FFFFFF !important;
+    --marinho-fundo:  #F8FAFC !important;
+    --marinho-alto:   #F1F5F9 !important;
+    --branco:         #0B1730 !important;
+    --neve:           #1E293B !important;
+    --cinza:          #475569 !important;
+    --magenta-texto:  #C2114F !important;
+    --fio:            #CBD5E1 !important;
+    --fio-forte:      #94A3B8 !important;
+    --superficie:     #F8FAFC !important;
+    background: #FFFFFF !important;
+    color: #0B1730 !important;
+    min-height: 0 !important;
+  }
+
+  .documento-relatorio .folha-relatorio {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #FFFFFF !important;
+  }
+
+  .documento-relatorio .cartao {
+    background: #F8FAFC !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: none !important;
+  }
+
+  .documento-relatorio .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  .documento-relatorio table {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 11px !important;
+  }
+
+  .documento-relatorio th,
+  .documento-relatorio td {
+    padding: 7px 9px !important;
+  }
+
+  .documento-relatorio thead {
+    display: table-header-group;
+  }
+
+  .documento-relatorio tr,
+  .documento-relatorio .bloco-indivisivel {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .documento-relatorio h1,
+  .documento-relatorio h2,
+  .documento-relatorio h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}

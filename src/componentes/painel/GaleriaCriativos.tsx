@@ -91,10 +91,12 @@ function MiniaturaCriativo({
   url,
   alt,
   formato,
+  prioritario = false,
 }: {
   url: string | null;
   alt: string;
   formato: CriativoResumo['formato'];
+  prioritario?: boolean;
 }) {
   const [falhou, setFalhou] = useState(false);
 
@@ -116,7 +118,8 @@ function MiniaturaCriativo({
     <img
       src={url}
       alt={alt}
-      loading="lazy"
+      loading={prioritario ? 'eager' : 'lazy'}
+      decoding={prioritario ? 'sync' : 'async'}
       referrerPolicy="no-referrer"
       onError={() => setFalhou(true)}
       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
@@ -285,7 +288,7 @@ export function GaleriaCriativos({
       ) : null}
 
       {/* Grade de cartões */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-3 print:gap-3">
         {visiveis.map((c) => {
           const est = ESTILO_STATUS[c.status];
           const av = avaliarResultadoCampanha(c);
@@ -297,7 +300,7 @@ export function GaleriaCriativos({
             <article
               key={c.id}
               className={
-                'cartao group flex flex-col overflow-hidden transition-colors ' +
+                'cartao bloco-indivisivel group flex flex-col overflow-hidden transition-colors ' +
                 (somenteLeitura
                   ? ehCampeao
                     ? 'border-[#4ADE80]/35'
@@ -310,7 +313,7 @@ export function GaleriaCriativos({
                 disabled={somenteLeitura}
                 onClick={() => setSelecionado(c)}
                 className={
-                  'relative aspect-square w-full overflow-hidden bg-marinho-alto/50 text-left ' +
+                  'relative aspect-square w-full overflow-hidden bg-marinho-alto/50 text-left print:aspect-[4/3] ' +
                   (somenteLeitura ? 'cursor-default' : 'cursor-pointer')
                 }
               >
@@ -318,6 +321,7 @@ export function GaleriaCriativos({
                   url={c.miniaturaUrl}
                   alt={`Prévia do anúncio ${c.nome}`}
                   formato={c.formato}
+                  prioritario={somenteLeitura}
                 />
 
                 {/* Selo de status ao vivo */}

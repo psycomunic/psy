@@ -185,13 +185,13 @@ export async function Relatorios({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5">
-                      {publicado ? (
+                      {publicado || !ehCliente ? (
                         <Link
                           href={`/relatorio/${r.slug}?v=${r.versao}`}
                           target="_blank"
                           className="rounded-full bg-magenta px-4 py-1.5 text-xs font-semibold text-branco transition-colors hover:bg-magenta-forte"
                         >
-                          Abrir / PDF ↗
+                          {publicado ? 'Abrir / PDF ↗' : 'Prévia / PDF ↗'}
                         </Link>
                       ) : null}
                       {!ehCliente && publicado ? (

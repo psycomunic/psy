@@ -1823,6 +1823,8 @@ export async function buscarRelatorioPublico(slug: string) {
   const r = data[0] as Record<string, unknown>;
 
   return {
+    contaId: null as string | null,
+    rascunhoInterno: false,
     slug: r.slug as string,
     cliente: (r.cliente as string) ?? 'Cliente',
     segmento: (r.segmento as string) ?? null,
@@ -1848,4 +1850,56 @@ export async function buscarRelatorioPublico(slug: string) {
     publicadoEm: (r.publicado_em as string) ?? null,
     criadoEm: r.criado_em as string,
   };
+}
+
+/**
+ * Busca relatório para a página `/relatorio/[slug]`:
+ * - Visitante externo vê somente `publicado` via `relatorio_por_link`.
+ * - Equipe interna logada (RLS da tabela `relatorio`) também consegue abrir e
+ *   exportar em PDF rascunhos antes de publicar, além de renovar miniaturas.
+ */
+export async function buscarRelatorioExibido(slug: string) {
+  if (!bancoConfigurado) return null;
+
+  const supabase = await clienteServidor();
+  const { data: interno } = await supabase
+    .from('relatorio')
+    .select('*, conta:conta_id(nome, segmento)')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (interno) {
+    const r = interno as Record<string, unknown>;
+    const conta = r.conta as { nome?: string; segmento?: string | null } | null;
+    return {
+      contaId: (r.conta_id as string) ?? null,
+      rascunhoInterno: r.status !== 'publicado',
+      slug: r.slug as string,
+      cliente: conta?.nome ?? 'Cliente',
+      segmento: conta?.segmento ?? null,
+      titulo: (r.titulo as string) ?? 'Relatório de desempenho',
+      contato: (r.contato as string) ?? null,
+      periodoDe: r.periodo_de as string,
+      periodoAte: r.periodo_ate as string,
+      perfilMetrica: ((r.perfil_metrica as RelatorioResumo['perfilMetrica']) ?? 'whatsapp'),
+      versao: Number(r.versao ?? 1),
+      resumoExecutivo: (r.resumo_executivo as string) ?? '',
+      acoesExecutadas: Array.isArray(r.acoes_executadas)
+        ? (r.acoes_executadas as string[])
+        : [],
+      proximosPassos: Array.isArray(r.proximos_passos)
+        ? (r.proximos_passos as string[])
+        : [],
+      blocosVisiveis: Array.isArray(r.blocos_visiveis)
+        ? (r.blocos_visiveis as BlocoRelatorio[])
+        : ['kpis', 'funil', 'serie', 'campanhas', 'canais', 'marcos'],
+      resultadoComercial:
+        (r.resultado_comercial as ResultadoComercialRelatorio | null) ?? null,
+      snapshot: normalizarSnapshot(r.snapshot),
+      publicadoEm: (r.publicado_em as string) ?? null,
+      criadoEm: r.criado_em as string,
+    };
+  }
+
+  return buscarRelatorioPublico(slug);
 }
