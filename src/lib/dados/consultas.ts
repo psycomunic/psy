@@ -161,6 +161,9 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
       const mRec = m as Record<string, unknown>;
       const s = porId.get(m.conta_id as string);
       const inf = info.get(m.conta_id as string);
+      const recMetaBruta =
+        m.receita_meta === null || m.receita_meta === undefined ? null : Number(m.receita_meta);
+      const recMetaReal = recMetaBruta !== null && recMetaBruta > 0.05 ? recMetaBruta : null;
       return {
         id: m.conta_id as string,
         nome: m.conta_nome as string,
@@ -182,8 +185,9 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
         alcance: Number(mRec.alcance ?? 0),
         cliquesLink: Number(mRec.cliques_link ?? 0),
         mer: m.mer === null || m.mer === undefined ? null : Number(m.mer),
-        metaAtingida: m.meta_atingida === null ? null : Number(m.meta_atingida),
-        receitaMeta: m.receita_meta === null ? null : Number(m.receita_meta),
+        metaAtingida:
+          recMetaReal === null || m.meta_atingida === null ? null : Number(m.meta_atingida),
+        receitaMeta: recMetaReal,
         verbaMeta:
           mRec.verba_meta === null || mRec.verba_meta === undefined
             ? null
@@ -197,7 +201,9 @@ export async function listarContas(): Promise<Resposta<ContaResumo[]>> {
             ? null
             : Number(mRec.custo_resultado_teto),
         receitaDiaNecessaria:
-          m.receita_dia_necessaria === null ? null : Number(m.receita_dia_necessaria),
+          recMetaReal === null || m.receita_dia_necessaria === null
+            ? null
+            : Number(m.receita_dia_necessaria),
         variacaoReceita:
           s?.variacao_receita === null || s?.variacao_receita === undefined
             ? null
@@ -1994,10 +2000,11 @@ export async function metaAtualDaConta(contaId: string): Promise<MetaMesConta> {
 
   if (error || !data) return vazio;
   const r = data as Record<string, unknown>;
+  const recBruta =
+    r.receita_meta === null || r.receita_meta === undefined ? null : Number(r.receita_meta);
 
   return {
-    receitaMeta:
-      r.receita_meta === null || r.receita_meta === undefined ? null : Number(r.receita_meta),
+    receitaMeta: recBruta !== null && recBruta > 0.05 ? recBruta : null,
     verbaMeta:
       r.verba_meta === null || r.verba_meta === undefined ? null : Number(r.verba_meta),
     resultadoMeta:

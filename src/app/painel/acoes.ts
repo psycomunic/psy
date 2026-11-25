@@ -17,6 +17,7 @@ import { pode, rotuloPapel } from '@/lib/papeis';
 import { CHAVES_KPI } from '@/lib/dominio/perfis-metrica';
 import { enviarEmail } from '@/lib/email/remetente';
 import { acessoCriado } from '@/lib/email/modelos';
+import { hojeBR } from '@/lib/datas';
 
 /**
  * Ações de escrita do painel.
@@ -337,10 +338,9 @@ export async function definirMeta(
       custo_resultado_teto: custoTeto,
     } = v.dados;
 
-    /* Sempre dia 1: a chave única é (conta, mês), e uma data no meio do
-       mês criaria uma segunda meta para o mesmo mês. */
-    const agora = new Date();
-    const mes = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-01`;
+    /* Sempre dia 1 no fuso de Brasília: a chave única é (conta, mês), e
+       `kpi_mes` compara com `date_trunc('month', public.hoje())`. */
+    const mes = `${hojeBR().slice(0, 7)}-01`;
 
     const s = clienteServico();
     const payloadNovo: Record<string, unknown> = {
@@ -355,6 +355,24 @@ export async function definirMeta(
     let { error } = await s
       .from('meta_conta')
       .upsert(payloadNovo, { onConflict: 'conta_id,mes' });
+
+    /* Enquanto o banco mantiver a constraint antiga `meta_receita_positiva`
+       (`check (receita_meta > 0)` da migração 0004), grava `0.01` como
+       sentinela de "sem meta de receita" quando o cliente só tem meta de
+       conversas, leads, verba ou teto de custo. A camada de leitura converte
+       qualquer valor <= 0.01 de volta para `null`. */
+    if (error && /meta_receita_positiva/i.test(error.message) && (!receita || receita <= 0)) {
+      const retrySentinela = await s
+        .from('meta_conta')
+        .upsert(
+          {
+            ...payloadNovo,
+            receita_meta: 0.01,
+          },
+          { onConflict: 'conta_id,mes' },
+        );
+      error = retrySentinela.error;
+    }
 
     if (error && /verba_meta|resultado_meta|custo_resultado_teto/i.test(error.message)) {
       if (receita === null) {

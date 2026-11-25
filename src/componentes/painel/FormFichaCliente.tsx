@@ -71,6 +71,12 @@ export function FormMetaRapidaFicha({
 }) {
   const [aberto, setAberto] = useState(false);
   const [estado, acao, pendente] = useActionState<Resultado | null, FormData>(definirMeta, null);
+  const [ultimo, setUltimo] = useState(estado);
+
+  if (estado !== ultimo) {
+    setUltimo(estado);
+    if (estado?.ok) setAberto(false);
+  }
 
   const rotuloVolume =
     perfil === 'leads'
