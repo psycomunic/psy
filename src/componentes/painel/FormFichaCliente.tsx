@@ -1,7 +1,9 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { definirMeta, type Resultado } from '@/app/painel/acoes';
+import { useActionState, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
+import { definirMeta, excluirConta, type Resultado } from '@/app/painel/acoes';
 import {
   salvarFichaCadastral,
   alternarChecklistConta,
@@ -985,5 +987,154 @@ export function GestaoContatosFicha({
         )
       ) : null}
     </div>
+  );
+}
+
+/* ================================================================== */
+/* Exclusão segura de cliente (somente Administrador)                 */
+/* ================================================================== */
+
+export function BotaoExcluirCliente({
+  contaId,
+  nomeCliente,
+  redirecionarAposExcluir = false,
+  variante = 'compacto',
+}: {
+  contaId: string;
+  nomeCliente: string;
+  redirecionarAposExcluir?: boolean;
+  variante?: 'compacto' | 'completo';
+}) {
+  const router = useRouter();
+  const [modalAberto, setModalAberto] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [pendente, iniciar] = useTransition();
+
+  const temaPortal =
+    typeof document !== 'undefined' && document.documentElement.dataset.painelTema === 'escuro'
+      ? 'escuro'
+      : 'claro';
+
+  function confirmarExclusao() {
+    setErro(null);
+    const fd = new FormData();
+    fd.set('conta_id', contaId);
+    fd.set('confirmado', 'sim');
+
+    iniciar(async () => {
+      const res = await excluirConta(null, fd);
+      if (!res.ok) {
+        setErro(res.mensagem);
+        return;
+      }
+      setModalAberto(false);
+      if (redirecionarAposExcluir) {
+        router.push('/painel/contas');
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      {variante === 'completo' ? (
+        <button
+          type="button"
+          onClick={() => {
+            setErro(null);
+            setModalAberto(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-full border border-[#E11D48]/35 bg-[#E11D48]/10 px-5 py-2.5 text-xs font-semibold text-[#E11D48] transition-colors hover:bg-[#E11D48] hover:text-[#FFFFFF]"
+        >
+          Excluir cliente permanentemente
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setErro(null);
+            setModalAberto(true);
+          }}
+          className="inline-flex min-h-[28px] items-center gap-1.5 rounded-full border border-[#E11D48]/30 bg-[#E11D48]/[0.07] px-3 py-1 text-xs font-semibold text-[#E11D48] transition-colors hover:bg-[#E11D48] hover:text-[#FFFFFF]"
+        >
+          Excluir
+        </button>
+      )}
+
+      {modalAberto && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              data-painel-tema={temaPortal}
+              className="painel-portal fixed inset-0 z-[90] flex items-center justify-center bg-[#0B1730]/55 p-4 backdrop-blur-xs"
+              onClick={() => !pendente && setModalAberto(false)}
+            >
+              <div
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby={`titulo-excluir-${contaId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl border border-fio bg-[var(--p-card,#FFFFFF)] p-6 shadow-[0_24px_64px_rgba(11,23,48,0.28)]"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    aria-hidden
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E11D48]/12 text-base font-bold text-[#E11D48]"
+                  >
+                    !
+                  </span>
+                  <div>
+                    <h3
+                      id={`titulo-excluir-${contaId}`}
+                      className="font-display text-lg font-extrabold tracking-[-0.02em] text-branco"
+                    >
+                      Excluir cliente?
+                    </h3>
+                    <p className="text-xs text-cinza">Esta ação não pode ser desfeita.</p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm leading-relaxed text-neve">
+                  Você está prestes a excluir <strong className="font-bold text-branco">{nomeCliente}</strong> da carteira da agência.
+                </p>
+
+                <ul className="mt-3 space-y-1.5 rounded-xl border border-fio bg-marinho-alto/60 p-3.5 text-xs leading-relaxed text-cinza">
+                  <li>• Remove ficha 360°, metas, métricas sincronizadas, fontes, tarefas e relatórios deste cliente.</li>
+                  <li>• Remove contratos e faturas vinculados a esta conta no painel.</li>
+                  <li>• Leads do CRM, projetos e histórico de caixa da agência são preservados.</li>
+                </ul>
+
+                {erro ? (
+                  <p
+                    role="alert"
+                    className="mt-3 rounded-xl border border-[#E11D48]/35 bg-[#E11D48]/10 px-3.5 py-2.5 text-xs font-semibold text-[#E11D48]"
+                  >
+                    {erro}
+                  </p>
+                ) : null}
+
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    disabled={pendente}
+                    onClick={() => setModalAberto(false)}
+                    className="rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors hover:border-fio-forte hover:text-branco disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pendente}
+                    onClick={confirmarExclusao}
+                    className="rounded-full bg-[#E11D48] px-5 py-2 text-xs font-semibold text-[#FFFFFF] shadow-sm transition-colors hover:bg-[#BE123C] disabled:opacity-60"
+                  >
+                    {pendente ? 'Excluindo...' : 'Sim, excluir cliente'}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }

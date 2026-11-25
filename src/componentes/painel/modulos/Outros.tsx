@@ -27,6 +27,7 @@ import {
 } from '../Formularios';
 import { Kanban } from '../Kanban';
 import { FormLead } from '../FormLead';
+import { BotaoExcluirCliente } from '../FormFichaCliente';
 import { previsaoPonderada, leadParado } from '@/lib/dominio/metricas.ts';
 
 /* ================================================================== */
@@ -564,12 +565,17 @@ export async function Contas({ papel }: { papel: Papel }) {
                       )}
                     </td>
                     <td className={`${td} whitespace-nowrap`}>
-                      <Link
-                        href={`/painel/contas?ficha=${c.id}`}
-                        className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto hover:underline"
-                      >
-                        Ficha 360° →
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link
+                          href={`/painel/contas?ficha=${c.id}`}
+                          className="inline-flex min-h-[24px] items-center text-sm font-semibold text-magenta-texto hover:underline"
+                        >
+                          Ficha 360° →
+                        </Link>
+                        {podeEscrever ? (
+                          <BotaoExcluirCliente contaId={c.id} nomeCliente={c.nome} />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );

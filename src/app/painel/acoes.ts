@@ -123,6 +123,69 @@ export async function criarConta(
   }
 }
 
+export async function excluirConta(
+  _anterior: Resultado | null,
+  fd: FormData,
+): Promise<Resultado> {
+  try {
+    const sessao = await exigirAdmin();
+
+    const contaId = String(fd.get('conta_id') ?? '').trim();
+    const confirmado = String(fd.get('confirmado') ?? '').trim();
+
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contaId)) {
+      return { ok: false, mensagem: 'Identificador do cliente inválido.' };
+    }
+    if (confirmado !== 'sim') {
+      return { ok: false, mensagem: 'Confirme a exclusão permanente antes de prosseguir.' };
+    }
+
+    const s = clienteServico();
+
+    const { data: conta, error: erroBusca } = await s
+      .from('conta')
+      .select('id, nome')
+      .eq('id', contaId)
+      .maybeSingle();
+
+    if (erroBusca) return { ok: false, mensagem: erroBusca.message };
+    if (!conta) return { ok: false, mensagem: 'Cliente não encontrado ou já excluído.' };
+
+    /* Desvincula lançamentos financeiros históricos para preservar o livro-caixa
+       e remove faturas/contratos (que possuem ON DELETE RESTRICT no banco)
+       antes de apagar a conta e suas tabelas em cascata. */
+    await s
+      .from('lancamento')
+      .update({ conta_id: null, contrato_id: null })
+      .eq('conta_id', contaId);
+
+    const { error: erroFaturas } = await s.from('fatura').delete().eq('conta_id', contaId);
+    if (erroFaturas) return { ok: false, mensagem: `Erro ao limpar faturas: ${erroFaturas.message}` };
+
+    const { error: erroContratos } = await s.from('contrato').delete().eq('conta_id', contaId);
+    if (erroContratos) {
+      return { ok: false, mensagem: `Erro ao limpar contratos: ${erroContratos.message}` };
+    }
+
+    const { error: erroExclusao } = await s.from('conta').delete().eq('id', contaId);
+    if (erroExclusao) return { ok: false, mensagem: erroExclusao.message };
+
+    await registrar(sessao.id, `excluiu cliente "${conta.nome}"`, 'conta', contaId);
+
+    revalidatePath('/painel/contas');
+    revalidatePath('/painel/visao');
+    revalidatePath('/painel/metricas');
+    revalidatePath('/painel/financeiro');
+    revalidatePath('/painel/tarefas');
+    revalidatePath('/painel/projetos');
+    revalidatePath('/painel/relatorios');
+
+    return { ok: true, mensagem: `Cliente "${conta.nome}" excluído permanentemente.` };
+  } catch (e) {
+    return { ok: false, mensagem: (e as Error).message };
+  }
+}
+
 export async function salvarPerfilMetrica(
   _anterior: Resultado | null,
   fd: FormData,

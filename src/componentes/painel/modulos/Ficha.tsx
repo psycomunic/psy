@@ -34,6 +34,7 @@ import {
   FormProjetoRapidoFicha,
   FormFichaCadastralEBriefing,
   GestaoContatosFicha,
+  BotaoExcluirCliente,
 } from '../FormFichaCliente';
 import {
   ITENS_CHECKLIST_ONBOARDING,
@@ -301,6 +302,13 @@ export async function Ficha({
                 Instagram ↗
               </a>
             ) : null}
+            {papel === 'administrador' && procedencia === 'banco' ? (
+              <BotaoExcluirCliente
+                contaId={conta.id}
+                nomeCliente={conta.nome}
+                redirecionarAposExcluir
+              />
+            ) : null}
           </div>
         </div>
 
@@ -407,6 +415,7 @@ export async function Ficha({
             conta={conta}
             contatos={contatos}
             podeRegistrar={podeRegistrar}
+            podeExcluir={papel === 'administrador' && procedencia === 'banco'}
           />
         ) : null}
         {abaEfetiva === 'diario' ? (
@@ -1170,10 +1179,12 @@ async function AbaFichaEEstrategia({
   conta,
   contatos,
   podeRegistrar,
+  podeExcluir,
 }: {
   conta: ContaFicha;
   contatos: Awaited<ReturnType<typeof contatosDaConta>>['dados'];
   podeRegistrar: boolean;
+  podeExcluir: boolean;
 }) {
   const { dados: equipe } = await listarEquipe();
   const equipeAtiva = equipe.filter((e) => e.ativo).map((e) => ({ id: e.id, nome: e.nome }));
@@ -1240,6 +1251,28 @@ async function AbaFichaEEstrategia({
 
       {podeRegistrar ? (
         <FormFichaCadastralEBriefing conta={conta} equipe={equipeAtiva} />
+      ) : null}
+
+      {podeExcluir ? (
+        <Secao
+          titulo="Zona de exclusão"
+          apoio="Remove definitivamente este cliente e os dados vinculados a ele no painel."
+        >
+          <div className="cartao flex flex-wrap items-center justify-between gap-4 border-[#E11D48]/25 p-5">
+            <div className="max-w-[58ch]">
+              <p className="text-sm font-semibold text-branco">Excluir {conta.nome} da carteira</p>
+              <p className="mt-1 text-xs leading-relaxed text-cinza">
+                Apaga a ficha, metas, métricas sincronizadas, integrações, tarefas, relatórios e contratos desta conta.
+              </p>
+            </div>
+            <BotaoExcluirCliente
+              contaId={conta.id}
+              nomeCliente={conta.nome}
+              redirecionarAposExcluir
+              variante="completo"
+            />
+          </div>
+        </Secao>
       ) : null}
     </div>
   );
