@@ -471,7 +471,7 @@ function PopupDoDia({
         role="dialog"
         aria-modal="true"
         aria-label={porExtenso(dia, { weekday: 'long', day: '2-digit', month: 'long' })}
-        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl border border-fio bg-marinho-fundo sm:max-h-[85vh] sm:rounded-3xl"
+        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl border border-fio bg-[var(--p-card,#FFFFFF)] shadow-2xl sm:max-h-[85vh] sm:rounded-3xl"
       >
         {/* Cabeçalho fixo: numa lista longa, o dia e o botão de fechar
             não podem subir junto com a rolagem. */}

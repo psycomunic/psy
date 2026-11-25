@@ -1452,3 +1452,238 @@ body {
     page-break-after: avoid;
   }
 }
+
+/* =================================================================
+   PAINEL AGENCY OS — TEMA CLARO (PADRÃO) E TEMA ESCURO (OPCIONAL)
+   Escopado estritamente a `.painel-casca` e `.painel-portal` para
+   manter o site institucional público (/, /trafego-pago, /braganca-pa)
+   100% intocado na sua estética original.
+   ================================================================= */
+
+html:has(.painel-casca[data-painel-tema='claro']) {
+  color-scheme: light;
+  background-color: #F2F5FA;
+}
+
+html:has(.painel-casca[data-painel-tema='claro']) body {
+  background: #F2F5FA;
+  color: #0B1730;
+}
+
+html:has(.painel-casca[data-painel-tema='claro']) option,
+html:has(.painel-casca[data-painel-tema='claro']) optgroup {
+  background-color: #FFFFFF;
+  color: #0B1730;
+}
+
+html:has(.painel-casca[data-painel-tema='escuro']) {
+  color-scheme: dark;
+  background-color: #0A1120;
+}
+
+html:has(.painel-casca[data-painel-tema='escuro']) body {
+  background: #0A1120;
+  color: #F8FAFC;
+}
+
+/* --- Tokens do Modo Claro (Padrão Inicial) --- */
+.painel-casca[data-painel-tema='claro'],
+.painel-portal[data-painel-tema='claro'] {
+  --p-canvas:       #F2F5FA;
+  --p-card:         #FFFFFF;
+  --p-card-sutil:   #F6F8FC;
+  --p-sidebar:      #FFFFFF;
+  --p-topbar:       rgba(255, 255, 255, 0.88);
+  --p-azul-marca:   #0B1730;
+  --p-azul-vivo:    #1D4ED8;
+  --p-azul-claro:   #EDF3FF;
+  --p-grade:        rgba(11, 23, 48, 0.07);
+  --p-eixo:         #64748B;
+  --p-serie-1:      #0B1730;
+  --p-serie-2:      #2563EB;
+  --p-ok:           #059669;
+  --p-warn:         #D97706;
+  --p-critico:      #E11D48;
+
+  /* Re-mapeamento semântico das variáveis herdadas dentro do painel */
+  --marinho:        #F2F5FA;
+  --marinho-fundo:  #FFFFFF;
+  --marinho-alto:   #EAF0FA;
+  --branco:         #0B1730;
+  --neve:           #253655;
+  --cinza:          #5A6B8C;
+  --magenta:        #1D4ED8;
+  --magenta-forte:  #1E3A8A;
+  --magenta-texto:  #1D4ED8;
+  --fio:            #E2E8F2;
+  --fio-forte:      #CBD5E5;
+  --superficie:     #FFFFFF;
+  --raio:           1.25rem;
+  --raio-p:         0.875rem;
+
+  background-color: var(--p-canvas);
+  color: #0B1730;
+}
+
+/* --- Tokens do Modo Escuro (Alternável em 1 clique) --- */
+.painel-casca[data-painel-tema='escuro'],
+.painel-portal[data-painel-tema='escuro'] {
+  --p-canvas:       #0A1120;
+  --p-card:         #101B31;
+  --p-card-sutil:   #15233E;
+  --p-sidebar:      #0D1629;
+  --p-topbar:       rgba(13, 22, 41, 0.88);
+  --p-azul-marca:   #1E3A8A;
+  --p-azul-vivo:    #3B82F6;
+  --p-azul-claro:   rgba(59, 130, 246, 0.14);
+  --p-grade:        rgba(255, 255, 255, 0.08);
+  --p-eixo:         #8B9DC0;
+  --p-serie-1:      #3B82F6;
+  --p-serie-2:      #38BDF8;
+  --p-ok:           #34D399;
+  --p-warn:         #FBBF24;
+  --p-critico:      #FB7185;
+
+  --marinho:        #0A1120;
+  --marinho-fundo:  #0D1629;
+  --marinho-alto:   #182949;
+  --branco:         #F8FAFC;
+  --neve:           #DCE4F2;
+  --cinza:          #8B9DC0;
+  --magenta:        #2563EB;
+  --magenta-forte:  #1D4ED8;
+  --magenta-texto:  #60A5FA;
+  --fio:            rgba(255, 255, 255, 0.09);
+  --fio-forte:      rgba(255, 255, 255, 0.18);
+  --superficie:     linear-gradient(180deg, #12203A 0%, #0E192E 100%);
+  --raio:           1.25rem;
+  --raio-p:         0.875rem;
+
+  background-color: var(--p-canvas);
+  color: #F8FAFC;
+}
+
+/* Cartões Bento no painel */
+.painel-casca[data-painel-tema='claro'] .cartao {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F2;
+  box-shadow:
+    0 1px 2px rgba(11, 23, 48, 0.03),
+    0 10px 26px -16px rgba(11, 23, 48, 0.08);
+}
+
+.painel-casca[data-painel-tema='escuro'] .cartao {
+  background: linear-gradient(180deg, #12203A 0%, #0E192E 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 28px -16px rgba(0, 0, 0, 0.55);
+}
+
+/* Botão 3D com Degradê no Azul da Marca (aplica a todos os CTAs primários do painel) */
+.botao-3d-azul,
+.painel-casca :is(button, a, span).bg-magenta,
+.painel-portal :is(button, a, span).bg-magenta {
+  --branco: #FFFFFF;
+  background: linear-gradient(180deg, #3478FF 0%, #1D4ED8 50%, #0F2B75 100%) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(15, 43, 117, 0.65) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 0 rgba(6, 17, 48, 0.42),
+    0 8px 18px -6px rgba(29, 78, 216, 0.45),
+    0 2px 5px -1px rgba(11, 23, 48, 0.18) !important;
+  text-shadow: 0 1px 1px rgba(6, 17, 48, 0.28);
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+:is(.botao-3d-azul, .painel-casca :is(button, a).bg-magenta):hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    inset 0 -2px 0 rgba(6, 17, 48, 0.45),
+    0 12px 24px -6px rgba(29, 78, 216, 0.55),
+    0 4px 8px -2px rgba(11, 23, 48, 0.22) !important;
+}
+
+:is(.botao-3d-azul, .painel-casca :is(button, a).bg-magenta):active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.98);
+  box-shadow:
+    inset 0 2px 4px rgba(6, 17, 48, 0.45),
+    0 2px 6px -2px rgba(29, 78, 216, 0.32) !important;
+}
+
+/* Card executivo de destaque em Azul Profundo da Marca */
+.cartao-destaque-azul {
+  background: linear-gradient(145deg, #0B1730 0%, #132C63 58%, #1D4ED8 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: var(--raio);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 34px -14px rgba(11, 23, 48, 0.42);
+}
+
+/* Adaptação automática das superfícies translúcidas bg-white/* no Modo Claro */
+.painel-casca[data-painel-tema='claro'] :is(
+  .bg-white\/\[0\.02\],
+  .bg-white\/\[0\.03\],
+  .bg-white\/\[0\.04\],
+  .bg-white\/\[0\.05\],
+  .bg-white\/\[0\.06\],
+  .bg-white\/\[0\.07\],
+  .bg-white\/5,
+  .bg-white\/10
+) {
+  background-color: #F4F7FC;
+}
+
+.painel-casca[data-painel-tema='claro'] :is(
+  .hover\:bg-white\/\[0\.03\]:hover,
+  .hover\:bg-white\/\[0\.04\]:hover,
+  .hover\:bg-white\/\[0\.05\]:hover,
+  .hover\:bg-white\/\[0\.06\]:hover,
+  .hover\:bg-white\/\[0\.07\]:hover,
+  .hover\:bg-white\/5:hover,
+  .hover\:bg-white\/10:hover,
+  .hover\:bg-white\/20:hover
+),
+.painel-portal[data-painel-tema='claro'] .hover\:bg-white\/\[0\.04\]:hover {
+  background-color: #EAF0FA;
+}
+
+/* Campos de formulário nítidos no Modo Claro */
+.painel-casca[data-painel-tema='claro'] :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  background-color: #F8FAFD;
+  border-color: #D5DFEE;
+  color: #0B1730;
+}
+
+.painel-casca[data-painel-tema='claro'] :is(input:not([type='checkbox']):not([type='radio']), select, textarea)::placeholder {
+  color: #7B8BA8;
+}
+
+.painel-casca[data-painel-tema='claro'] :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus {
+  background-color: #FFFFFF;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+/* Contraste WCAG AA para badges semânticos no Modo Claro */
+.painel-casca[data-painel-tema='claro'] .text-\[\#4ADE80\] {
+  color: #047857;
+}
+.painel-casca[data-painel-tema='claro'] .text-\[\#FBBF24\] {
+  color: #B45309;
+}
+.painel-casca[data-painel-tema='claro'] .text-\[\#FB7185\] {
+  color: #BE123C;
+}
+
+/* Logo PSY vetorial: marinho profundo no modo claro, branca no modo escuro */
+.painel-casca[data-painel-tema='claro'] .marca-painel-simbolo {
+  filter: brightness(0) saturate(100%) invert(8%) sepia(39%) saturate(2865%) hue-rotate(202deg) brightness(92%) contrast(98%);
+}

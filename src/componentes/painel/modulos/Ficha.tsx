@@ -96,10 +96,10 @@ function faixa(n: number | null) {
 }
 
 function corStatusMeta(status: IndicadorMetaMes['status']): string {
-  if (status === 'acima' || status === 'no_ritmo') return '#4ADE80';
-  if (status === 'atencao') return '#FBBF24';
-  if (status === 'abaixo') return '#FB7185';
-  return '#93A0BC';
+  if (status === 'acima' || status === 'no_ritmo') return CORES_SITUACAO.saudavel;
+  if (status === 'atencao') return CORES_SITUACAO.atencao;
+  if (status === 'abaixo') return CORES_SITUACAO.critico;
+  return CORES_SITUACAO.sem_dado;
 }
 
 function urlInstagram(valor: string | null): string | null {
@@ -169,13 +169,11 @@ export async function Ficha({
   const abaEfetiva: Aba = abasVisiveis.some((item) => item.k === aba) ? aba : 'resumo';
 
   const corSaldo =
-    saldoConta?.nivel === 'zerado'
-      ? '#FB7185'
-      : saldoConta?.nivel === 'critico'
-        ? '#F97316'
-        : saldoConta?.nivel === 'atencao'
-          ? '#FBBF24'
-          : '#4ADE80';
+    saldoConta?.nivel === 'zerado' || saldoConta?.nivel === 'critico'
+      ? CORES_SITUACAO.critico
+      : saldoConta?.nivel === 'atencao'
+        ? CORES_SITUACAO.atencao
+        : CORES_SITUACAO.saudavel;
 
   return (
     <>
@@ -565,18 +563,18 @@ async function AbaVisao360({
                   p.nivel === 'urgente'
                     ? {
                         borda: 'border-[#FB7185]/45 bg-[#FB7185]/[0.07]',
-                        cor: '#FB7185',
+                        cor: CORES_SITUACAO.critico,
                         selo: '■ Urgente hoje',
                       }
                     : p.nivel === 'atencao'
                       ? {
                           borda: 'border-[#FBBF24]/40 bg-[#FBBF24]/[0.06]',
-                          cor: '#FBBF24',
+                          cor: CORES_SITUACAO.atencao,
                           selo: '▲ Atenção',
                         }
                       : {
                           borda: 'border-fio bg-white/[0.02]',
-                          cor: '#93A0BC',
+                          cor: CORES_SITUACAO.sem_dado,
                           selo: '○ Próximo passo',
                         };
 

@@ -198,8 +198,13 @@ export function Sino({
               />
 
               <div
+                data-painel-tema={
+                  typeof document !== 'undefined'
+                    ? document.documentElement.dataset.painelTema || 'claro'
+                    : 'claro'
+                }
                 style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width }}
-                className="z-[61] max-h-[70vh] overflow-y-auto rounded-2xl border border-fio bg-marinho-fundo/95 shadow-2xl backdrop-blur"
+                className="painel-portal z-[61] max-h-[70vh] overflow-y-auto rounded-2xl border border-fio bg-[var(--p-card,#FFFFFF)] shadow-2xl"
               >
                 <div className="flex items-center justify-between gap-3 border-b border-fio px-4 py-3">
                   <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">

@@ -24,76 +24,41 @@
  * normal).
  */
 export const CATEGORICA = [
-  '#EC2E6B', // magenta da marca
-  '#2E8BE0', // azul
-  '#1F9D6B', // verde
-  '#B87D1A', // âmbar
-  '#9B6DFF', // violeta
+  '#1D4ED8', // azul real da marca
+  '#0B1730', // marinho profundo
+  '#059669', // esmeralda semântico
+  '#D97706', // âmbar
+  '#6366F1', // índigo
 ] as const;
 
 /** Canal sempre com a mesma cor, pelo NOME e não pela posição. */
 export const CORES_CANAL: Record<string, string> = {
-  google: CATEGORICA[0],
-  meta: CATEGORICA[1],
-  organico: CATEGORICA[2],
-  direto: CATEGORICA[3],
-  email: CATEGORICA[4],
-  loja: '#93A0BC',
+  google: '#2563EB',
+  meta: '#1E40AF',
+  organico: '#059669',
+  direto: '#D97706',
+  email: '#6366F1',
+  hospedi_direto: '#059669',
+  hospedi_ota: '#0284C7',
+  loja: '#64748B',
 };
 
-export const corDoCanal = (c: string) => CORES_CANAL[c] ?? '#93A0BC';
+export const corDoCanal = (c: string) => CORES_CANAL[c] ?? '#64748B';
 
-/**
- * Série temporal de duas medidas.
- *
- * Receita e investimento estão na mesma unidade (reais) e na mesma
- * ordem de grandeza, então dividem UM eixo. Dois eixos y no mesmo
- * gráfico é o erro mais comum de painel: a escala de cada um vira
- * escolha arbitrária de quem desenhou, e o cruzamento das linhas passa a
- * significar o que a pessoa quiser.
- *
- * Validado: ΔE 19,4 (protanopia) e 32,6 (visão normal).
- */
-export const COR_RECEITA = '#EC2E6B';
-export const COR_INVESTIMENTO = '#2E8BE0';
+export const COR_RECEITA = 'var(--p-serie-1, #0B1730)';
+export const COR_INVESTIMENTO = 'var(--p-serie-2, #2563EB)';
 
-/**
- * Faturado e recebido, no financeiro.
- *
- * O MESMO par já validado acima, e não duas cores novas escolhidas no
- * olho. Também são duas medidas em reais na mesma ordem de grandeza,
- * então também dividem um eixo, e a separação para daltonismo já está
- * medida: ΔE 19,4 em protanopia.
- *
- * Nomes próprios porque "receita" e "investimento" não descrevem o que
- * este gráfico mostra: aqui a comparação é entre o que foi EMITIDO e o
- * que ENTROU, que é a diferença entre faturamento e caixa.
- */
 export const COR_FATURADO = COR_RECEITA;
 export const COR_RECEBIDO = COR_INVESTIMENTO;
 
-/** Despesa desenha sozinha, num gráfico só dela: série de uma medida
-    é magnitude, e magnitude é uma cor só. */
-export const COR_DESPESA = '#B87D1A';
+export const COR_DESPESA = '#D97706';
 
-/**
- * Semáforo de saúde.
- *
- * Reservadas: nunca reutilizar como "série 4". E nunca sozinhas: todo
- * selo carrega ícone e texto, porque cor sozinha não é informação para
- * quem não distingue verde de vermelho.
- *
- * Contraste como TEXTO sobre #0B1730, medido: 10,2:1 · 10,7:1 · 7,1:1 ·
- * 6,8:1. Todos acima dos 4,5:1 da WCAG AA.
- */
 export const CORES_SITUACAO = {
-  saudavel: '#4ADE80',
-  atencao: '#FBBF24',
-  critico: '#FF7A7A',
-  sem_dado: '#93A0BC',
+  saudavel: '#059669',
+  atencao: '#D97706',
+  critico: '#E11D48',
+  sem_dado: '#64748B',
 } as const;
 
-/** Cinza recessivo da grade e dos eixos. Grade que compete com o dado
-    é ruído: ela existe para dar referência, não para ser vista. */
-export const GRADE = 'rgba(255,255,255,0.08)';
-export const EIXO = 'rgba(255,255,255,0.30)';
+export const GRADE = 'var(--p-grade, rgba(11,23,48,0.08))';
+export const EIXO = 'var(--p-eixo, #64748B)';

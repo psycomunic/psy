@@ -11,6 +11,7 @@ import {
 } from '@/lib/dados/consultas';
 import { consultarSaldosMidia } from '@/lib/ingestao/saldos';
 import { Kpi, SeloSituacao, Progresso, AvisoProcedencia, Secao, Tabela, th, td } from '../base';
+import { CORES_SITUACAO } from '../paleta';
 import { rotuloEstagio } from '@/lib/dados/tipos';
 import { dinheiro, dinheiroCurto, dinheiroExato, numero, contagemCurta, vezes } from '@/lib/formato';
 import { resolverPerfil, rotuloPerfilMetrica } from '@/lib/dominio/perfis-metrica';
@@ -199,7 +200,7 @@ export async function Crm({ papel, abrir }: { papel: Papel; abrir?: string }) {
               .sort((a, b) => b.diasNoEstagio - a.diasNoEstagio)
               .map((l) => (
                 <li key={l.id} className="cartao flex items-center gap-4 p-4">
-                  <span aria-hidden className="text-sm" style={{ color: '#FBBF24' }}>▲</span>
+                  <span aria-hidden className="text-sm" style={{ color: CORES_SITUACAO.atencao }}>▲</span>
                   <div className="min-w-0 grow">
                     <p className="truncate text-sm font-semibold">{l.empresa ?? l.nome}</p>
                     <p className="mt-0.5 text-xs text-cinza">
@@ -280,7 +281,7 @@ export async function Crm({ papel, abrir }: { papel: Papel; abrir?: string }) {
                 <td className={`${td} tabular`}>{f.diasMedios === null ? '—' : f.diasMedios}</td>
                 <td className={`${td} tabular`}>
                   {f.parados > 0 ? (
-                    <span style={{ color: '#FBBF24' }}>▲ {f.parados}</span>
+                    <span style={{ color: CORES_SITUACAO.atencao }} className="font-semibold">▲ {f.parados}</span>
                   ) : (
                     '—'
                   )}
@@ -452,13 +453,11 @@ export async function Contas({ papel }: { papel: Papel }) {
                 const metaInfo = resumirMetaNaCarteira(c);
 
                 const corSaldo =
-                  saldo?.nivel === 'zerado'
-                    ? '#FB7185'
-                    : saldo?.nivel === 'critico'
-                      ? '#F97316'
-                      : saldo?.nivel === 'atencao'
-                        ? '#FBBF24'
-                        : '#4ADE80';
+                  saldo?.nivel === 'zerado' || saldo?.nivel === 'critico'
+                    ? CORES_SITUACAO.critico
+                    : saldo?.nivel === 'atencao'
+                      ? CORES_SITUACAO.atencao
+                      : CORES_SITUACAO.saudavel;
 
                 const resultadoTrf =
                   perfil === 'leads'
@@ -649,8 +648,8 @@ export async function Equipe({ papel, meuId }: { papel: Papel; meuId: string | n
                   {/* Cor com FORMA junto: quem não distingue verde de
                       vermelho lê o símbolo e o texto. */}
                   <span
-                    className="inline-flex items-center gap-2"
-                    style={{ color: p.ativo ? '#4ADE80' : '#93A0BC' }}
+                    className="inline-flex items-center gap-2 font-medium"
+                    style={{ color: p.ativo ? CORES_SITUACAO.saudavel : CORES_SITUACAO.sem_dado }}
                   >
                     <span aria-hidden className="text-[0.75rem]">{p.ativo ? '●' : '—'}</span>
                     {p.ativo ? 'Ativo' : 'Desativado'}

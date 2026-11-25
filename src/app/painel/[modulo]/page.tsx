@@ -141,21 +141,16 @@ export default async function PainelModulo({
 
   return (
     <>
-      {/* O módulo de métricas monta o próprio cabeçalho, com o nome da
-          conta. Repetir o título aqui seria dizer duas vezes onde a
-          pessoa está. */}
-      {moduloAtual !== 'metricas' && !naFicha ? (
-        <header>
-          <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-magenta-texto">
-            {rotuloPapel[papel]}
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-extrabold tracking-[-0.035em]">
+      {/* Visão geral, Métricas e Ficha 360° montam o próprio cabeçalho contextual. */}
+      {moduloAtual !== 'visao' && moduloAtual !== 'metricas' && !naFicha ? (
+        <header className="border-b border-fio pb-5">
+          <h1 className="font-display text-3xl font-extrabold tracking-[-0.035em] text-branco">
             {rotuloModulo[moduloAtual]}
           </h1>
         </header>
       ) : null}
 
-      <div className={moduloAtual !== 'metricas' && !naFicha ? 'mt-8' : ''}>
+      <div className={moduloAtual !== 'visao' && moduloAtual !== 'metricas' && !naFicha ? 'mt-7' : ''}>
         {moduloAtual === 'visao' ? <Visao papel={papel} nome={nome} /> : null}
         {moduloAtual === 'metricas' ? (
           <Metricas

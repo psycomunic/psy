@@ -96,7 +96,7 @@ export function Numero({
   rotulo,
   valor,
   apoio,
-  cor = 'var(--magenta)',
+  cor = 'var(--p-azul-vivo, #1D4ED8)',
   href,
   alerta = false,
 }: {
@@ -107,26 +107,40 @@ export function Numero({
   href?: string;
   alerta?: boolean;
 }) {
+  const corIndicador = alerta ? CORES_SITUACAO.critico : cor;
+
   const corpo = (
     <>
-      <span
-        aria-hidden
-        className="absolute inset-y-5 left-0 w-[3px] rounded-full transition-all duration-300 group-hover:inset-y-3"
-        style={{ background: alerta ? CORES_SITUACAO.critico : cor }}
-      />
-      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">{rotulo}</p>
-      <p className="tabular mt-2.5 font-display text-[2rem] font-extrabold leading-none tracking-[-0.04em]">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-cinza">
+          <span
+            aria-hidden
+            className="h-2 w-2 flex-none rounded-full"
+            style={{ background: corIndicador }}
+          />
+          {rotulo}
+        </span>
+        {href ? (
+          <span
+            aria-hidden
+            className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-fio bg-marinho-alto/60 text-xs font-bold text-neve transition-all duration-200 group-hover:border-transparent group-hover:bg-[var(--p-azul-vivo,#1D4ED8)] group-hover:text-[#FFFFFF]"
+          >
+            ↗
+          </span>
+        ) : null}
+      </div>
+      <p className="tabular mt-3 font-display text-[1.95rem] font-extrabold leading-none tracking-[-0.03em] text-branco">
         {valor}
       </p>
       {apoio ? (
-        <p className="mt-2 text-xs leading-relaxed text-cinza">{apoio}</p>
+        <p className="mt-2.5 text-xs leading-relaxed text-cinza">{apoio}</p>
       ) : null}
     </>
   );
 
   const classe =
-    'cartao group relative overflow-hidden py-5 pl-6 pr-5 transition-transform duration-300 ' +
-    (href ? 'hover:-translate-y-0.5' : '');
+    'cartao group relative flex flex-col justify-between overflow-hidden p-5 transition-all duration-200 ' +
+    (href ? 'hover:-translate-y-0.5 hover:border-fio-forte' : '');
 
   return href ? (
     <Link href={href} className={classe}>
@@ -153,20 +167,19 @@ export function Bloco({
   children: ReactNode;
 }) {
   return (
-    <section className="mt-12 first:mt-0">
+    <section className="mt-10 first:mt-0">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-3 font-display text-xl font-extrabold tracking-[-0.03em]">
-            <span aria-hidden className="h-4 w-1 flex-none rounded-full bg-magenta" />
+          <h2 className="font-display text-lg font-bold tracking-[-0.025em] text-branco">
             {titulo}
           </h2>
           {apoio ? (
-            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-cinza">{apoio}</p>
+            <p className="mt-1 max-w-[68ch] text-sm leading-relaxed text-cinza">{apoio}</p>
           ) : null}
         </div>
         {acao ? <div className="flex-none">{acao}</div> : null}
       </div>
-      <div className="mt-5">{children}</div>
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -222,7 +235,7 @@ export function Pendencia({
       {href ? (
         <Link
           href={href}
-          className="flex-none rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors group-hover:border-magenta group-hover:bg-magenta group-hover:text-branco"
+          className="flex-none rounded-full border border-fio px-4 py-2 text-xs font-semibold text-neve transition-colors group-hover:border-transparent group-hover:bg-[var(--p-azul-vivo,#1D4ED8)] group-hover:text-[#FFFFFF]"
         >
           {acao ?? 'Abrir'}
         </Link>
@@ -249,11 +262,11 @@ export function Atalho({
   return (
     <Link
       href={href}
-      className="cartao group flex items-center gap-4 p-5 transition-transform duration-300 hover:-translate-y-0.5"
+      className="cartao group flex items-center gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-fio-forte"
     >
       <span
         aria-hidden
-        className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-magenta/12 font-display text-lg font-extrabold text-magenta-texto transition-colors group-hover:bg-magenta group-hover:text-branco"
+        className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-magenta/12 font-display text-lg font-extrabold text-magenta-texto transition-colors group-hover:bg-[var(--p-azul-vivo,#1D4ED8)] group-hover:text-[#FFFFFF]"
       >
         {simbolo}
       </span>

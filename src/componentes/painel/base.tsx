@@ -45,7 +45,7 @@ export function Kpi({
   apoio,
   variacao,
   invertido = false,
-  rotuloComparacao = 'vs. período anterior',
+  rotuloComparacao = 'vs. período ant.',
 }: {
   rotulo: string;
   valor: string;
@@ -56,29 +56,45 @@ export function Kpi({
   invertido?: boolean;
   rotuloComparacao?: string;
 }) {
-  const bom = variacao === null || variacao === undefined
-    ? null
-    : invertido ? variacao <= 0 : variacao >= 0;
+  const bom =
+    variacao === null || variacao === undefined
+      ? null
+      : invertido
+        ? variacao <= 0
+        : variacao >= 0;
 
   return (
-    <div className="cartao bloco-indivisivel p-6 print:p-4">
-      <p className="font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza print:text-[0.65rem]">
-        {rotulo}
-      </p>
-      <p className="tabular mt-3 font-display text-3xl font-extrabold tracking-[-0.035em] print:mt-1.5 print:text-2xl">
-        {valor}
-      </p>
-      {apoio ? <p className="mt-2 text-xs leading-relaxed text-cinza print:mt-1 print:text-[0.68rem]">{apoio}</p> : null}
-      {variacao !== null && variacao !== undefined ? (
-        <p
-          className="tabular mt-3 text-xs font-semibold print:mt-2 print:text-[0.68rem]"
-          style={{ color: bom ? '#16A34A' : '#E11D48' }}
-        >
-          {/* Seta além da cor: mesma regra do selo. */}
-          <span aria-hidden>{variacao >= 0 ? '↑' : '↓'}</span>{' '}
-          {`${variacao > 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}%`}
-          <span className="ml-1 font-normal text-cinza">{rotuloComparacao}</span>
+    <div className="cartao bloco-indivisivel flex flex-col justify-between p-5 print:p-4">
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-cinza print:text-[0.65rem]">
+            {rotulo}
+          </p>
+          {variacao !== null && variacao !== undefined ? (
+            <span
+              className="tabular inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold print:text-[0.65rem]"
+              style={{
+                color: bom ? 'var(--p-ok, #059669)' : 'var(--p-critico, #E11D48)',
+                backgroundColor: bom
+                  ? 'color-mix(in oklab, var(--p-ok, #059669) 13%, transparent)'
+                  : 'color-mix(in oklab, var(--p-critico, #E11D48) 13%, transparent)',
+              }}
+            >
+              <span aria-hidden>{variacao >= 0 ? '↗' : '↘'}</span>
+              {`${variacao > 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}%`}
+            </span>
+          ) : null}
+        </div>
+        <p className="tabular mt-2.5 font-display text-[1.85rem] font-extrabold leading-[1.1] tracking-[-0.03em] text-branco print:mt-1.5 print:text-2xl">
+          {valor}
         </p>
+      </div>
+      {apoio ? (
+        <p className="mt-2.5 text-xs leading-relaxed text-cinza print:mt-1 print:text-[0.68rem]">
+          {apoio}
+        </p>
+      ) : variacao !== null && variacao !== undefined ? (
+        <p className="mt-2.5 text-[0.72rem] text-cinza print:mt-1">{rotuloComparacao}</p>
       ) : null}
     </div>
   );
@@ -90,22 +106,22 @@ export function Progresso({ percentual }: { percentual: number | null }) {
     return <p className="text-xs text-cinza">Meta não definida</p>;
   }
   const cor =
-    percentual >= 90 ? CORES_SITUACAO.saudavel
-    : percentual >= 70 ? CORES_SITUACAO.atencao
-    : CORES_SITUACAO.critico;
+    percentual >= 90
+      ? CORES_SITUACAO.saudavel
+      : percentual >= 70
+        ? CORES_SITUACAO.atencao
+        : CORES_SITUACAO.critico;
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="tabular text-sm font-semibold" style={{ color: cor }}>
+        <span className="tabular text-sm font-bold" style={{ color: cor }}>
           {percentual.toFixed(0)}%
         </span>
-        <span className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
-          da meta do mês
-        </span>
+        <span className="text-[0.7rem] font-medium text-cinza">da meta</span>
       </div>
       <div
-        className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]"
+        className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-marinho-alto"
         role="progressbar"
         aria-valuenow={Math.round(percentual)}
         aria-valuemin={0}
@@ -113,7 +129,7 @@ export function Progresso({ percentual }: { percentual: number | null }) {
         aria-label="Progresso da meta do mês"
       >
         <div
-          className="h-full rounded-full"
+          className="h-full rounded-full transition-all"
           style={{ width: `${Math.min(percentual, 100)}%`, background: cor }}
         />
       </div>
@@ -151,15 +167,17 @@ export function Secao({
   children: ReactNode;
 }) {
   return (
-    <section className="mt-10">
+    <section className="mt-9">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold tracking-[-0.02em]">{titulo}</h2>
-          {apoio ? <p className="mt-1.5 text-sm text-cinza">{apoio}</p> : null}
+          <h2 className="font-display text-lg font-bold tracking-[-0.02em] text-branco">
+            {titulo}
+          </h2>
+          {apoio ? <p className="mt-1 text-sm text-cinza">{apoio}</p> : null}
         </div>
         {acao}
       </div>
-      <div className="mt-5">{children}</div>
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -168,7 +186,7 @@ export function Secao({
     horizontal mora no container, nunca no body. */
 export function Tabela({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-fio">
+    <div className="cartao overflow-x-auto">
       <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
         {children}
       </table>
@@ -177,5 +195,5 @@ export function Tabela({ children }: { children: ReactNode }) {
 }
 
 export const th =
-  'px-5 py-4 font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza font-normal';
-export const td = 'px-5 py-4 border-t border-fio';
+  'bg-marinho-alto/55 px-5 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.09em] text-cinza';
+export const td = 'px-5 py-3.5 border-t border-fio transition-colors';

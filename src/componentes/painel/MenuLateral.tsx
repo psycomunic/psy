@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Marca } from '@/componentes/Marca';
 import { BotaoMenu } from './BotaoMenu';
 import { IconeModulo } from './IconeModulo';
-import { Sino } from './Sino';
 import { Sair } from '@/app/painel/Sair';
 import {
   GRUPOS_DE_MODULOS,
@@ -18,32 +17,6 @@ import {
   type Modulo,
   type Papel,
 } from '@/lib/papeis';
-import type { Notificacao } from '@/lib/dados/tipos';
-
-/**
- * A navegação do painel.
- *
- * ============================================================
- * POR QUE AGRUPAR
- * ============================================================
- * Onze itens no mesmo peso visual não são um menu, são uma lista. Quem
- * procura "onde vejo inadimplência" lê os onze de cima a baixo toda vez,
- * porque nada indica onde a resposta mora.
- *
- * Os grupos respondem uma pergunta cada: de onde vem cliente novo, o que
- * se faz com quem já entrou, e o que sustenta a agência por trás. A
- * divisão vive em `papeis.ts`, junto da matriz, e há uma trava que
- * quebra o build se um módulo novo ficar sem grupo.
- *
- * ============================================================
- * OS CONTADORES
- * ============================================================
- * Sinal no item de navegação é o único jeito de alguém descobrir que
- * precisa abrir uma tela em que não ia clicar hoje. Três aparecem, e só
- * quando há o que mostrar: tarefa atrasada, lead esquecido e integração
- * quebrada. Contador em zero é ruído — ele diz "está tudo bem" ocupando
- * o mesmo espaço de quem diz "vem aqui".
- */
 
 type Contadores = Partial<Record<Modulo, { n: number; grave?: boolean; titulo: string }>>;
 
@@ -52,23 +25,12 @@ export function MenuLateral({
   nome,
   bancoConfigurado,
   contadores = {},
-  avisos,
 }: {
   papel: Papel;
   nome: string | null;
   bancoConfigurado: boolean;
   contadores?: Contadores;
-  avisos?: { lista: Notificacao[]; naoLidas: number; agora: string };
 }) {
-  /*
-    QUAL ITEM ESTÁ ATIVO SAI DA URL, E NÃO DE UMA PROPRIEDADE.
-
-    O menu mora no layout do painel agora, e layout não sabe qual
-    módulo está aberto: ele não é refeito quando o filho muda, que é
-    justamente o motivo de ele estar lá. `usePathname` reage à
-    navegação sem nenhuma ida ao servidor, então o item acende no
-    mesmo instante do clique, antes de o conteúdo novo chegar.
-  */
   const caminho = usePathname();
   const moduloAtual = (caminho?.split('/')[2] ?? '') as Modulo;
   const visiveis = modulosDoPapel(papel);
@@ -77,8 +39,6 @@ export function MenuLateral({
   const comPapel = (rota: string) =>
     bancoConfigurado ? rota : `${rota}?papel=${papel}`;
 
-  /* Iniciais para o avatar. Duas, e não uma: "AG" identifica muito mais
-     que "A" num time onde metade dos nomes começa com a mesma letra. */
   const iniciais = (nome ?? '')
     .split(' ')
     .filter(Boolean)
@@ -97,25 +57,16 @@ export function MenuLateral({
           aria-current={ativo ? 'page' : undefined}
           title={rotuloModulo[m]}
           className={
-            'menu-item group relative flex items-center gap-3 rounded-xl py-2.5 pl-3.5 pr-3 text-sm transition-colors ' +
+            'menu-item group relative flex items-center gap-3 rounded-xl py-2.5 pl-3.5 pr-3 text-sm transition-all duration-150 ' +
             (ativo
-              ? 'bg-marinho-alto font-semibold text-branco'
-              : 'text-neve hover:bg-white/[0.05] hover:text-branco')
+              ? 'botao-3d-azul font-semibold'
+              : 'font-medium text-neve hover:bg-marinho-alto/70 hover:text-branco')
           }
         >
-          {/* Trilho de cor na aresta, só no ativo. É o que se vê de
-              relance, sem ler: a posição na lista já diz onde você está. */}
-          {ativo ? (
-            <span
-              aria-hidden
-              className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-magenta"
-            />
-          ) : null}
-
           <span
             className={
               'flex-none transition-colors ' +
-              (ativo ? 'text-magenta-texto' : 'text-cinza group-hover:text-neve')
+              (ativo ? 'text-[#FFFFFF]' : 'text-cinza group-hover:text-magenta-texto')
             }
           >
             <IconeModulo modulo={m} />
@@ -127,24 +78,23 @@ export function MenuLateral({
             <span
               title={c.titulo}
               className={
-                'menu-rotulo tabular flex-none rounded-full px-2 py-0.5 text-[0.75rem] font-semibold ' +
-                (c.grave
-                  ? 'bg-magenta text-branco'
-                  : 'border border-fio bg-white/[0.06] text-neve')
+                'menu-rotulo tabular flex-none rounded-full px-2 py-0.5 text-[0.7rem] font-bold ' +
+                (ativo
+                  ? 'bg-white/20 text-[#FFFFFF]'
+                  : c.grave
+                    ? 'bg-[#E11D48]/15 text-[var(--p-critico,#E11D48)]'
+                    : 'border border-fio bg-marinho-alto text-neve')
               }
             >
               {c.n}
             </span>
           ) : null}
 
-          {/* No menu recolhido o número não cabe, então vira um ponto.
-              Sem ele, recolher o menu esconderia o aviso justamente de
-              quem escolheu ver menos coisa na tela. */}
           {c && c.n > 0 ? (
             <span
               aria-hidden
               className="menu-ponto absolute right-2 top-2 h-2 w-2 rounded-full"
-              style={{ background: c.grave ? 'var(--magenta)' : 'var(--cinza)' }}
+              style={{ background: c.grave ? '#E11D48' : 'var(--p-azul-vivo,#1D4ED8)' }}
             />
           ) : null}
         </Link>
@@ -153,67 +103,30 @@ export function MenuLateral({
   };
 
   return (
-    <aside className="menu-lateral relative z-10 shrink-0 border-b border-fio bg-marinho-fundo/85 px-5 py-6 backdrop-blur-sm transition-[width] duration-200 lg:w-64 lg:border-b-0 lg:border-r">
-      {/*
-        DUAS LINHAS NA COLUNA, UMA SÓ NA FAIXA DO TOPO.
-
-        No celular a barra é uma faixa de 390px e sobra espaço: marca à
-        esquerda, botões à direita, medido sem encosto.
-
-        No computador ela é uma coluna de 256px, e aí não cabe. Medido:
-        o lockup precisa de 141px, os dois botões de 84, os respiros de
-        20, e sobram 215. O nome COMUNIC terminava 9px DENTRO do sino.
-
-        Encolher o lockup era a saída óbvia e é a errada: para caber, a
-        letra teria que ir abaixo dos 12px que valem no painel inteiro,
-        ou o espacejamento da marca teria que mudar só aqui, e aí o
-        cabeçalho do painel e o do site deixariam de ser o mesmo
-        desenho.
-      */}
-      <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-stretch lg:gap-4">
+    <aside className="menu-lateral relative z-20 shrink-0 border-b border-fio bg-[var(--p-sidebar,#FFFFFF)] px-4 py-5 transition-[width] duration-200 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:flex-col lg:overflow-y-auto lg:border-b-0 lg:border-r">
+      <div className="flex items-center justify-between gap-3 px-1">
         <span className="menu-rotulo min-w-0">
           <Marca />
         </span>
-        <span className="menu-acoes flex flex-none items-center gap-2 lg:justify-end">
-          {/* O sino no topo do menu, e nao dentro de um modulo: e o
-              unico lugar por onde toda navegacao passa. Lembrete que
-              exige abrir a tela certa nao e lembrete. */}
-          {avisos ? <Sino lista={avisos.lista} naoLidas={avisos.naoLidas} agora={avisos.agora} /> : null}
+        <span className="menu-acoes flex flex-none items-center gap-2">
           <BotaoMenu />
         </span>
       </div>
 
-      <div className="menu-corpo">
-        {/* Quem está logado. O avatar existe para o menu recolhido:
-            sem ele, some qualquer sinal de qual conta está aberta. */}
-        {bancoConfigurado ? (
-          <div className="mt-7 flex items-center gap-3">
-            <span
-              aria-hidden
-              className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-magenta/15 font-display text-sm font-extrabold text-magenta-texto"
-            >
-              {iniciais || '—'}
-            </span>
-            <span className="menu-rotulo min-w-0">
-              <span className="block truncate text-sm font-semibold text-branco">{nome}</span>
-              <span className="block font-mono text-[0.75rem] uppercase tracking-[0.12em] text-magenta-texto">
-                {rotuloPapel[papel]}
-              </span>
-            </span>
-          </div>
-        ) : (
-          <div className="menu-rotulo mt-7">
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-magenta-texto">
-              Perfil em visualização
+      <div className="menu-corpo flex flex-1 flex-col">
+        {!bancoConfigurado ? (
+          <div className="menu-rotulo mt-5 rounded-xl border border-fio bg-marinho-alto/50 p-3">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-magenta-texto">
+              Perfil de demonstração
             </p>
-            <ul className="mt-3 flex flex-wrap gap-2">
+            <ul className="mt-2 flex flex-wrap gap-1.5">
               {PAPEIS.map((p) => (
                 <li key={p}>
                   <Link
                     href={`/painel/${modulosDoPapel(p)[0]}?papel=${p}`}
                     className={
-                      'inline-block rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors ' +
-                      (p === papel ? 'bg-magenta text-branco' : 'bg-white/10 text-neve hover:bg-white/20')
+                      'inline-block rounded-full px-2.5 py-1 text-[0.7rem] font-semibold transition-colors ' +
+                      (p === papel ? 'botao-3d-azul' : 'border border-fio text-neve hover:bg-marinho-alto')
                     }
                   >
                     {rotuloPapel[p]}
@@ -222,29 +135,22 @@ export function MenuLateral({
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
 
-        <nav aria-label="Módulos" className="mt-7">
-          {/* A visão geral fica solta no topo: é a porta de entrada, e
-              não uma das áreas. Dentro de um grupo, some no meio de
-              outras quatro. */}
+        <nav aria-label="Módulos" className="mt-6 flex-1">
           {temAcesso(MODULO_INICIAL) ? (
             <ul className="space-y-1">{item(MODULO_INICIAL)}</ul>
           ) : null}
 
           {GRUPOS_DE_MODULOS.map((grupo) => {
             const doGrupo = grupo.modulos.filter(temAcesso);
-            /* Grupo sem nenhum módulo visível para este papel não vira
-               um título órfão: some inteiro. */
             if (doGrupo.length === 0) return null;
 
             return (
-              <div key={grupo.titulo} className="mt-6">
-                <p className="menu-rotulo mb-2 px-3.5 font-mono text-[0.75rem] uppercase tracking-[0.16em] text-cinza">
+              <div key={grupo.titulo} className="mt-5">
+                <p className="menu-rotulo mb-1.5 px-3.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-cinza">
                   {grupo.titulo}
                 </p>
-                {/* Fio no lugar do título quando recolhido: sem ele os
-                    doze itens voltam a ser uma lista só. */}
                 <span aria-hidden className="menu-fio mx-3 mb-2 block h-px bg-fio" />
                 <ul className="space-y-1">{doGrupo.map(item)}</ul>
               </div>
@@ -252,23 +158,35 @@ export function MenuLateral({
           })}
         </nav>
 
-        <div className="menu-rotulo mt-8 border-t border-fio pt-5">
-          <p className="text-xs leading-relaxed text-cinza">
-            {papel === 'cliente' || papel === 'cliente_leitura'
-              ? 'Você enxerga apenas os números da sua loja.'
-              : `${rotuloPapel[papel]} enxerga ${visiveis.length} de ${MODULOS.length} módulos.`}
-          </p>
-        </div>
-
-        <p className="mt-5">
+        <div className="mt-6 border-t border-fio pt-4">
           {bancoConfigurado ? (
-            <Sair />
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span
+                  aria-hidden
+                  className="botao-3d-azul flex h-8 w-8 flex-none items-center justify-center rounded-full font-display text-xs font-bold"
+                >
+                  {iniciais || 'P'}
+                </span>
+                <div className="menu-rotulo min-w-0">
+                  <p className="truncate text-xs font-semibold text-branco">{nome}</p>
+                  <p className="truncate text-[0.68rem] text-cinza">
+                    {papel === 'cliente' || papel === 'cliente_leitura'
+                      ? 'Portal do cliente'
+                      : `${visiveis.length}/${MODULOS.length} módulos`}
+                  </p>
+                </div>
+              </div>
+              <div className="menu-rotulo shrink-0">
+                <Sair />
+              </div>
+            </div>
           ) : (
-            <Link href="/entrar" className="text-sm text-magenta-texto underline underline-offset-4">
+            <Link href="/entrar" className="px-2 text-xs font-semibold text-magenta-texto hover:underline">
               Trocar de perfil
             </Link>
           )}
-        </p>
+        </div>
       </div>
     </aside>
   );

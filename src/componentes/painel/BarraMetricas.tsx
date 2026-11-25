@@ -248,7 +248,7 @@ export function BarraMetricas({
                 </button>
 
                 {aberto ? (
-                  <div className="absolute left-0 top-full z-30 mt-2 w-[21rem] max-w-[calc(100vw-3rem)] rounded-2xl border border-fio bg-marinho-fundo p-3 shadow-2xl">
+                  <div className="absolute left-0 top-full z-30 mt-2 w-[21rem] max-w-[calc(100vw-3rem)] rounded-2xl border border-fio bg-[var(--p-card,#FFFFFF)] p-3 shadow-[0_18px_42px_rgba(11,23,48,0.16)]">
                     <input
                       type="search"
                       value={busca}

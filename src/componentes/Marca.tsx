@@ -54,7 +54,7 @@ export function Marca({ className = '' }: { className?: string }) {
            next.config, flag que tem esse nome por um motivo. */
         unoptimized
         priority
-        className="h-[22px] w-auto"
+        className="marca-painel-simbolo h-[22px] w-auto"
       />
       {/* Fio magenta entre a marca e o nome: o elemento gráfico que
           amarra o lockup à paleta. */}

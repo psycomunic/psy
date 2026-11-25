@@ -8,6 +8,7 @@ import {
   primeiroDiaSincronizado,
 } from '@/lib/dados/consultas';
 import { SerieMultinicho, BarrasCanal, type MedidaCanal } from '../Graficos';
+import { CORES_SITUACAO } from '../paleta';
 import { BarraMetricas } from '../BarraMetricas';
 import { GaleriaCriativos } from '../GaleriaCriativos';
 import { FormPerfilMetrica } from '../Formularios';
@@ -240,13 +241,11 @@ export async function Metricas({
                   const res = resultadoDoMesNaCarteira(c, p);
                   const saldo = saldoPorConta.get(c.id);
                   const corSaldo =
-                    saldo?.nivel === 'zerado'
-                      ? '#FB7185'
-                      : saldo?.nivel === 'critico'
-                        ? '#F97316'
-                        : saldo?.nivel === 'atencao'
-                          ? '#FBBF24'
-                          : '#4ADE80';
+                    saldo?.nivel === 'zerado' || saldo?.nivel === 'critico'
+                      ? CORES_SITUACAO.critico
+                      : saldo?.nivel === 'atencao'
+                        ? CORES_SITUACAO.atencao
+                        : CORES_SITUACAO.saudavel;
 
                   return (
                     <tr key={c.id}>
@@ -498,13 +497,11 @@ export async function Metricas({
               className="tabular font-display text-2xl font-extrabold tracking-[-0.03em]"
               style={{
                 color:
-                  saldoMeta.nivel === 'zerado'
-                    ? '#FB7185'
-                    : saldoMeta.nivel === 'critico'
-                      ? '#F97316'
-                      : saldoMeta.nivel === 'atencao'
-                        ? '#FBBF24'
-                        : '#4ADE80',
+                  saldoMeta.nivel === 'zerado' || saldoMeta.nivel === 'critico'
+                    ? CORES_SITUACAO.critico
+                    : saldoMeta.nivel === 'atencao'
+                      ? CORES_SITUACAO.atencao
+                      : CORES_SITUACAO.saudavel,
               }}
             >
               {saldoMeta.modalidade === 'pre_pago' || saldoMeta.saldoDisponivel !== null

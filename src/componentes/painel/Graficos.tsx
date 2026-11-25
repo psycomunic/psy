@@ -24,29 +24,13 @@ import {
   EIXO,
 } from './paleta';
 
+const CLASSE_TOOLTIP =
+  'pointer-events-none z-10 rounded-2xl border border-fio bg-[var(--p-card,#FFFFFF)] p-4 shadow-[0_14px_34px_rgba(11,23,48,0.14)] backdrop-blur print:hidden';
+
 /* ==================================================================
    SÉRIE TEMPORAL: receita e investimento
-
-   Duas linhas, UM eixo. As duas medidas estão em reais e na mesma
-   ordem de grandeza, então compartilham escala e a comparação visual
-   entre elas é honesta. Dois eixos y transformariam o cruzamento das
-   linhas em coincidência de escala escolhida por quem desenhou.
-
-   Sem biblioteca: é SVG puro. Uma biblioteca de gráfico custaria
-   dezenas de KB para desenhar duas polilinhas.
    ================================================================== */
 
-/*
-  Margens medidas, e não chutadas.
-
-  L=68: o maior rótulo do eixo é "13,7 mil", oito caracteres em mono de
-  10px, uns 48px, mais 8px de respiro até a grade. Com os 52px que eu
-  tinha posto antes, o texto vazava para fora do viewBox e aparecia
-  cortado como ".3,7 mil".
-
-  R=22: a última data do eixo x é centrada no ponto final. Com R=12 a
-  metade direita de "19/08" saía do quadro.
-*/
 const L = 68;
 const R = 22;
 const T = 12;
@@ -66,8 +50,6 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
     );
   }
 
-  /* A escala parte SEMPRE do zero. Eixo truncado é a forma mais fácil
-     de transformar uma variação de 3% num precipício visual. */
   const max = Math.max(...serie.map((d) => Math.max(d.receita, d.investimento)));
   const teto = max * 1.12 || 1;
 
@@ -80,31 +62,19 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
   const area = (sel: (d: DiaKpi) => number) =>
     `${linha(sel)} L ${px(serie.length - 1).toFixed(1)} ${py(0)} L ${px(0).toFixed(1)} ${py(0)} Z`;
 
-  /* Quatro marcas no eixo y bastam. Mais que isso vira grade de
-     caderno e compete com o dado. */
   const marcas = [0, 0.25, 0.5, 0.75, 1].map((f) => f * teto);
-
-  /* Rótulos de x: primeiro, último e alguns no meio, para não
-     empilhar 30 datas em 720px. */
   const passo = Math.max(1, Math.floor(serie.length / 6));
-
   const d = ativo === null ? null : serie[ativo];
 
   return (
     <figure className="relative">
-      {/* Legenda sempre presente com duas séries: identidade nunca pode
-          depender só da cor. */}
       <figcaption className="mb-4 flex flex-wrap items-center gap-5">
         {[
           { c: COR_RECEITA, n: 'Receita aprovada' },
           { c: COR_INVESTIMENTO, n: 'Investimento em mídia' },
         ].map((s) => (
-          <span key={s.n} className="flex items-center gap-2 text-xs text-neve">
-            <span
-              aria-hidden
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ background: s.c }}
-            />
+          <span key={s.n} className="flex items-center gap-2 text-xs font-medium text-neve">
+            <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: s.c }} />
             {s.n}
           </span>
         ))}
@@ -119,15 +89,22 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
       >
         <defs>
           <linearGradient id={`${id}-rec`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={COR_RECEITA} stopOpacity="0.28" />
+            <stop offset="0%" stopColor={COR_RECEITA} stopOpacity="0.22" />
             <stop offset="100%" stopColor={COR_RECEITA} stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Grade recessiva */}
         {marcas.map((v, i) => (
           <g key={i}>
-            <line x1={L} y1={py(v)} x2={W - R} y2={py(v)} stroke={GRADE} strokeWidth="1" />
+            <line
+              x1={L}
+              y1={py(v)}
+              x2={W - R}
+              y2={py(v)}
+              stroke={GRADE}
+              strokeDasharray={i === 0 ? undefined : '4 4'}
+              strokeWidth="1"
+            />
             <text
               x={L - 8}
               y={py(v) + 4}
@@ -141,14 +118,25 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
           </g>
         ))}
 
-        {/* Área só sob a receita: ela é a medida principal. Área nas
-            duas viraria sopa de transparência sobreposta. */}
         <path d={area((x) => x.receita)} fill={`url(#${id}-rec)`} />
 
-        <path d={linha((x) => x.investimento)} fill="none" stroke={COR_INVESTIMENTO} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        <path d={linha((x) => x.receita)} fill="none" stroke={COR_RECEITA} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        <path
+          d={linha((x) => x.investimento)}
+          fill="none"
+          stroke={COR_INVESTIMENTO}
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        <path
+          d={linha((x) => x.receita)}
+          fill="none"
+          stroke={COR_RECEITA}
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
 
-        {/* Datas */}
         {serie.map((s, i) =>
           i % passo === 0 || i === serie.length - 1 ? (
             <text
@@ -165,18 +153,37 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
           ) : null,
         )}
 
-        {/* Cruz do ponto ativo */}
         {ativo !== null && d ? (
           <g pointerEvents="none">
-            <line x1={px(ativo)} y1={T} x2={px(ativo)} y2={H - B} stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
-            {/* Anel na cor da superfície separa o marcador da linha. */}
-            <circle cx={px(ativo)} cy={py(d.investimento)} r="5" fill={COR_INVESTIMENTO} stroke="#0B1730" strokeWidth="2" />
-            <circle cx={px(ativo)} cy={py(d.receita)} r="5" fill={COR_RECEITA} stroke="#0B1730" strokeWidth="2" />
+            <line
+              x1={px(ativo)}
+              y1={T}
+              x2={px(ativo)}
+              y2={H - B}
+              stroke="var(--p-azul-vivo, #1D4ED8)"
+              strokeOpacity="0.35"
+              strokeDasharray="3 3"
+              strokeWidth="1.2"
+            />
+            <circle
+              cx={px(ativo)}
+              cy={py(d.investimento)}
+              r="5"
+              fill={COR_INVESTIMENTO}
+              stroke="var(--p-card, #FFFFFF)"
+              strokeWidth="2.2"
+            />
+            <circle
+              cx={px(ativo)}
+              cy={py(d.receita)}
+              r="5"
+              fill={COR_RECEITA}
+              stroke="var(--p-card, #FFFFFF)"
+              strokeWidth="2.2"
+            />
           </g>
         ) : null}
 
-        {/* Faixas invisíveis de captura: alvo bem maior que o marcador,
-            senão acertar um ponto de 5px vira teste de mira. */}
         {serie.map((s, i) => (
           <rect
             key={s.dia}
@@ -190,17 +197,15 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
         ))}
       </svg>
 
-      {/* Tooltip fora do SVG: HTML posicionado, para herdar tipografia e
-          não precisar recriar quebra de linha em SVG. */}
       {d ? (
         <div
-          className="pointer-events-none absolute top-10 z-10 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-4 shadow-2xl backdrop-blur"
+          className={`absolute top-10 min-w-[13.5rem] ${CLASSE_TOOLTIP}`}
           style={{
             left: `${(px(ativo!) / W) * 100}%`,
             transform: ativo! > serie.length / 2 ? 'translateX(-105%)' : 'translateX(5%)',
           }}
         >
-          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="font-mono text-[0.72rem] uppercase tracking-[0.12em] text-cinza">
             {diaLongo(d.dia)}
           </p>
           <dl className="mt-3 space-y-2 text-sm">
@@ -229,10 +234,6 @@ export function SerieTempo({ serie }: { serie: DiaKpi[] }) {
 
 /* ==================================================================
    BARRAS POR CANAL
-
-   Barra horizontal, e não pizza. Comparar comprimento é a tarefa
-   visual mais precisa que existe; comparar ângulo de fatia é das
-   piores, e piora quando as fatias são parecidas.
    ================================================================== */
 
 export type MedidaCanal =
@@ -254,31 +255,43 @@ export function BarrasCanal({
 
   const valor = (c: CanalKpi) => {
     switch (medida) {
-      case 'investimento': return c.investimento;
-      case 'conversas': return c.conversas;
-      case 'leads': return c.leadsCaptados;
-      case 'cliques': return c.cliquesLink;
-      case 'roas': return c.roas ?? c.roasDeclarado ?? 0;
-      default: return c.receita;
+      case 'investimento':
+        return c.investimento;
+      case 'conversas':
+        return c.conversas;
+      case 'leads':
+        return c.leadsCaptados;
+      case 'cliques':
+        return c.cliquesLink;
+      case 'roas':
+        return c.roas ?? c.roasDeclarado ?? 0;
+      default:
+        return c.receita;
     }
   };
   const max = Math.max(...canais.map(valor), 1);
   const fmt = (c: CanalKpi) => {
     switch (medida) {
-      case 'investimento': return c.investimento > 0 ? dinheiro(c.investimento) : '—';
-      case 'conversas': return numero(c.conversas);
-      case 'leads': return numero(c.leadsCaptados);
-      case 'cliques': return numero(c.cliquesLink);
-      case 'roas': return vezes(c.roas ?? c.roasDeclarado);
-      default: return dinheiro(c.receita);
+      case 'investimento':
+        return c.investimento > 0 ? dinheiro(c.investimento) : '—';
+      case 'conversas':
+        return numero(c.conversas);
+      case 'leads':
+        return numero(c.leadsCaptados);
+      case 'cliques':
+        return numero(c.cliquesLink);
+      case 'roas':
+        return vezes(c.roas ?? c.roasDeclarado);
+      default:
+        return dinheiro(c.receita);
     }
   };
 
   return (
-    <ul className="space-y-3.5">
+    <ul className="space-y-4">
       {canais.map((c) => {
         const v = valor(c);
-        const largura = v > 0 ? Math.max((v / max) * 100, 1.5) : 0;
+        const largura = v > 0 ? Math.max((v / max) * 100, 2) : 0;
         const semInvestimento = medida === 'roas' && c.roas === null && c.roasDeclarado === null;
 
         return (
@@ -289,7 +302,7 @@ export function BarrasCanal({
             className="group relative"
           >
             <div className="flex items-baseline justify-between gap-4">
-              <span className="flex items-center gap-2.5 text-sm text-neve">
+              <span className="flex items-center gap-2.5 text-sm font-medium text-neve">
                 <span
                   aria-hidden
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -302,7 +315,7 @@ export function BarrasCanal({
               </span>
             </div>
 
-            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-fio/50">
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-fio/70">
               <div
                 className="h-full rounded-full transition-[width] duration-500"
                 style={{
@@ -313,7 +326,7 @@ export function BarrasCanal({
             </div>
 
             {ativo === c.canal ? (
-              <div className="absolute right-0 top-full z-10 mt-2 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
+              <div className={`absolute right-0 top-full mt-2 min-w-[13.5rem] text-xs ${CLASSE_TOOLTIP}`}>
                 <dl className="space-y-1.5">
                   {[
                     ['Investimento', c.investimento > 0 ? dinheiro(c.investimento) : '—'],
@@ -326,7 +339,7 @@ export function BarrasCanal({
                   ].map(([k, val]) => (
                     <div key={k} className="flex justify-between gap-6">
                       <dt className="text-cinza">{k}</dt>
-                      <dd className="tabular text-branco">{val}</dd>
+                      <dd className="tabular font-medium text-branco">{val}</dd>
                     </div>
                   ))}
                 </dl>
@@ -341,13 +354,6 @@ export function BarrasCanal({
 
 /* ==================================================================
    SÉRIE TEMPORAL MULTI-NICHO
-
-   Adapta o eixo e a geometria ao perfil do cliente:
-   - Moeda dupla (e-commerce e vendas diretas): duas linhas na mesma
-     escala em reais.
-   - Verba + volume (WhatsApp, leads e branding): barras arredondadas
-     para o volume diário (conversas, leads ou alcance) e linha contínua
-     para o ritmo de investimento, com marcos do diário assinalados.
    ================================================================== */
 
 export function SerieMultinicho({
@@ -376,11 +382,16 @@ export function SerieMultinicho({
 
   const extrair = (d: DiaKpi): number => {
     switch (perfil) {
-      case 'ecommerce': return d.receita;
-      case 'vendas_midia': return d.receitaAtribuida;
-      case 'leads': return d.leadsCaptados;
-      case 'branding': return d.alcance > 0 ? d.alcance : d.impressoes;
-      default: return d.conversas > 0 ? d.conversas : d.cliquesLink || d.cliques;
+      case 'ecommerce':
+        return d.receita;
+      case 'vendas_midia':
+        return d.receitaAtribuida;
+      case 'leads':
+        return d.leadsCaptados;
+      case 'branding':
+        return d.alcance > 0 ? d.alcance : d.impressoes;
+      default:
+        return d.conversas > 0 ? d.conversas : d.cliquesLink || d.cliques;
     }
   };
 
@@ -390,7 +401,7 @@ export function SerieMultinicho({
     return (
       <div className="flex flex-wrap items-center justify-between gap-6 py-8">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.14em] text-cinza">
+          <p className="font-mono text-xs uppercase tracking-[0.12em] text-cinza">
             {diaLongo(unico.dia)} (1 dia no recorte)
           </p>
           <p className="mt-2 font-display text-2xl font-extrabold text-branco">
@@ -398,7 +409,7 @@ export function SerieMultinicho({
           </p>
         </div>
         <div className="text-right">
-          <p className="font-mono text-xs uppercase tracking-[0.14em] text-cinza">Investimento</p>
+          <p className="font-mono text-xs uppercase tracking-[0.12em] text-cinza">Investimento</p>
           <p className="tabular mt-2 font-display text-xl font-bold text-neve">
             {dinheiro(unico.investimento)}
           </p>
@@ -434,7 +445,8 @@ export function SerieMultinicho({
   const marcasEsq = [0, 0.5, 1].map((f) => f * tetoRes);
   const marcasDir = [0, 0.5, 1].map((f) => f * tetoInv);
   const passoX = Math.max(1, Math.floor(serie.length / 6));
-  const larguraBarra = Math.max(4, Math.min(20, (larguraUtil / serie.length) * 0.56));
+  const larguraBarra = Math.max(5, Math.min(22, (larguraUtil / serie.length) * 0.58));
+  const raioBarra = Math.min(7, larguraBarra / 2);
 
   const d = ativo === null ? null : serie[ativo];
   const marcoAtivo = d ? marcosPorDia.get(d.dia) : undefined;
@@ -443,15 +455,15 @@ export function SerieMultinicho({
     <figure className="relative">
       <figcaption className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-5">
-          <span className="flex items-center gap-2 text-xs text-neve">
+          <span className="flex items-center gap-2 text-xs font-medium text-neve">
             <span
               aria-hidden
-              className={modo === 'verba_e_volume' ? 'h-2.5 w-2.5 rounded-xs' : 'h-2.5 w-2.5 rounded-full'}
+              className={modo === 'verba_e_volume' ? 'h-2.5 w-2.5 rounded-sm' : 'h-2.5 w-2.5 rounded-full'}
               style={{ background: COR_RECEITA }}
             />
             {rotuloResultado}
           </span>
-          <span className="flex items-center gap-2 text-xs text-neve">
+          <span className="flex items-center gap-2 text-xs font-medium text-neve">
             <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: COR_INVESTIMENTO }} />
             Investimento em mídia
           </span>
@@ -472,20 +484,28 @@ export function SerieMultinicho({
       >
         <defs>
           <linearGradient id={`${id}-res`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={COR_RECEITA} stopOpacity="0.28" />
+            <stop offset="0%" stopColor={COR_RECEITA} stopOpacity="0.22" />
             <stop offset="100%" stopColor={COR_RECEITA} stopOpacity="0" />
           </linearGradient>
         </defs>
 
         {marcasEsq.map((v, i) => (
           <g key={i}>
-            <line x1={L} y1={pyRes(v)} x2={W - MR_DIR} y2={pyRes(v)} stroke="var(--fio)" strokeWidth="1" />
+            <line
+              x1={L}
+              y1={pyRes(v)}
+              x2={W - MR_DIR}
+              y2={pyRes(v)}
+              stroke={GRADE}
+              strokeDasharray={i === 0 ? undefined : '4 4'}
+              strokeWidth="1"
+            />
             <text
               x={L - 8}
               y={pyRes(v) + 4}
               textAnchor="end"
               fontSize="10"
-              fill="var(--cinza)"
+              fill={EIXO}
               fontFamily="var(--font-mono)"
             >
               {i === 0
@@ -505,7 +525,7 @@ export function SerieMultinicho({
                 y={pyInv(v) + 4}
                 textAnchor="start"
                 fontSize="10"
-                fill="var(--cinza)"
+                fill={EIXO}
                 fontFamily="var(--font-mono)"
               >
                 {i === 0 ? 'R$ 0' : dinheiroCurto(v)}
@@ -520,7 +540,7 @@ export function SerieMultinicho({
               d={linha((x) => x.investimento, pyInv)}
               fill="none"
               stroke={COR_INVESTIMENTO}
-              strokeWidth="2"
+              strokeWidth="2.1"
               strokeLinejoin="round"
               strokeLinecap="round"
             />
@@ -528,7 +548,7 @@ export function SerieMultinicho({
               d={linha(extrair, pyRes)}
               fill="none"
               stroke={COR_RECEITA}
-              strokeWidth="2.2"
+              strokeWidth="2.4"
               strokeLinejoin="round"
               strokeLinecap="round"
             />
@@ -538,7 +558,8 @@ export function SerieMultinicho({
             {serie.map((s, i) => {
               const val = extrair(s);
               const topo = pyRes(val);
-              const alt = Math.max(T + alturaUtil - topo, val > 0 ? 2 : 0);
+              const alt = Math.max(T + alturaUtil - topo, val > 0 ? 3 : 0);
+              const selecionado = ativo === i;
               return (
                 <rect
                   key={s.dia}
@@ -546,9 +567,9 @@ export function SerieMultinicho({
                   y={topo}
                   width={larguraBarra}
                   height={alt}
-                  rx={3}
-                  fill={COR_RECEITA}
-                  fillOpacity={ativo === i ? 0.95 : 0.42}
+                  rx={raioBarra}
+                  fill={selecionado ? COR_INVESTIMENTO : COR_RECEITA}
+                  fillOpacity={selecionado ? 0.96 : 0.78}
                 />
               );
             })}
@@ -556,14 +577,13 @@ export function SerieMultinicho({
               d={linha((x) => x.investimento, pyInv)}
               fill="none"
               stroke={COR_INVESTIMENTO}
-              strokeWidth="2.2"
+              strokeWidth="2.3"
               strokeLinejoin="round"
               strokeLinecap="round"
             />
           </>
         )}
 
-        {/* Marcos registrados no diário */}
         {serie.map((s, i) =>
           marcosPorDia.has(s.dia) ? (
             <line
@@ -572,9 +592,10 @@ export function SerieMultinicho({
               y1={T}
               x2={px(i)}
               y2={H - B}
-              stroke="rgba(228,21,95,0.45)"
+              stroke="var(--p-azul-vivo, #1D4ED8)"
+              strokeOpacity="0.45"
               strokeDasharray="3 3"
-              strokeWidth="1"
+              strokeWidth="1.2"
             />
           ) : null,
         )}
@@ -587,7 +608,7 @@ export function SerieMultinicho({
               y={H - 8}
               textAnchor="middle"
               fontSize="10"
-              fill="var(--cinza)"
+              fill={EIXO}
               fontFamily="var(--font-mono)"
             >
               {diaCurto(s.dia)}
@@ -597,9 +618,32 @@ export function SerieMultinicho({
 
         {ativo !== null && d ? (
           <g pointerEvents="none">
-            <line x1={px(ativo)} y1={T} x2={px(ativo)} y2={H - B} stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
-            <circle cx={px(ativo)} cy={pyInv(d.investimento)} r="5" fill={COR_INVESTIMENTO} stroke="#0B1730" strokeWidth="2" />
-            <circle cx={px(ativo)} cy={pyRes(extrair(d))} r="5" fill={COR_RECEITA} stroke="#0B1730" strokeWidth="2" />
+            <line
+              x1={px(ativo)}
+              y1={T}
+              x2={px(ativo)}
+              y2={H - B}
+              stroke="var(--p-azul-vivo, #1D4ED8)"
+              strokeOpacity="0.35"
+              strokeDasharray="3 3"
+              strokeWidth="1.2"
+            />
+            <circle
+              cx={px(ativo)}
+              cy={pyInv(d.investimento)}
+              r="5"
+              fill={COR_INVESTIMENTO}
+              stroke="var(--p-card, #FFFFFF)"
+              strokeWidth="2.2"
+            />
+            <circle
+              cx={px(ativo)}
+              cy={pyRes(extrair(d))}
+              r="5"
+              fill={COR_RECEITA}
+              stroke="var(--p-card, #FFFFFF)"
+              strokeWidth="2.2"
+            />
           </g>
         ) : null}
 
@@ -618,13 +662,13 @@ export function SerieMultinicho({
 
       {d ? (
         <div
-          className="pointer-events-none absolute top-10 z-10 min-w-[14rem] rounded-xl border border-fio bg-marinho-fundo/95 p-4 shadow-2xl backdrop-blur print:hidden"
+          className={`absolute top-10 min-w-[14rem] ${CLASSE_TOOLTIP}`}
           style={{
             left: `${(px(ativo!) / W) * 100}%`,
             transform: ativo! > serie.length / 2 ? 'translateX(-105%)' : 'translateX(5%)',
           }}
         >
-          <p className="font-mono text-[0.75rem] uppercase tracking-[0.14em] text-cinza">
+          <p className="font-mono text-[0.72rem] uppercase tracking-[0.12em] text-cinza">
             {diaLongo(d.dia)}
           </p>
           <dl className="mt-3 space-y-2 text-sm">
@@ -653,7 +697,7 @@ export function SerieMultinicho({
               </div>
             ) : null}
             {marcoAtivo ? (
-              <div className="border-t border-fio pt-2 text-xs text-magenta-texto">
+              <div className="border-t border-fio pt-2 text-xs font-medium text-magenta-texto">
                 ◆ {marcoAtivo.titulo}
               </div>
             ) : null}
@@ -666,16 +710,6 @@ export function SerieMultinicho({
 
 /* ==================================================================
    DOZE MESES: faturado contra recebido
-
-   Barras agrupadas, UM eixo, escala partindo do zero. As duas medidas
-   estão em reais, então a comparação visual entre elas é honesta.
-
-   POR QUE AS DUAS SÉRIES, E NÃO SÓ UMA
-   Faturado é o que foi emitido para a competência. Recebido é o que
-   entrou no mês. Nunca batem: a fatura de agosto que o cliente paga em
-   setembro conta em agosto num e em setembro no outro. É justamente a
-   distância entre as duas barras que responde "o faturamento subiu e o
-   caixa não" — a pergunta que agência costuma responder tarde demais.
    ================================================================== */
 
 const MW = 720;
@@ -696,20 +730,16 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
     );
   }
 
-  /* Sempre do zero. Eixo truncado faz uma queda de 5% parecer um
-     desabamento, e num gráfico de dinheiro isso muda decisão. */
   const max = Math.max(...serie.flatMap((m) => [m.faturado, m.recebido]), 1);
 
   const areaX = MW - ML - MR;
   const areaY = MH - MT - MB;
   const passo = areaX / serie.length;
-
-  /* Duas barras finas dentro do passo, com 2px de superfície entre
-     elas: fatia colada em fatia lê como uma barra só. */
-  const larguraBarra = Math.max((passo - 10) / 2, 3);
+  const larguraBarra = Math.max((passo - 12) / 2, 4);
+  const raio = Math.min(6, larguraBarra / 2);
 
   const y = (v: number) => MT + areaY - (v / max) * areaY;
-  const alturaDe = (v: number) => Math.max((v / max) * areaY, v > 0 ? 2 : 0);
+  const alturaDe = (v: number) => Math.max((v / max) * areaY, v > 0 ? 3 : 0);
 
   const rotuloMes = (iso: string) => {
     const [a, m] = iso.split('-');
@@ -721,9 +751,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
 
   return (
     <figure className="m-0">
-      {/* Legenda sempre presente com duas séries: identidade nunca é
-          só cor. */}
-      <figcaption className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+      <figcaption className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium">
         {[
           ['Faturado', COR_FATURADO],
           ['Recebido', COR_RECEBIDO],
@@ -743,9 +771,17 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
           aria-label="Faturado e recebido nos últimos doze meses"
           onMouseLeave={() => setAtivo(null)}
         >
-          {marcas.map((v) => (
+          {marcas.map((v, idx) => (
             <g key={v}>
-              <line x1={ML} x2={MW - MR} y1={y(v)} y2={y(v)} stroke={GRADE} strokeWidth={1} />
+              <line
+                x1={ML}
+                x2={MW - MR}
+                y1={y(v)}
+                y2={y(v)}
+                stroke={GRADE}
+                strokeDasharray={idx === 0 ? undefined : '4 4'}
+                strokeWidth={1}
+              />
               <text
                 x={ML - 8}
                 y={y(v) + 4}
@@ -765,31 +801,30 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
             const destaque = ativo === i;
             return (
               <g key={mes.mes}>
-                {/* Alvo de toque do tamanho do passo inteiro, e não da
-                    barra: acertar 15px com o dedo não acontece. */}
                 <rect
-                  x={x0}
+                  x={x0 + 2}
                   y={MT}
-                  width={passo}
+                  width={passo - 4}
                   height={areaY}
-                  fill={destaque ? 'rgba(255,255,255,0.04)' : 'transparent'}
+                  rx={8}
+                  fill={destaque ? 'var(--p-azul-suave, rgba(29,78,216,0.08))' : 'transparent'}
                   onMouseEnter={() => setAtivo(i)}
                 />
                 <rect
-                  x={x0 + passo / 2 - larguraBarra - 1}
+                  x={x0 + passo / 2 - larguraBarra - 1.5}
                   y={y(mes.faturado)}
                   width={larguraBarra}
                   height={alturaDe(mes.faturado)}
-                  rx={3}
+                  rx={raio}
                   fill={COR_FATURADO}
                   pointerEvents="none"
                 />
                 <rect
-                  x={x0 + passo / 2 + 1}
+                  x={x0 + passo / 2 + 1.5}
                   y={y(mes.recebido)}
                   width={larguraBarra}
                   height={alturaDe(mes.recebido)}
-                  rx={3}
+                  rx={raio}
                   fill={COR_RECEBIDO}
                   pointerEvents="none"
                 />
@@ -810,11 +845,11 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
         </svg>
 
         {m ? (
-          <div className="pointer-events-none absolute right-0 top-0 min-w-[13rem] rounded-xl border border-fio bg-marinho-fundo/95 p-3.5 text-xs shadow-2xl backdrop-blur">
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-cinza">
+          <div className={`absolute right-0 top-0 min-w-[13.5rem] text-xs ${CLASSE_TOOLTIP}`}>
+            <p className="font-mono text-[0.72rem] uppercase tracking-[0.12em] text-cinza">
               {rotuloMes(m.mes)}
             </p>
-            <dl className="mt-2 space-y-1.5">
+            <dl className="mt-2.5 space-y-1.5">
               {[
                 ['Faturado', dinheiro(m.faturado)],
                 ['Recebido', dinheiro(m.recebido)],
@@ -823,7 +858,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-6">
                   <dt className="text-cinza">{k}</dt>
-                  <dd className="tabular text-branco">{v}</dd>
+                  <dd className="tabular font-semibold text-branco">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -831,22 +866,20 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
         ) : null}
       </div>
 
-      {/* A tabela é a mesma informação sem depender de enxergar o
-          desenho, e é o que um leitor de tela lê. */}
       <details className="mt-4">
-        <summary className="cursor-pointer text-xs text-cinza hover:text-neve">
+        <summary className="cursor-pointer text-xs font-medium text-cinza hover:text-neve">
           Ver os números
         </summary>
         <div className="mt-3 overflow-x-auto rounded-xl border border-fio">
           <table className="w-full min-w-[30rem] border-collapse text-left text-xs">
             <caption className="sr-only">Faturado, recebido e despesa por mês</caption>
             <thead>
-              <tr>
+              <tr className="bg-marinho-alto/50">
                 {['Mês', 'Faturado', 'Recebido', 'Despesa'].map((h) => (
                   <th
                     key={h}
                     scope="col"
-                    className="px-4 py-3 font-mono text-[0.75rem] uppercase tracking-[0.12em] font-normal text-cinza"
+                    className="px-4 py-3 font-mono text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-cinza"
                   >
                     {h}
                   </th>
@@ -856,7 +889,7 @@ export function BarrasMes({ serie }: { serie: MesFinanceiro[] }) {
             <tbody>
               {serie.map((mes) => (
                 <tr key={mes.mes}>
-                  <th scope="row" className="border-t border-fio px-4 py-2.5 font-normal text-neve">
+                  <th scope="row" className="border-t border-fio px-4 py-2.5 font-medium text-neve">
                     {rotuloMes(mes.mes)}
                   </th>
                   <td className="tabular border-t border-fio px-4 py-2.5">{dinheiro(mes.faturado)}</td>

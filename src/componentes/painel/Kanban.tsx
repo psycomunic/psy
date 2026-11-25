@@ -396,7 +396,10 @@ export function Kanban({
                               {parado ? (
                                 <span
                                   className="tabular flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold"
-                                  style={{ color: '#FBBF24', backgroundColor: '#FBBF2420' }}
+                                  style={{
+                                    color: 'var(--p-warn, #D97706)',
+                                    backgroundColor: 'rgba(217, 119, 6, 0.12)',
+                                  }}
                                 >
                                   <span aria-hidden>▲</span>
                                   {l.diasNoEstagio} dias parado
@@ -489,7 +492,7 @@ function FichaLead({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
 
-      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-fio bg-marinho-fundo p-7">
+      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-fio bg-[var(--p-card,#FFFFFF)] p-7 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
